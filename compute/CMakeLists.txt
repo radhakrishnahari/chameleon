@@ -48,6 +48,8 @@ set(CHAMELEON_CONTROL
     ../control/chameleon_mf77.c
     map.c
     pmap.c
+    pmap2.c
+    pmap3.c
    )
 
 set(flags_to_add "")

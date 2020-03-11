@@ -1,29 +1,30 @@
 /**
  *
- * @file pmap.c
+ * @file pmap2.c
  *
- * @copyright 2018-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2018-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  ***
  *
- * @brief Chameleon map parallel algorithm
+ * @brief Chameleon map2 parallel algorithm
  *
- * @version 1.2.0
+ * @version 1.0.0
  * @author Mathieu Faverge
- * @date 2022-02-22
+ * @date 2020-03-03
  *
  */
 #include "control/common.h"
 
 #define A(m, n) A, m, n
+#define B(m, n) B, m, n
 
 /**
- *  chameleon_pmap
+ *  chameleon_pmap2
  */
-void chameleon_pmap( cham_access_t access, cham_uplo_t uplo, CHAM_desc_t *A,
-                     cham_unary_operator_t op_fct, void *op_args,
-                     RUNTIME_sequence_t *sequence, RUNTIME_request_t *request )
+void chameleon_pmap2( cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B,
+                      cham_binary_operator_t op_fct, void *op_args,
+                      RUNTIME_sequence_t *sequence, RUNTIME_request_t *request )
 {
     CHAM_context_t *chamctxt;
     RUNTIME_option_t options;
@@ -38,28 +39,28 @@ void chameleon_pmap( cham_access_t access, cham_uplo_t uplo, CHAM_desc_t *A,
     case ChamUpper:
         for (n = 0; n < A->nt; n++) {
             for (m = 0; m < n; m++) {
-                INSERT_TASK_map(
-                    &options,
-                    access, ChamUpperLower, A(m, n),
+                INSERT_TASK_map2(
+                    &options, ChamUpperLower,
+                    A(m, n), B(m, n),
                     op_fct, op_args );
             }
-            INSERT_TASK_map(
-                &options,
-                access, uplo, A(n, n),
+            INSERT_TASK_map2(
+                &options, uplo,
+                A(n, n), B(n, n),
                 op_fct, op_args );
         }
         break;
 
     case ChamLower:
         for (n = 0; n < A->nt; n++) {
-            INSERT_TASK_map(
-                &options,
-                access, uplo, A(n, n),
+            INSERT_TASK_map2(
+                &options, uplo,
+                A(n, n), B(n, n),
                 op_fct, op_args );
             for (m = n+1; m < A->mt; m++) {
-                INSERT_TASK_map(
-                    &options,
-                    access, ChamUpperLower, A(m, n),
+                INSERT_TASK_map2(
+                    &options, ChamUpperLower,
+                    A(m, n), B(m, n),
                     op_fct, op_args );
             }
         }
@@ -69,9 +70,9 @@ void chameleon_pmap( cham_access_t access, cham_uplo_t uplo, CHAM_desc_t *A,
     default:
         for (m = 0; m < A->mt; m++) {
             for (n = 0; n < A->nt; n++) {
-                INSERT_TASK_map(
-                    &options,
-                    access, uplo, A(m, n),
+                INSERT_TASK_map2(
+                    &options, uplo,
+                    A(m, n), B(m, n),
                     op_fct, op_args );
             }
         }

@@ -105,6 +105,12 @@ extern "C" {
 void chameleon_pmap( cham_access_t access, cham_uplo_t uplo, CHAM_desc_t *A,
                      cham_unary_operator_t operator, void *op_args,
                      RUNTIME_sequence_t *sequence, RUNTIME_request_t *request );
+void chameleon_pmap2( cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B,
+                      cham_binary_operator_t operator, void *op_args,
+                      RUNTIME_sequence_t *sequence, RUNTIME_request_t *request );
+void chameleon_pmap3( cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B, CHAM_desc_t *C,
+                      cham_ternary_operator_t operator, void *op_args,
+                      RUNTIME_sequence_t *sequence, RUNTIME_request_t *request );
 
 #include "control/compute_s.h"
 #include "control/compute_d.h"
