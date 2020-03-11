@@ -35,6 +35,10 @@ BEGIN_C_DECLS
  */
 typedef enum chameleon_tasktype_e {
 
+  TASK_MAP_ONE,
+  TASK_MAP_TWO,
+  TASK_MAP_THREE,
+
   TASK_GEMM,
   TASK_HEMM,
   TASK_HER2K,

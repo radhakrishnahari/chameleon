@@ -94,6 +94,10 @@ void RUNTIME_zlocality_allrestrict( uint32_t where )
    cl_zunmlq_restrict_where( where );
    cl_ztpmlqt_restrict_where( where );
 
+    /* map */
+    cl_map_one_restrict_where( where );
+    cl_map_two_restrict_where( where );
+    cl_map_three_restrict_where( where );
 }
 
 void RUNTIME_zlocality_onerestrict( cham_tasktype_t kernel, uint32_t where )
@@ -138,11 +142,15 @@ void RUNTIME_zlocality_onerestrict( cham_tasktype_t kernel, uint32_t where )
     case TASK_TPMQRT: cl_ztpmqrt_restrict_where( where ); break;
 
     /* LQ */
-   case TASK_GELQT:  cl_zgelqt_restrict_where( where ); break;
-   case TASK_TPLQT:  cl_ztplqt_restrict_where( where ); break;
-   case TASK_UNMLQ:  cl_zunmlq_restrict_where( where ); break;
-   case TASK_TPMLQT: cl_ztpmlqt_restrict_where( where ); break;
+    case TASK_GELQT:  cl_zgelqt_restrict_where( where ); break;
+    case TASK_TPLQT:  cl_ztplqt_restrict_where( where ); break;
+    case TASK_UNMLQ:  cl_zunmlq_restrict_where( where ); break;
+    case TASK_TPMLQT: cl_ztpmlqt_restrict_where( where ); break;
 
+    /* map */
+    case TASK_MAP_ONE: cl_map_one_restrict_where( where ); break;
+    case TASK_MAP_TWO: cl_map_two_restrict_where( where ); break;
+    case TASK_MAP_THREE: cl_map_three_restrict_where( where ); break;
     default:
       return;
     }
@@ -190,6 +198,10 @@ void RUNTIME_zlocality_allrestore( )
    cl_zunmlq_restore_where();
    cl_ztpmlqt_restore_where();
 
+    /* map */
+    cl_map_one_restore_where();
+    cl_map_two_restore_where();
+    cl_map_three_restore_where();
 }
 
 void RUNTIME_zlocality_onerestore( cham_tasktype_t kernel )
@@ -231,10 +243,15 @@ void RUNTIME_zlocality_onerestore( cham_tasktype_t kernel )
     case TASK_TPMQRT: cl_ztpmqrt_restore_where(); break;
 
     /* LQ */
-   case TASK_GELQT:  cl_zgelqt_restore_where(); break;
-   case TASK_TPLQT:  cl_ztplqt_restore_where(); break;
-   case TASK_UNMLQ:  cl_zunmlq_restore_where(); break;
-   case TASK_TPMLQT: cl_ztpmlqt_restore_where(); break;
+    case TASK_GELQT:  cl_zgelqt_restore_where(); break;
+    case TASK_TPLQT:  cl_ztplqt_restore_where(); break;
+    case TASK_UNMLQ:  cl_zunmlq_restore_where(); break;
+    case TASK_TPMLQT: cl_ztpmlqt_restore_where(); break;
+
+    /* map */
+    case TASK_MAP_ONE: cl_map_one_restore_where(); break;
+    case TASK_MAP_TWO: cl_map_two_restore_where(); break;
+    case TASK_MAP_THREE: cl_map_three_restore_where(); break;
 
     default:
       return;

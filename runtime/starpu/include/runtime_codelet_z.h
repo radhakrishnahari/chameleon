@@ -143,6 +143,11 @@ CODELETS_HEADER(dlag2h);
 CODELETS_HEADER(hlag2d);
 #endif
 
+/* map */
+CODELETS_HEADER(map_one);
+CODELETS_HEADER(map_two);
+CODELETS_HEADER(map_three);
+
 struct cl_zgemm_args_s {
     cham_trans_t transA;
     cham_trans_t transB;
