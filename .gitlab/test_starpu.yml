@@ -6,6 +6,7 @@
     VERSION: starpu
     LOGNAME: "chameleon-test-${SYSTEM}-${VERSION}-${CATEGORY}-${PRECISION}"
     TESTS_RESTRICTION: "-R _${CATEGORY}_${PRECISION}|example"
+    CHAMELEON_RUNTIME_LIBRARY: $CI_PROJECT_DIR/build/runtime/starpu/libchameleon_starpu.so
 
 test_starpu_master:
   extends: .test_script_starpu
