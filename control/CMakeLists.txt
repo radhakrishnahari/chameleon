@@ -26,7 +26,6 @@
 #
 ###
 
-
 # Generate the chameleon headers for all possible precisions
 # ------------------------------------------------------
 set(CHAMELEON_HDRS_GENERATED "")

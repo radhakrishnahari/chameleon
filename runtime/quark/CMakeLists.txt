@@ -35,6 +35,9 @@ morse_export_imported_target(MORSE::QUARK quark chameleon)
 if(QUARK_FOUND)
   message("-- ${Blue}Add definition CHAMELEON_SCHED_QUARK"
     " - Activate QUARK in Chameleon${ColourReset}")
+  if (QUARK_LIBRARIES_DEP)
+    set(CHAMELEON_DEP  "${QUARK_LIBRARIES_DEP};${CHAMELEON_DEP}" PARENT_SCOPE)
+  endif()
 endif(QUARK_FOUND)
 
 # # Generate headers for all possible precisions

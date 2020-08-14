@@ -34,7 +34,9 @@ morse_export_imported_target(OpenMP::OpenMP_C openmp chameleon)
 if ( OPENMP_FOUND )
   message("-- ${Blue}Add definition CHAMELEON_SCHED_OPENMP"
     " - Activate OpenMP in Chameleon${ColourReset}")
-  # TODO: check for compiler support for "_Pragma"
+  if (OpenMP_C_LIBRARIES)
+    set(CHAMELEON_DEP  "${OpenMP_C_LIBRARIES};${CHAMELEON_DEP}" PARENT_SCOPE)
+  endif()
 else ( OPENMP_FOUND )
   message(FATAL_ERROR "Something went wrong when finding OpenMP")
   return()
