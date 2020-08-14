@@ -122,10 +122,10 @@ int __chameleon_initparcomm(int ncpus, int ngpus, int nthreads_per_worker, MPI_C
     }
 
 #if defined(CHAMELEON_USE_MPI)
-#  if defined(CHAMELEON_SIMULATION)
+#if defined(CHAMELEON_SIMULATION)
     /* Assuming that we don't initialize MPI ourself (which SMPI doesn't support anyway) */
     chamctxt->mpi_outer_init = 1;
-#  else
+#else
     {
         int flag = 0, provided = 0;
         MPI_Initialized( &flag );
@@ -146,7 +146,7 @@ int __chameleon_initparcomm(int ncpus, int ngpus, int nthreads_per_worker, MPI_C
             }
         }
     }
-#  endif
+#endif
 #endif
 
 #if !defined(CHAMELEON_USE_CUDA) && !defined(CHAMELEON_USE_HIP)

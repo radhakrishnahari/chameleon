@@ -421,6 +421,10 @@ int CHAMELEON_zhetrd_Tile_Async( cham_job_t jobz,
     /* Reduce band matrix to tridiagonal matrix */
 #if !defined(CHAMELEON_SIMULATION)
     {
+        /*
+         * TODO: as soons as LAPACKE is not needed anymore here we can remove
+         * our dependency to coreblas and LAPACKE libs.
+         */
         int info = LAPACKE_zhbtrd( LAPACK_COL_MAJOR,
                                    chameleon_lapack_const(jobz),
                                    chameleon_lapack_const(uplo),
