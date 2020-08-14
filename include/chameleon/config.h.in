@@ -30,10 +30,11 @@
 #define CHAMELEON_VERSION_MICRO @CHAMELEON_VERSION_MICRO@
 
 /* Scheduling engine */
-#cmakedefine CHAMELEON_SCHED_QUARK
-#cmakedefine CHAMELEON_SCHED_PARSEC
-#cmakedefine CHAMELEON_SCHED_STARPU
 #cmakedefine CHAMELEON_SCHED_OPENMP
+#cmakedefine CHAMELEON_SCHED_PARSEC
+#cmakedefine CHAMELEON_SCHED_QUARK
+#cmakedefine CHAMELEON_SCHED_STARPU
+#cmakedefine CHAMELEON_SCHED_DLOPEN
 
 /* Debug scheduling engine */
 #cmakedefine CHAMELEON_RUNTIME_SYNC
