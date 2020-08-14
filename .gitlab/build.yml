@@ -59,3 +59,15 @@ build_starpu_simgrid:
     SIMU: simu
     BUILD_OPTIONS: "-DCHAMELEON_SIMULATION=ON -DCHAMELEON_USE_CUDA=ON -DCHAMELEON_USE_MPI=OFF"
     VERSION: starpu_simgrid
+
+build_all:
+  extends: .build_script_template
+  artifacts:
+    name: build_all
+    expire_in: 48 hours
+    paths:
+      - build-all
+      - chameleon_all.log
+  variables:
+    BUILD_OPTIONS: "-DCHAMELEON_SCHED_OPENMP=ON -DCHAMELEON_SCHED_PARSEC=ON -DCHAMELEON_SCHED_QUARK=ON -DCHAMELEON_SCHED_STARPU=ON"
+    VERSION: all

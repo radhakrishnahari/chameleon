@@ -21,6 +21,7 @@
 #  @author Cedric Castagnede
 #  @author Emmanuel Agullo
 #  @author Mathieu Faverge
+#  @author Florent Pruvost
 #  @date 2020-03-03
 #
 ###
@@ -59,6 +60,7 @@ set(CHAMELEON_CONTROL
     ../control/tile.c
     ../control/chameleon_f77.c
     ../control/chameleon_mf77.c
+    ../control/chameleon_dlopen.c
     map.c
     pmap.c
    )
@@ -302,16 +304,27 @@ set(CHAMELEON_SOURCES_TARGETS "${CHAMELEON_SOURCES_TARGETS};chameleon_sources" C
 # Compile step
 # ------------
 add_library(chameleon ${CHAMELEON_SRCS} ${CHAMELEON_SRCSF})
-if(CHAMELEON_SCHED_STARPU)
-  target_link_libraries(chameleon chameleon_starpu)
-elseif(CHAMELEON_SCHED_PARSEC)
-  target_link_libraries(chameleon chameleon_parsec)
-elseif(CHAMELEON_SCHED_QUARK)
-  target_link_libraries(chameleon chameleon_quark)
-elseif(CHAMELEON_SCHED_OPENMP)
-  target_link_libraries(chameleon chameleon_openmp)
+
+if (NOT CHAMELEON_SCHED_DLOPEN)
+  if(CHAMELEON_SCHED_OPENMP)
+    target_link_libraries(chameleon chameleon_openmp)
+  endif()
+  if(CHAMELEON_SCHED_PARSEC)
+    target_link_libraries(chameleon chameleon_parsec)
+  endif()
+  if(CHAMELEON_SCHED_QUARK)
+    target_link_libraries(chameleon chameleon_quark)
+  endif()
+  if(CHAMELEON_SCHED_STARPU)
+    target_link_libraries(chameleon chameleon_starpu)
+  endif()
+else()
+  # TODO: remove this as soon as we don't have calls to LAPACKE in Eigen values
+  # algorithms.
+  target_link_libraries(chameleon coreblas)
 endif()
 target_link_libraries(chameleon hqr)
+target_link_libraries(chameleon ${EXTRA_LIBRARIES})
 
 add_dependencies(chameleon
   chameleon_include

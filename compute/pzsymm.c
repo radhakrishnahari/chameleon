@@ -17,6 +17,7 @@
  * @author Mathieu Faverge
  * @author Emmanuel Agullo
  * @author Cedric Castagnede
+ * @author Florent Pruvost
  * @date 2020-03-03
  * @precisions normal z -> s d c
  *
@@ -85,16 +86,16 @@ chameleon_pzsymm_summa_left( CHAM_context_t *chamctxt, cham_uplo_t uplo,
                 tempak = tempkk;
             }
 
-            INSERT_TASK_zlacpy(
+            CHAMELEON_INSERT_TASK_zlacpy(
                 options,
                 ChamUpperLower, tempam, tempak, C->mb,
                 A( Am, Ak ),
                 WA( m, (k % C->q) + lq ) );
 
-            RUNTIME_data_flush( sequence, A( Am, Ak ) );
+            CHAMELEON_RUNTIME_data_flush( sequence, A( Am, Ak ) );
 
             for ( q=1; q < C->q; q++ ) {
-                INSERT_TASK_zlacpy(
+                CHAMELEON_INSERT_TASK_zlacpy(
                     options,
                     ChamUpperLower, tempam, tempak, C->mb,
                     WA( m, ((k+q-1) % C->q) + lq ),
@@ -107,16 +108,16 @@ chameleon_pzsymm_summa_left( CHAM_context_t *chamctxt, cham_uplo_t uplo,
 
             tempnn = n == C->nt-1 ? C->n-n*C->nb : C->nb;
 
-            INSERT_TASK_zlacpy(
+            CHAMELEON_INSERT_TASK_zlacpy(
                 options,
                 ChamUpperLower, tempkk, tempnn, C->mb,
                 B(   k,              n ),
                 WB( (k % C->p) + lp, n ) );
 
-            RUNTIME_data_flush( sequence, B( k, n ) );
+            CHAMELEON_RUNTIME_data_flush( sequence, B( k, n ) );
 
             for ( p=1; p < C->p; p++ ) {
-                INSERT_TASK_zlacpy(
+                CHAMELEON_INSERT_TASK_zlacpy(
                     options,
                     ChamUpperLower, tempkk, tempnn, C->mb,
                     WB( ((k+p-1) % C->p) + lp, n ),
@@ -132,7 +133,7 @@ chameleon_pzsymm_summa_left( CHAM_context_t *chamctxt, cham_uplo_t uplo,
                 for (n = myq; n < C->nt; n+=C->q) {
                     tempnn = n == C->nt-1 ? C->n-n*C->nb : C->nb;
 
-                    INSERT_TASK_zsymm(
+                    CHAMELEON_INSERT_TASK_zsymm(
                         options, ChamLeft, uplo,
                         tempmm, tempnn, A->mb,
                         alpha, WA( m,        myq + lq ),
@@ -153,7 +154,7 @@ chameleon_pzsymm_summa_left( CHAM_context_t *chamctxt, cham_uplo_t uplo,
                 for (n = myq; n < C->nt; n+=C->q) {
                     tempnn = n == C->nt-1 ? C->n-n*C->nb : C->nb;
 
-                    INSERT_TASK_zgemm(
+                    CHAMELEON_INSERT_TASK_zgemm(
                         options, transA, ChamNoTrans,
                         tempmm, tempnn, tempkk, A->mb,
                         alpha, WA( m,        myq + lq ),
@@ -202,16 +203,16 @@ chameleon_pzsymm_summa_right( CHAM_context_t *chamctxt, cham_uplo_t uplo,
 
             tempmm = m == C->mt-1 ? C->m - m * C->mb : C->mb;
 
-            INSERT_TASK_zlacpy(
+            CHAMELEON_INSERT_TASK_zlacpy(
                 options,
                 ChamUpperLower, tempmm, tempkk, C->mb,
                 B(  m,  k ),
                 WA( m, (k % C->q) + lq ) );
 
-            RUNTIME_data_flush( sequence, B( m, k ) );
+            CHAMELEON_RUNTIME_data_flush( sequence, B( m, k ) );
 
             for ( q=1; q < C->q; q++ ) {
-                INSERT_TASK_zlacpy(
+                CHAMELEON_INSERT_TASK_zlacpy(
                     options,
                     ChamUpperLower, tempmm, tempkk, C->mb,
                     WA( m, ((k+q-1) % C->q) + lq ),
@@ -242,16 +243,16 @@ chameleon_pzsymm_summa_right( CHAM_context_t *chamctxt, cham_uplo_t uplo,
                 tempan = tempnn;
             }
 
-            INSERT_TASK_zlacpy(
+            CHAMELEON_INSERT_TASK_zlacpy(
                 options,
                 ChamUpperLower, tempak, tempan, C->mb,
                 A(  Ak,              An ),
                 WB( (k % C->p) + lp, n  ) );
 
-            RUNTIME_data_flush( sequence, A( Ak, An ) );
+            CHAMELEON_RUNTIME_data_flush( sequence, A( Ak, An ) );
 
             for ( p=1; p < C->p; p++ ) {
-                INSERT_TASK_zlacpy(
+                CHAMELEON_INSERT_TASK_zlacpy(
                     options,
                     ChamUpperLower, tempak, tempan, C->mb,
                     WB( ((k+p-1) % C->p) + lp, n ),
@@ -268,7 +269,7 @@ chameleon_pzsymm_summa_right( CHAM_context_t *chamctxt, cham_uplo_t uplo,
                     tempmm = m == C->mt-1 ? C->m-m*C->mb : C->mb;
 
                     /* A has been stored in WA or WB for the summa ring */
-                    INSERT_TASK_zsymm(
+                    CHAMELEON_INSERT_TASK_zsymm(
                         options, ChamRight, uplo,
                         tempmm, tempnn, A->mb,
                         alpha, WB( myp + lp, n        ),
@@ -289,7 +290,7 @@ chameleon_pzsymm_summa_right( CHAM_context_t *chamctxt, cham_uplo_t uplo,
                 for (m = myp; m < C->mt; m+=C->p) {
                     tempmm = m == C->mt-1 ? C->m-m*C->mb : C->mb;
 
-                    INSERT_TASK_zgemm(
+                    CHAMELEON_INSERT_TASK_zgemm(
                         options, ChamNoTrans, transA,
                         tempmm, tempnn, tempkk, A->mb,
                         alpha, WA( m,        myq + lq ),
@@ -336,9 +337,9 @@ chameleon_pzsymm_summa( CHAM_context_t *chamctxt, cham_side_t side, cham_uplo_t 
                                       &WA, &WB, options );
     }
 
-    RUNTIME_desc_flush( &WA, sequence );
-    RUNTIME_desc_flush( &WB, sequence );
-    RUNTIME_desc_flush(  C,  sequence );
+    CHAMELEON_RUNTIME_desc_flush( &WA, sequence );
+    CHAMELEON_RUNTIME_desc_flush( &WB, sequence );
+    CHAMELEON_RUNTIME_desc_flush(  C,  sequence );
     chameleon_sequence_wait( chamctxt, sequence );
     chameleon_desc_destroy( &WA );
     chameleon_desc_destroy( &WB );
@@ -373,7 +374,7 @@ chameleon_pzsymm_generic( CHAM_context_t *chamctxt, cham_side_t side, cham_uplo_
                         tempkm = k == C->mt-1 ? C->m-k*C->mb : C->mb;
                         zbeta = k == 0 ? beta : zone;
                         if (k < m) {
-                            INSERT_TASK_zgemm(
+                            CHAMELEON_INSERT_TASK_zgemm(
                                 options,
                                 ChamNoTrans, ChamNoTrans,
                                 tempmm, tempnn, tempkm, A->mb,
@@ -383,7 +384,7 @@ chameleon_pzsymm_generic( CHAM_context_t *chamctxt, cham_side_t side, cham_uplo_
                         }
                         else {
                             if (k == m) {
-                                INSERT_TASK_zsymm(
+                                CHAMELEON_INSERT_TASK_zsymm(
                                     options,
                                     side, uplo,
                                     tempmm, tempnn, A->mb,
@@ -392,7 +393,7 @@ chameleon_pzsymm_generic( CHAM_context_t *chamctxt, cham_side_t side, cham_uplo_
                                     zbeta, C(m, n)); /* ldc  * Y */
                             }
                             else {
-                                INSERT_TASK_zgemm(
+                                CHAMELEON_INSERT_TASK_zgemm(
                                     options,
                                     ChamTrans, ChamNoTrans,
                                     tempmm, tempnn, tempkm, A->mb,
@@ -411,7 +412,7 @@ chameleon_pzsymm_generic( CHAM_context_t *chamctxt, cham_side_t side, cham_uplo_
                         tempkm = k == C->mt-1 ? C->m-k*C->mb : C->mb;
                         zbeta = k == 0 ? beta : zone;
                         if (k < m) {
-                            INSERT_TASK_zgemm(
+                            CHAMELEON_INSERT_TASK_zgemm(
                                 options,
                                 ChamTrans, ChamNoTrans,
                                 tempmm, tempnn, tempkm, A->mb,
@@ -421,7 +422,7 @@ chameleon_pzsymm_generic( CHAM_context_t *chamctxt, cham_side_t side, cham_uplo_
                         }
                         else {
                             if (k == m) {
-                                INSERT_TASK_zsymm(
+                                CHAMELEON_INSERT_TASK_zsymm(
                                     options,
                                     side, uplo,
                                     tempmm, tempnn, A->mb,
@@ -430,7 +431,7 @@ chameleon_pzsymm_generic( CHAM_context_t *chamctxt, cham_side_t side, cham_uplo_
                                     zbeta, C(m, n)); /* ldc  * Y */
                             }
                             else {
-                                INSERT_TASK_zgemm(
+                                CHAMELEON_INSERT_TASK_zgemm(
                                     options,
                                     ChamNoTrans, ChamNoTrans,
                                     tempmm, tempnn, tempkm, A->mb,
@@ -451,7 +452,7 @@ chameleon_pzsymm_generic( CHAM_context_t *chamctxt, cham_side_t side, cham_uplo_
                         tempkn = k == C->nt-1 ? C->n-k*C->nb : C->nb;
                         zbeta = k == 0 ? beta : zone;
                         if (k < n) {
-                            INSERT_TASK_zgemm(
+                            CHAMELEON_INSERT_TASK_zgemm(
                                 options,
                                 ChamNoTrans, ChamTrans,
                                 tempmm, tempnn, tempkn, A->mb,
@@ -461,7 +462,7 @@ chameleon_pzsymm_generic( CHAM_context_t *chamctxt, cham_side_t side, cham_uplo_
                         }
                         else {
                             if (k == n) {
-                                INSERT_TASK_zsymm(
+                                CHAMELEON_INSERT_TASK_zsymm(
                                     options,
                                     side, uplo,
                                     tempmm, tempnn, A->mb,
@@ -470,7 +471,7 @@ chameleon_pzsymm_generic( CHAM_context_t *chamctxt, cham_side_t side, cham_uplo_
                                     zbeta, C(m, n)); /* ldc  * Y */
                             }
                             else {
-                                INSERT_TASK_zgemm(
+                                CHAMELEON_INSERT_TASK_zgemm(
                                     options,
                                     ChamNoTrans, ChamNoTrans,
                                     tempmm, tempnn, tempkn, A->mb,
@@ -489,7 +490,7 @@ chameleon_pzsymm_generic( CHAM_context_t *chamctxt, cham_side_t side, cham_uplo_
                         tempkn = k == C->nt-1 ? C->n-k*C->nb : C->nb;
                         zbeta = k == 0 ? beta : zone;
                         if (k < n) {
-                            INSERT_TASK_zgemm(
+                            CHAMELEON_INSERT_TASK_zgemm(
                                 options,
                                 ChamNoTrans, ChamNoTrans,
                                 tempmm, tempnn, tempkn, A->mb,
@@ -499,7 +500,7 @@ chameleon_pzsymm_generic( CHAM_context_t *chamctxt, cham_side_t side, cham_uplo_
                         }
                         else {
                             if (k == n) {
-                                INSERT_TASK_zsymm(
+                                CHAMELEON_INSERT_TASK_zsymm(
                                     options,
                                     side, uplo,
                                     tempmm, tempnn, A->mb,
@@ -508,7 +509,7 @@ chameleon_pzsymm_generic( CHAM_context_t *chamctxt, cham_side_t side, cham_uplo_
                                     zbeta, C(m, n)); /* ldc  * Y */
                             }
                             else {
-                                INSERT_TASK_zgemm(
+                                CHAMELEON_INSERT_TASK_zgemm(
                                     options,
                                     ChamNoTrans, ChamTrans,
                                     tempmm, tempnn, tempkn, A->mb,
@@ -541,7 +542,7 @@ chameleon_pzsymm( cham_side_t side, cham_uplo_t uplo,
     if (sequence->status != CHAMELEON_SUCCESS) {
         return;
     }
-    RUNTIME_options_init( &options, chamctxt, sequence, request );
+    CHAMELEON_RUNTIME_options_init( &options, chamctxt, sequence, request );
 
     if ( ((C->p > 1) || (C->q > 1)) &&
          (C->get_rankof == chameleon_getrankof_2d) &&
@@ -554,5 +555,5 @@ chameleon_pzsymm( cham_side_t side, cham_uplo_t uplo,
         chameleon_pzsymm_generic( chamctxt, side, uplo, alpha, A, B, beta, C, &options );
     }
 
-    RUNTIME_options_finalize( &options, chamctxt );
+    CHAMELEON_RUNTIME_options_finalize( &options, chamctxt );
 }

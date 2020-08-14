@@ -17,6 +17,7 @@
  * @author Mathieu Faverge
  * @author Emmanuel Agullo
  * @author Cedric Castagnede
+ * @author Florent Pruvost
  * @date 2020-03-03
  * @precisions normal z -> s d c
  *
@@ -48,7 +49,7 @@ void chameleon_pztrmm(cham_side_t side, cham_uplo_t uplo,
     if (sequence->status != CHAMELEON_SUCCESS) {
         return;
     }
-    RUNTIME_options_init(&options, chamctxt, sequence, request);
+    CHAMELEON_RUNTIME_options_init(&options, chamctxt, sequence, request);
     /*
      *  ChamLeft / ChamUpper / ChamNoTrans
      */
@@ -59,7 +60,7 @@ void chameleon_pztrmm(cham_side_t side, cham_uplo_t uplo,
                     tempmm = m == B->mt-1 ? B->m-m*B->mb : B->mb;
                     for (n = 0; n < B->nt; n++) {
                         tempnn = n == B->nt-1 ? B->n-n*B->nb : B->nb;
-                        INSERT_TASK_ztrmm(
+                        CHAMELEON_INSERT_TASK_ztrmm(
                             &options,
                             side, uplo, trans, diag,
                             tempmm, tempnn, A->mb,
@@ -68,7 +69,7 @@ void chameleon_pztrmm(cham_side_t side, cham_uplo_t uplo,
 
                         for (k = m+1; k < A->mt; k++) {
                             tempkn = k == A->nt-1 ? A->n-k*A->nb : A->nb;
-                            INSERT_TASK_zgemm(
+                            CHAMELEON_INSERT_TASK_zgemm(
                                 &options,
                                 trans, ChamNoTrans,
                                 tempmm, tempnn, tempkn, A->mb,
@@ -87,7 +88,7 @@ void chameleon_pztrmm(cham_side_t side, cham_uplo_t uplo,
                     tempmm = m == B->mt-1 ? B->m-m*B->mb : B->mb;
                     for (n = 0; n < B->nt; n++) {
                         tempnn = n == B->nt-1 ? B->n-n*B->nb : B->nb;
-                        INSERT_TASK_ztrmm(
+                        CHAMELEON_INSERT_TASK_ztrmm(
                             &options,
                             side, uplo, trans, diag,
                             tempmm, tempnn, A->mb,
@@ -95,7 +96,7 @@ void chameleon_pztrmm(cham_side_t side, cham_uplo_t uplo,
                                    B(m, n)); /* ldb * tempnn */
 
                         for (k = 0; k < m; k++) {
-                            INSERT_TASK_zgemm(
+                            CHAMELEON_INSERT_TASK_zgemm(
                                 &options,
                                 trans, ChamNoTrans,
                                 tempmm, tempnn, B->mb, A->mb,
@@ -116,7 +117,7 @@ void chameleon_pztrmm(cham_side_t side, cham_uplo_t uplo,
                     tempmm = m == B->mt-1 ? B->m-m*B->mb : B->mb;
                     for (n = 0; n < B->nt; n++) {
                         tempnn = n == B->nt-1 ? B->n-n*B->nb : B->nb;
-                        INSERT_TASK_ztrmm(
+                        CHAMELEON_INSERT_TASK_ztrmm(
                             &options,
                             side, uplo, trans, diag,
                             tempmm, tempnn, A->mb,
@@ -124,7 +125,7 @@ void chameleon_pztrmm(cham_side_t side, cham_uplo_t uplo,
                                    B(m, n)); /* ldb * tempnn */
 
                         for (k = 0; k < m; k++) {
-                            INSERT_TASK_zgemm(
+                            CHAMELEON_INSERT_TASK_zgemm(
                                 &options,
                                 trans, ChamNoTrans,
                                 tempmm, tempnn, B->mb, A->mb,
@@ -143,7 +144,7 @@ void chameleon_pztrmm(cham_side_t side, cham_uplo_t uplo,
                     tempmm = m == B->mt-1 ? B->m-m*B->mb : B->mb;
                     for (n = 0; n < B->nt; n++) {
                         tempnn = n == B->nt-1 ? B->n-n*B->nb : B->nb;
-                        INSERT_TASK_ztrmm(
+                        CHAMELEON_INSERT_TASK_ztrmm(
                             &options,
                             side, uplo, trans, diag,
                             tempmm, tempnn, A->mb,
@@ -152,7 +153,7 @@ void chameleon_pztrmm(cham_side_t side, cham_uplo_t uplo,
 
                         for (k = m+1; k < A->mt; k++) {
                             tempkm = k == A->mt-1 ? A->m-k*A->mb : A->mb;
-                            INSERT_TASK_zgemm(
+                            CHAMELEON_INSERT_TASK_zgemm(
                                 &options,
                                 trans, ChamNoTrans,
                                 tempmm, tempnn, tempkm, A->mb,
@@ -175,7 +176,7 @@ void chameleon_pztrmm(cham_side_t side, cham_uplo_t uplo,
                     tempnn = n == B->nt-1 ? B->n-n*B->nb : B->nb;
                     for (m = 0; m < B->mt; m++) {
                         tempmm = m == B->mt-1 ? B->m-m*B->mb : B->mb;
-                        INSERT_TASK_ztrmm(
+                        CHAMELEON_INSERT_TASK_ztrmm(
                             &options,
                             side, uplo, trans, diag,
                             tempmm, tempnn, A->mb,
@@ -183,7 +184,7 @@ void chameleon_pztrmm(cham_side_t side, cham_uplo_t uplo,
                                    B(m, n)); /* ldb * tempnn */
 
                         for (k = 0; k < n; k++) {
-                            INSERT_TASK_zgemm(
+                            CHAMELEON_INSERT_TASK_zgemm(
                                 &options,
                                 ChamNoTrans, trans,
                                 tempmm, tempnn, B->mb, A->mb,
@@ -202,7 +203,7 @@ void chameleon_pztrmm(cham_side_t side, cham_uplo_t uplo,
                     tempnn = n == B->nt-1 ? B->n-n*B->nb : B->nb;
                     for (m = 0; m < B->mt; m++) {
                         tempmm = m == B->mt-1 ? B->m-m*B->mb : B->mb;
-                        INSERT_TASK_ztrmm(
+                        CHAMELEON_INSERT_TASK_ztrmm(
                             &options,
                             side, uplo, trans, diag,
                             tempmm, tempnn, A->mb,
@@ -211,7 +212,7 @@ void chameleon_pztrmm(cham_side_t side, cham_uplo_t uplo,
 
                         for (k = n+1; k < A->mt; k++) {
                             tempkn = k == A->nt-1 ? A->n-k*A->nb : A->nb;
-                            INSERT_TASK_zgemm(
+                            CHAMELEON_INSERT_TASK_zgemm(
                                 &options,
                                 ChamNoTrans, trans,
                                 tempmm, tempnn, tempkn, A->mb,
@@ -232,7 +233,7 @@ void chameleon_pztrmm(cham_side_t side, cham_uplo_t uplo,
                     tempnn = n == B->nt-1 ? B->n-n*B->nb : B->nb;
                     for (m = 0; m < B->mt; m++) {
                         tempmm = m == B->mt-1 ? B->m-m*B->mb : B->mb;
-                        INSERT_TASK_ztrmm(
+                        CHAMELEON_INSERT_TASK_ztrmm(
                             &options,
                             side, uplo, trans, diag,
                             tempmm, tempnn, A->mb,
@@ -241,7 +242,7 @@ void chameleon_pztrmm(cham_side_t side, cham_uplo_t uplo,
 
                         for (k = n+1; k < A->mt; k++) {
                             tempkn = k == A->nt-1 ? A->n-k*A->nb : A->nb;
-                            INSERT_TASK_zgemm(
+                            CHAMELEON_INSERT_TASK_zgemm(
                                 &options,
                                 ChamNoTrans, trans,
                                 tempmm, tempnn, tempkn, A->mb,
@@ -260,7 +261,7 @@ void chameleon_pztrmm(cham_side_t side, cham_uplo_t uplo,
                     tempnn = n == B->nt-1 ? B->n-n*B->nb : B->nb;
                     for (m = 0; m < B->mt; m++) {
                         tempmm = m == B->mt-1 ? B->m-m*B->mb : B->mb;
-                        INSERT_TASK_ztrmm(
+                        CHAMELEON_INSERT_TASK_ztrmm(
                             &options,
                             side, uplo, trans, diag,
                             tempmm, tempnn, A->mb,
@@ -268,7 +269,7 @@ void chameleon_pztrmm(cham_side_t side, cham_uplo_t uplo,
                                    B(m, n)); /* ldb * tempnn */
 
                         for (k = 0; k < n; k++) {
-                            INSERT_TASK_zgemm(
+                            CHAMELEON_INSERT_TASK_zgemm(
                                 &options,
                                 ChamNoTrans, trans,
                                 tempmm, tempnn, B->mb, A->mb,
@@ -282,5 +283,5 @@ void chameleon_pztrmm(cham_side_t side, cham_uplo_t uplo,
         }
     }
 
-    RUNTIME_options_finalize(&options, chamctxt);
+    CHAMELEON_RUNTIME_options_finalize(&options, chamctxt);
 }

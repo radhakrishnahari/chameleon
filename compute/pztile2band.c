@@ -15,6 +15,7 @@
  * @author Azzam Haidar
  * @author Gregoire Pichon
  * @author Mathieu Faverge
+ * @author Florent Pruvost
  * @date 2020-03-03
  * @precisions normal z -> s d c
  *
@@ -41,7 +42,7 @@ void chameleon_pztile2band(cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B,
     if (sequence->status != CHAMELEON_SUCCESS) {
         return;
     }
-    RUNTIME_options_init(&options, chamctxt, sequence, request);
+    CHAMELEON_RUNTIME_options_init(&options, chamctxt, sequence, request);
 
     /* The code is actually incorrect due to the removal of the ld (Need new insert_task dedicated) */
     assert( 0 );
@@ -58,13 +59,13 @@ void chameleon_pztile2band(cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B,
            tempjm = j == A->mt-1 ? A->m - j * A->mb : A->mb;
            tempjn = j == B->nt-1 ? B->n - j * B->nb : B->nb;
 
-           INSERT_TASK_zlaset(
+           CHAMELEON_INSERT_TASK_zlaset(
                &options,
                ChamUpperLower, B->mb, tempjn,
                0., 0.,
                B(0, j) );
 
-           INSERT_TASK_zlacpy(
+           CHAMELEON_INSERT_TASK_zlacpy(
                &options,
                ChamLower, tempjm, tempjn, A->nb,
                A(j, j),
@@ -72,7 +73,7 @@ void chameleon_pztile2band(cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B,
 
            if( j<minmnt-1 ){
                tempjm = (j+1) == A->mt-1 ? A->m-(j+1)*A->mb : A->mb;
-               INSERT_TASK_zlacpyx(
+               CHAMELEON_INSERT_TASK_zlacpyx(
                    &options,
                    ChamUpper, tempjm, tempjn, A->nb,
                    0,     A(j+1, j),
@@ -87,14 +88,14 @@ void chameleon_pztile2band(cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B,
            assert( A->m >= B->n );
            tempjn = j == A->nt-1 ? A->n - j * A->nb : A->nb;
 
-           INSERT_TASK_zlaset(
+           CHAMELEON_INSERT_TASK_zlaset(
                &options,
                ChamUpperLower, B->mb, tempjn,
                0., 0.,
                B(0, j) );
 
            if(j > 0){
-               INSERT_TASK_zlacpy(
+               CHAMELEON_INSERT_TASK_zlacpy(
                    &options,
                    ChamLower, A->mb, tempjn, A->nb,
                    A(j-1, j),
@@ -102,14 +103,14 @@ void chameleon_pztile2band(cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B,
            }
 
            tempjm = j == B->nt-1 ? B->n - j * B->nb : B->nb;
-           INSERT_TASK_zlacpyx(
+           CHAMELEON_INSERT_TASK_zlacpyx(
                &options,
                ChamUpper, tempjm, tempjn, A->nb,
                0,     A(j, j),
                A->nb, B(0, j));
        }
     }
-    RUNTIME_options_finalize(&options, chamctxt);
+    CHAMELEON_RUNTIME_options_finalize(&options, chamctxt);
 }
 #undef B
 #undef A

@@ -19,6 +19,7 @@
  * @author Mathieu Faverge
  * @author Emmanuel Agullo
  * @author Cedric Castagnede
+ * @author Florent Pruvost
  * @date 2020-03-03
  * @precisions mixed zc -> ds
  *
@@ -33,9 +34,17 @@ void INSERT_TASK_clag2z( const RUNTIME_option_t *options,
                         int m, int n, int nb,
                         CHAM_desc_t *A, int Am, int An, int lda,
                         CHAM_desc_t *B, int Bm, int Bn, int ldb );
+void (*CHAMELEON_INSERT_TASK_clag2z)( const RUNTIME_option_t *options,
+                                      int m, int n, int nb,
+                                      CHAM_desc_t *A, int Am, int An, int lda,
+                                      CHAM_desc_t *B, int Bm, int Bn, int ldb );
 void INSERT_TASK_zlag2c( const RUNTIME_option_t *options,
                         int m, int n, int nb,
                         CHAM_desc_t *A, int Am, int An, int lda,
                         CHAM_desc_t *B, int Bm, int Bn, int ldb );
+void (*CHAMELEON_INSERT_TASK_zlag2c)( const RUNTIME_option_t *options,
+                                      int m, int n, int nb,
+                                      CHAM_desc_t *A, int Am, int An, int lda,
+                                      CHAM_desc_t *B, int Bm, int Bn, int ldb );
 
 #endif /* _chameleon_tasks_zc_h_ */

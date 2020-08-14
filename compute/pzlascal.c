@@ -13,6 +13,7 @@
  *
  * @version 1.0.0
  * @author Dalal Sukkari
+ * @author Florent Pruvost
  * @date 2020-03-03
  * @precisions normal z -> s d c
  *
@@ -38,7 +39,7 @@ void chameleon_pzlascal(cham_uplo_t uplo, CHAMELEON_Complex64_t alpha, CHAM_desc
         return;
     }
 
-    RUNTIME_options_init(&options, chamctxt, sequence, request);
+    CHAMELEON_RUNTIME_options_init(&options, chamctxt, sequence, request);
 
     switch(uplo) {
     case ChamLower:
@@ -46,7 +47,7 @@ void chameleon_pzlascal(cham_uplo_t uplo, CHAMELEON_Complex64_t alpha, CHAM_desc
             tempnm = n == A->mt-1 ? A->m-n*A->mb : A->mb;
             tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
 
-            INSERT_TASK_zlascal(
+            CHAMELEON_INSERT_TASK_zlascal(
                 &options,
                 ChamLower, tempnm, tempnn, A->mb,
                 alpha, A(n, n));
@@ -54,7 +55,7 @@ void chameleon_pzlascal(cham_uplo_t uplo, CHAMELEON_Complex64_t alpha, CHAM_desc
             for (m = n+1; m < A->mt; m++) {
                 tempmm = m == A->mt-1 ? A->m-A->mb*m : A->nb;
 
-                INSERT_TASK_zlascal(
+                CHAMELEON_INSERT_TASK_zlascal(
                     &options,
                     ChamUpperLower, tempmm, tempnn, A->mb,
                     alpha, A(m, n));
@@ -67,7 +68,7 @@ void chameleon_pzlascal(cham_uplo_t uplo, CHAMELEON_Complex64_t alpha, CHAM_desc
             tempmm = m == A->mt-1 ? A->m-A->mb*m : A->nb;
             tempmn = m == A->nt-1 ? A->n-m*A->nb : A->nb;
 
-            INSERT_TASK_zlascal(
+            CHAMELEON_INSERT_TASK_zlascal(
                 &options,
                 ChamUpper, tempmm, tempmn, A->mb,
                 alpha, A(m, m));
@@ -75,7 +76,7 @@ void chameleon_pzlascal(cham_uplo_t uplo, CHAMELEON_Complex64_t alpha, CHAM_desc
             for (n = m+1; n < A->nt; n++) {
                 tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
 
-                INSERT_TASK_zlascal(
+                CHAMELEON_INSERT_TASK_zlascal(
                     &options,
                     ChamUpperLower, tempmm, tempnn, A->mb,
                     alpha, A(m, n));
@@ -91,12 +92,12 @@ void chameleon_pzlascal(cham_uplo_t uplo, CHAMELEON_Complex64_t alpha, CHAM_desc
             for (n = 0; n < A->nt; n++) {
                 tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
 
-                INSERT_TASK_zlascal(
+                CHAMELEON_INSERT_TASK_zlascal(
                     &options,
                     ChamUpperLower, tempmm, tempnn, A->mb,
                     alpha, A(m, n));
             }
         }
     }
-    RUNTIME_options_finalize(&options, chamctxt);
+    CHAMELEON_RUNTIME_options_finalize(&options, chamctxt);
 }

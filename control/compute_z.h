@@ -18,6 +18,7 @@
  * @author Mathieu Faverge
  * @author Emmanuel Agullo
  * @author Cedric Castagnede
+ * @author Florent Pruvost
  * @date 2020-01-07
  * @precisions normal z -> c d s
  *
@@ -247,8 +248,8 @@ chameleon_ztile2lap( CHAM_context_t *chamctxt, CHAM_desc_t *descAl, CHAM_desc_t 
         }
         return CHAMELEON_ERR_NOT_SUPPORTED;
     }
-    RUNTIME_desc_flush( descAl, seq );
-    RUNTIME_desc_flush( descAt, seq );
+    CHAMELEON_RUNTIME_desc_flush( descAl, seq );
+    CHAMELEON_RUNTIME_desc_flush( descAt, seq );
 
     return CHAMELEON_SUCCESS;
 }

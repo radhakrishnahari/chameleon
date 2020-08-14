@@ -14,6 +14,7 @@
  *
  * @version 1.0.0
  * @author Mathieu Faverge
+ * @author Florent Pruvost
  * @date 2020-03-03
  * @precisions normal z -> s d c
  *
@@ -52,7 +53,7 @@ void chameleon_pztpgqrt( int KT, int L,
     if (sequence->status != CHAMELEON_SUCCESS) {
         return;
     }
-    RUNTIME_options_init(&options, chamctxt, sequence, request);
+    CHAMELEON_RUNTIME_options_init(&options, chamctxt, sequence, request);
 
     ib = CHAMELEON_IB;
 
@@ -73,10 +74,10 @@ void chameleon_pztpgqrt( int KT, int L,
     ws_worker *= sizeof(CHAMELEON_Complex64_t);
     ws_host   *= sizeof(CHAMELEON_Complex64_t);
 
-    RUNTIME_options_ws_alloc( &options, ws_worker, ws_host );
+    CHAMELEON_RUNTIME_options_ws_alloc( &options, ws_worker, ws_host );
 
     for (k = KT-1; k >= 0; k--) {
-        RUNTIME_iteration_push(chamctxt, k);
+        CHAMELEON_RUNTIME_iteration_push(chamctxt, k);
 
         tempkn = k == Q1->nt-1 ? Q1->n-k*Q1->nb : Q1->nb;
 
@@ -89,7 +90,7 @@ void chameleon_pztpgqrt( int KT, int L,
             for (n = k; n < Q2->nt; n++) {
                 tempnn = n == Q2->nt-1 ? Q2->n-n*Q2->nb : Q2->nb;
                 /* TT kernel */
-                INSERT_TASK_ztpmqrt(
+                CHAMELEON_INSERT_TASK_ztpmqrt(
                     &options,
                     ChamLeft, ChamNoTrans,
                     tempmm, tempnn, tempkn, templm, ib, T2->nb,
@@ -100,9 +101,9 @@ void chameleon_pztpgqrt( int KT, int L,
             }
         }
 
-        RUNTIME_iteration_pop(chamctxt);
+        CHAMELEON_RUNTIME_iteration_pop(chamctxt);
     }
 
-    RUNTIME_options_ws_free(&options);
-    RUNTIME_options_finalize(&options, chamctxt);
+    CHAMELEON_RUNTIME_options_ws_free(&options);
+    CHAMELEON_RUNTIME_options_finalize(&options, chamctxt);
 }

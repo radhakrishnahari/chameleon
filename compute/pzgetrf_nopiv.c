@@ -16,6 +16,7 @@
  * @author Mathieu Faverge
  * @author Emmanuel Agullo
  * @author Cedric Castagnede
+ * @author Florent Pruvost
  * @date 2020-03-03
  * @precisions normal z -> s d c
  *
@@ -44,18 +45,18 @@ void chameleon_pzgetrf_nopiv(CHAM_desc_t *A,
     if (sequence->status != CHAMELEON_SUCCESS) {
         return;
     }
-    RUNTIME_options_init(&options, chamctxt, sequence, request);
+    CHAMELEON_RUNTIME_options_init(&options, chamctxt, sequence, request);
 
     ib = CHAMELEON_IB;
 
     for (k = 0; k < chameleon_min(A->mt, A->nt); k++) {
-        RUNTIME_iteration_push(chamctxt, k);
+        CHAMELEON_RUNTIME_iteration_push(chamctxt, k);
 
         tempkm = k == A->mt-1 ? A->m-k*A->mb : A->mb;
         tempkn = k == A->nt-1 ? A->n-k*A->nb : A->nb;
 
         options.priority = 2*A->nt - 2*k;
-        INSERT_TASK_zgetrf_nopiv(
+        CHAMELEON_INSERT_TASK_zgetrf_nopiv(
             &options,
             tempkm, tempkn, ib, A->mb,
             A(k, k), A->mb*k);
@@ -63,7 +64,7 @@ void chameleon_pzgetrf_nopiv(CHAM_desc_t *A,
         for (m = k+1; m < A->mt; m++) {
             options.priority = 2*A->nt - 2*k - m;
             tempmm = m == A->mt-1 ? A->m-m*A->mb : A->mb;
-            INSERT_TASK_ztrsm(
+            CHAMELEON_INSERT_TASK_ztrsm(
                 &options,
                 ChamRight, ChamUpper, ChamNoTrans, ChamNonUnit,
                 tempmm, tempkn, A->mb,
@@ -73,7 +74,7 @@ void chameleon_pzgetrf_nopiv(CHAM_desc_t *A,
         for (n = k+1; n < A->nt; n++) {
             tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
             options.priority = 2*A->nt - 2*k - n;
-            INSERT_TASK_ztrsm(
+            CHAMELEON_INSERT_TASK_ztrsm(
                 &options,
                 ChamLeft, ChamLower, ChamNoTrans, ChamUnit,
                 tempkm, tempnn, A->mb,
@@ -83,7 +84,7 @@ void chameleon_pzgetrf_nopiv(CHAM_desc_t *A,
             for (m = k+1; m < A->mt; m++) {
                 tempmm = m == A->mt-1 ? A->m-m*A->mb : A->mb;
                 options.priority = 2*A->nt - 2*k  - n - m;
-                INSERT_TASK_zgemm(
+                CHAMELEON_INSERT_TASK_zgemm(
                     &options,
                     ChamNoTrans, ChamNoTrans,
                     tempmm, tempnn, A->mb, A->mb,
@@ -93,8 +94,8 @@ void chameleon_pzgetrf_nopiv(CHAM_desc_t *A,
             }
         }
 
-        RUNTIME_iteration_pop(chamctxt);
+        CHAMELEON_RUNTIME_iteration_pop(chamctxt);
     }
 
-    RUNTIME_options_finalize(&options, chamctxt);
+    CHAMELEON_RUNTIME_options_finalize(&options, chamctxt);
 }

@@ -20,6 +20,7 @@
  * @author Mathieu Faverge
  * @author Emmanuel Agullo
  * @author Cedric Castagnede
+ * @author Florent Pruvost
  * @date 2020-03-03
  * @precisions normal z -> s d c
  *
@@ -51,7 +52,7 @@ void chameleon_pzgelqfrh( int genD, int BS, CHAM_desc_t *A, CHAM_desc_t *T, CHAM
     if (sequence->status != CHAMELEON_SUCCESS) {
         return;
     }
-    RUNTIME_options_init(&options, chamctxt, sequence, request);
+    CHAMELEON_RUNTIME_options_init(&options, chamctxt, sequence, request);
 
     ib = CHAMELEON_IB;
 
@@ -81,20 +82,20 @@ void chameleon_pzgelqfrh( int genD, int BS, CHAM_desc_t *A, CHAM_desc_t *T, CHAM
     ws_worker *= sizeof(CHAMELEON_Complex64_t);
     ws_host   *= sizeof(CHAMELEON_Complex64_t);
 
-    RUNTIME_options_ws_alloc( &options, ws_worker, ws_host );
+    CHAMELEON_RUNTIME_options_ws_alloc( &options, ws_worker, ws_host );
 
     K = chameleon_min(A->mt, A->nt);
 
     /* The number of the factorization */
     for (k = 0; k < K; k++) {
-        RUNTIME_iteration_push(chamctxt, k);
+        CHAMELEON_RUNTIME_iteration_push(chamctxt, k);
 
         tempkm = k == A->mt-1 ? A->m-k*A->mb : A->mb;
 
         for (N = k; N < A->nt; N += BS) {
             tempNn = N == A->nt-1 ? A->n-N*A->nb : A->nb;
             tempkmin = chameleon_min(tempkm, tempNn);
-            INSERT_TASK_zgelqt(
+            CHAMELEON_INSERT_TASK_zgelqt(
                 &options,
                 tempkm, tempNn, ib, T->nb,
                 A(k, N),
@@ -103,13 +104,13 @@ void chameleon_pzgelqfrh( int genD, int BS, CHAM_desc_t *A, CHAM_desc_t *T, CHAM
                 int tempDkm = k == D->mt-1 ? D->m-k*D->mb : D->mb;
                 int tempDNn = N == D->nt-1 ? D->n-N*D->nb : D->nb;
 
-                INSERT_TASK_zlacpy(
+                CHAMELEON_INSERT_TASK_zlacpy(
                     &options,
                     ChamUpper, tempDkm, tempDNn, A->nb,
                     A(k, N),
                     D(k, N) );
 #if defined(CHAMELEON_USE_CUDA)
-                INSERT_TASK_zlaset(
+                CHAMELEON_INSERT_TASK_zlaset(
                     &options,
                     ChamLower, tempDkm, tempDNn,
                     0., 1.,
@@ -118,7 +119,7 @@ void chameleon_pzgelqfrh( int genD, int BS, CHAM_desc_t *A, CHAM_desc_t *T, CHAM
             }
             for (m = k+1; m < A->mt; m++) {
                 tempmm = m == A->mt-1 ? A->m-m*A->mb : A->mb;
-                INSERT_TASK_zunmlq(
+                CHAMELEON_INSERT_TASK_zunmlq(
                     &options,
                     ChamRight, ChamConjTrans,
                     tempmm, tempNn, tempkmin, ib, T->nb,
@@ -126,17 +127,17 @@ void chameleon_pzgelqfrh( int genD, int BS, CHAM_desc_t *A, CHAM_desc_t *T, CHAM
                     T(k, N),
                     A(m, N));
             }
-            RUNTIME_data_flush( sequence, D(k, N) );
-            RUNTIME_data_flush( sequence, T(k, N) );
+            CHAMELEON_RUNTIME_data_flush( sequence, D(k, N) );
+            CHAMELEON_RUNTIME_data_flush( sequence, T(k, N) );
 
             for (n = N+1; n < chameleon_min(N+BS, A->nt); n++) {
                 tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
 
-                RUNTIME_data_migrate( sequence, A(k, N),
+                CHAMELEON_RUNTIME_data_migrate( sequence, A(k, N),
                                       A->get_rankof( A, k, n ) );
 
                 /* TS kernel */
-                INSERT_TASK_ztplqt(
+                CHAMELEON_INSERT_TASK_ztplqt(
                     &options,
                     tempkm, tempnn, 0, ib, T->nb,
                     A(k, N),
@@ -146,10 +147,10 @@ void chameleon_pzgelqfrh( int genD, int BS, CHAM_desc_t *A, CHAM_desc_t *T, CHAM
                 for (m = k+1; m < A->mt; m++) {
                     tempmm = m == A->mt-1 ? A->m-m*A->mb : A->mb;
 
-                    RUNTIME_data_migrate( sequence, A(m, N),
+                    CHAMELEON_RUNTIME_data_migrate( sequence, A(m, N),
                                           A->get_rankof( A, m, n ) );
 
-                    INSERT_TASK_ztpmlqt(
+                    CHAMELEON_INSERT_TASK_ztpmlqt(
                         &options,
                         ChamRight, ChamConjTrans,
                         tempmm, tempnn, tempkm, 0, ib, T->nb,
@@ -158,8 +159,8 @@ void chameleon_pzgelqfrh( int genD, int BS, CHAM_desc_t *A, CHAM_desc_t *T, CHAM
                         A(m, N),
                         A(m, n));
                 }
-                RUNTIME_data_flush( sequence, A(k, n) );
-                RUNTIME_data_flush( sequence, T(k, n) );
+                CHAMELEON_RUNTIME_data_flush( sequence, A(k, n) );
+                CHAMELEON_RUNTIME_data_flush( sequence, T(k, n) );
             }
         }
         for (RD = BS; RD < A->nt-k; RD *= 2) {
@@ -167,11 +168,11 @@ void chameleon_pzgelqfrh( int genD, int BS, CHAM_desc_t *A, CHAM_desc_t *T, CHAM
                 tempNRDn = N+RD == A->nt-1 ? A->n-(N+RD)*A->nb : A->nb;
 
                 node = A->get_rankof( A, k, N+RD );
-                RUNTIME_data_migrate( sequence, A(k, N),    node );
-                RUNTIME_data_migrate( sequence, A(k, N+RD), node );
+                CHAMELEON_RUNTIME_data_migrate( sequence, A(k, N),    node );
+                CHAMELEON_RUNTIME_data_migrate( sequence, A(k, N+RD), node );
 
                 /* TT kernel */
-                INSERT_TASK_ztplqt(
+                CHAMELEON_INSERT_TASK_ztplqt(
                     &options,
                     tempkm, tempNRDn, chameleon_min(tempNRDn, tempkm), ib, T->nb,
                     A (k, N   ),
@@ -182,10 +183,10 @@ void chameleon_pzgelqfrh( int genD, int BS, CHAM_desc_t *A, CHAM_desc_t *T, CHAM
                     tempmm = m == A->mt-1 ? A->m-m*A->mb : A->mb;
 
                     node = A->get_rankof( A, m, N+RD );
-                    RUNTIME_data_migrate( sequence, A(m, N),    node );
-                    RUNTIME_data_migrate( sequence, A(m, N+RD), node );
+                    CHAMELEON_RUNTIME_data_migrate( sequence, A(m, N),    node );
+                    CHAMELEON_RUNTIME_data_migrate( sequence, A(m, N+RD), node );
 
-                    INSERT_TASK_ztpmlqt(
+                    CHAMELEON_INSERT_TASK_ztpmlqt(
                         &options,
                         ChamRight, ChamConjTrans,
                         tempmm, tempNRDn, tempkm, tempNRDn, ib, T->nb,
@@ -194,21 +195,21 @@ void chameleon_pzgelqfrh( int genD, int BS, CHAM_desc_t *A, CHAM_desc_t *T, CHAM
                         A (m, N   ),
                         A (m, N+RD));
                 }
-                RUNTIME_data_flush( sequence, A (k, N+RD) );
-                RUNTIME_data_flush( sequence, T2(k, N+RD) );
+                CHAMELEON_RUNTIME_data_flush( sequence, A (k, N+RD) );
+                CHAMELEON_RUNTIME_data_flush( sequence, T2(k, N+RD) );
             }
         }
 
         /* Restore the original location of the tiles */
         for (m = k; m < A->mt; m++) {
-            RUNTIME_data_migrate( sequence, A(m, k),
+            CHAMELEON_RUNTIME_data_migrate( sequence, A(m, k),
                                   A->get_rankof( A, m, k ) );
         }
 
-        RUNTIME_iteration_pop(chamctxt);
+        CHAMELEON_RUNTIME_iteration_pop(chamctxt);
     }
 
-    RUNTIME_options_ws_free(&options);
-    RUNTIME_options_finalize(&options, chamctxt);
+    CHAMELEON_RUNTIME_options_ws_free(&options);
+    CHAMELEON_RUNTIME_options_finalize(&options, chamctxt);
     (void)D;
 }

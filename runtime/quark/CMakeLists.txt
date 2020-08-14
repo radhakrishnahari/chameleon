@@ -27,13 +27,13 @@
 ###
 cmake_minimum_required(VERSION 2.8)
 
-find_package( QUARK REQUIRED
-  COMPONENTS HWLOC )
+find_package( QUARK REQUIRED COMPONENTS HWLOC )
 
 # Add definition and include_dir if found
 if(QUARK_FOUND)
   message("-- ${Blue}Add definition CHAMELEON_SCHED_QUARK"
     " - Activate QUARK in Chameleon${ColourReset}")
+  set(CHAMELEON_SCHED "${CHAMELEON_SCHED};QUARK" CACHE STRING "Runtime systems available" FORCE)
   if (QUARK_INCLUDE_DIRS_DEP)
     include_directories(${QUARK_INCLUDE_DIRS_DEP})
   endif()
@@ -49,7 +49,7 @@ if(QUARK_FOUND)
     list(APPEND CMAKE_INSTALL_RPATH "${QUARK_LIBRARY_DIRS_DEP}")
   endif()
   if (QUARK_LIBRARIES_DEP)
-    list(INSERT CHAMELEON_DEP 0 ${QUARK_LIBRARIES_DEP})
+    set(CHAMELEON_DEP  "${QUARK_LIBRARIES_DEP};${CHAMELEON_DEP}" PARENT_SCOPE)
   endif()
 else(QUARK_FOUND)
   if(CHAMELEON_VERBOSE_FIND_PACKAGE)

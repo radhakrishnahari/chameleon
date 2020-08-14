@@ -26,7 +26,6 @@
 #
 ###
 
-
 # Generate the chameleon headers for all possible precisions
 # ------------------------------------------------------
 set(CHAMELEON_HDRS_GENERATED "")
@@ -48,6 +47,7 @@ set(CHAMELEON_HDRS
     gkkleader.h
     global.h
     chameleon_f77.h
+    chameleon_dlopen.h
     workspace.h
     )
 

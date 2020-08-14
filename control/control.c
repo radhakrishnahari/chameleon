@@ -15,6 +15,7 @@
  * @author Jakub Kurzak
  * @author Mathieu Faverge
  * @author Cedric Castagnede
+ * @author Florent Pruvost
  * @date 2020-03-03
  *
  ***
@@ -28,6 +29,7 @@
 #include <stdlib.h>
 #include "control/auxiliary.h"
 #include "control/common.h"
+#include "control/chameleon_dlopen.h"
 #include "chameleon/runtime.h"
 
 /**
@@ -80,6 +82,9 @@ int __chameleon_initpar(int ncpus, int ncudas, int nthreads_per_worker)
 {
     CHAM_context_t *chamctxt;
 
+    /* dlopen symbols of the runtime */
+    chameleon_dlopen();
+
     /* Create context and insert in the context map */
     chamctxt = chameleon_context_create();
     if (chamctxt == NULL) {
@@ -88,10 +93,10 @@ int __chameleon_initpar(int ncpus, int ncudas, int nthreads_per_worker)
     }
 
 #if defined(CHAMELEON_USE_MPI)
-#  if defined(CHAMELEON_SIMULATION)
+#if defined(CHAMELEON_SIMULATION)
     /* Assuming that we don't initialize MPI ourself (which SMPI doesn't support anyway) */
     chamctxt->mpi_outer_init = 1;
-#  else
+#else
     {
       int flag = 0, provided = 0;
       MPI_Initialized( &flag );
@@ -100,7 +105,7 @@ int __chameleon_initpar(int ncpus, int ncudas, int nthreads_per_worker)
           MPI_Init_thread( NULL, NULL, MPI_THREAD_MULTIPLE, &provided );
       }
     }
-#  endif
+#endif
 #endif
 
 #if !defined(CHAMELEON_USE_CUDA)
@@ -110,7 +115,7 @@ int __chameleon_initpar(int ncpus, int ncudas, int nthreads_per_worker)
     }
 #endif
 
-    RUNTIME_init( chamctxt, ncpus, ncudas, nthreads_per_worker );
+    CHAMELEON_RUNTIME_init( chamctxt, ncpus, ncudas, nthreads_per_worker );
 
     return CHAMELEON_SUCCESS;
 }
@@ -133,18 +138,20 @@ int __chameleon_finalize(void)
         chameleon_error("CHAMELEON_Finalize()", "CHAMELEON not initialized");
         return CHAMELEON_ERR_NOT_INITIALIZED;
     }
-    RUNTIME_flush();
-#  if !defined(CHAMELEON_SIMULATION)
-    RUNTIME_barrier(chamctxt);
-#  endif
-    RUNTIME_finalize( chamctxt );
+    CHAMELEON_RUNTIME_flush();
+#if !defined(CHAMELEON_SIMULATION)
+    CHAMELEON_RUNTIME_barrier(chamctxt);
+#endif
+    CHAMELEON_RUNTIME_finalize( chamctxt );
 
 #if defined(CHAMELEON_USE_MPI)
-    if (!chamctxt->mpi_outer_init)
+    if (!chamctxt->mpi_outer_init){
         MPI_Finalize();
+    }
 #endif
 
     chameleon_context_destroy();
+    chameleon_dlclose();
     return CHAMELEON_SUCCESS;
 }
 
@@ -187,7 +194,7 @@ int CHAMELEON_Pause(void)
         chameleon_error("CHAMELEON_Pause()", "CHAMELEON not initialized");
         return CHAMELEON_ERR_NOT_INITIALIZED;
     }
-    RUNTIME_pause(chamctxt);
+    CHAMELEON_RUNTIME_pause(chamctxt);
     return CHAMELEON_SUCCESS;
 }
 
@@ -210,7 +217,7 @@ int CHAMELEON_Resume(void)
         chameleon_error("CHAMELEON_Resume()", "CHAMELEON not initialized");
         return CHAMELEON_ERR_NOT_INITIALIZED;
     }
-    RUNTIME_resume(chamctxt);
+    CHAMELEON_RUNTIME_resume(chamctxt);
     return CHAMELEON_SUCCESS;
 }
 
@@ -232,7 +239,7 @@ int CHAMELEON_Distributed_start(void)
         chameleon_error("CHAMELEON_Finalize()", "CHAMELEON not initialized");
         return CHAMELEON_ERR_NOT_INITIALIZED;
     }
-    RUNTIME_barrier (chamctxt);
+    CHAMELEON_RUNTIME_barrier (chamctxt);
     return CHAMELEON_SUCCESS;
 }
 
@@ -254,7 +261,7 @@ int CHAMELEON_Distributed_stop(void)
         chameleon_error("CHAMELEON_Finalize()", "CHAMELEON not initialized");
         return CHAMELEON_ERR_NOT_INITIALIZED;
     }
-    RUNTIME_barrier (chamctxt);
+    CHAMELEON_RUNTIME_barrier (chamctxt);
     return CHAMELEON_SUCCESS;
 }
 
@@ -278,7 +285,7 @@ int CHAMELEON_Comm_size()
         return -1;
     }
 
-    return RUNTIME_comm_size( chamctxt );
+    return CHAMELEON_RUNTIME_comm_size( chamctxt );
 }
 
 /**
@@ -301,7 +308,7 @@ int CHAMELEON_Comm_rank()
         return -1;
     }
 
-    return RUNTIME_comm_rank( chamctxt );
+    return CHAMELEON_RUNTIME_comm_rank( chamctxt );
 }
 
 /**
@@ -324,5 +331,5 @@ int CHAMELEON_GetThreadNbr( )
         return -1;
     }
 
-    return RUNTIME_thread_size( chamctxt );
+    return CHAMELEON_RUNTIME_thread_size( chamctxt );
 }

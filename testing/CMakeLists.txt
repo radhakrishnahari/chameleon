@@ -22,6 +22,7 @@
 #  @author Emmanuel Agullo
 #  @author Mathieu Faverge
 #  @author Lucas Barros de Assis
+#  @author Florent Pruvost
 #  @date 2020-03-03
 #
 ###
@@ -130,11 +131,11 @@ foreach(_precision ${CHAMELEON_PRECISION} )
     control_include
     testing_include
     )
-if(NOT CHAMELEON_SIMULATION)
-  add_dependencies(${__target_name}
-    coreblas_include
-    )
-endif(NOT CHAMELEON_SIMULATION)
+  if(NOT CHAMELEON_SIMULATION)
+    add_dependencies(${__target_name}
+      coreblas_include
+      )
+  endif(NOT CHAMELEON_SIMULATION)
   set_property(TARGET ${__target_name} PROPERTY LINKER_LANGUAGE Fortran)
   target_link_libraries(${__target_name} ${libs_for_tests})
 

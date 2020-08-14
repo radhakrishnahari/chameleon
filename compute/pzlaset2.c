@@ -18,6 +18,7 @@
  * @author Mathieu Faverge
  * @author Emmanuel Agullo
  * @author Cedric Castagnede
+ * @author Florent Pruvost
  * @date 2020-03-03
  * @precisions normal z -> s d c
  *
@@ -26,10 +27,10 @@
 
 #define A(m,n) A,  m,  n
 /**
- *  Parallel initializztion a 2-D array A to 
+ *  Parallel initializztion a 2-D array A to
  *  ALPHA on the offdiagonals.
  */
-void chameleon_pzlaset2(cham_uplo_t uplo, CHAMELEON_Complex64_t alpha, 
+void chameleon_pzlaset2(cham_uplo_t uplo, CHAMELEON_Complex64_t alpha,
                            CHAM_desc_t *A,
                            RUNTIME_sequence_t *sequence, RUNTIME_request_t *request)
 {
@@ -46,20 +47,20 @@ void chameleon_pzlaset2(cham_uplo_t uplo, CHAMELEON_Complex64_t alpha,
         return;
     }
 
-    RUNTIME_options_init(&options, chamctxt, sequence, request);
+    CHAMELEON_RUNTIME_options_init(&options, chamctxt, sequence, request);
 
     if (uplo == ChamLower) {
        for (j = 0; j < minmn; j++){
            tempjm = j == A->mt-1 ? A->m-j*A->mb : A->mb;
            tempjn = j == A->nt-1 ? A->n-j*A->nb : A->nb;
-           INSERT_TASK_zlaset2(
+           CHAMELEON_INSERT_TASK_zlaset2(
                &options,
                ChamLower, tempjm, tempjn, alpha,
                A(j, j));
 
            for (i = j+1; i < A->mt; i++){
                tempim = i == A->mt-1 ? A->m-i*A->mb : A->mb;
-               INSERT_TASK_zlaset2(
+               CHAMELEON_INSERT_TASK_zlaset2(
                    &options,
                    ChamUpperLower, tempim, tempjn, alpha,
                    A(i, j));
@@ -71,7 +72,7 @@ void chameleon_pzlaset2(cham_uplo_t uplo, CHAMELEON_Complex64_t alpha,
            tempjn = j == A->nt-1 ? A->n-j*A->nb : A->nb;
            for (i = 0; i < chameleon_min(j, A->mt); i++){
                tempim = i == A->mt-1 ? A->m-i*A->mb : A->mb;
-               INSERT_TASK_zlaset2(
+               CHAMELEON_INSERT_TASK_zlaset2(
                    &options,
                    ChamUpperLower, tempim, tempjn, alpha,
                    A(i, j));
@@ -80,7 +81,7 @@ void chameleon_pzlaset2(cham_uplo_t uplo, CHAMELEON_Complex64_t alpha,
        for (j = 0; j < minmn; j++){
            tempjm = j == A->mt-1 ? A->m-j*A->mb : A->mb;
            tempjn = j == A->nt-1 ? A->n-j*A->nb : A->nb;
-           INSERT_TASK_zlaset2(
+           CHAMELEON_INSERT_TASK_zlaset2(
                &options,
                ChamUpper, tempjm, tempjn, alpha,
                A(j, j));
@@ -91,12 +92,12 @@ void chameleon_pzlaset2(cham_uplo_t uplo, CHAMELEON_Complex64_t alpha,
            tempim = i == A->mt-1 ? A->m-i*A->mb : A->mb;
            for (j = 0; j < A->nt; j++){
                tempjn = j == A->nt-1 ? A->n-j*A->nb : A->nb;
-               INSERT_TASK_zlaset2(
+               CHAMELEON_INSERT_TASK_zlaset2(
                    &options,
                    ChamUpperLower, tempim, tempjn, alpha,
                    A(i, j));
            }
        }
     }
-    RUNTIME_options_finalize(&options, chamctxt);
+    CHAMELEON_RUNTIME_options_finalize(&options, chamctxt);
 }

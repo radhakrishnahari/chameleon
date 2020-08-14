@@ -24,10 +24,11 @@
 #define CHAMELEON_VERSION_MICRO @CHAMELEON_VERSION_MICRO@
 
 /* Scheduling engine */
-#cmakedefine CHAMELEON_SCHED_QUARK
-#cmakedefine CHAMELEON_SCHED_PARSEC
-#cmakedefine CHAMELEON_SCHED_STARPU
 #cmakedefine CHAMELEON_SCHED_OPENMP
+#cmakedefine CHAMELEON_SCHED_PARSEC
+#cmakedefine CHAMELEON_SCHED_QUARK
+#cmakedefine CHAMELEON_SCHED_STARPU
+#cmakedefine CHAMELEON_SCHED_DLOPEN
 
 /* Debug scheduling engine */
 #cmakedefine CHAMELEON_RUNTIME_SYNC
@@ -55,6 +56,7 @@
 /* getopt */
 #cmakedefine CHAMELEON_HAVE_GETOPT_H
 #cmakedefine CHAMELEON_HAVE_GETOPT_LONG
+
 
 #ifdef BEGIN_C_DECLS
 #undef BEGIN_C_DECLS

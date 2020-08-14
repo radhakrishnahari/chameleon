@@ -16,6 +16,7 @@
  * @author Hatem Ltaief
  * @author Gregoire Pichon
  * @author Mathieu Faverge
+ * @author Florent Pruvost
  * @date 2020-03-03
  * @precisions normal z -> s d c
  *
@@ -417,6 +418,10 @@ int CHAMELEON_zhetrd_Tile_Async( cham_job_t jobz,
     /* Reduce band matrix to tridiagonal matrix */
 #if !defined(CHAMELEON_SIMULATION)
     {
+        /*
+         * TODO: as soons as LAPACKE is not needed anymore here we can remove
+         * our dependency to coreblas and LAPACKE libs.
+         */
         int info = LAPACKE_zhbtrd( LAPACK_COL_MAJOR,
                                    chameleon_lapack_const(jobz),
                                    chameleon_lapack_const(uplo),

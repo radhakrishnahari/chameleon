@@ -11,6 +11,7 @@
  *
  * @version 1.0.0
  * @author Mathieu Faverge
+ * @author Florent Pruvost
  * @date 2020-03-03
  *
  */
@@ -31,18 +32,18 @@ void chameleon_pmap( cham_uplo_t uplo, CHAM_desc_t *A,
     chamctxt = chameleon_context_self();
     if (sequence->status != CHAMELEON_SUCCESS)
         return;
-    RUNTIME_options_init(&options, chamctxt, sequence, request);
+    CHAMELEON_RUNTIME_options_init(&options, chamctxt, sequence, request);
 
     switch( uplo ) {
     case ChamUpper:
         for (n = 0; n < A->nt; n++) {
             for (m = 0; m < n; m++) {
-                INSERT_TASK_map(
+                CHAMELEON_INSERT_TASK_map(
                     &options,
                     ChamUpperLower, A(m, n),
                     op_fct, op_args );
             }
-            INSERT_TASK_map(
+            CHAMELEON_INSERT_TASK_map(
                 &options,
                 uplo, A(n, n),
                 op_fct, op_args );
@@ -51,12 +52,12 @@ void chameleon_pmap( cham_uplo_t uplo, CHAM_desc_t *A,
 
     case ChamLower:
         for (n = 0; n < A->nt; n++) {
-            INSERT_TASK_map(
+            CHAMELEON_INSERT_TASK_map(
                 &options,
                 uplo, A(n, n),
                 op_fct, op_args );
             for (m = n+1; m < A->mt; m++) {
-                INSERT_TASK_map(
+                CHAMELEON_INSERT_TASK_map(
                     &options,
                     ChamUpperLower, A(m, n),
                     op_fct, op_args );
@@ -68,7 +69,7 @@ void chameleon_pmap( cham_uplo_t uplo, CHAM_desc_t *A,
     default:
         for (m = 0; m < A->mt; m++) {
             for (n = 0; n < A->nt; n++) {
-                INSERT_TASK_map(
+                CHAMELEON_INSERT_TASK_map(
                     &options,
                     uplo, A(m, n),
                     op_fct, op_args );
@@ -76,5 +77,5 @@ void chameleon_pmap( cham_uplo_t uplo, CHAM_desc_t *A,
         }
     }
 
-    RUNTIME_options_finalize(&options, chamctxt);
+    CHAMELEON_RUNTIME_options_finalize(&options, chamctxt);
 }

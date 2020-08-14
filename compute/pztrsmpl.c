@@ -19,6 +19,7 @@
  * @author Mathieu Faverge
  * @author Emmanuel Agullo
  * @author Cedric Castagnede
+ * @author Florent Pruvost
  * @date 2020-03-03
  * @precisions normal z -> s d c
  *
@@ -46,7 +47,7 @@ void chameleon_pztrsmpl( CHAM_desc_t *A, CHAM_desc_t *B, CHAM_desc_t *L, int *IP
     if (sequence->status != CHAMELEON_SUCCESS) {
         return;
     }
-    RUNTIME_options_init(&options, chamctxt, sequence, request);
+    CHAMELEON_RUNTIME_options_init(&options, chamctxt, sequence, request);
 
     ib = CHAMELEON_IB;
     for (k = 0; k < chameleon_min(A->mt, A->nt); k++) {
@@ -55,7 +56,7 @@ void chameleon_pztrsmpl( CHAM_desc_t *A, CHAM_desc_t *B, CHAM_desc_t *L, int *IP
         tempkmin = k == chameleon_min(A->mt, A->nt)-1 ? chameleon_min(A->m, A->n)-k*A->mb : A->mb;
         for (n = 0; n < B->nt; n++) {
             tempnn = n == B->nt-1 ? B->n-n*B->nb : B->nb;
-            INSERT_TASK_zgessm(
+            CHAMELEON_INSERT_TASK_zgessm(
                 &options,
                 tempkm, tempnn, tempkmin, ib, L->nb,
                 IPIV(k, k),
@@ -67,7 +68,7 @@ void chameleon_pztrsmpl( CHAM_desc_t *A, CHAM_desc_t *B, CHAM_desc_t *L, int *IP
             tempmm = m == A->mt-1 ? A->m-m*A->mb : A->mb;
             for (n = 0; n < B->nt; n++) {
                 tempnn  = n == B->nt-1 ? B->n-n*B->nb : B->nb;
-                INSERT_TASK_zssssm(
+                CHAMELEON_INSERT_TASK_zssssm(
                     &options,
                     A->nb, tempnn, tempmm, tempnn, tempkn, ib, L->nb,
                     B(k, n),
@@ -78,5 +79,5 @@ void chameleon_pztrsmpl( CHAM_desc_t *A, CHAM_desc_t *B, CHAM_desc_t *L, int *IP
             }
         }
     }
-    RUNTIME_options_finalize(&options, chamctxt);
+    CHAMELEON_RUNTIME_options_finalize(&options, chamctxt);
 }

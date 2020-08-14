@@ -18,6 +18,7 @@
  * @author Emmanuel Agullo
  * @author Cedric Castagnede
  * @author Guillaume Sylvand
+ * @author Florent Pruvost
  * @date 2020-03-03
  * @precisions normal z -> s d c
  *
@@ -64,7 +65,7 @@ void chameleon_pzbuild( cham_uplo_t uplo, CHAM_desc_t *A, void *user_data, void*
   chamctxt = chameleon_context_self();
   if (sequence->status != CHAMELEON_SUCCESS)
     return;
-  RUNTIME_options_init(&options, chamctxt, sequence, request);
+  CHAMELEON_RUNTIME_options_init(&options, chamctxt, sequence, request);
 
   for (m = 0; m < A->mt; m++) {
     for (n = 0; n < A->nt; n++) {
@@ -72,12 +73,12 @@ void chameleon_pzbuild( cham_uplo_t uplo, CHAM_desc_t *A, void *user_data, void*
       if ( ( uplo == ChamUpper && m <= n ) ||
            ( uplo == ChamLower && m >= n ) ||
            ( uplo == ChamUpperLower ) )
-        INSERT_TASK_zbuild(
+        CHAMELEON_INSERT_TASK_zbuild(
               &options,
               A(m, n),
               user_data, user_build_callback );
     }
   }
 
-  RUNTIME_options_finalize( &options, chamctxt);
+  CHAMELEON_RUNTIME_options_finalize( &options, chamctxt);
 }

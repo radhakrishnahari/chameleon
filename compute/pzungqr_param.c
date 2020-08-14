@@ -14,6 +14,7 @@
  * @version 1.0.0
  * @author Mathieu Faverge
  * @author Raphael Boucherie
+ * @author Florent Pruvost
  * @date 2020-03-03
  * @precisions normal z -> s d c
  *
@@ -49,7 +50,7 @@ void chameleon_pzungqr_param( int genD, int K,
     if (sequence->status != CHAMELEON_SUCCESS) {
         return;
     }
-    RUNTIME_options_init(&options, chamctxt, sequence, request);
+    CHAMELEON_RUNTIME_options_init(&options, chamctxt, sequence, request);
 
     ib = CHAMELEON_IB;
 
@@ -75,13 +76,13 @@ void chameleon_pzungqr_param( int genD, int K,
     ws_worker *= sizeof(CHAMELEON_Complex64_t);
     ws_host   *= sizeof(CHAMELEON_Complex64_t);
 
-    RUNTIME_options_ws_alloc( &options, ws_worker, ws_host );
+    CHAMELEON_RUNTIME_options_ws_alloc( &options, ws_worker, ws_host );
 
     /* Initialisation of temporary tiles array */
     tiles = (int*)calloc(qrtree->mt, sizeof(int));
 
     for (k = K-1; k >=0; k--) {
-        RUNTIME_iteration_push(chamctxt, k);
+        CHAMELEON_RUNTIME_iteration_push(chamctxt, k);
 
         tempkn = k == A->nt-1 ? A->n-k*A->nb : A->nb;
 
@@ -109,10 +110,10 @@ void chameleon_pzungqr_param( int genD, int K,
                 tempnn = n == Q->nt-1 ? Q->n-n*Q->nb : Q->nb;
 
                 node = Q->get_rankof( Q, m, n );
-                RUNTIME_data_migrate( sequence, Q(p, n), node );
-                RUNTIME_data_migrate( sequence, Q(m, n), node );
+                CHAMELEON_RUNTIME_data_migrate( sequence, Q(p, n), node );
+                CHAMELEON_RUNTIME_data_migrate( sequence, Q(m, n), node );
 
-                INSERT_TASK_ztpmqrt(
+                CHAMELEON_INSERT_TASK_ztpmqrt(
                     &options,
                     ChamLeft, ChamNoTrans,
                     tempmm, tempnn, tempkn, L, ib, T->nb,
@@ -121,8 +122,8 @@ void chameleon_pzungqr_param( int genD, int K,
                     Q(p, n),
                     Q(m, n));
             }
-            RUNTIME_data_flush( sequence, A(m, k) );
-            RUNTIME_data_flush( sequence, T(m, k) );
+            CHAMELEON_RUNTIME_data_flush( sequence, A(m, k) );
+            CHAMELEON_RUNTIME_data_flush( sequence, T(m, k) );
         }
 
         T = TS;
@@ -137,13 +138,13 @@ void chameleon_pzungqr_param( int genD, int K,
 
             if ( genD ) {
                 int tempDmm = m == D->mt-1 ? D->m-m*D->mb : D->mb;
-                INSERT_TASK_zlacpy(
+                CHAMELEON_INSERT_TASK_zlacpy(
                     &options,
                     ChamLower, tempDmm, tempkmin, A->nb,
                     A(m, k),
                     D(m, k) );
 #if defined(CHAMELEON_USE_CUDA)
-                INSERT_TASK_zlaset(
+                CHAMELEON_INSERT_TASK_zlaset(
                     &options,
                     ChamUpper, tempDmm, tempkmin,
                     0., 1.,
@@ -155,10 +156,10 @@ void chameleon_pzungqr_param( int genD, int K,
                 tempnn = n == Q->nt-1 ? Q->n-n*Q->nb : Q->nb;
 
                 /* Restore the original location of the tiles */
-                RUNTIME_data_migrate( sequence, Q(m, n),
+                CHAMELEON_RUNTIME_data_migrate( sequence, Q(m, n),
                                       Q->get_rankof( Q, m, n ) );
 
-                INSERT_TASK_zunmqr(
+                CHAMELEON_INSERT_TASK_zunmqr(
                     &options,
                     ChamLeft, ChamNoTrans,
                     tempmm, tempnn, tempkmin, ib, T->nb,
@@ -166,14 +167,14 @@ void chameleon_pzungqr_param( int genD, int K,
                     T(m, k),
                     Q(m, n));
             }
-            RUNTIME_data_flush( sequence, D(m, k) );
-            RUNTIME_data_flush( sequence, T(m, k) );
+            CHAMELEON_RUNTIME_data_flush( sequence, D(m, k) );
+            CHAMELEON_RUNTIME_data_flush( sequence, T(m, k) );
         }
 
-        RUNTIME_iteration_pop(chamctxt);
+        CHAMELEON_RUNTIME_iteration_pop(chamctxt);
     }
 
     free(tiles);
-    RUNTIME_options_ws_free(&options);
-    RUNTIME_options_finalize(&options, chamctxt);
+    CHAMELEON_RUNTIME_options_ws_free(&options);
+    CHAMELEON_RUNTIME_options_finalize(&options, chamctxt);
 }

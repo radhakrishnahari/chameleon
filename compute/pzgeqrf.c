@@ -19,6 +19,7 @@
  * @author Mathieu Faverge
  * @author Emmanuel Agullo
  * @author Cedric Castagnede
+ * @author Florent Pruvost
  * @date 2020-03-03
  * @precisions normal z -> s d c
  *
@@ -49,7 +50,7 @@ void chameleon_pzgeqrf( int genD, CHAM_desc_t *A, CHAM_desc_t *T, CHAM_desc_t *D
     if (sequence->status != CHAMELEON_SUCCESS) {
         return;
     }
-    RUNTIME_options_init(&options, chamctxt, sequence, request);
+    CHAMELEON_RUNTIME_options_init(&options, chamctxt, sequence, request);
 
     ib = CHAMELEON_IB;
 
@@ -79,14 +80,14 @@ void chameleon_pzgeqrf( int genD, CHAM_desc_t *A, CHAM_desc_t *T, CHAM_desc_t *D
     ws_worker *= sizeof(CHAMELEON_Complex64_t);
     ws_host   *= sizeof(CHAMELEON_Complex64_t);
 
-    RUNTIME_options_ws_alloc( &options, ws_worker, ws_host );
+    CHAMELEON_RUNTIME_options_ws_alloc( &options, ws_worker, ws_host );
 
     for (k = 0; k < minMNT; k++) {
-        RUNTIME_iteration_push(chamctxt, k);
+        CHAMELEON_RUNTIME_iteration_push(chamctxt, k);
 
         tempkm = k == A->mt-1 ? A->m-k*A->mb : A->mb;
         tempkn = k == A->nt-1 ? A->n-k*A->nb : A->nb;
-        INSERT_TASK_zgeqrt(
+        CHAMELEON_INSERT_TASK_zgeqrt(
             &options,
             tempkm, tempkn, ib, T->nb,
             A(k, k),
@@ -94,13 +95,13 @@ void chameleon_pzgeqrf( int genD, CHAM_desc_t *A, CHAM_desc_t *T, CHAM_desc_t *D
         if ( genD ) {
             int tempDkm = k == D->mt-1 ? D->m-k*D->mb : D->mb;
             int tempDkn = k == D->nt-1 ? D->n-k*D->nb : D->nb;
-            INSERT_TASK_zlacpy(
+            CHAMELEON_INSERT_TASK_zlacpy(
                 &options,
                 ChamLower, tempDkm, tempDkn, A->nb,
                 A(k, k),
                 D(k) );
 #if defined(CHAMELEON_USE_CUDA)
-            INSERT_TASK_zlaset(
+            CHAMELEON_INSERT_TASK_zlaset(
                 &options,
                 ChamUpper, tempDkm, tempDkn,
                 0., 1.,
@@ -109,7 +110,7 @@ void chameleon_pzgeqrf( int genD, CHAM_desc_t *A, CHAM_desc_t *T, CHAM_desc_t *D
         }
         for (n = k+1; n < A->nt; n++) {
             tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
-            INSERT_TASK_zunmqr(
+            CHAMELEON_INSERT_TASK_zunmqr(
                 &options,
                 ChamLeft, ChamConjTrans,
                 tempkm, tempnn, tempkm, ib, T->nb,
@@ -117,17 +118,17 @@ void chameleon_pzgeqrf( int genD, CHAM_desc_t *A, CHAM_desc_t *T, CHAM_desc_t *D
                 T(k, k),
                 A(k, n));
         }
-        RUNTIME_data_flush( sequence, D(k)    );
-        RUNTIME_data_flush( sequence, T(k, k) );
+        CHAMELEON_RUNTIME_data_flush( sequence, D(k)    );
+        CHAMELEON_RUNTIME_data_flush( sequence, T(k, k) );
 
         for (m = k+1; m < A->mt; m++) {
             tempmm = m == A->mt-1 ? A->m-m*A->mb : A->mb;
 
-            RUNTIME_data_migrate( sequence, A(k, k),
+            CHAMELEON_RUNTIME_data_migrate( sequence, A(k, k),
                                   A->get_rankof( A, m, k ) );
 
             /* TS kernel */
-            INSERT_TASK_ztpqrt(
+            CHAMELEON_INSERT_TASK_ztpqrt(
                 &options,
                 tempmm, tempkn, 0, ib, T->nb,
                 A(k, k),
@@ -137,11 +138,11 @@ void chameleon_pzgeqrf( int genD, CHAM_desc_t *A, CHAM_desc_t *T, CHAM_desc_t *D
             for (n = k+1; n < A->nt; n++) {
                 tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
 
-                RUNTIME_data_migrate( sequence, A(k, n),
+                CHAMELEON_RUNTIME_data_migrate( sequence, A(k, n),
                                       A->get_rankof( A, m, n ) );
 
                 /* TS kernel */
-                INSERT_TASK_ztpmqrt(
+                CHAMELEON_INSERT_TASK_ztpmqrt(
                     &options,
                     ChamLeft, ChamConjTrans,
                     tempmm, tempnn, A->nb, 0, ib, T->nb,
@@ -150,20 +151,20 @@ void chameleon_pzgeqrf( int genD, CHAM_desc_t *A, CHAM_desc_t *T, CHAM_desc_t *D
                     A(k, n),
                     A(m, n));
             }
-            RUNTIME_data_flush( sequence, A(m, k) );
-            RUNTIME_data_flush( sequence, T(m, k) );
+            CHAMELEON_RUNTIME_data_flush( sequence, A(m, k) );
+            CHAMELEON_RUNTIME_data_flush( sequence, T(m, k) );
         }
 
         /* Restore the original location of the tiles */
         for (n = k; n < A->nt; n++) {
-            RUNTIME_data_migrate( sequence, A(k, n),
+            CHAMELEON_RUNTIME_data_migrate( sequence, A(k, n),
                                   A->get_rankof( A, k, n ) );
         }
 
-        RUNTIME_iteration_pop(chamctxt);
+        CHAMELEON_RUNTIME_iteration_pop(chamctxt);
     }
 
-    RUNTIME_options_ws_free(&options);
-    RUNTIME_options_finalize(&options, chamctxt);
+    CHAMELEON_RUNTIME_options_ws_free(&options);
+    CHAMELEON_RUNTIME_options_finalize(&options, chamctxt);
     (void)D;
 }

@@ -17,6 +17,7 @@
  * @author Mathieu Faverge
  * @author Emmanuel Agullo
  * @author Cedric Castagnede
+ * @author Florent Pruvost
  * @date 2020-03-03
  * @precisions normal z -> s d c
  *
@@ -40,7 +41,7 @@ void chameleon_pzplrnt( CHAM_desc_t *A, unsigned long long int seed,
     if (sequence->status != CHAMELEON_SUCCESS) {
         return;
     }
-    RUNTIME_options_init(&options, chamctxt, sequence, request);
+    CHAMELEON_RUNTIME_options_init(&options, chamctxt, sequence, request);
 
     for (m = 0; m < A->mt; m++) {
         tempmm = m == A->mt-1 ? A->m-m*A->mb : A->mb;
@@ -48,11 +49,11 @@ void chameleon_pzplrnt( CHAM_desc_t *A, unsigned long long int seed,
         for (n = 0; n < A->nt; n++) {
             tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
 
-            INSERT_TASK_zplrnt(
+            CHAMELEON_INSERT_TASK_zplrnt(
                 &options,
                 tempmm, tempnn, A(m, n),
                 A->m, m*A->mb, n*A->nb, seed );
         }
     }
-    RUNTIME_options_finalize(&options, chamctxt);
+    CHAMELEON_RUNTIME_options_finalize(&options, chamctxt);
 }

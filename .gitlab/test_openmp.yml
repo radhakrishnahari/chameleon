@@ -1,9 +1,9 @@
 ---
 .test_openmp_template: &test_openmp
   extends: .test_script_template
-  needs: [build_openmp]
+  needs: [build_all]
   dependencies:
-    - build_openmp
+    - build_all
   artifacts:
     name: test_openmp
     expire_in: 48 hours
@@ -32,6 +32,7 @@ test_openmp_shm_s:
     CATEGORY: shm
     PRECISION: s
     TESTS_RESTRICTION: "-R \"_${CATEGORY}_${PRECISION}\""
+    CHAMELEON_RUNTIME_LIBRARY: $CI_PROJECT_DIR/build-all/runtime/openmp/libchameleon_openmp.so
 
 test_openmp_shm_d:
   <<: *test_openmp_master
@@ -40,6 +41,7 @@ test_openmp_shm_d:
     CATEGORY: shm
     PRECISION: d
     TESTS_RESTRICTION: "-R \"_${CATEGORY}_${PRECISION}\""
+    CHAMELEON_RUNTIME_LIBRARY: $CI_PROJECT_DIR/build-all/runtime/openmp/libchameleon_openmp.so
 
 test_openmp_shm_c:
   <<: *test_openmp_master
@@ -48,6 +50,7 @@ test_openmp_shm_c:
     CATEGORY: shm
     PRECISION: c
     TESTS_RESTRICTION: "-R \"_${CATEGORY}_${PRECISION}\""
+    CHAMELEON_RUNTIME_LIBRARY: $CI_PROJECT_DIR/build-all/runtime/openmp/libchameleon_openmp.so
 
 test_openmp_shm_z:
   <<: *test_openmp_branches
@@ -56,3 +59,4 @@ test_openmp_shm_z:
     CATEGORY: shm
     PRECISION: z
     TESTS_RESTRICTION: "-R \"_${CATEGORY}_${PRECISION}\""
+    CHAMELEON_RUNTIME_LIBRARY: $CI_PROJECT_DIR/build-all/runtime/openmp/libchameleon_openmp.so

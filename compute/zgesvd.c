@@ -539,7 +539,10 @@ int CHAMELEON_zgesvd_Tile_Async( cham_job_t jobu, cham_job_t jobvt,
         }
 
         chameleon_sequence_wait( chamctxt, sequence );
-
+        /*
+         * TODO: as soons as LAPACKE is not needed anymore here we can remove
+         * our dependency to LAPACKE libs.
+         */
         info = LAPACKE_zgbbrd( LAPACK_COL_MAJOR,
                                gbbrd_vect,
                                M, N,
@@ -626,6 +629,10 @@ int CHAMELEON_zgesvd_Tile_Async( cham_job_t jobu, cham_job_t jobvt,
     /* On exit, U and VT are updated with bidiagonal matrix singular vectors */
 #if !defined(CHAMELEON_SIMULATION)
     {
+        /*
+         * TODO: as soons as LAPACKE is not needed anymore here we can remove
+         * our dependency to LAPACKE libs.
+         */
         int info = LAPACKE_zbdsqr( LAPACK_COL_MAJOR, 'U',
                                    MINMN, ncvt, nru, 0,
                                    S, E,

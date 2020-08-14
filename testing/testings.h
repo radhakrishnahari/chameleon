@@ -10,6 +10,7 @@
  *
  * @version 1.0.0
  * @author Lucas Barros de Assis
+ * @author Florent Pruvost
  * @date 2020-03-03
  *
  */
@@ -232,10 +233,10 @@ void testing_register( testing_t *test );
  */
 #define START_TIMING( _t_ )                     \
     START_DISTRIBUTED();                        \
-    (_t_) = RUNTIME_get_time();
+    (_t_) = CHAMELEON_RUNTIME_get_time();
 
 #define STOP_TIMING( _t_ )                      \
     STOP_DISTRIBUTED();                         \
-    (_t_) = RUNTIME_get_time() - (_t_);         \
+    (_t_) = CHAMELEON_RUNTIME_get_time() - (_t_);
 
 #endif /* _testings_h_ */

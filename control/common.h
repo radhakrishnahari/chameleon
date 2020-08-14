@@ -14,6 +14,7 @@
  * @version 1.0.0
  * @author Mathieu Faverge
  * @author Cedric Castagnede
+ * @author Florent Pruvost
  * @date 2020-03-03
  *
  */
@@ -44,10 +45,6 @@
 #else
 #include <cublas.h>
 #endif
-#endif
-
-#if defined(CHAMELEON_USE_OPENCL) && !defined(CHAMELEON_SIMULATION)
-#include <OpenCL/cl.h>
 #endif
 
 #if defined(CHAMELEON_USE_MPI)
@@ -93,6 +90,11 @@
 
 /**
  *  Global array of LAPACK constants
+ *
+ * TODO: this is needed to be able to call LAPACKE in Eigen values algorithms.
+ * As soons as LAPACKE is not needed anymore in these algorithms this
+ * declaration can be removed. This will also avoid a direct dependency between
+ * chameleon lib and coreblas one which should not exist.
  */
 extern char *chameleon_lapack_constants[];
 #define chameleon_lapack_const(chameleon_const) chameleon_lapack_constants[chameleon_const][0]

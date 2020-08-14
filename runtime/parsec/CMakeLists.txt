@@ -42,6 +42,7 @@ find_package( PARSEC REQUIRED
 if(PARSEC_FOUND)
   message("-- ${Blue}Add definition CHAMELEON_SCHED_PARSEC"
     " - Activate PaRSEC in Chameleon${ColourReset}")
+  set(CHAMELEON_SCHED "${CHAMELEON_SCHED};PARSEC" CACHE STRING "Runtime systems available" FORCE)
   if (PARSEC_INCLUDE_DIRS_DEP)
     include_directories(${PARSEC_INCLUDE_DIRS_DEP})
   endif()
@@ -57,7 +58,7 @@ if(PARSEC_FOUND)
     list(APPEND CMAKE_INSTALL_RPATH "${PARSEC_LIBRARY_DIRS_DEP}")
   endif()
   if (PARSEC_LIBRARIES_DEP)
-    list(INSERT CHAMELEON_DEP 0 ${PARSEC_LIBRARIES_DEP})
+    set(CHAMELEON_DEP  "${PARSEC_LIBRARIES_DEP};${CHAMELEON_DEP}" PARENT_SCOPE)
   endif()
   string(REPLACE ";" " " CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS}")
   # to test if symbols exist, e.g.

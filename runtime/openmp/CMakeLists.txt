@@ -32,10 +32,10 @@ find_package(OpenMP REQUIRED)
 if ( OPENMP_FOUND )
   message("-- ${Blue}Add definition CHAMELEON_SCHED_OPENMP"
     " - Activate OpenMP in Chameleon${ColourReset}")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${OpenMP_Fortran_FLAGS}")
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_C_FLAGS}")
-  # TODO: check for compiler support for "_Pragma"
+  include_directories(${OpenMP_C_INCLUDE_DIRS})
+  if (OpenMP_C_LIBRARIES)
+    set(CHAMELEON_DEP  "${OpenMP_C_LIBRARIES};${CHAMELEON_DEP}" PARENT_SCOPE)
+  endif()
 else ( OPENMP_FOUND )
   message(FATAL_ERROR "Something went wrong when finding OpenMP")
   return()
@@ -113,10 +113,10 @@ add_library(chameleon_openmp ${RUNTIME_SRCS})
 set_property(TARGET chameleon_openmp PROPERTY LINKER_LANGUAGE Fortran)
 set_property(TARGET chameleon_openmp PROPERTY INSTALL_NAME_DIR "${CMAKE_INSTALL_PREFIX}/lib")
 
-target_link_libraries(chameleon_openmp
-  ${OPENMP_LIBRARIES_DEP})
-target_link_libraries(chameleon_openmp
-  coreblas)
+target_link_libraries(chameleon_openmp ${OpenMP_C_LIBRARIES})
+if (NOT CHAMELEON_SIMULATION)
+  target_link_libraries(chameleon_openmp coreblas)
+endif()
 
 add_dependencies(chameleon_openmp
   chameleon_include

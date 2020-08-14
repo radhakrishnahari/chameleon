@@ -16,6 +16,7 @@
  * @author Piotr Luszczek
  * @author Emmanuel Agullo
  * @author Cedric Castagnede
+ * @author Florent Pruvost
  * @date 2020-03-03
  *
  ***
@@ -102,7 +103,7 @@ void chameleon_fatal_error(const char *func_name, const char *msg_text)
  */
 int chameleon_rank(CHAM_context_t *chamctxt)
 {
-    return RUNTIME_thread_rank( chamctxt );
+    return CHAMELEON_RUNTIME_thread_rank( chamctxt );
 }
 
 /**

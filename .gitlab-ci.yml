@@ -13,11 +13,11 @@ before_script:
 include:
   - .gitlab/common.yml
   - .gitlab/build.yml
-  - .gitlab/test_starpu.yml
-  - .gitlab/test_starpu_simgrid.yml
+  - .gitlab/test_openmp.yml
   - .gitlab/test_parsec.yml
   - .gitlab/test_quark.yml
-  - .gitlab/test_openmp.yml
+  - .gitlab/test_starpu.yml
+  - .gitlab/test_starpu_simgrid.yml
   - .gitlab/coverage.yml
   - .gitlab/coverity.yml
   - .gitlab/sonarqube.yml

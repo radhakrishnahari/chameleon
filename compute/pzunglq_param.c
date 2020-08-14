@@ -14,6 +14,7 @@
  * @version 1.0.0
  * @author Mathieu Faverge
  * @author Raphael Boucherie
+ * @author Florent Pruvost
  * @date 2020-03-03
  * @precisions normal z -> s d c
  *
@@ -48,7 +49,7 @@ void chameleon_pzunglq_param( int genD, const libhqr_tree_t *qrtree, CHAM_desc_t
     if (sequence->status != CHAMELEON_SUCCESS) {
         return;
     }
-    RUNTIME_options_init(&options, chamctxt, sequence, request);
+    CHAMELEON_RUNTIME_options_init(&options, chamctxt, sequence, request);
 
     ib = CHAMELEON_IB;
 
@@ -75,7 +76,7 @@ void chameleon_pzunglq_param( int genD, const libhqr_tree_t *qrtree, CHAM_desc_t
     ws_worker *= sizeof(CHAMELEON_Complex64_t);
     ws_host   *= sizeof(CHAMELEON_Complex64_t);
 
-    RUNTIME_options_ws_alloc( &options, ws_worker, ws_host );
+    CHAMELEON_RUNTIME_options_ws_alloc( &options, ws_worker, ws_host );
 
     /* Initialisation of tiles */
     tiles = (int*)calloc( qrtree->mt, sizeof(int));
@@ -83,7 +84,7 @@ void chameleon_pzunglq_param( int genD, const libhqr_tree_t *qrtree, CHAM_desc_t
     K = chameleon_min(A->mt, A->nt);
 
     for (k = K-1; k >= 0; k--) {
-        RUNTIME_iteration_push(chamctxt, k);
+        CHAMELEON_RUNTIME_iteration_push(chamctxt, k);
 
         tempkm = k == A->mt-1 ? A->m-k*A->mb : A->mb;
 
@@ -110,10 +111,10 @@ void chameleon_pzunglq_param( int genD, const libhqr_tree_t *qrtree, CHAM_desc_t
                 tempmm = m == Q->mt-1 ? Q->m-m*Q->mb : Q->mb;
 
                 node = Q->get_rankof( Q, m, n );
-                RUNTIME_data_migrate( sequence, Q(m, p), node );
-                RUNTIME_data_migrate( sequence, Q(m, n), node );
+                CHAMELEON_RUNTIME_data_migrate( sequence, Q(m, p), node );
+                CHAMELEON_RUNTIME_data_migrate( sequence, Q(m, n), node );
 
-                INSERT_TASK_ztpmlqt(
+                CHAMELEON_INSERT_TASK_ztpmlqt(
                     &options,
                     ChamRight, ChamNoTrans,
                     tempmm, tempnn, tempkm, L, ib, T->nb,
@@ -122,8 +123,8 @@ void chameleon_pzunglq_param( int genD, const libhqr_tree_t *qrtree, CHAM_desc_t
                     Q(m, p),
                     Q(m, n));
             }
-            RUNTIME_data_flush( sequence, A(k, n) );
-            RUNTIME_data_flush( sequence, T(k, n) );
+            CHAMELEON_RUNTIME_data_flush( sequence, A(k, n) );
+            CHAMELEON_RUNTIME_data_flush( sequence, T(k, n) );
         }
 
         T = TS;
@@ -135,13 +136,13 @@ void chameleon_pzunglq_param( int genD, const libhqr_tree_t *qrtree, CHAM_desc_t
 
             if ( genD ) {
                 int tempDpn = p == D->nt-1 ? D->n-p*D->nb : D->nb;
-                INSERT_TASK_zlacpy(
+                CHAMELEON_INSERT_TASK_zlacpy(
                     &options,
                     ChamUpper, tempkmin, tempDpn, A->nb,
                     A(k, p),
                     D(k, p) );
 #if defined(CHAMELEON_USE_CUDA)
-                INSERT_TASK_zlaset(
+                CHAMELEON_INSERT_TASK_zlaset(
                     &options,
                     ChamLower, tempkmin, tempDpn,
                     0., 1.,
@@ -151,10 +152,10 @@ void chameleon_pzunglq_param( int genD, const libhqr_tree_t *qrtree, CHAM_desc_t
             for (m = k; m < Q->mt; m++) {
                 tempmm = m == Q->mt-1 ? Q->m-m*Q->mb : Q->mb;
 
-                RUNTIME_data_migrate( sequence, Q(m, p),
+                CHAMELEON_RUNTIME_data_migrate( sequence, Q(m, p),
                                       Q->get_rankof( Q, m, p ) );
 
-                INSERT_TASK_zunmlq(
+                CHAMELEON_INSERT_TASK_zunmlq(
                     &options,
                     ChamRight, ChamNoTrans,
                     tempmm, temppn, tempkmin, ib, T->nb,
@@ -162,14 +163,14 @@ void chameleon_pzunglq_param( int genD, const libhqr_tree_t *qrtree, CHAM_desc_t
                     T(k, p),
                     Q(m, p));
             }
-            RUNTIME_data_flush( sequence, D(k, p) );
-            RUNTIME_data_flush( sequence, T(k, p) );
+            CHAMELEON_RUNTIME_data_flush( sequence, D(k, p) );
+            CHAMELEON_RUNTIME_data_flush( sequence, T(k, p) );
         }
 
-        RUNTIME_iteration_pop(chamctxt);
+        CHAMELEON_RUNTIME_iteration_pop(chamctxt);
     }
 
     free(tiles);
-    RUNTIME_options_ws_free(&options);
-    RUNTIME_options_finalize(&options, chamctxt);
+    CHAMELEON_RUNTIME_options_ws_free(&options);
+    CHAMELEON_RUNTIME_options_finalize(&options, chamctxt);
 }

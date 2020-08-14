@@ -105,71 +105,39 @@ include(RulesPrecisions)
 # -----------------------------
 
 # Create a list of possible runtime
-set(CHAMELEON_SCHED_list PARSEC STARPU QUARK OPENMP
+set(CHAMELEON_SCHED_list OPENMP PARSEC QUARK STARPU
   CACHE INTERNAL "List of available runtimes" )
 
-set( CHAMELEON_SCHED_PARSEC OFF CACHE INTERNAL
-  "Enable PaRSEC scheduler as the default runtime
-    (Conflict with other CHAMELEON_SCHED_* options)")
-set(CHAMELEON_SCHED_STARPU OFF CACHE INTERNAL
-    "Enable StarPU scheduler as the default runtime
-    (Conflict with other CHAMELEON_SCHED_* options)")
-set(CHAMELEON_SCHED_QUARK OFF CACHE INTERNAL
-  "Enable Quark scheduler as the default runtime
-    (Conflict with other CHAMELEON_SCHED_* options)")
-set(CHAMELEON_SCHED_OPENMP OFF CACHE INTERNAL
-  "Enable OpenMP scheduler as the default runtime
-    (Conflict with other CHAMELEON_SCHED_* options)")
+set(CHAMELEON_SCHED_OPENMP ON  CACHE BOOL "Enable OpenMP scheduler")
+set(CHAMELEON_SCHED_PARSEC OFF CACHE BOOL "Enable PaRSEC scheduler")
+set(CHAMELEON_SCHED_QUARK  OFF CACHE BOOL "Enable Quark scheduler")
+set(CHAMELEON_SCHED_STARPU OFF CACHE BOOL "Enable StarPU scheduler")
+set(CHAMELEON_SCHED "OPENMP" CACHE STRING "Runtime systems available" FORCE)
 
-set( CHAMELEON_SCHED STARPU
-  CACHE STRING "Choose the chameleon internal runtime from ${CHAMELEON_SCHED_list}")
-set_property(CACHE CHAMELEON_SCHED PROPERTY STRINGS ${CHAMELEON_SCHED_list})
-
-if ( NOT ${CHAMELEON_SCHED} IN_LIST CHAMELEON_SCHED_list )
-  message(FATAL_ERROR "CHAMELEON_SCHED must be one of ${CHAMELEON_SCHED_list} (${CHAMELEON_SCHED} is incorrect)" )
-endif()
-
-set( CHAMELEON_SCHED_${CHAMELEON_SCHED} ON )
-
-# Set default to StarPU if nothing specific is required by the user
-message("-- ${BoldGreen}CHAMELEON_SCHED is set to use ${CHAMELEON_SCHED} runtime" )
-
-# Check that one, and only one, SCHED option is set to ON
-# count number of runtime sets to ON
-math(EXPR number_of_active_runtime 0)
+# Count number of runtime set to ON
+math(EXPR CHAMELEON_SCHED_NUMBER 0)
 foreach (runtime ${CHAMELEON_SCHED_list})
     if (CHAMELEON_SCHED_${runtime})
-        math(EXPR number_of_active_runtime "${number_of_active_runtime}+1")
+        math(EXPR CHAMELEON_SCHED_NUMBER "${CHAMELEON_SCHED_NUMBER}+1")
+        message("-- ${BoldGreen}CHAMELEON_SCHED_${runtime} is ON${ColourReset}")
     endif()
 endforeach()
-if (NOT number_of_active_runtime STREQUAL 1)
-    message(FATAL_ERROR
-            "Number of active runtime is ${number_of_active_runtime}, "
-            "the user should activate one (and only one) runtime. ")
-endif()
-
-# Use intermediate variable since cmake_dependent_option doesn't have OR conditions
-set(CHAMELEON_ENABLE_MPI OFF CACHE INTERNAL "Tells if MPI might be supported by the runtime")
-if ( CHAMELEON_SCHED_PARSEC OR CHAMELEON_SCHED_STARPU )
-     set(CHAMELEON_ENABLE_MPI ON FORCE)
-endif()
-
-# Use intermediate variable since cmake_dependent_option doesn't have OR conditions
-set(CHAMELEON_ENABLE_CUDA OFF CACHE INTERNAL "Tells if CUDA might be supported by the runtime")
-if ( CHAMELEON_SCHED_PARSEC OR CHAMELEON_SCHED_STARPU )
-     set(CHAMELEON_ENABLE_CUDA ON FORCE)
+message("-- ${BoldGreen}CHAMELEON_SCHED_NUMBER = ${CHAMELEON_SCHED_NUMBER}${ColourReset}")
+set(CHAMELEON_SCHED_DLOPEN OFF)
+if (${CHAMELEON_SCHED_NUMBER} GREATER 1)
+    if (NOT BUILD_SHARED_LIBS)
+        message(WARNING "Number of activated scheduler is greater than 1 but BUILD_SHARED_LIBS is OFF. "
+        "BUILD_SHARED_LIBS is set to ON in order to use schedulers as plugins to be loaded at runtime (dlopen).")
+    endif()
+    set(BUILD_SHARED_LIBS ON)
+    set(CHAMELEON_SCHED_DLOPEN ON)
 endif()
 
 # Additional options
 # ------------------
-
-# Enable the distributed interface (allowed only when StarPU or PaRSEC is enabled)
-# TODO: Default should be changed to ON/OFF when it will be ok
-cmake_dependent_option(CHAMELEON_USE_MPI
-                    "Enable distributed memory through MPI" OFF
-                    "CHAMELEON_ENABLE_MPI" OFF)
-if (CHAMELEON_ENABLE_MPI AND NOT CHAMELEON_USE_MPI)
-    message("-- ${BoldGreen}CHAMELEON_USE_MPI is set to OFF, turn it ON to use MPI (unsupported by Quark)${ColourReset}")
+option(CHAMELEON_USE_MPI "Enable distributed memory through MPI" OFF)
+if (NOT CHAMELEON_USE_MPI)
+    message("-- ${BoldGreen}CHAMELEON_USE_MPI is set to OFF, turn it ON to use MPI (unsupported by OpenMP and Quark)${ColourReset}")
 endif()
 
 cmake_dependent_option(CHAMELEON_USE_MIGRATE
@@ -182,11 +150,9 @@ cmake_dependent_option(CHAMELEON_USE_MPI_DATATYPES
 
 # Enable Cuda kernels if StarPU (only if StarPU or PaRSEC runtime is enabled)
 # TODO: Default should be changed to ON/OFF when it will be ok
-cmake_dependent_option(CHAMELEON_USE_CUDA
-                    "Enable CUDA kernels" OFF
-                    "CHAMELEON_ENABLE_CUDA" OFF)
-if (CHAMELEON_ENABLE_CUDA AND NOT CHAMELEON_USE_CUDA)
-    message("-- ${BoldGreen}CHAMELEON_USE_CUDA is set to OFF, turn it ON to use CUDA (unsupported by Quark)${ColourReset}")
+option(CHAMELEON_USE_CUDA "Enable CUDA kernels" OFF)
+if (NOT CHAMELEON_USE_CUDA)
+    message("-- ${BoldGreen}CHAMELEON_USE_CUDA is set to OFF, turn it ON to use CUDA (unsupported by OpenMP and Quark)${ColourReset}")
 endif()
 
 option(CHAMELEON_RUNTIME_SYNC "Enable synchronous task submission when available to debug the code without parallelism" OFF)
@@ -284,6 +250,10 @@ if(UNIX AND NOT APPLE)
     else()
         message(FATAL_ERROR "Could NOT find librt on your system")
     endif()
+endif()
+
+if(CHAMELEON_SCHED_DLOPEN AND CMAKE_DL_LIBS)
+    list(APPEND EXTRA_LIBRARIES "${CMAKE_DL_LIBS}")
 endif()
 
 # If simulation we don't enter in kernel functions so that we don't need to
@@ -484,8 +454,6 @@ else (NOT CHAMELEON_SIMULATION)
     message("-- ${Blue}Add definition CHAMELEON_SIMULATION"
     " - Activate simulation mode in Chameleon (to use with StarPU+SimGrid)${ColourReset}")
 
-    add_subdirectory(simucore)
-
     # Guard against mis-used simulation mode
     if(NOT DEFINED CHAMELEON_USE_CUDA)
         message(FATAL_ERROR "${BoldBlue}"
@@ -603,36 +571,6 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set(CMAKE_SHARED_LINKER_FLAGS "-undefined dynamic_lookup")
 endif()
 
-# Save extra dependencies (all required links)
-list(APPEND CHAMELEON_DEP ${EXTRA_LIBRARIES})
-# We remove duplicate dependencies ensuring that redundant libraries are placed last
-list(REVERSE CHAMELEON_DEP)
-list(REMOVE_DUPLICATES CHAMELEON_DEP)
-list(REVERSE CHAMELEON_DEP)
-
-# we add chameleon's own library
-set(CHAMELEON_LIBRARIES "chameleon")
-if (NOT CHAMELEON_SIMULATION)
-  list(APPEND CHAMELEON_LIBRARIES coreblas)
-  if (CHAMELEON_USE_CUDA)
-    list(APPEND CHAMELEON_LIBRARIES cudablas)
-  endif()
-endif()
-if (CHAMELEON_SCHED_QUARK)
-  list(APPEND CHAMELEON_LIBRARIES chameleon_quark)
-endif()
-if (CHAMELEON_SCHED_PARSEC)
-  list(APPEND CHAMELEON_LIBRARIES chameleon_parsec)
-endif()
-if (CHAMELEON_SCHED_STARPU)
-  list(APPEND CHAMELEON_LIBRARIES chameleon_starpu)
-endif()
-if (CHAMELEON_SCHED_OPENMP)
-  list(APPEND CHAMELEON_LIBRARIES chameleon_openmp)
-endif()
-list(APPEND CHAMELEON_LIBRARIES hqr)
-set(CHAMELEON_LIBRARIES_DEP ${CHAMELEON_LIBRARIES} ${CHAMELEON_DEP})
-
 # Check for the subdirectories
 # ----------------------------
 
@@ -645,7 +583,10 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 
-if (NOT CHAMELEON_SIMULATION)
+# subdirectory for simulation mode with starpu+simgrid
+if (CHAMELEON_SIMULATION)
+    add_subdirectory(simucore)
+else (CHAMELEON_SIMULATION)
   ###############################################################################
   # Coreblas library (kernels for CPUs) #
   #######################################
@@ -661,8 +602,7 @@ if (NOT CHAMELEON_SIMULATION)
     include_directories(${CMAKE_CURRENT_BINARY_DIR}/cudablas/include)
     add_subdirectory(cudablas)
   endif()
-
-endif()
+endif(CHAMELEON_SIMULATION)
 
 ###############################################################################
 # Runtimes libraries #
@@ -672,9 +612,9 @@ add_subdirectory(runtime)
 ###############################################################################
 # Main library #
 ################
-add_subdirectory(include)
 add_subdirectory(control)
 add_subdirectory(compute)
+add_subdirectory(include)
 
 ###############################################################################
 # Executables and Tests #
@@ -759,6 +699,38 @@ include(CPack)
 ###############################################################################
 # Print Options #
 #################
+
+# Save extra dependencies (all required links)
+list(APPEND CHAMELEON_DEP ${EXTRA_LIBRARIES})
+# We remove duplicate dependencies ensuring that redundant libraries are placed last
+list(REVERSE CHAMELEON_DEP)
+list(REMOVE_DUPLICATES CHAMELEON_DEP)
+list(REVERSE CHAMELEON_DEP)
+# we add chameleon's own library
+set(CHAMELEON_LIBRARIES "chameleon")
+if (NOT CHAMELEON_SIMULATION)
+  list(APPEND CHAMELEON_LIBRARIES coreblas)
+  if (CHAMELEON_USE_CUDA)
+    list(APPEND CHAMELEON_LIBRARIES cudablas)
+  endif()
+endif()
+if (NOT CHAMELEON_SCHED_DLOPEN)
+  if (CHAMELEON_SCHED_OPENMP)
+    list(APPEND CHAMELEON_LIBRARIES chameleon_openmp)
+  endif()
+  if (CHAMELEON_SCHED_PARSEC)
+    list(APPEND CHAMELEON_LIBRARIES chameleon_parsec)
+  endif()
+  if (CHAMELEON_SCHED_QUARK)
+    list(APPEND CHAMELEON_LIBRARIES chameleon_quark)
+  endif()
+  if (CHAMELEON_SCHED_STARPU)
+    list(APPEND CHAMELEON_LIBRARIES chameleon_starpu)
+  endif()
+endif()
+list(APPEND CHAMELEON_LIBRARIES hqr)
+set(CHAMELEON_LIBRARIES_DEP ${CHAMELEON_LIBRARIES} ${CHAMELEON_DEP})
+
 include(PrintOpts)
 
 if (CMAKE_INSTALL_PREFIX STREQUAL "/usr/local" OR CMAKE_INSTALL_PREFIX STREQUAL "C:/Program Files")

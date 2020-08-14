@@ -14,6 +14,7 @@
  * @version 1.0.0
  * @author Mathieu Faverge
  * @author Cedric Castagnede
+ * @author Florent Pruvost
  * @date 2020-03-03
  *
  ***
@@ -38,7 +39,7 @@ int chameleon_desc_mat_alloc( CHAM_desc_t *desc )
 {
     size_t size = (size_t)(desc->llm) * (size_t)(desc->lln)
         * (size_t)CHAMELEON_Element_Size(desc->dtyp);
-    if ((desc->mat = RUNTIME_malloc(size)) == NULL) {
+    if ((desc->mat = CHAMELEON_RUNTIME_malloc(size)) == NULL) {
         chameleon_error("chameleon_desc_mat_alloc", "malloc() failed");
         return CHAMELEON_ERR_OUT_OF_RESOURCES;
     }
@@ -61,7 +62,7 @@ int chameleon_desc_mat_free( CHAM_desc_t *desc )
         size_t size = (size_t)(desc->llm) * (size_t)(desc->lln)
             * (size_t)CHAMELEON_Element_Size(desc->dtyp);
 
-        RUNTIME_free(desc->mat, size);
+        CHAMELEON_RUNTIME_free(desc->mat, size);
         desc->mat = NULL;
     }
 
@@ -227,7 +228,7 @@ int chameleon_desc_init( CHAM_desc_t *desc, void *mat,
     nbdesc++;
     desc->occurences = 0;
 
-    desc->myrank = RUNTIME_comm_rank( chamctxt );
+    desc->myrank = CHAMELEON_RUNTIME_comm_rank( chamctxt );
 
     // Grid size
     desc->p = p;
@@ -309,7 +310,7 @@ int chameleon_desc_init( CHAM_desc_t *desc, void *mat,
     chameleon_desc_init_tiles( desc );
 
     /* Create runtime specific structure like registering data */
-    RUNTIME_desc_create( desc );
+    CHAMELEON_RUNTIME_desc_create( desc );
 
     return rc;
 }
@@ -351,7 +352,7 @@ CHAM_desc_t* chameleon_desc_submatrix( CHAM_desc_t *descA, int i, int j, int m, 
 
 void chameleon_desc_destroy( CHAM_desc_t *desc )
 {
-    RUNTIME_desc_destroy( desc );
+    CHAMELEON_RUNTIME_desc_destroy( desc );
     chameleon_desc_mat_free( desc );
 }
 
@@ -861,7 +862,7 @@ int CHAMELEON_Desc_Destroy(CHAM_desc_t **desc)
  *
  */
 int CHAMELEON_Desc_Acquire (CHAM_desc_t  *desc) {
-    return RUNTIME_desc_acquire( desc );
+    return CHAMELEON_RUNTIME_desc_acquire( desc );
 }
 
 /**
@@ -884,7 +885,7 @@ int CHAMELEON_Desc_Acquire (CHAM_desc_t  *desc) {
  *
  */
 int CHAMELEON_Desc_Release (CHAM_desc_t  *desc) {
-    return RUNTIME_desc_release( desc );
+    return CHAMELEON_RUNTIME_desc_release( desc );
 }
 
 /**
@@ -909,7 +910,7 @@ int CHAMELEON_Desc_Release (CHAM_desc_t  *desc) {
 int CHAMELEON_Desc_Flush( const CHAM_desc_t        *desc,
                           const RUNTIME_sequence_t *sequence )
 {
-    RUNTIME_desc_flush( desc, sequence );
+    CHAMELEON_RUNTIME_desc_flush( desc, sequence );
     return CHAMELEON_SUCCESS;
 }
 
@@ -933,6 +934,6 @@ int CHAMELEON_Desc_Flush( const CHAM_desc_t        *desc,
  *
  */
 void CHAMELEON_user_tag_size(int user_tag_width, int user_tag_sep) {
-    RUNTIME_comm_set_tag_sizes( user_tag_width, user_tag_sep );
+    CHAMELEON_RUNTIME_comm_set_tag_sizes( user_tag_width, user_tag_sep );
     return;
 }

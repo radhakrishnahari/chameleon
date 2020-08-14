@@ -15,6 +15,7 @@
  * @author Cedric Augonnet
  * @author Mathieu Faverge
  * @author Cedric Castagnede
+ * @author Florent Pruvost
  * @date 2020-03-03
  *
  */
@@ -27,10 +28,10 @@ BEGIN_C_DECLS
  * @brief Ids of the runtime supported by the RUNTIME API
  */
 typedef enum runtime_id_e {
-    RUNTIME_SCHED_QUARK,  /**< Quark runtime  */
-    RUNTIME_SCHED_PARSEC, /**< PaRSEC runtime */
-    RUNTIME_SCHED_STARPU, /**< StarPU runtime */
     RUNTIME_SCHED_OPENMP, /**< OpenMP runtime */
+    RUNTIME_SCHED_PARSEC, /**< PaRSEC runtime */
+    RUNTIME_SCHED_QUARK,  /**< Quark runtime  */
+    RUNTIME_SCHED_STARPU, /**< StarPU runtime */
 } RUNTIME_id_t;
 
 /**
