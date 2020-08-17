@@ -107,12 +107,11 @@ include(RulesPrecisions)
 # Create a list of possible runtime
 set(CHAMELEON_SCHED_list OPENMP PARSEC QUARK STARPU
   CACHE INTERNAL "List of available runtimes" )
-
+set(CHAMELEON_SCHED "" CACHE STRING "Runtime systems enabled" FORCE)
 set(CHAMELEON_SCHED_OPENMP ON  CACHE BOOL "Enable OpenMP scheduler")
 set(CHAMELEON_SCHED_PARSEC OFF CACHE BOOL "Enable PaRSEC scheduler")
 set(CHAMELEON_SCHED_QUARK  OFF CACHE BOOL "Enable Quark scheduler")
 set(CHAMELEON_SCHED_STARPU OFF CACHE BOOL "Enable StarPU scheduler")
-set(CHAMELEON_SCHED "OPENMP" CACHE STRING "Runtime systems available" FORCE)
 
 # Count number of runtime set to ON
 math(EXPR CHAMELEON_SCHED_NUMBER 0)
@@ -177,12 +176,20 @@ endif()
 
 # Option to activate or not simulation mode (use Simgrid through StarPU)
 # ----------------------------------------------------------------------
-if(CHAMELEON_SCHED_STARPU)
-    option(CHAMELEON_SIMULATION "Enable simulation mode using Simgrid through StarPU" OFF)
-    if (NOT CHAMELEON_SIMULATION)
-        message("-- ${BoldGreen}CHAMELEON_SIMULATION is set to OFF, turn it ON to use"
+option(CHAMELEON_SIMULATION "Enable simulation mode using Simgrid through StarPU" OFF)
+if(CHAMELEON_SIMULATION)
+    set(CHAMELEON_SCHED_OPENMP OFF  CACHE BOOL "Enable OpenMP scheduler" FORCE)
+    set(CHAMELEON_SCHED_PARSEC OFF CACHE BOOL "Enable PaRSEC scheduler" FORCE)
+    set(CHAMELEON_SCHED_QUARK  OFF CACHE BOOL "Enable Quark scheduler" FORCE)
+    set(CHAMELEON_SCHED_STARPU ON CACHE BOOL "Enable StarPU scheduler" FORCE)
+    set(CHAMELEON_SCHED_DLOPEN OFF)
+    message("-- ${BoldGreen}CHAMELEON_SIMULATION is set to ON"
+    " StarPU (compiled with SimGrid) is the only scheduler compatible, we turn OFF others${ColourReset}")
+else()
+    message("-- ${BoldGreen}CHAMELEON_SIMULATION is set to OFF, turn it ON to use"
             " SIMULATION mode (only with StarPU compiled with SimGrid)${ColourReset}")
-    endif()
+endif()
+if(CHAMELEON_SCHED_STARPU)
     option(CHAMELEON_ENABLE_PRUNING_STATS "Enable pruning statistics" OFF)
     if (NOT CHAMELEON_ENABLE_PRUNING_STATS)
         message("-- ${BoldGreen}CHAMELEON_ENABLE_PRUNING_STATS is set to OFF, turn it ON to build pruning statistics${ColourReset}")
@@ -634,7 +641,7 @@ if(CHAMELEON_ENABLE_EXAMPLE AND NOT CHAMELEON_SIMULATION)
 endif(CHAMELEON_ENABLE_EXAMPLE AND NOT CHAMELEON_SIMULATION)
 
 # Testing executables
-if(CHAMELEON_ENABLE_TESTING)
+if(CHAMELEON_ENABLE_TESTING AND NOT CHAMELEON_SIMULATION)
   add_subdirectory(testing)
 endif(CHAMELEON_ENABLE_TESTING)
 #------------------------------------------------------------------------------
