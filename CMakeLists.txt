@@ -638,12 +638,12 @@ endif()
 # Testing executables
 if(CHAMELEON_ENABLE_EXAMPLE AND NOT CHAMELEON_SIMULATION)
   add_subdirectory(example)
-endif(CHAMELEON_ENABLE_EXAMPLE AND NOT CHAMELEON_SIMULATION)
+endif()
 
 # Testing executables
 if(CHAMELEON_ENABLE_TESTING AND NOT CHAMELEON_SIMULATION)
   add_subdirectory(testing)
-endif(CHAMELEON_ENABLE_TESTING)
+endif()
 #------------------------------------------------------------------------------
 
 # Define a target which gathers all targets of sources
