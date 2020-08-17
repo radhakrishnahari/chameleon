@@ -28,7 +28,7 @@
 test_parsec_shm_s:
   <<: *test_parsec_master
   variables:
-    VERSION: parsec
+    VERSION: all
     CATEGORY: shm
     PRECISION: s
     TESTS_RESTRICTION: "-R \"_${CATEGORY}_${PRECISION}\""
@@ -37,7 +37,7 @@ test_parsec_shm_s:
 test_parsec_shm_d:
   <<: *test_parsec_master
   variables:
-    VERSION: parsec
+    VERSION: all
     CATEGORY: shm
     PRECISION: d
     TESTS_RESTRICTION: "-R \"_${CATEGORY}_${PRECISION}\""
@@ -46,7 +46,7 @@ test_parsec_shm_d:
 test_parsec_shm_c:
   <<: *test_parsec_branches
   variables:
-    VERSION: parsec
+    VERSION: all
     CATEGORY: shm
     PRECISION: c
     TESTS_RESTRICTION: "-R \"_${CATEGORY}_${PRECISION}\""
@@ -55,7 +55,7 @@ test_parsec_shm_c:
 test_parsec_shm_z:
   <<: *test_parsec_master
   variables:
-    VERSION: parsec
+    VERSION: all
     CATEGORY: shm
     PRECISION: z
     TESTS_RESTRICTION: "-R \"_${CATEGORY}_${PRECISION}\""
