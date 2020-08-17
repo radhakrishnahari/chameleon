@@ -71,7 +71,9 @@ void chameleon_dlopen()
     /* chameleon runtime library must be provided */
     cham_runtime_lib_s = getenv("CHAMELEON_RUNTIME_LIBRARY");
     if ( cham_runtime_lib_s == NULL ){
-        chameleon_fatal_error("chameleon_dlopen", "CHAMELEON_RUNTIME_LIBRARY environment variable is not set");
+        chameleon_fatal_error("chameleon_dlopen", "CHAMELEON_RUNTIME_LIBRARY environment variable is not set.\n"
+        "Please choose a runtime system to use by giving the absolute path to a runtime chameleon library,"
+        " e.g. export CHAMELEON_RUNTIME_LIBRARY=$CHAMELEON_DIR/lib/chameleon_starpu.so.");
     }
 
     /* dlopen the given library */
