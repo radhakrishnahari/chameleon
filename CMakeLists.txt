@@ -130,6 +130,11 @@ if (${CHAMELEON_SCHED_NUMBER} GREATER 1)
     endif()
     set(BUILD_SHARED_LIBS ON)
     set(CHAMELEON_SCHED_DLOPEN ON)
+    if (CHAMELEON_USE_MPI)
+        message(WARNING "Several schedulers are enabled and MPI is enabled but only StarPU can be used with MPI."
+        " If you want to use Chameleon with MPI make sure to use it with StarPU,"
+        " e.g. export CHAMELEON_RUNTIME_LIBRARY=$CHAMELEON_DIR/lib/chameleon_starpu.so")
+    endif()
 endif()
 
 # Additional options
