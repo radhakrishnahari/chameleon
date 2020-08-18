@@ -37,7 +37,7 @@
     - (cd build &&
        make install | tee -a ../${LOGNAME} &&
        rm install/ -r)
-    - if [ $VERSION == starpu_mpi ]; then mv build/compile_commands.json build/compile_commands_${VERSION}.json ; fi
+    - if [ $VERSION == starpu_cuda_mpi ]; then mv build/compile_commands.json build/compile_commands_${VERSION}.json ; fi
     - if [ $VERSION == starpu_simgrid ]; then mv build/compile_commands.json build/compile_commands_${VERSION}.json ; fi
   except:
     - schedules

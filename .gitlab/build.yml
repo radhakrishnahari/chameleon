@@ -1,51 +1,27 @@
 ---
-build_openmp:
+build_all_shm:
   extends: .build_script_template
   artifacts:
-    name: build_openmp
+    name: build_all_shm
     expire_in: 48 hours
     paths:
       - build
       - ./*.log
   variables:
-    BUILD_OPTIONS: "-DCHAMELEON_SCHED=OPENMP"
-    VERSION: openmp
+    BUILD_OPTIONS: "-DCHAMELEON_SCHED_OPENMP=ON -DCHAMELEON_SCHED_PARSEC=ON -DCHAMELEON_SCHED_QUARK=ON -DCHAMELEON_SCHED_STARPU=ON -DCHAMELEON_USE_MPI=OFF"
+    VERSION: all_shm
 
-build_parsec:
+build_starpu_cuda_mpi:
   extends: .build_script_template
   artifacts:
-    name: build_parsec
+    name: build_starpu_cuda_mpi
     expire_in: 48 hours
     paths:
       - build
       - ./*.log
   variables:
-    BUILD_OPTIONS: "-DCHAMELEON_SCHED=PARSEC"
-    VERSION: parsec
-
-build_quark:
-  extends: .build_script_template
-  artifacts:
-    name: build_quark
-    expire_in: 48 hours
-    paths:
-      - build
-      - ./*.log
-  variables:
-    BUILD_OPTIONS: "-DCHAMELEON_SCHED=QUARK"
-    VERSION: quark
-
-build_starpu:
-  extends: .build_script_template
-  artifacts:
-    name: build_starpu
-    expire_in: 48 hours
-    paths:
-      - build
-      - ./*.log
-  variables:
-    BUILD_OPTIONS: "-DCHAMELEON_USE_CUDA=ON -DCHAMELEON_USE_MPI=ON"
-    VERSION: starpu
+    BUILD_OPTIONS: "-DCHAMELEON_SCHED_OPENMP=OFF -DCHAMELEON_SCHED_PARSEC=OFF -DCHAMELEON_SCHED_QUARK=OFF -DCHAMELEON_SCHED_STARPU=ON -DCHAMELEON_USE_CUDA=ON -DCHAMELEON_USE_MPI=ON"
+    VERSION: starpu_cuda_mpi
 
 build_starpu_simgrid:
   extends: .build_script_template
@@ -59,27 +35,3 @@ build_starpu_simgrid:
     SIMU: simu
     BUILD_OPTIONS: "-DCHAMELEON_SIMULATION=ON -DCHAMELEON_USE_CUDA=ON -DCHAMELEON_USE_MPI=OFF"
     VERSION: starpu_simgrid
-
-build_all_shm:
-  extends: .build_script_template
-  artifacts:
-    name: build_all_shm
-    expire_in: 48 hours
-    paths:
-      - build
-      - ./*.log
-  variables:
-    BUILD_OPTIONS: "-DCHAMELEON_SCHED_OPENMP=ON -DCHAMELEON_SCHED_PARSEC=ON -DCHAMELEON_SCHED_QUARK=ON -DCHAMELEON_SCHED_STARPU=ON -DCHAMELEON_USE_MPI=OFF"
-    VERSION: all_shm
-
-build_starpu_mpi:
-  extends: .build_script_template
-  artifacts:
-    name: build_starpu_mpi
-    expire_in: 48 hours
-    paths:
-      - build
-      - ./*.log
-  variables:
-    BUILD_OPTIONS: "-DCHAMELEON_SCHED_OPENMP=OFF -DCHAMELEON_SCHED_PARSEC=OFF -DCHAMELEON_SCHED_QUARK=OFF -DCHAMELEON_SCHED_STARPU=ON -DCHAMELEON_USE_MPI=ON"
-    VERSION: starpu_mpi

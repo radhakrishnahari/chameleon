@@ -1,9 +1,9 @@
 ---
 .test_starpu_template:
   extends: .test_script_template
-  needs: [build_starpu_mpi]
+  needs: [build_starpu_cuda_mpi]
   dependencies:
-    - build_starpu_mpi
+    - build_starpu_cuda_mpi
   artifacts:
     name: test_starpu
     expire_in: 48 hours
