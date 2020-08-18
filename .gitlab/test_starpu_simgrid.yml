@@ -8,7 +8,7 @@
     name: test_starpu_simgrid
     expire_in: 48 hours
     paths:
-      - build_starpu_simgrid
+      - build
       - chameleon_starpu_simgrid_*.log
       - chameleon_starpu_simgrid_*.lcov
       - bis_chameleon_starpu_simgrid_*.lcov

@@ -8,7 +8,7 @@ stages:
 before_script:
   - git submodule update --init --recursive
   - source .gitlab-ci-env.sh $SIMU
-  - mkdir -p build-$VERSION
+  - mkdir -p build
 
 include:
   - .gitlab/common.yml

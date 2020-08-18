@@ -12,7 +12,8 @@ coverity:
   variables:
     VERSION: coverity
   script:
-    - (cd build-$VERSION &&
+    - (cd build &&
+       rm CMake* -rf &&
        cmake .. -C ../cmake_modules/gitlab-ci-initial-cache.cmake
                 -DCHAMELEON_USE_CUDA=ON -DCHAMELEON_USE_MPI=ON &&
        cov-build --dir ../cov-int make -j 4)
@@ -25,5 +26,6 @@ coverity:
            https://scan.coverity.com/builds?project=Chameleon
   only:
     - master@solverstack/chameleon
+    - /^ci-.*$/
   except:
     - schedules

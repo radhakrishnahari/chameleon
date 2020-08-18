@@ -1,14 +1,14 @@
 ---
 .test_starpu_template:
   extends: .test_script_template
-  needs: [build_starpu]
+  needs: [build_all]
   dependencies:
-    - build_starpu
+    - build_all
   artifacts:
     name: test_starpu
     expire_in: 48 hours
     paths:
-      - build_starpu
+      - build
       - chameleon_starpu_*.log
       - chameleon_starpu_*.lcov
       - bis_chameleon_starpu_*.lcov

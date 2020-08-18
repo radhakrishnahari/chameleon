@@ -26,7 +26,7 @@
     - echo build BUILD_OPTIONS $BUILD_OPTIONS | tee -a ${LOGNAME}
     - echo build VERSION       $VERSION       | tee -a ${LOGNAME}
     - ls -l *.log
-    - (cd build-$VERSION &&
+    - (cd build &&
        scan-build -plist --intercept-first --exclude CMakeFiles --analyze-headers -o analyzer_reports
        cmake -C ../cmake_modules/gitlab-ci-initial-cache.cmake .. $BUILD_OPTIONS &&
        scan-build -plist --intercept-first --exclude CMakeFiles --analyze-headers -o analyzer_reports
@@ -34,9 +34,10 @@
              -D ExperimentalBuild
              -D ExperimentalSubmit
              | tee ../${LOGNAME})
-    - (cd build-$VERSION &&
+    - (cd build &&
        make install | tee -a ../${LOGNAME} &&
        rm install/ -r)
+    - mv build/compile_commands.json build/compile_commands_${VERSION}.json
   except:
     - schedules
 
@@ -52,15 +53,15 @@
     - echo test CATEGORY $CATEGORY   | tee -a ${LOGNAME}.log
     - echo test PRECISION $PRECISION | tee -a ${LOGNAME}.log
     - ls -l *.log
-    - (cd build-$VERSION &&
+    - (cd build &&
        eval "ctest --no-compress-output -V
              $TESTS_RESTRICTION
              -D ExperimentalTest
              -D ExperimentalCoverage
              -D ExperimentalSubmit
              | tee -a ../${LOGNAME}.log")
-    - lcov --directory build-$VERSION --capture --output-file ./${LOGNAME}.lcov
-    - (cd build-$VERSION && lcov --directory . --capture --output-file ../bis_${LOGNAME}.lcov)
+    - lcov --directory build --capture --output-file ./${LOGNAME}.lcov
+    - (cd build && lcov --directory . --capture --output-file ../bis_${LOGNAME}.lcov)
     - xsltproc -o report.xml /home/gitlab/ctest-to-junit.xsl build-$VERSION/Testing/**/Test.xml
   except:
     - schedules

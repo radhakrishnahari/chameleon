@@ -47,9 +47,9 @@ sonar.projectDescription=Dense linear algebra subroutines for heterogeneous and 
 sonar.projectVersion=0.9
 
 sonar.language=c
-sonar.sources=build-openmp/runtime/openmp, build-parsec/runtime/parsec, build-quark/runtime/quark, build-starpu, compute, control, coreblas, example, include, runtime, testing
+sonar.sources=build/runtime/openmp, build/runtime/parsec, build/runtime/quark, build/runtime/starpu, compute, control, coreblas, example, include, runtime, testing
 sonar.inclusions=`cat filelist.txt | sed ':a;N;$!ba;s/\n/, /g'`
-sonar.c.includeDirectories=$(echo | gcc -E -Wp,-v - 2>&1 | grep "^ " | tr '\n' ',').,$(find . -type f -name '*.h' | sed -r 's|/[^/]+$||' |sort |uniq | xargs echo | sed -e 's/ /,/g'),$PARSEC_DIR/include,$QUARK_DIR/include,$STARPU_DIR/include/starpu/1.2,$SIMGRID_DIR/include
+sonar.c.includeDirectories=$(echo | gcc -E -Wp,-v - 2>&1 | grep "^ " | tr '\n' ',').,$(find . -type f -name '*.h' | sed -r 's|/[^/]+$||' |sort |uniq | xargs echo | sed -e 's/ /,/g'),$PARSEC_DIR/include,$QUARK_DIR/include,$STARPU_DIR/include/starpu/1.3,$SIMGRID_DIR/include
 sonar.sourceEncoding=UTF-8
 sonar.c.errorRecoveryEnabled=true
 sonar.c.gcc.charset=UTF-8
@@ -57,8 +57,8 @@ sonar.c.gcc.regex=(?<file>.*):(?<line>[0-9]+):[0-9]+:\\\x20warning:\\\x20(?<mess
 sonar.c.gcc.reportPath=chameleon_build.log
 sonar.c.coverage.reportPath=chameleon_coverage.xml
 sonar.c.cppcheck.reportPath=chameleon_cppcheck.xml
-sonar.c.clangsa.reportPath=build-openmp/analyzer_reports/*/*.plist, build-parsec/analyzer_reports/*/*.plist, build-quark/analyzer_reports/*/*.plist, build-starpu/analyzer_reports/*/*.plist, build-starpu_simgrid/analyzer_reports/*/*.plist
-sonar.c.jsonCompilationDatabase=build-openmp/compile_commands.json, build-parsec/compile_commands.json, build-quark/compile_commands.json, build-starpu/compile_commands.json, build-starpu_simgrid/compile_commands.json
+sonar.c.clangsa.reportPath=build/analyzer_reports/*/*.plist
+sonar.c.jsonCompilationDatabase=build/compile_commands_openmp.json, build/compile_commands_parsec.json, build/compile_commands_quark.json, build/compile_commands_starpu.json, build/compile_commands_starpu_simgrid.json
 EOF
 
 # run sonar analysis + publish on sonarqube-dev

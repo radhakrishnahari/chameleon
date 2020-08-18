@@ -11,7 +11,7 @@ pages:
   variables:
     VERSION: pages
   script:
-    - cd build-$VERSION
+    - cd build
     - cmake .. -DCHAMELEON_ENABLE_DOC=ON
     - make doc -j5
     - mv doc/orgmode/ ../public/
