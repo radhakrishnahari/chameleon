@@ -1,17 +1,16 @@
 ---
 .test_parsec_template: &test_parsec
   extends: .test_script_template
-  needs: [build_all]
+  needs: [build_all_shm]
   dependencies:
-    - build_all
+    - build_all_shm
   artifacts:
     name: test_parsec
     expire_in: 48 hours
     paths:
       - build
-      - chameleon_parsec_*.log
-      - chameleon_parsec_*.lcov
-      - bis_chameleon_parsec_*.lcov
+      - *.log
+      - *.lcov
     reports:
       junit: report.xml
 

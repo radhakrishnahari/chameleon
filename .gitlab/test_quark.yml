@@ -1,17 +1,16 @@
 ---
 .test_quark_template: &test_quark
   extends: .test_script_template
-  needs: [build_all]
+  needs: [build_all_shm]
   dependencies:
-    - build_all
+    - build_all_shm
   artifacts:
     name: test_quark
     expire_in: 48 hours
     paths:
       - build
-      - chameleon_quark_*.log
-      - chameleon_quark_*.lcov
-      - bis_chameleon_quark_*.lcov
+      - *.log
+      - *.lcov
     reports:
       junit: report.xml
 

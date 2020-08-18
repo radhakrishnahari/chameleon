@@ -1,17 +1,16 @@
 ---
 .test_starpu_template:
   extends: .test_script_template
-  needs: [build_all]
+  needs: [build_starpu_mpi]
   dependencies:
-    - build_all
+    - build_starpu_mpi
   artifacts:
     name: test_starpu
     expire_in: 48 hours
     paths:
       - build
-      - chameleon_starpu_*.log
-      - chameleon_starpu_*.lcov
-      - bis_chameleon_starpu_*.lcov
+      - *.log
+      - *.lcov
     reports:
       junit: report.xml
 

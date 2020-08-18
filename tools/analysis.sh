@@ -58,7 +58,7 @@ sonar.c.gcc.reportPath=chameleon_build.log
 sonar.c.coverage.reportPath=chameleon_coverage.xml
 sonar.c.cppcheck.reportPath=chameleon_cppcheck.xml
 sonar.c.clangsa.reportPath=build/analyzer_reports/*/*.plist
-sonar.c.jsonCompilationDatabase=build/compile_commands.json, build/compile_commands_starpu_simgrid.json
+sonar.c.jsonCompilationDatabase=build/compile_commands.json, build/compile_commands_starpu_mpi.json, build/compile_commands_starpu_simgrid.json
 EOF
 
 # run sonar analysis + publish on sonarqube-dev

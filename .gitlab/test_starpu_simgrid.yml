@@ -9,9 +9,8 @@
     expire_in: 48 hours
     paths:
       - build
-      - chameleon_starpu_simgrid_*.log
-      - chameleon_starpu_simgrid_*.lcov
-      - bis_chameleon_starpu_simgrid_*.lcov
+      - *.log
+      - *.lcov
     reports:
       junit: report.xml
 

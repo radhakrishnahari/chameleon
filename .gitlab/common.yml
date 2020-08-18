@@ -37,6 +37,7 @@
     - (cd build &&
        make install | tee -a ../${LOGNAME} &&
        rm install/ -r)
+    - if [ $VERSION == starpu_mpi ]; then mv build/compile_commands.json build/compile_commands_${VERSION}.json ; fi
     - if [ $VERSION == starpu_simgrid ]; then mv build/compile_commands.json build/compile_commands_${VERSION}.json ; fi
   except:
     - schedules
@@ -52,6 +53,7 @@
     - echo test VERSION $VERSION     | tee -a ${LOGNAME}.log
     - echo test CATEGORY $CATEGORY   | tee -a ${LOGNAME}.log
     - echo test PRECISION $PRECISION | tee -a ${LOGNAME}.log
+    - echo test CHAMELEON_RUNTIME_LIBRARY $CHAMELEON_RUNTIME_LIBRARY | tee -a ${LOGNAME}.log
     - ls -l *.log
     - (cd build &&
        eval "ctest --no-compress-output -V
