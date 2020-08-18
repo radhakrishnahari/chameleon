@@ -32,7 +32,7 @@ test_openmp_shm_s:
     CATEGORY: shm
     PRECISION: s
     TESTS_RESTRICTION: "-R \"_${CATEGORY}_${PRECISION}\""
-    CHAMELEON_RUNTIME_LIBRARY: $CI_PROJECT_DIR/build-all/runtime/openmp/libchameleon_openmp.so
+    CHAMELEON_RUNTIME_LIBRARY: $CI_PROJECT_DIR/build/runtime/openmp/libchameleon_openmp.so
 
 test_openmp_shm_d:
   <<: *test_openmp_master
@@ -41,7 +41,7 @@ test_openmp_shm_d:
     CATEGORY: shm
     PRECISION: d
     TESTS_RESTRICTION: "-R \"_${CATEGORY}_${PRECISION}\""
-    CHAMELEON_RUNTIME_LIBRARY: $CI_PROJECT_DIR/build-all/runtime/openmp/libchameleon_openmp.so
+    CHAMELEON_RUNTIME_LIBRARY: $CI_PROJECT_DIR/build/runtime/openmp/libchameleon_openmp.so
 
 test_openmp_shm_c:
   <<: *test_openmp_master
@@ -50,7 +50,7 @@ test_openmp_shm_c:
     CATEGORY: shm
     PRECISION: c
     TESTS_RESTRICTION: "-R \"_${CATEGORY}_${PRECISION}\""
-    CHAMELEON_RUNTIME_LIBRARY: $CI_PROJECT_DIR/build-all/runtime/openmp/libchameleon_openmp.so
+    CHAMELEON_RUNTIME_LIBRARY: $CI_PROJECT_DIR/build/runtime/openmp/libchameleon_openmp.so
 
 test_openmp_shm_z:
   <<: *test_openmp_branches
@@ -59,4 +59,4 @@ test_openmp_shm_z:
     CATEGORY: shm
     PRECISION: z
     TESTS_RESTRICTION: "-R \"_${CATEGORY}_${PRECISION}\""
-    CHAMELEON_RUNTIME_LIBRARY: $CI_PROJECT_DIR/build-all/runtime/openmp/libchameleon_openmp.so
+    CHAMELEON_RUNTIME_LIBRARY: $CI_PROJECT_DIR/build/runtime/openmp/libchameleon_openmp.so

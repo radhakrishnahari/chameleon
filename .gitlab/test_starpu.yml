@@ -34,6 +34,7 @@ test_starpu_shm_s:
     CATEGORY: shm
     PRECISION: s
     TESTS_RESTRICTION: "-R \"_${CATEGORY}_${PRECISION}\""
+    CHAMELEON_RUNTIME_LIBRARY: $CI_PROJECT_DIR/build/runtime/starpu/libchameleon_starpu.so
 
 test_starpu_shm_d:
   <<: *test_starpu_branches
@@ -44,6 +45,7 @@ test_starpu_shm_d:
     CATEGORY: shm
     PRECISION: d
     TESTS_RESTRICTION: "-R \"_${CATEGORY}_${PRECISION}\""
+    CHAMELEON_RUNTIME_LIBRARY: $CI_PROJECT_DIR/build/runtime/starpu/libchameleon_starpu.so
 
 test_starpu_shm_c:
   <<: *test_starpu_master
@@ -54,6 +56,7 @@ test_starpu_shm_c:
     CATEGORY: shm
     PRECISION: c
     TESTS_RESTRICTION: "-R \"_${CATEGORY}_${PRECISION}\""
+    CHAMELEON_RUNTIME_LIBRARY: $CI_PROJECT_DIR/build/runtime/starpu/libchameleon_starpu.so
 
 test_starpu_shm_z:
   <<: *test_starpu_master
@@ -64,6 +67,7 @@ test_starpu_shm_z:
     CATEGORY: shm
     PRECISION: z
     TESTS_RESTRICTION: "-R \"_${CATEGORY}_${PRECISION}\""
+    CHAMELEON_RUNTIME_LIBRARY: $CI_PROJECT_DIR/build/runtime/starpu/libchameleon_starpu.so
 
 test_starpu_mpi_s:
   <<: *test_starpu_branches
@@ -74,6 +78,7 @@ test_starpu_mpi_s:
     CATEGORY: mpi
     PRECISION: s
     TESTS_RESTRICTION: "-R \"_${CATEGORY}_${PRECISION}\""
+    CHAMELEON_RUNTIME_LIBRARY: $CI_PROJECT_DIR/build/runtime/starpu/libchameleon_starpu.so
 
 test_starpu_mpi_d:
   <<: *test_starpu_master
@@ -84,6 +89,7 @@ test_starpu_mpi_d:
     CATEGORY: mpi
     PRECISION: d
     TESTS_RESTRICTION: "-R \"_${CATEGORY}_${PRECISION}\""
+    CHAMELEON_RUNTIME_LIBRARY: $CI_PROJECT_DIR/build/runtime/starpu/libchameleon_starpu.so
 
 test_starpu_mpi_c:
   <<: *test_starpu_master
@@ -94,6 +100,7 @@ test_starpu_mpi_c:
     CATEGORY: mpi
     PRECISION: c
     TESTS_RESTRICTION: "-R \"_${CATEGORY}_${PRECISION}\""
+    CHAMELEON_RUNTIME_LIBRARY: $CI_PROJECT_DIR/build/runtime/starpu/libchameleon_starpu.so
 
 test_starpu_mpi_z:
   <<: *test_starpu_master
@@ -104,3 +111,4 @@ test_starpu_mpi_z:
     CATEGORY: mpi
     PRECISION: z
     TESTS_RESTRICTION: "-R \"_${CATEGORY}_${PRECISION}\""
+    CHAMELEON_RUNTIME_LIBRARY: $CI_PROJECT_DIR/build/runtime/starpu/libchameleon_starpu.so

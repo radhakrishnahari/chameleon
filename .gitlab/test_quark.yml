@@ -32,7 +32,7 @@ test_quark_shm_s:
     CATEGORY: shm
     PRECISION: s
     TESTS_RESTRICTION: "-R \"_${CATEGORY}_${PRECISION}\""
-    CHAMELEON_RUNTIME_LIBRARY: $CI_PROJECT_DIR/build-all/runtime/quark/libchameleon_quark.so
+    CHAMELEON_RUNTIME_LIBRARY: $CI_PROJECT_DIR/build/runtime/quark/libchameleon_quark.so
 
 test_quark_shm_d:
   <<: *test_quark_master
@@ -41,7 +41,7 @@ test_quark_shm_d:
     CATEGORY: shm
     PRECISION: d
     TESTS_RESTRICTION: "-R \"_${CATEGORY}_${PRECISION}\""
-    CHAMELEON_RUNTIME_LIBRARY: $CI_PROJECT_DIR/build-all/runtime/quark/libchameleon_quark.so
+    CHAMELEON_RUNTIME_LIBRARY: $CI_PROJECT_DIR/build/runtime/quark/libchameleon_quark.so
 
 test_quark_shm_c:
   <<: *test_quark_master
@@ -50,7 +50,7 @@ test_quark_shm_c:
     CATEGORY: shm
     PRECISION: c
     TESTS_RESTRICTION: "-R \"_${CATEGORY}_${PRECISION}\""
-    CHAMELEON_RUNTIME_LIBRARY: $CI_PROJECT_DIR/build-all/runtime/quark/libchameleon_quark.so
+    CHAMELEON_RUNTIME_LIBRARY: $CI_PROJECT_DIR/build/runtime/quark/libchameleon_quark.so
 
 test_quark_shm_z:
   <<: *test_quark_master
@@ -59,4 +59,4 @@ test_quark_shm_z:
     CATEGORY: shm
     PRECISION: z
     TESTS_RESTRICTION: "-R \"_${CATEGORY}_${PRECISION}\""
-    CHAMELEON_RUNTIME_LIBRARY: $CI_PROJECT_DIR/build-all/runtime/quark/libchameleon_quark.so
+    CHAMELEON_RUNTIME_LIBRARY: $CI_PROJECT_DIR/build/runtime/quark/libchameleon_quark.so
