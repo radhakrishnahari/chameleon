@@ -93,7 +93,7 @@ list(APPEND CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 
 # Misc options
 # ------------
-option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
+set(BUILD_SHARED_LIBS "OFF" CACHE BOOL "Build shared libraries")
 
 # Define precision supported by CHAMELEON
 # -----------------------------------------
@@ -108,10 +108,10 @@ include(RulesPrecisions)
 set(CHAMELEON_SCHED_list OPENMP PARSEC QUARK STARPU
   CACHE INTERNAL "List of available runtimes" )
 set(CHAMELEON_SCHED "" CACHE STRING "Runtime systems enabled" FORCE)
-set(CHAMELEON_SCHED_OPENMP ON  CACHE BOOL "Enable OpenMP scheduler")
+set(CHAMELEON_SCHED_OPENMP OFF CACHE BOOL "Enable OpenMP scheduler")
 set(CHAMELEON_SCHED_PARSEC OFF CACHE BOOL "Enable PaRSEC scheduler")
 set(CHAMELEON_SCHED_QUARK  OFF CACHE BOOL "Enable Quark scheduler")
-set(CHAMELEON_SCHED_STARPU OFF CACHE BOOL "Enable StarPU scheduler")
+set(CHAMELEON_SCHED_STARPU ON CACHE BOOL "Enable StarPU scheduler")
 
 # Count number of runtime set to ON
 math(EXPR CHAMELEON_SCHED_NUMBER 0)
@@ -128,7 +128,7 @@ if (${CHAMELEON_SCHED_NUMBER} GREATER 1)
         message(WARNING "Number of activated scheduler is greater than 1 but BUILD_SHARED_LIBS is OFF. "
         "BUILD_SHARED_LIBS is set to ON in order to use schedulers as plugins to be loaded at runtime (dlopen).")
     endif()
-    set(BUILD_SHARED_LIBS ON)
+    set(BUILD_SHARED_LIBS "ON" CACHE BOOL "Build shared libraries" FORCE)
     set(CHAMELEON_SCHED_DLOPEN ON)
     if (CHAMELEON_USE_MPI)
         message(WARNING "Several schedulers are enabled and MPI is enabled but only StarPU can be used with MPI."
@@ -141,7 +141,7 @@ endif()
 # ------------------
 option(CHAMELEON_USE_MPI "Enable distributed memory through MPI" OFF)
 if (NOT CHAMELEON_USE_MPI)
-    message("-- ${BoldGreen}CHAMELEON_USE_MPI is set to OFF, turn it ON to use MPI (unsupported by OpenMP and Quark)${ColourReset}")
+    message("-- ${BoldGreen}CHAMELEON_USE_MPI is set to OFF, turn it ON to use MPI (unsupported by OpenMP, PaRSEC and Quark)${ColourReset}")
 endif()
 
 cmake_dependent_option(CHAMELEON_USE_MIGRATE
@@ -183,7 +183,7 @@ endif()
 # ----------------------------------------------------------------------
 option(CHAMELEON_SIMULATION "Enable simulation mode using Simgrid through StarPU" OFF)
 if(CHAMELEON_SIMULATION)
-    set(CHAMELEON_SCHED_OPENMP OFF  CACHE BOOL "Enable OpenMP scheduler" FORCE)
+    set(CHAMELEON_SCHED_OPENMP OFF CACHE BOOL "Enable OpenMP scheduler" FORCE)
     set(CHAMELEON_SCHED_PARSEC OFF CACHE BOOL "Enable PaRSEC scheduler" FORCE)
     set(CHAMELEON_SCHED_QUARK  OFF CACHE BOOL "Enable Quark scheduler" FORCE)
     set(CHAMELEON_SCHED_STARPU ON CACHE BOOL "Enable StarPU scheduler" FORCE)
