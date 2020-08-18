@@ -9,8 +9,8 @@
     expire_in: 48 hours
     paths:
       - build
-      - *.log
-      - *.lcov
+      - ./*.log
+      - ./*.lcov
     reports:
       junit: report.xml
 

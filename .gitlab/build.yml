@@ -6,7 +6,7 @@ build_openmp:
     expire_in: 48 hours
     paths:
       - build
-      - *.log
+      - ./*.log
   variables:
     BUILD_OPTIONS: "-DCHAMELEON_SCHED=OPENMP"
     VERSION: openmp
@@ -18,7 +18,7 @@ build_parsec:
     expire_in: 48 hours
     paths:
       - build
-      - *.log
+      - ./*.log
   variables:
     BUILD_OPTIONS: "-DCHAMELEON_SCHED=PARSEC"
     VERSION: parsec
@@ -30,7 +30,7 @@ build_quark:
     expire_in: 48 hours
     paths:
       - build
-      - *.log
+      - ./*.log
   variables:
     BUILD_OPTIONS: "-DCHAMELEON_SCHED=QUARK"
     VERSION: quark
@@ -42,7 +42,7 @@ build_starpu:
     expire_in: 48 hours
     paths:
       - build
-      - *.log
+      - ./*.log
   variables:
     BUILD_OPTIONS: "-DCHAMELEON_USE_CUDA=ON -DCHAMELEON_USE_MPI=ON"
     VERSION: starpu
@@ -54,7 +54,7 @@ build_starpu_simgrid:
     expire_in: 48 hours
     paths:
       - build
-      - *.log
+      - ./*.log
   variables:
     SIMU: simu
     BUILD_OPTIONS: "-DCHAMELEON_SIMULATION=ON -DCHAMELEON_USE_CUDA=ON -DCHAMELEON_USE_MPI=OFF"
@@ -67,7 +67,7 @@ build_all_shm:
     expire_in: 48 hours
     paths:
       - build
-      - *.log
+      - ./*.log
   variables:
     BUILD_OPTIONS: "-DCHAMELEON_SCHED_OPENMP=ON -DCHAMELEON_SCHED_PARSEC=ON -DCHAMELEON_SCHED_QUARK=ON -DCHAMELEON_SCHED_STARPU=ON -DCHAMELEON_USE_MPI=OFF"
     VERSION: all_shm
@@ -79,7 +79,7 @@ build_starpu_mpi:
     expire_in: 48 hours
     paths:
       - build
-      - *.log
+      - ./*.log
   variables:
     BUILD_OPTIONS: "-DCHAMELEON_SCHED_OPENMP=OFF -DCHAMELEON_SCHED_PARSEC=OFF -DCHAMELEON_SCHED_QUARK=OFF -DCHAMELEON_SCHED_STARPU=ON -DCHAMELEON_USE_MPI=ON"
     VERSION: starpu_mpi
