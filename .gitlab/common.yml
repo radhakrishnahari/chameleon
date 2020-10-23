@@ -64,7 +64,7 @@
              | tee -a ../${LOGNAME}.log")
     - lcov --directory build --capture --output-file ./${LOGNAME}.lcov
     - (cd build && lcov --directory . --capture --output-file ../bis_${LOGNAME}.lcov)
-    - xsltproc -o report.xml /home/gitlab/ctest-to-junit.xsl build-$VERSION/Testing/**/Test.xml
+    - xsltproc -o report.xml /home/gitlab/ctest-to-junit.xsl build/Testing/**/Test.xml
   except:
     - schedules
 
