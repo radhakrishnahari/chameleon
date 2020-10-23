@@ -646,7 +646,7 @@ if(CHAMELEON_ENABLE_EXAMPLE AND NOT CHAMELEON_SIMULATION)
 endif()
 
 # Testing executables
-if(CHAMELEON_ENABLE_TESTING AND NOT CHAMELEON_SIMULATION)
+if(CHAMELEON_ENABLE_TESTING)
   add_subdirectory(testing)
 endif()
 #------------------------------------------------------------------------------
