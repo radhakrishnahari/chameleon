@@ -29,9 +29,13 @@
 #define _chameleon_tasks_z_h_
 
 /**
- *  Declarations of QUARK wrappers (called by CHAMELEON) - alphabetical order
+ *  Declarations of Runtime wrappers (called by CHAMELEON) - alphabetical order
  */
 void INSERT_TASK_dlag2z( const RUNTIME_option_t *options,
+                         cham_uplo_t uplo, int m, int n,
+                         const CHAM_desc_t *A, int Am, int An,
+                         const CHAM_desc_t *B, int Bm, int Bn );
+void (*CHAMELEON_INSERT_TASK_dlag2z)( const RUNTIME_option_t *options,
                          cham_uplo_t uplo, int m, int n,
                          const CHAM_desc_t *A, int Am, int An,
                          const CHAM_desc_t *B, int Bm, int Bn );

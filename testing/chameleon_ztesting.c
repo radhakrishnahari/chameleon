@@ -546,7 +546,7 @@ int main (int argc, char **argv) {
                      "  Please specify a larger number of GPU or disable this option\n" );
             return EXIT_FAILURE;
         }
-        RUNTIME_zlocality_allrestrict( RUNTIME_CUDA );
+        CHAMELEON_RUNTIME_zlocality_allrestrict( RUNTIME_CUDA );
     }
 
     /* Warmup */
@@ -596,7 +596,7 @@ int main (int argc, char **argv) {
     /* Stop kernel statistics and display results */
     if ( profile ) {
         CHAMELEON_Disable( CHAMELEON_KERNELPROFILE_MODE );
-        RUNTIME_kernelprofile_display();
+        CHAMELEON_RUNTIME_kernelprofile_display();
     }
     free( runlist );
 

@@ -42,7 +42,7 @@ void chameleon_pzplrnk( int K, CHAM_desc_t *C,
     if (sequence->status != CHAMELEON_SUCCESS) {
         return;
     }
-    RUNTIME_options_init( &options, chamctxt, sequence, request );
+    CHAMELEON_RUNTIME_options_init( &options, chamctxt, sequence, request );
 
     chameleon_desc_init( &WA, CHAMELEON_MAT_ALLOC_TILE,
                          ChamComplexDouble, C->mb, C->nb, (C->mb * C->nb),
@@ -66,7 +66,7 @@ void chameleon_pzplrnk( int K, CHAM_desc_t *C,
         for (n = myq; n < C->nt; n+=C->q) {
             tempnn = n == C->nt-1 ? C->n-n*C->nb : C->nb;
 
-            INSERT_TASK_zplrnt(
+            CHAMELEON_INSERT_TASK_zplrnt(
                 &options,
                 tempkk, tempnn, WB(myp, n),
                 WB.m, k * WB.mb, n * WB.nb, seedB );
@@ -75,7 +75,7 @@ void chameleon_pzplrnk( int K, CHAM_desc_t *C,
         for (m = myp; m < C->mt; m+=C->p) {
             tempmm = m == C->mt-1 ? C->m-m*C->mb : C->mb;
 
-            INSERT_TASK_zplrnt(
+            CHAMELEON_INSERT_TASK_zplrnt(
                 &options,
                 tempmm, tempkk, WA(m, myq),
                 WA.m, m * WA.mb, k * WA.nb, seedA );
@@ -83,7 +83,7 @@ void chameleon_pzplrnk( int K, CHAM_desc_t *C,
             for (n = myq; n < C->nt; n+=C->q) {
                 tempnn = n == C->nt-1 ? C->n-n*C->nb : C->nb;
 
-                INSERT_TASK_zgemm(
+                CHAMELEON_INSERT_TASK_zgemm(
                     &options,
                     ChamNoTrans, ChamNoTrans,
                     tempmm, tempnn, tempkk, C->mb,
@@ -91,19 +91,19 @@ void chameleon_pzplrnk( int K, CHAM_desc_t *C,
                            WB(myp, n),
                     zbeta,  C(m, n));
             }
-            RUNTIME_data_flush( sequence, WA(m, 0) );
+            CHAMELEON_RUNTIME_data_flush( sequence, WA(m, 0) );
         }
         for (n = myq; n < C->nt; n+=C->q) {
-            RUNTIME_data_flush( sequence, WB(0, n) );
+            CHAMELEON_RUNTIME_data_flush( sequence, WB(0, n) );
         }
     }
 
-    RUNTIME_desc_flush( &WA, sequence );
-    RUNTIME_desc_flush( &WB, sequence );
-    RUNTIME_desc_flush(  C,  sequence );
+    CHAMELEON_RUNTIME_desc_flush( &WA, sequence );
+    CHAMELEON_RUNTIME_desc_flush( &WB, sequence );
+    CHAMELEON_RUNTIME_desc_flush(  C,  sequence );
     chameleon_sequence_wait( chamctxt, sequence );
     chameleon_desc_destroy( &WA );
     chameleon_desc_destroy( &WB );
 
-    RUNTIME_options_finalize( &options, chamctxt );
+    CHAMELEON_RUNTIME_options_finalize( &options, chamctxt );
 }
