@@ -319,8 +319,10 @@ else()
   if(CHAMELEON_SCHED_STARPU)
     target_link_libraries(chameleon chameleon_starpu)
   endif()
-  # TODO: remove this as soon as we don't have calls to LAPACKE in Eigen values
-  # algorithms.
+endif()
+# TODO: remove this as soon as we don't have calls to LAPACKE in Eigen values
+# algorithms.
+if (NOT CHAMELEON_SIMULATION)
   target_link_libraries(chameleon coreblas)
 endif()
 target_link_libraries(chameleon hqr)

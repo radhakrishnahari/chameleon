@@ -31,15 +31,14 @@ add_library(chameleon_fake ${RUNTIME_SRCS})
 set_property(TARGET chameleon_fake PROPERTY LINKER_LANGUAGE Fortran)
 set_property(TARGET chameleon_fake PROPERTY INSTALL_NAME_DIR "${CMAKE_INSTALL_PREFIX}/lib")
 
-if (NOT CHAMELEON_SIMULATION)
-  target_link_libraries(chameleon_fake coreblas)
-endif()
-
 add_dependencies(chameleon_fake
   chameleon_include
   control_include
-  coreblas_include
   )
+
+if (NOT CHAMELEON_SIMULATION)
+  add_dependencies(chameleon_fake coreblas_include)
+endif()
 
 # installation
 # ------------

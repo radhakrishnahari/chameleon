@@ -114,6 +114,7 @@ set_property(TARGET chameleon_openmp PROPERTY LINKER_LANGUAGE Fortran)
 set_property(TARGET chameleon_openmp PROPERTY INSTALL_NAME_DIR "${CMAKE_INSTALL_PREFIX}/lib")
 
 target_link_libraries(chameleon_openmp ${OpenMP_C_LIBRARIES})
+
 if (NOT CHAMELEON_SIMULATION)
   target_link_libraries(chameleon_openmp coreblas)
 endif()
@@ -125,7 +126,9 @@ add_dependencies(chameleon_openmp
   openmp_sources
   )
 
-add_dependencies(chameleon_openmp coreblas_include)
+if (NOT CHAMELEON_SIMULATION)
+  add_dependencies(chameleon_openmp coreblas_include)
+endif()
 
 # installation
 # ------------
