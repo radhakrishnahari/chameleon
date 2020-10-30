@@ -113,6 +113,11 @@ set_target_properties(chameleon_openmp PROPERTIES VERSION ${CHAMELEON_VERSION})
 set_target_properties(chameleon_openmp PROPERTIES SOVERSION ${CHAMELEON_VERSION_MAJOR})
 set_property(TARGET chameleon_openmp PROPERTY INSTALL_NAME_DIR "${CMAKE_INSTALL_PREFIX}/lib")
 
+target_link_libraries(chameleon_openmp ${OpenMP_C_LIBRARIES})
+if (NOT CHAMELEON_SIMULATION)
+  target_link_libraries(chameleon_openmp coreblas)
+endif()
+
 add_dependencies(chameleon_openmp
   chameleon_include
   control_include
