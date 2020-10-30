@@ -1465,11 +1465,11 @@ void RUNTIME_context_create( CHAM_context_t *ctxt ) {
     /* dlopen the given library */
     _runtime_handle = dlopen (cham_runtime_lib_s, RTLD_NOW);
     if ( !_runtime_handle ){
-        //fprintf(stderr, "%s\n", dlerror());
+        fprintf(stderr, "%s\n", dlerror());
         fprintf(stderr, "CHAMELEON ERROR: %s dlopen fails\n", cham_runtime_lib_s);
         chameleon_fatal_error("runtime_fake", "dlopen has failed");
     }
-    //dlerror();    /* Clear any existing error */
+    dlerror();    /* Clear any existing error */
 
     /* load symbols with dlsym */
     RUNTIME_DLSYM( INSERT_TASK_slag2c            )
