@@ -15,7 +15,6 @@
  * @author Azzam Haidar
  * @author Gregoire Pichon
  * @author Mathieu Faverge
- * @author Florent Pruvost
  * @date 2020-03-03
  * @precisions normal z -> s d c
  *
