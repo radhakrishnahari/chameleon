@@ -319,7 +319,6 @@ else()
   if(CHAMELEON_SCHED_STARPU)
     target_link_libraries(chameleon chameleon_starpu)
   endif()
-else()
   # TODO: remove this as soon as we don't have calls to LAPACKE in Eigen values
   # algorithms.
   target_link_libraries(chameleon coreblas)
