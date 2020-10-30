@@ -32,18 +32,18 @@ void chameleon_pmap( cham_uplo_t uplo, CHAM_desc_t *A,
     chamctxt = chameleon_context_self();
     if (sequence->status != CHAMELEON_SUCCESS)
         return;
-    CHAMELEON_RUNTIME_options_init(&options, chamctxt, sequence, request);
+    RUNTIME_options_init(&options, chamctxt, sequence, request);
 
     switch( uplo ) {
     case ChamUpper:
         for (n = 0; n < A->nt; n++) {
             for (m = 0; m < n; m++) {
-                CHAMELEON_INSERT_TASK_map(
+                INSERT_TASK_map(
                     &options,
                     ChamUpperLower, A(m, n),
                     op_fct, op_args );
             }
-            CHAMELEON_INSERT_TASK_map(
+            INSERT_TASK_map(
                 &options,
                 uplo, A(n, n),
                 op_fct, op_args );
@@ -52,12 +52,12 @@ void chameleon_pmap( cham_uplo_t uplo, CHAM_desc_t *A,
 
     case ChamLower:
         for (n = 0; n < A->nt; n++) {
-            CHAMELEON_INSERT_TASK_map(
+            INSERT_TASK_map(
                 &options,
                 uplo, A(n, n),
                 op_fct, op_args );
             for (m = n+1; m < A->mt; m++) {
-                CHAMELEON_INSERT_TASK_map(
+                INSERT_TASK_map(
                     &options,
                     ChamUpperLower, A(m, n),
                     op_fct, op_args );
@@ -69,7 +69,7 @@ void chameleon_pmap( cham_uplo_t uplo, CHAM_desc_t *A,
     default:
         for (m = 0; m < A->mt; m++) {
             for (n = 0; n < A->nt; n++) {
-                CHAMELEON_INSERT_TASK_map(
+                INSERT_TASK_map(
                     &options,
                     uplo, A(m, n),
                     op_fct, op_args );
@@ -77,5 +77,5 @@ void chameleon_pmap( cham_uplo_t uplo, CHAM_desc_t *A,
         }
     }
 
-    CHAMELEON_RUNTIME_options_finalize(&options, chamctxt);
+    RUNTIME_options_finalize(&options, chamctxt);
 }

@@ -80,7 +80,7 @@ CHAM_context_t *chameleon_context_create()
     chamctxt->translation        = ChamOutOfPlace;
 
     /* Initialize scheduler */
-    CHAMELEON_RUNTIME_context_create(chamctxt);
+    RUNTIME_context_create(chamctxt);
 
     chameleon_ctxt = chamctxt;
     return chamctxt;
@@ -100,7 +100,7 @@ CHAM_context_t *chameleon_context_self()
  */
 int chameleon_context_destroy(){
 
-    CHAMELEON_RUNTIME_context_destroy(chameleon_ctxt);
+    RUNTIME_context_destroy(chameleon_ctxt);
     free(chameleon_ctxt);
     chameleon_ctxt = NULL;
 
@@ -148,7 +148,7 @@ int CHAMELEON_Enable(int option)
             chamctxt->autotuning_enabled = CHAMELEON_TRUE;
             break;
         case CHAMELEON_PROFILING_MODE:
-            CHAMELEON_RUNTIME_start_profiling();
+            RUNTIME_start_profiling();
             break;
         case CHAMELEON_KERNELPROFILE_MODE:
             chamctxt->profiling_enabled = CHAMELEON_TRUE;
@@ -177,7 +177,7 @@ int CHAMELEON_Enable(int option)
     }
 
     /* Enable at the lower level if required */
-    CHAMELEON_RUNTIME_enable( chamctxt->schedopt, option );
+    RUNTIME_enable( chamctxt->schedopt, option );
 
     return CHAMELEON_SUCCESS;
 }
@@ -221,7 +221,7 @@ int CHAMELEON_Disable(int option)
             chamctxt->autotuning_enabled = CHAMELEON_FALSE;
             break;
         case CHAMELEON_PROFILING_MODE:
-            CHAMELEON_RUNTIME_stop_profiling();
+            RUNTIME_stop_profiling();
             break;
         case CHAMELEON_KERNELPROFILE_MODE:
             chamctxt->profiling_enabled = CHAMELEON_FALSE;
@@ -246,7 +246,7 @@ int CHAMELEON_Disable(int option)
     }
 
     /* Disable at the lower level if required */
-    CHAMELEON_RUNTIME_disable( chamctxt->schedopt, option );
+    RUNTIME_disable( chamctxt->schedopt, option );
 
     return CHAMELEON_SUCCESS;
 }

@@ -50,7 +50,7 @@ void chameleon_pztrsm(cham_side_t side, cham_uplo_t uplo, cham_trans_t trans, ch
     if (sequence->status != CHAMELEON_SUCCESS) {
         return;
     }
-    CHAMELEON_RUNTIME_options_init(&options, chamctxt, sequence, request);
+    RUNTIME_options_init(&options, chamctxt, sequence, request);
     /*
      *  ChamLeft / ChamUpper / ChamNoTrans
      */
@@ -62,18 +62,18 @@ void chameleon_pztrsm(cham_side_t side, cham_uplo_t uplo, cham_trans_t trans, ch
                     lalpha = k == 0 ? alpha : zone;
                     for (n = 0; n < B->nt; n++) {
                         tempnn = n == B->nt-1 ? B->n-n*B->nb : B->nb;
-                        CHAMELEON_INSERT_TASK_ztrsm(
+                        INSERT_TASK_ztrsm(
                             &options,
                             side, uplo, trans, diag,
                             tempkm, tempnn, A->mb,
                             lalpha, A(B->mt-1-k, B->mt-1-k),  /* lda * tempkm */
                                     B(B->mt-1-k,        n)); /* ldb * tempnn */
                     }
-                    CHAMELEON_RUNTIME_data_flush( sequence, A(B->mt-1-k, B->mt-1-k) );
+                    RUNTIME_data_flush( sequence, A(B->mt-1-k, B->mt-1-k) );
                     for (m = k+1; m < B->mt; m++) {
                         for (n = 0; n < B->nt; n++) {
                             tempnn = n == B->nt-1 ? B->n-n*B->nb : B->nb;
-                            CHAMELEON_INSERT_TASK_zgemm(
+                            INSERT_TASK_zgemm(
                                 &options,
                                 ChamNoTrans, ChamNoTrans,
                                 B->mb, tempnn, tempkm, A->mb,
@@ -81,10 +81,10 @@ void chameleon_pztrsm(cham_side_t side, cham_uplo_t uplo, cham_trans_t trans, ch
                                         B(B->mt-1-k, n       ),
                                 lalpha, B(B->mt-1-m, n       ));
                         }
-                        CHAMELEON_RUNTIME_data_flush( sequence, A(B->mt-1-m, B->mt-1-k) );
+                        RUNTIME_data_flush( sequence, A(B->mt-1-m, B->mt-1-k) );
                     }
                     for (n = 0; n < B->nt; n++) {
-                        CHAMELEON_RUNTIME_data_flush( sequence, B(B->mt-1-k, n) );
+                        RUNTIME_data_flush( sequence, B(B->mt-1-k, n) );
                     }
                 }
             }
@@ -97,19 +97,19 @@ void chameleon_pztrsm(cham_side_t side, cham_uplo_t uplo, cham_trans_t trans, ch
                     lalpha = k == 0 ? alpha : zone;
                     for (n = 0; n < B->nt; n++) {
                         tempnn = n == B->nt-1 ? B->n-n*B->nb : B->nb;
-                        CHAMELEON_INSERT_TASK_ztrsm(
+                        INSERT_TASK_ztrsm(
                             &options,
                             side, uplo, trans, diag,
                             tempkm, tempnn, A->mb,
                             lalpha, A(k, k),
                                     B(k, n));
                     }
-                    CHAMELEON_RUNTIME_data_flush( sequence, A(k, k) );
+                    RUNTIME_data_flush( sequence, A(k, k) );
                     for (m = k+1; m < B->mt; m++) {
                         tempmm = m == B->mt-1 ? B->m-m*B->mb : B->mb;
                         for (n = 0; n < B->nt; n++) {
                             tempnn = n == B->nt-1 ? B->n-n*B->nb : B->nb;
-                            CHAMELEON_INSERT_TASK_zgemm(
+                            INSERT_TASK_zgemm(
                                 &options,
                                 trans, ChamNoTrans,
                                 tempmm, tempnn, B->mb, A->mb,
@@ -117,10 +117,10 @@ void chameleon_pztrsm(cham_side_t side, cham_uplo_t uplo, cham_trans_t trans, ch
                                         B(k, n),
                                 lalpha, B(m, n));
                         }
-                        CHAMELEON_RUNTIME_data_flush( sequence, A(k, m) );
+                        RUNTIME_data_flush( sequence, A(k, m) );
                     }
                     for (n = 0; n < B->nt; n++) {
-                        CHAMELEON_RUNTIME_data_flush( sequence, B(k, n) );
+                        RUNTIME_data_flush( sequence, B(k, n) );
                     }
 
                 }
@@ -136,19 +136,19 @@ void chameleon_pztrsm(cham_side_t side, cham_uplo_t uplo, cham_trans_t trans, ch
                     lalpha = k == 0 ? alpha : zone;
                     for (n = 0; n < B->nt; n++) {
                         tempnn = n == B->nt-1 ? B->n-n*B->nb : B->nb;
-                        CHAMELEON_INSERT_TASK_ztrsm(
+                        INSERT_TASK_ztrsm(
                             &options,
                             side, uplo, trans, diag,
                             tempkm, tempnn, A->mb,
                             lalpha, A(k, k),
                                     B(k, n));
                     }
-                    CHAMELEON_RUNTIME_data_flush( sequence, A(k, k) );
+                    RUNTIME_data_flush( sequence, A(k, k) );
                     for (m = k+1; m < B->mt; m++) {
                         tempmm = m == B->mt-1 ? B->m-m*B->mb : B->mb;
                         for (n = 0; n < B->nt; n++) {
                             tempnn = n == B->nt-1 ? B->n-n*B->nb : B->nb;
-                            CHAMELEON_INSERT_TASK_zgemm(
+                            INSERT_TASK_zgemm(
                                 &options,
                                 ChamNoTrans, ChamNoTrans,
                                 tempmm, tempnn, B->mb, A->mb,
@@ -156,10 +156,10 @@ void chameleon_pztrsm(cham_side_t side, cham_uplo_t uplo, cham_trans_t trans, ch
                                         B(k, n),
                                 lalpha, B(m, n));
                         }
-                        CHAMELEON_RUNTIME_data_flush( sequence, A(m, k) );
+                        RUNTIME_data_flush( sequence, A(m, k) );
                     }
                     for (n = 0; n < B->nt; n++) {
-                        CHAMELEON_RUNTIME_data_flush( sequence, B(k, n) );
+                        RUNTIME_data_flush( sequence, B(k, n) );
                     }
                 }
             }
@@ -172,18 +172,18 @@ void chameleon_pztrsm(cham_side_t side, cham_uplo_t uplo, cham_trans_t trans, ch
                     lalpha = k == 0 ? alpha : zone;
                     for (n = 0; n < B->nt; n++) {
                         tempnn = n == B->nt-1 ? B->n-n*B->nb : B->nb;
-                        CHAMELEON_INSERT_TASK_ztrsm(
+                        INSERT_TASK_ztrsm(
                             &options,
                             side, uplo, trans, diag,
                             tempkm, tempnn, A->mb,
                             lalpha, A(B->mt-1-k, B->mt-1-k),
                                     B(B->mt-1-k,        n));
                     }
-                    CHAMELEON_RUNTIME_data_flush( sequence, A(B->mt-1-k, B->mt-1-k) );
+                    RUNTIME_data_flush( sequence, A(B->mt-1-k, B->mt-1-k) );
                     for (m = k+1; m < B->mt; m++) {
                         for (n = 0; n < B->nt; n++) {
                             tempnn = n == B->nt-1 ? B->n-n*B->nb : B->nb;
-                            CHAMELEON_INSERT_TASK_zgemm(
+                            INSERT_TASK_zgemm(
                                 &options,
                                 trans, ChamNoTrans,
                                 B->mb, tempnn, tempkm, A->mb,
@@ -191,10 +191,10 @@ void chameleon_pztrsm(cham_side_t side, cham_uplo_t uplo, cham_trans_t trans, ch
                                         B(B->mt-1-k, n       ),
                                 lalpha, B(B->mt-1-m, n       ));
                         }
-                        CHAMELEON_RUNTIME_data_flush( sequence, A(B->mt-1-k, B->mt-1-m) );
+                        RUNTIME_data_flush( sequence, A(B->mt-1-k, B->mt-1-m) );
                     }
                     for (n = 0; n < B->nt; n++) {
-                        CHAMELEON_RUNTIME_data_flush( sequence, B(B->mt-1-k, n) );
+                        RUNTIME_data_flush( sequence, B(B->mt-1-k, n) );
                     }
                 }
             }
@@ -211,19 +211,19 @@ void chameleon_pztrsm(cham_side_t side, cham_uplo_t uplo, cham_trans_t trans, ch
                     lalpha = k == 0 ? alpha : zone;
                     for (m = 0; m < B->mt; m++) {
                         tempmm = m == B->mt-1 ? B->m-m*B->mb : B->mb;
-                        CHAMELEON_INSERT_TASK_ztrsm(
+                        INSERT_TASK_ztrsm(
                             &options,
                             side, uplo, trans, diag,
                             tempmm, tempkn, A->mb,
                             lalpha, A(k, k),  /* lda * tempkn */
                                     B(m, k)); /* ldb * tempkn */
                     }
-                    CHAMELEON_RUNTIME_data_flush( sequence, A(k, k) );
+                    RUNTIME_data_flush( sequence, A(k, k) );
                     for (m = 0; m < B->mt; m++) {
                         tempmm = m == B->mt-1 ? B->m-m*B->mb : B->mb;
                         for (n = k+1; n < B->nt; n++) {
                             tempnn = n == B->nt-1 ? B->n-n*B->nb : B->nb;
-                            CHAMELEON_INSERT_TASK_zgemm(
+                            INSERT_TASK_zgemm(
                                 &options,
                                 ChamNoTrans, ChamNoTrans,
                                 tempmm, tempnn, B->mb, A->mb,
@@ -231,10 +231,10 @@ void chameleon_pztrsm(cham_side_t side, cham_uplo_t uplo, cham_trans_t trans, ch
                                         A(k, n),  /* lda * tempnn */
                                 lalpha, B(m, n)); /* ldb * tempnn */
                         }
-                        CHAMELEON_RUNTIME_data_flush( sequence, B(m, k) );
+                        RUNTIME_data_flush( sequence, B(m, k) );
                     }
                     for (n = k+1; n < B->nt; n++) {
-                        CHAMELEON_RUNTIME_data_flush( sequence, A(k, n) );
+                        RUNTIME_data_flush( sequence, A(k, n) );
                     }
                 }
             }
@@ -246,16 +246,16 @@ void chameleon_pztrsm(cham_side_t side, cham_uplo_t uplo, cham_trans_t trans, ch
                     tempkn = k == 0 ? B->n-(B->nt-1)*B->nb : B->nb;
                     for (m = 0; m < B->mt; m++) {
                         tempmm = m == B->mt-1 ? B->m-m*B->mb : B->mb;
-                        CHAMELEON_INSERT_TASK_ztrsm(
+                        INSERT_TASK_ztrsm(
                             &options,
                             side, uplo, trans, diag,
                             tempmm, tempkn, A->mb,
                             alpha, A(B->nt-1-k, B->nt-1-k),  /* lda * tempkn */
                                    B(       m, B->nt-1-k)); /* ldb * tempkn */
-                        CHAMELEON_RUNTIME_data_flush( sequence, A(B->nt-1-k, B->nt-1-k) );
+                        RUNTIME_data_flush( sequence, A(B->nt-1-k, B->nt-1-k) );
 
                         for (n = k+1; n < B->nt; n++) {
-                            CHAMELEON_INSERT_TASK_zgemm(
+                            INSERT_TASK_zgemm(
                                 &options,
                                 ChamNoTrans, trans,
                                 tempmm, B->nb, tempkn, A->mb,
@@ -263,10 +263,10 @@ void chameleon_pztrsm(cham_side_t side, cham_uplo_t uplo, cham_trans_t trans, ch
                                            A(B->nt-1-n, B->nt-1-k), /* A->mb * tempkn (Never last row) */
                                 zone,      B(m,        B->nt-1-n)); /* ldb  * B->nb   */
                         }
-                        CHAMELEON_RUNTIME_data_flush( sequence, B(m,        B->nt-1-k) );
+                        RUNTIME_data_flush( sequence, B(m,        B->nt-1-k) );
                     }
                     for (n = k+1; n < B->nt; n++) {
-                        CHAMELEON_RUNTIME_data_flush( sequence, A(B->nt-1-n, B->nt-1-k) );
+                        RUNTIME_data_flush( sequence, A(B->nt-1-n, B->nt-1-k) );
                     }
                 }
             }
@@ -281,16 +281,16 @@ void chameleon_pztrsm(cham_side_t side, cham_uplo_t uplo, cham_trans_t trans, ch
                     lalpha = k == 0 ? alpha : zone;
                     for (m = 0; m < B->mt; m++) {
                         tempmm = m == B->mt-1 ? B->m-m*B->mb : B->mb;
-                        CHAMELEON_INSERT_TASK_ztrsm(
+                        INSERT_TASK_ztrsm(
                             &options,
                             side, uplo, trans, diag,
                             tempmm, tempkn, A->mb,
                             lalpha, A(B->nt-1-k, B->nt-1-k),  /* lda * tempkn */
                                     B(       m, B->nt-1-k)); /* ldb * tempkn */
-                        CHAMELEON_RUNTIME_data_flush( sequence, A(B->nt-1-k, B->nt-1-k) );
+                        RUNTIME_data_flush( sequence, A(B->nt-1-k, B->nt-1-k) );
 
                         for (n = k+1; n < B->nt; n++) {
-                            CHAMELEON_INSERT_TASK_zgemm(
+                            INSERT_TASK_zgemm(
                                 &options,
                                 ChamNoTrans, ChamNoTrans,
                                 tempmm, B->nb, tempkn, A->mb,
@@ -298,10 +298,10 @@ void chameleon_pztrsm(cham_side_t side, cham_uplo_t uplo, cham_trans_t trans, ch
                                         A(B->nt-1-k, B->nt-1-n),  /* lda * B->nb   */
                                 lalpha, B(m,        B->nt-1-n)); /* ldb * B->nb   */
                         }
-                        CHAMELEON_RUNTIME_data_flush( sequence, B(m,        B->nt-1-k) );
+                        RUNTIME_data_flush( sequence, B(m,        B->nt-1-k) );
                     }
                     for (n = k+1; n < B->nt; n++) {
-                        CHAMELEON_RUNTIME_data_flush( sequence, A(B->nt-1-k, B->nt-1-n) );
+                        RUNTIME_data_flush( sequence, A(B->nt-1-k, B->nt-1-n) );
                     }
                 }
             }
@@ -313,17 +313,17 @@ void chameleon_pztrsm(cham_side_t side, cham_uplo_t uplo, cham_trans_t trans, ch
                     tempkn = k == B->nt-1 ? B->n-k*B->nb : B->nb;
                     for (m = 0; m < B->mt; m++) {
                         tempmm = m == B->mt-1 ? B->m-m*B->mb : B->mb;
-                        CHAMELEON_INSERT_TASK_ztrsm(
+                        INSERT_TASK_ztrsm(
                             &options,
                             side, uplo, trans, diag,
                             tempmm, tempkn, A->mb,
                             alpha, A(k, k),  /* lda * tempkn */
                                    B(m, k)); /* ldb * tempkn */
-                        CHAMELEON_RUNTIME_data_flush( sequence, A(k, k) );
+                        RUNTIME_data_flush( sequence, A(k, k) );
 
                         for (n = k+1; n < B->nt; n++) {
                             tempnn = n == B->nt-1 ? B->n-n*B->nb : B->nb;
-                            CHAMELEON_INSERT_TASK_zgemm(
+                            INSERT_TASK_zgemm(
                                 &options,
                                 ChamNoTrans, trans,
                                 tempmm, tempnn, B->mb, A->mb,
@@ -331,15 +331,15 @@ void chameleon_pztrsm(cham_side_t side, cham_uplo_t uplo, cham_trans_t trans, ch
                                            A(n, k), /* ldan * tempkn */
                                 zone,      B(m, n)); /* ldb  * tempnn */
                         }
-                        CHAMELEON_RUNTIME_data_flush( sequence, B(m, k) );
+                        RUNTIME_data_flush( sequence, B(m, k) );
                     }
                     for (n = k+1; n < B->nt; n++) {
-                        CHAMELEON_RUNTIME_data_flush( sequence, A(n, k) );
+                        RUNTIME_data_flush( sequence, A(n, k) );
                     }
 
                 }
             }
         }
     }
-    CHAMELEON_RUNTIME_options_finalize(&options, chamctxt);
+    RUNTIME_options_finalize(&options, chamctxt);
 }

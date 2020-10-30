@@ -39,7 +39,7 @@ void chameleon_pzlacpy(cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B,
     if (sequence->status != CHAMELEON_SUCCESS) {
         return;
     }
-    CHAMELEON_RUNTIME_options_init(&options, chamctxt, sequence, request);
+    RUNTIME_options_init(&options, chamctxt, sequence, request);
 
     switch (uplo) {
     /*
@@ -50,7 +50,7 @@ void chameleon_pzlacpy(cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B,
             X = m == A->mt-1 ? A->m-m*A->mb : A->mb;
             if (m < A->nt) {
                 Y = m == A->nt-1 ? A->n-m*A->nb : A->nb;
-                CHAMELEON_INSERT_TASK_zlacpy(
+                INSERT_TASK_zlacpy(
                     &options,
                     ChamUpper,
                     X, Y, A->mb,
@@ -59,7 +59,7 @@ void chameleon_pzlacpy(cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B,
             }
             for (n = m+1; n < A->nt; n++) {
                 Y = n == A->nt-1 ? A->n-n*A->nb : A->nb;
-                CHAMELEON_INSERT_TASK_zlacpy(
+                INSERT_TASK_zlacpy(
                     &options,
                     ChamUpperLower,
                     X, Y, A->mb,
@@ -76,7 +76,7 @@ void chameleon_pzlacpy(cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B,
             X = m == A->mt-1 ? A->m-m*A->mb : A->mb;
             if (m < A->nt) {
                 Y = m == A->nt-1 ? A->n-m*A->nb : A->nb;
-                CHAMELEON_INSERT_TASK_zlacpy(
+                INSERT_TASK_zlacpy(
                     &options,
                     ChamLower,
                     X, Y, A->mb,
@@ -85,7 +85,7 @@ void chameleon_pzlacpy(cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B,
             }
             for (n = 0; n < chameleon_min(m, A->nt); n++) {
                 Y = n == A->nt-1 ? A->n-n*A->nb : A->nb;
-                CHAMELEON_INSERT_TASK_zlacpy(
+                INSERT_TASK_zlacpy(
                     &options,
                     ChamUpperLower,
                     X, Y, A->mb,
@@ -103,7 +103,7 @@ void chameleon_pzlacpy(cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B,
             X = m == A->mt-1 ? A->m-m*A->mb : A->mb;
             for (n = 0; n < A->nt; n++) {
                 Y = n == A->nt-1 ? A->n-n*A->nb : A->nb;
-                CHAMELEON_INSERT_TASK_zlacpy(
+                INSERT_TASK_zlacpy(
                     &options,
                     ChamUpperLower,
                     X, Y, A->mb,
@@ -112,5 +112,5 @@ void chameleon_pzlacpy(cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B,
             }
         }
     }
-    CHAMELEON_RUNTIME_options_finalize(&options, chamctxt);
+    RUNTIME_options_finalize(&options, chamctxt);
 }

@@ -60,7 +60,6 @@ set(CHAMELEON_CONTROL
     ../control/tile.c
     ../control/chameleon_f77.c
     ../control/chameleon_mf77.c
-    ../control/chameleon_dlopen.c
     map.c
     pmap.c
    )
@@ -305,7 +304,9 @@ set(CHAMELEON_SOURCES_TARGETS "${CHAMELEON_SOURCES_TARGETS};chameleon_sources" C
 # ------------
 add_library(chameleon ${CHAMELEON_SRCS} ${CHAMELEON_SRCSF})
 
-if (NOT CHAMELEON_SCHED_DLOPEN)
+if (CHAMELEON_SCHED_DLOPEN)
+  target_link_libraries(chameleon chameleon_fake)
+else()
   if(CHAMELEON_SCHED_OPENMP)
     target_link_libraries(chameleon chameleon_openmp)
   endif()

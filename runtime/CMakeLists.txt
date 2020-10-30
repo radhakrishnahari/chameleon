@@ -112,6 +112,9 @@ set(CODELETS_SRC
 
 # Check for the subdirectories
 # ----------------------------
+if ( CHAMELEON_SCHED_DLOPEN )
+  add_subdirectory(fake)
+endif()
 if( CHAMELEON_SCHED_OPENMP )
     add_subdirectory(openmp)
 endif()

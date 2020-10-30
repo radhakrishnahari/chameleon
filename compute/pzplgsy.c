@@ -41,7 +41,7 @@ void chameleon_pzplgsy( CHAMELEON_Complex64_t bump, cham_uplo_t uplo, CHAM_desc_
     if (sequence->status != CHAMELEON_SUCCESS) {
         return;
     }
-    CHAMELEON_RUNTIME_options_init(&options, chamctxt, sequence, request);
+    RUNTIME_options_init(&options, chamctxt, sequence, request);
 
     minmn = chameleon_min( A->mt, A->nt );
     switch ( uplo ) {
@@ -53,7 +53,7 @@ void chameleon_pzplgsy( CHAMELEON_Complex64_t bump, cham_uplo_t uplo, CHAM_desc_
                 tempmm = m == A->mt-1 ? A->m-m*A->mb : A->mb;
 
                 options.priority = m + n;
-                CHAMELEON_INSERT_TASK_zplgsy(
+                INSERT_TASK_zplgsy(
                     &options,
                     bump, tempmm, tempnn, A(m, n),
                     A->m, m*A->mb, n*A->nb, seed );
@@ -69,7 +69,7 @@ void chameleon_pzplgsy( CHAMELEON_Complex64_t bump, cham_uplo_t uplo, CHAM_desc_
                 tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
 
                 options.priority = m + n;
-                CHAMELEON_INSERT_TASK_zplgsy(
+                INSERT_TASK_zplgsy(
                     &options,
                     bump, tempmm, tempnn, A(m, n),
                     A->m, m*A->mb, n*A->nb, seed );
@@ -86,12 +86,12 @@ void chameleon_pzplgsy( CHAMELEON_Complex64_t bump, cham_uplo_t uplo, CHAM_desc_
                 tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
 
                 options.priority = m + n;
-                CHAMELEON_INSERT_TASK_zplgsy(
+                INSERT_TASK_zplgsy(
                     &options,
                     bump, tempmm, tempnn, A(m, n),
                     A->m, m*A->mb, n*A->nb, seed );
             }
         }
     }
-    CHAMELEON_RUNTIME_options_finalize(&options, chamctxt);
+    RUNTIME_options_finalize(&options, chamctxt);
 }

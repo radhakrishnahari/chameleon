@@ -93,7 +93,7 @@ void chameleon_pzlatms( cham_dist_t idist, unsigned long long int seed, cham_sym
     ib = CHAMELEON_IB;
     zlatms_runtime_id = chamctxt->scheduler;
 
-    CHAMELEON_RUNTIME_options_init(&options, chamctxt, sequence, request);
+    RUNTIME_options_init(&options, chamctxt, sequence, request);
 
     /* Start initialiazing A */
     chameleon_pzlaset( ChamUpperLower, 0., 0., A, sequence, request );
@@ -158,7 +158,7 @@ void chameleon_pzlatms( cham_dist_t idist, unsigned long long int seed, cham_sym
 
     /* Copy D to the diagonal of A */
     for (n = 0; n < kt; n++) {
-        CHAMELEON_INSERT_TASK_map(
+        INSERT_TASK_map(
             &options,
             ChamUpperLower, A(n, n),
             zlaset_diag, D );
@@ -321,7 +321,7 @@ void chameleon_pzlatms( cham_dist_t idist, unsigned long long int seed, cham_sym
         libhqr_finalize( &qrtree );
     }
 
-    CHAMELEON_RUNTIME_options_finalize(&options, chamctxt);
+    RUNTIME_options_finalize(&options, chamctxt);
 
     if ( alloc_d ) {
         free( D );

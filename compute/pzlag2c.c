@@ -47,18 +47,18 @@ void chameleon_pclag2z(CHAM_desc_t *SA, CHAM_desc_t *B,
     if (sequence->status != CHAMELEON_SUCCESS) {
         return;
     }
-    CHAMELEON_RUNTIME_options_init(&options, chamctxt, sequence, request);
+    RUNTIME_options_init(&options, chamctxt, sequence, request);
 
     for(m = 0; m < SA->mt; m++) {
         X = m == SA->mt-1 ? SA->m-m*SA->mb : SA->mb;
         for(n = 0; n < SA->nt; n++) {
             Y = n == SA->nt-1 ? SA->n-n*SA->nb : SA->nb;
-            CHAMELEON_INSERT_TASK_clag2z(
+            INSERT_TASK_clag2z(
                 &options,
                 X, Y, SA->mb,
                 SA(m, n),
                 B(m, n));
         }
     }
-    CHAMELEON_RUNTIME_options_finalize(&options, chamctxt);
+    RUNTIME_options_finalize(&options, chamctxt);
 }

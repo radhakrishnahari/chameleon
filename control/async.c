@@ -49,7 +49,7 @@ int chameleon_sequence_create(CHAM_context_t *chamctxt, RUNTIME_sequence_t **seq
         return CHAMELEON_ERR_OUT_OF_RESOURCES;
     }
 
-    CHAMELEON_RUNTIME_sequence_create( chamctxt, *sequence );
+    RUNTIME_sequence_create( chamctxt, *sequence );
 
     (*sequence)->status = CHAMELEON_SUCCESS;
     return CHAMELEON_SUCCESS;
@@ -60,7 +60,7 @@ int chameleon_sequence_create(CHAM_context_t *chamctxt, RUNTIME_sequence_t **seq
  */
 int chameleon_sequence_destroy(CHAM_context_t *chamctxt, RUNTIME_sequence_t *sequence)
 {
-    CHAMELEON_RUNTIME_sequence_destroy( chamctxt, sequence );
+    RUNTIME_sequence_destroy( chamctxt, sequence );
     free(sequence);
     return CHAMELEON_SUCCESS;
 }
@@ -70,7 +70,7 @@ int chameleon_sequence_destroy(CHAM_context_t *chamctxt, RUNTIME_sequence_t *seq
  */
 int chameleon_sequence_wait(CHAM_context_t *chamctxt, RUNTIME_sequence_t *sequence)
 {
-    CHAMELEON_RUNTIME_sequence_wait( chamctxt, sequence );
+    RUNTIME_sequence_wait( chamctxt, sequence );
     return CHAMELEON_SUCCESS;
 }
 
@@ -205,7 +205,7 @@ int CHAMELEON_Sequence_Flush(RUNTIME_sequence_t *sequence, RUNTIME_request_t *re
         return CHAMELEON_ERR_UNALLOCATED;
     }
 
-    CHAMELEON_RUNTIME_sequence_flush( chamctxt->schedopt, sequence, request, CHAMELEON_ERR_SEQUENCE_FLUSHED);
+    RUNTIME_sequence_flush( chamctxt->schedopt, sequence, request, CHAMELEON_ERR_SEQUENCE_FLUSHED);
 
     return CHAMELEON_SUCCESS;
 }
@@ -221,7 +221,7 @@ int chameleon_request_create(CHAM_context_t *chamctxt, RUNTIME_request_t **reque
         return CHAMELEON_ERR_OUT_OF_RESOURCES;
     }
 
-    CHAMELEON_RUNTIME_request_create( chamctxt, *request );
+    RUNTIME_request_create( chamctxt, *request );
 
     (*request)->status = CHAMELEON_SUCCESS;
     return CHAMELEON_SUCCESS;
@@ -232,7 +232,7 @@ int chameleon_request_create(CHAM_context_t *chamctxt, RUNTIME_request_t **reque
  */
 int chameleon_request_destroy(CHAM_context_t *chamctxt, RUNTIME_request_t *request)
 {
-    CHAMELEON_RUNTIME_request_destroy( chamctxt, request );
+    RUNTIME_request_destroy( chamctxt, request );
     free(request);
     return CHAMELEON_SUCCESS;
 }
@@ -243,7 +243,7 @@ int chameleon_request_destroy(CHAM_context_t *chamctxt, RUNTIME_request_t *reque
 int chameleon_request_set(CHAM_context_t *chamctxt, RUNTIME_request_t *request, int param, int value)
 {
     int status;
-    status = CHAMELEON_RUNTIME_request_set( chamctxt, request, param, value );
+    status = RUNTIME_request_set( chamctxt, request, param, value );
     return status;
 }
 

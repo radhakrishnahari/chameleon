@@ -44,7 +44,7 @@ void chameleon_pztradd(cham_uplo_t uplo, cham_trans_t trans,
     if (sequence->status != CHAMELEON_SUCCESS) {
         return;
     }
-    CHAMELEON_RUNTIME_options_init(&options, chamctxt, sequence, request);
+    RUNTIME_options_init(&options, chamctxt, sequence, request);
 
     switch(uplo){
     case ChamLower:
@@ -53,7 +53,7 @@ void chameleon_pztradd(cham_uplo_t uplo, cham_trans_t trans,
                 tempnm = n == B->mt-1 ? B->m-n*B->mb : B->mb;
                 tempnn = n == B->nt-1 ? B->n-n*B->nb : B->nb;
 
-                CHAMELEON_INSERT_TASK_ztradd(
+                INSERT_TASK_ztradd(
                     &options,
                     uplo, trans, tempnm, tempnn, B->mb,
                     alpha, A(n, n),
@@ -62,7 +62,7 @@ void chameleon_pztradd(cham_uplo_t uplo, cham_trans_t trans,
                 for (m = n+1; m < B->mt; m++) {
                     tempmm = m == B->mt-1 ? B->m-B->mb*m : B->nb;
 
-                    CHAMELEON_INSERT_TASK_zgeadd(
+                    INSERT_TASK_zgeadd(
                         &options,
                         trans, tempmm, tempnn, B->mb,
                         alpha, A(m, n),
@@ -75,7 +75,7 @@ void chameleon_pztradd(cham_uplo_t uplo, cham_trans_t trans,
                 tempnm = n == B->mt-1 ? B->m-n*B->mb : B->mb;
                 tempnn = n == B->nt-1 ? B->n-n*B->nb : B->nb;
 
-                CHAMELEON_INSERT_TASK_ztradd(
+                INSERT_TASK_ztradd(
                     &options,
                     uplo, trans, tempnm, tempnn, B->mb,
                     alpha, A(n, n),
@@ -84,7 +84,7 @@ void chameleon_pztradd(cham_uplo_t uplo, cham_trans_t trans,
                 for (m = n+1; m < B->mt; m++) {
                     tempmm = m == B->mt-1 ? B->m-B->mb*m : B->nb;
 
-                    CHAMELEON_INSERT_TASK_zgeadd(
+                    INSERT_TASK_zgeadd(
                         &options,
                         trans, tempmm, tempnn, B->mb,
                         alpha, A(n, m),
@@ -99,7 +99,7 @@ void chameleon_pztradd(cham_uplo_t uplo, cham_trans_t trans,
                 tempmm = m == B->mt-1 ? B->m-B->mb*m : B->nb;
                 tempmn = m == B->nt-1 ? B->n-m*B->nb : B->nb;
 
-                CHAMELEON_INSERT_TASK_ztradd(
+                INSERT_TASK_ztradd(
                     &options,
                     uplo, trans, tempmm, tempmn, B->mb,
                     alpha, A(m, m),
@@ -108,7 +108,7 @@ void chameleon_pztradd(cham_uplo_t uplo, cham_trans_t trans,
                 for (n = m+1; n < B->nt; n++) {
                     tempnn = n == B->nt-1 ? B->n-n*B->nb : B->nb;
 
-                    CHAMELEON_INSERT_TASK_zgeadd(
+                    INSERT_TASK_zgeadd(
                         &options,
                         trans, tempmm, tempnn, B->mb,
                         alpha, A(m, n),
@@ -121,7 +121,7 @@ void chameleon_pztradd(cham_uplo_t uplo, cham_trans_t trans,
                 tempmm = m == B->mt-1 ? B->m-B->mb*m : B->nb;
                 tempmn = m == B->nt-1 ? B->n-m*B->nb : B->nb;
 
-                CHAMELEON_INSERT_TASK_ztradd(
+                INSERT_TASK_ztradd(
                     &options,
                     uplo, trans, tempmm, tempmn, B->mb,
                     alpha, A(m, m),
@@ -130,7 +130,7 @@ void chameleon_pztradd(cham_uplo_t uplo, cham_trans_t trans,
                 for (n = m+1; n < B->nt; n++) {
                     tempnn = n == B->nt-1 ? B->n-n*B->nb : B->nb;
 
-                    CHAMELEON_INSERT_TASK_zgeadd(
+                    INSERT_TASK_zgeadd(
                         &options,
                         trans, tempmm, tempnn, B->mb,
                         alpha, A(n, m),
@@ -148,7 +148,7 @@ void chameleon_pztradd(cham_uplo_t uplo, cham_trans_t trans,
                 for (n = 0; n < B->nt; n++) {
                     tempnn = n == B->nt-1 ? B->n-n*B->nb : B->nb;
 
-                    CHAMELEON_INSERT_TASK_zgeadd(
+                    INSERT_TASK_zgeadd(
                         &options,
                         trans, tempmm, tempnn, B->mb,
                         alpha, A(m, n),
@@ -163,7 +163,7 @@ void chameleon_pztradd(cham_uplo_t uplo, cham_trans_t trans,
                 for (n = 0; n < B->nt; n++) {
                     tempnn = n == B->nt-1 ? B->n-n*B->nb : B->nb;
 
-                    CHAMELEON_INSERT_TASK_zgeadd(
+                    INSERT_TASK_zgeadd(
                         &options,
                         trans, tempmm, tempnn, B->mb,
                         alpha, A(n, m),
@@ -173,5 +173,5 @@ void chameleon_pztradd(cham_uplo_t uplo, cham_trans_t trans,
         }
     }
 
-    CHAMELEON_RUNTIME_options_finalize(&options, chamctxt);
+    RUNTIME_options_finalize(&options, chamctxt);
 }

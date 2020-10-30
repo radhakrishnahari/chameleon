@@ -47,21 +47,21 @@ void chameleon_pzpotrf(cham_uplo_t uplo, CHAM_desc_t *A,
     if (sequence->status != CHAMELEON_SUCCESS) {
         return;
     }
-    CHAMELEON_RUNTIME_options_init(&options, chamctxt, sequence, request);
+    RUNTIME_options_init(&options, chamctxt, sequence, request);
 
-    CHAMELEON_RUNTIME_options_ws_alloc( &options, 0, ws_host );
+    RUNTIME_options_ws_alloc( &options, 0, ws_host );
 
     /*
      *  ChamLower
      */
     if (uplo == ChamLower) {
         for (k = 0; k < A->mt; k++) {
-            CHAMELEON_RUNTIME_iteration_push(chamctxt, k);
+            RUNTIME_iteration_push(chamctxt, k);
 
             tempkm = k == A->mt-1 ? A->m-k*A->mb : A->mb;
 
             options.priority = 2*A->mt - 2*k;
-            CHAMELEON_INSERT_TASK_zpotrf(
+            INSERT_TASK_zpotrf(
                 &options,
                 ChamLower, tempkm, A->mb,
                 A(k, k), A->nb*k);
@@ -70,20 +70,20 @@ void chameleon_pzpotrf(cham_uplo_t uplo, CHAM_desc_t *A,
                 tempmm = m == A->mt-1 ? A->m-m*A->mb : A->mb;
 
                 options.priority = 2*A->mt - 2*k - m;
-                CHAMELEON_INSERT_TASK_ztrsm(
+                INSERT_TASK_ztrsm(
                     &options,
                     ChamRight, ChamLower, ChamConjTrans, ChamNonUnit,
                     tempmm, A->mb, A->mb,
                     zone, A(k, k),
                           A(m, k));
             }
-            CHAMELEON_RUNTIME_data_flush( sequence, A(k, k) );
+            RUNTIME_data_flush( sequence, A(k, k) );
 
             for (n = k+1; n < A->nt; n++) {
                 tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
 
                 options.priority = 2*A->mt - 2*k - n;
-                CHAMELEON_INSERT_TASK_zherk(
+                INSERT_TASK_zherk(
                     &options,
                     ChamLower, ChamNoTrans,
                     tempnn, A->nb, A->mb,
@@ -94,7 +94,7 @@ void chameleon_pzpotrf(cham_uplo_t uplo, CHAM_desc_t *A,
                     tempmm = m == A->mt-1 ? A->m - m*A->mb : A->mb;
 
                     options.priority = 2*A->mt - 2*k - n - m;
-                    CHAMELEON_INSERT_TASK_zgemm(
+                    INSERT_TASK_zgemm(
                         &options,
                         ChamNoTrans, ChamConjTrans,
                         tempmm, tempnn, A->mb, A->mb,
@@ -102,9 +102,9 @@ void chameleon_pzpotrf(cham_uplo_t uplo, CHAM_desc_t *A,
                                A(n, k),
                         zone,  A(m, n));
                 }
-                CHAMELEON_RUNTIME_data_flush( sequence, A(n, k) );
+                RUNTIME_data_flush( sequence, A(n, k) );
             }
-            CHAMELEON_RUNTIME_iteration_pop(chamctxt);
+            RUNTIME_iteration_pop(chamctxt);
         }
     }
     /*
@@ -112,12 +112,12 @@ void chameleon_pzpotrf(cham_uplo_t uplo, CHAM_desc_t *A,
      */
     else {
         for (k = 0; k < A->nt; k++) {
-            CHAMELEON_RUNTIME_iteration_push(chamctxt, k);
+            RUNTIME_iteration_push(chamctxt, k);
 
             tempkm = k == A->nt-1 ? A->n-k*A->nb : A->nb;
 
             options.priority = 2*A->nt - 2*k;
-            CHAMELEON_INSERT_TASK_zpotrf(
+            INSERT_TASK_zpotrf(
                 &options,
                 ChamUpper,
                 tempkm, A->mb,
@@ -127,20 +127,20 @@ void chameleon_pzpotrf(cham_uplo_t uplo, CHAM_desc_t *A,
                 tempnn = n == A->nt-1 ? A->n - n*A->nb : A->nb;
 
                 options.priority = 2*A->nt - 2*k - n;
-                CHAMELEON_INSERT_TASK_ztrsm(
+                INSERT_TASK_ztrsm(
                     &options,
                     ChamLeft, ChamUpper, ChamConjTrans, ChamNonUnit,
                     A->mb, tempnn, A->mb,
                     zone, A(k, k),
                           A(k, n));
             }
-            CHAMELEON_RUNTIME_data_flush( sequence, A(k, k) );
+            RUNTIME_data_flush( sequence, A(k, k) );
 
             for (m = k+1; m < A->mt; m++) {
                 tempmm = m == A->mt-1 ? A->m - m*A->mb : A->mb;
 
                 options.priority = 2*A->nt - 2*k  - m;
-                CHAMELEON_INSERT_TASK_zherk(
+                INSERT_TASK_zherk(
                     &options,
                     ChamUpper, ChamConjTrans,
                     tempmm, A->mb, A->mb,
@@ -151,7 +151,7 @@ void chameleon_pzpotrf(cham_uplo_t uplo, CHAM_desc_t *A,
                     tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
 
                     options.priority = 2*A->nt - 2*k - n - m;
-                    CHAMELEON_INSERT_TASK_zgemm(
+                    INSERT_TASK_zgemm(
                         &options,
                         ChamConjTrans, ChamNoTrans,
                         tempmm, tempnn, A->mb, A->mb,
@@ -159,12 +159,12 @@ void chameleon_pzpotrf(cham_uplo_t uplo, CHAM_desc_t *A,
                                A(k, n),
                         zone,  A(m, n));
                 }
-                CHAMELEON_RUNTIME_data_flush( sequence, A(k, m) );
+                RUNTIME_data_flush( sequence, A(k, m) );
             }
 
-            CHAMELEON_RUNTIME_iteration_pop(chamctxt);
+            RUNTIME_iteration_pop(chamctxt);
         }
     }
-    CHAMELEON_RUNTIME_options_ws_free(&options);
-    CHAMELEON_RUNTIME_options_finalize(&options, chamctxt);
+    RUNTIME_options_ws_free(&options);
+    RUNTIME_options_finalize(&options, chamctxt);
 }

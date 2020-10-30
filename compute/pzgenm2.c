@@ -46,13 +46,13 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
     if ( sequence->status != CHAMELEON_SUCCESS ) {
         return;
     }
-    CHAMELEON_RUNTIME_options_init( &options, chamctxt, sequence, request );
+    RUNTIME_options_init( &options, chamctxt, sequence, request );
 
     /* Initialize the result */
     *result = 0.0;
 
     /* Init workspace handle for the call to dlange but unused */
-    CHAMELEON_RUNTIME_options_ws_alloc( &options, 1, 0 );
+    RUNTIME_options_ws_alloc( &options, 1, 0 );
 
     /**
      * DROW must be allocated with GLOBAL to avoid destruction bewteen the first
@@ -83,7 +83,7 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
         tempnn = n == A->nt-1 ? A->n - n * A->nb : A->nb;
 
         /* Zeroes the local intermediate vector */
-        CHAMELEON_INSERT_TASK_dlaset(
+        INSERT_TASK_dlaset(
             &options,
             ChamUpperLower, 1, tempnn,
             0., 0.,
@@ -92,7 +92,7 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
         /* Computes the sums of the local tiles into the local vector */
         for(m = myp; m < A->mt; m += A->p) {
             tempmm = m == A->mt-1 ? A->m - m * A->mb : A->mb;
-            CHAMELEON_INSERT_TASK_dzasum(
+            INSERT_TASK_dzasum(
                 &options,
                 ChamColumnwise, ChamUpperLower, tempmm, tempnn,
                 A(m, n), DROW( myp, n ) );
@@ -100,7 +100,7 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
 
         /* Reduce on first row of nodes */
 	for(m = 1; m < A->p; m++) {
-	    CHAMELEON_INSERT_TASK_daxpy(
+	    INSERT_TASK_daxpy(
                 &options, tempnn, 1.,
                 DROW( m, n ), 1,
                 DROW( 0, n ), 1 );
@@ -112,7 +112,7 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
      */
     if ( myp == 0 )
     {
-        CHAMELEON_INSERT_TASK_dlaset(
+        INSERT_TASK_dlaset(
             &options,
             ChamUpperLower, NRMX.mb, NRMX.nb,
             1., 0.,
@@ -120,7 +120,7 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
 
         for( n = myq; n < A->nt; n += A->q ) {
 	    tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
-	    CHAMELEON_INSERT_TASK_dgessq(
+	    INSERT_TASK_dgessq(
                 &options, ChamEltwise, 1, tempnn,
                 DROW( myp, n   ),
                 NRMX( myp, myq ) );
@@ -128,13 +128,13 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
 
         /* Reduce on first row of nodes */
 	for(n = 1; n < A->q; n++) {
-	    CHAMELEON_INSERT_TASK_dplssq(
+	    INSERT_TASK_dplssq(
                 &options, ChamEltwise, 1, 1,
                 NRMX( myp, n ),
                 NRMX( myp, 0 ) );
 	}
 
-        CHAMELEON_INSERT_TASK_dplssq2(
+        INSERT_TASK_dplssq2(
             &options, 1, NRMX( myp, 0 ) );
     }
 
@@ -142,7 +142,7 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
     for(m = 0; m < A->p; m++) {
 	for(n = 0; n < A->q; n++) {
             if ( (m != 0) || (n != 0) ) {
-                CHAMELEON_INSERT_TASK_dlacpy(
+                INSERT_TASK_dlacpy(
                     &options,
                     ChamUpperLower, 1, 1, 1,
                     NRMX(0, 0),
@@ -154,7 +154,7 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
     CHAMELEON_Desc_Flush( &DROW, sequence );
     CHAMELEON_Desc_Flush( &NRMX, sequence );
     CHAMELEON_Desc_Flush( A,     sequence );
-    CHAMELEON_RUNTIME_sequence_wait( chamctxt, sequence );
+    RUNTIME_sequence_wait( chamctxt, sequence );
     *result = *((double *)(NRMX.get_blkaddr( &NRMX, myp, myq )));
 
     if ( (*result) == 0.0 ) {
@@ -192,13 +192,13 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
 
                 if ( myp == 0 ) {
 #if defined(PRECISION_z) || defined(PRECISION_c)
-                    CHAMELEON_INSERT_TASK_dlag2z(
+                    INSERT_TASK_dlag2z(
                         &options,
                         ChamUpperLower, 1, tempnn,
                         DROW( 0, n ),
                         X(    0, n ) );
 #else
-                    CHAMELEON_INSERT_TASK_zlacpy(
+                    INSERT_TASK_zlacpy(
                         &options,
                         ChamUpperLower, 1, tempnn, tempnn,
                         DROW( 0, n ),
@@ -208,7 +208,7 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
 
                 /* Broadcast X */
                 for (m = 1; m < A->p; m++) {
-                    CHAMELEON_INSERT_TASK_zlacpy(
+                    INSERT_TASK_zlacpy(
                         &options,
                         ChamUpperLower, 1, tempnn, tempnn,
                         X( 0, n ),
@@ -228,7 +228,7 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
         for (n = myq; n < A->nt; n += A->q) {
             tempnn = n == A->nt-1 ? A->n - n * A->nb : A->nb;
 
-            CHAMELEON_INSERT_TASK_zlascal(
+            INSERT_TASK_zlascal(
                 &options,
                 ChamUpperLower, 1, tempnn, tempnn,
                 scl, X( myp, n ) );
@@ -244,7 +244,7 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
                 tempnn = n == A->nt-1 ? A->n - n * A->nb : A->nb;
                 beta   = n == myq ? 0. : 1.;
 
-                CHAMELEON_INSERT_TASK_zgemv(
+                INSERT_TASK_zgemv(
                     &options,
                     ChamNoTrans, tempmm, tempnn,
                     1.,   A(  m,   n ),
@@ -254,14 +254,14 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
 
             /* Reduce columns */
             for (k = 1; k < chameleon_min( A->q, A->nt ); k++) {
-                CHAMELEON_INSERT_TASK_zaxpy(
+                INSERT_TASK_zaxpy(
                     &options, tempmm, 1.,
                     SX( m, k ), 1,
                     SX( m, 0 ), 1 );
             }
             /* Broadcast SX to ease the following gemv */
             for (k = 1; k < A->q; k++) {
-                CHAMELEON_INSERT_TASK_zlacpy(
+                INSERT_TASK_zlacpy(
                     &options,
                     ChamUpperLower, tempmm, 1, tempmm,
                     SX( m, 0 ),
@@ -279,7 +279,7 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
                 tempmm = m == A->mt-1 ? A->m - m * A->mb : A->mb;
                 beta   = m == myp ? 0. : 1.;
 
-                CHAMELEON_INSERT_TASK_zgemv(
+                INSERT_TASK_zgemv(
                     &options,
                     ChamConjTrans, tempmm, tempnn,
                     1.,   A(  m,   n ),
@@ -289,14 +289,14 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
 
             /* Reduce rows */
             for (k = 1; k < chameleon_min( A->p, A->mt ); k++) {
-                CHAMELEON_INSERT_TASK_zaxpy(
+                INSERT_TASK_zaxpy(
                     &options, tempnn, 1.,
                     X( k, n ), 1,
                     X( 0, n ), 1 );
             }
             /* Broadcast */
             for (k = 1; k < A->p; k++) {
-                CHAMELEON_INSERT_TASK_zlacpy(
+                INSERT_TASK_zlacpy(
                     &options,
                     ChamUpperLower, 1, tempnn, tempnn,
                     X( 0, n ),
@@ -310,7 +310,7 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
          * All rows of Q nodes compute the same thing in parallel due to replication.
          */
         {
-            CHAMELEON_INSERT_TASK_dlaset(
+            INSERT_TASK_dlaset(
                 &options,
                 ChamUpperLower, NRMX.mb, NRMX.nb,
                 1., 0.,
@@ -319,7 +319,7 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
             for( n = myq; n < A->nt; n += A->q ) {
                 tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
 
-                CHAMELEON_INSERT_TASK_zgessq(
+                INSERT_TASK_zgessq(
                     &options, ChamEltwise, 1, tempnn,
                     X(    myp, n   ),
                     NRMX( myp, myq ) );
@@ -327,18 +327,18 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
 
             /* Reduce columns  */
             for(n = 1; n < chameleon_min( A->q, A->nt ); n++) {
-                CHAMELEON_INSERT_TASK_dplssq(
+                INSERT_TASK_dplssq(
                     &options, ChamEltwise, 1, 1,
                     NRMX( myp, n ),
                     NRMX( myp, 0 ) );
             }
 
-            CHAMELEON_INSERT_TASK_dplssq2(
+            INSERT_TASK_dplssq2(
                 &options, 1, NRMX( myp, 0 ) );
 
             /* Broadcast the results to processes in the same row */
             for(n = 1; n < A->q; n++) {
-                CHAMELEON_INSERT_TASK_dlacpy(
+                INSERT_TASK_dlacpy(
                     &options,
                     ChamUpperLower, 1, 1, 1,
                     NRMX( myp, 0 ),
@@ -352,7 +352,7 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
          * All columns of P nodes compute the same thing in parallel due to replication.
          */
         {
-            CHAMELEON_INSERT_TASK_dlaset(
+            INSERT_TASK_dlaset(
                 &options,
                 ChamUpperLower, NRMSX.mb, NRMSX.nb,
                 1., 0.,
@@ -360,7 +360,7 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
 
             for( m = myp; m < A->mt; m += A->p ) {
                 tempmm = m == A->mt-1 ? A->m-m*A->mb : A->mb;
-                CHAMELEON_INSERT_TASK_zgessq(
+                INSERT_TASK_zgessq(
                     &options, ChamEltwise, tempmm, 1,
                     SX(    m,   myq ),
                     NRMSX( myp, myq ) );
@@ -368,18 +368,18 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
 
             /* Reduce rows */
             for( m = 1; m < chameleon_min( A->p, A->mt ); m++ ) {
-                CHAMELEON_INSERT_TASK_dplssq(
+                INSERT_TASK_dplssq(
                     &options, ChamEltwise, 1, 1,
                     NRMSX( m, myq ),
                     NRMSX( 0, myq ) );
             }
 
-            CHAMELEON_INSERT_TASK_dplssq2(
+            INSERT_TASK_dplssq2(
                 &options, 1, NRMSX( 0, myq ) );
 
             /* Broadcast the results to processes in the same column */
             for(m = 1; m < A->p; m++) {
-                CHAMELEON_INSERT_TASK_dlacpy(
+                INSERT_TASK_dlacpy(
                     &options,
                     ChamUpperLower, 1, 1, 1,
                     NRMSX( 0, myq ),
@@ -392,7 +392,7 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
         CHAMELEON_Desc_Flush( &X,     sequence );
         CHAMELEON_Desc_Flush( &SX,    sequence );
         CHAMELEON_Desc_Flush( A,      sequence );
-        CHAMELEON_RUNTIME_sequence_wait(chamctxt, sequence);
+        RUNTIME_sequence_wait(chamctxt, sequence);
         normx  = *((double *)(NRMX.get_blkaddr(  &NRMX,  myp, myq )));
         normsx = *((double *)(NRMSX.get_blkaddr( &NRMSX, myp, myq )));
 
@@ -405,8 +405,8 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
         *result = INFINITY;
     }
 
-    CHAMELEON_RUNTIME_options_ws_free( &options );
-    CHAMELEON_RUNTIME_options_finalize( &options, chamctxt );
+    RUNTIME_options_ws_free( &options );
+    RUNTIME_options_finalize( &options, chamctxt );
 
     chameleon_desc_destroy( &DROW );
     chameleon_desc_destroy( &NRMX );

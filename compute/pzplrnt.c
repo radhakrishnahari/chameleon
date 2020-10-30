@@ -41,7 +41,7 @@ void chameleon_pzplrnt( CHAM_desc_t *A, unsigned long long int seed,
     if (sequence->status != CHAMELEON_SUCCESS) {
         return;
     }
-    CHAMELEON_RUNTIME_options_init(&options, chamctxt, sequence, request);
+    RUNTIME_options_init(&options, chamctxt, sequence, request);
 
     for (m = 0; m < A->mt; m++) {
         tempmm = m == A->mt-1 ? A->m-m*A->mb : A->mb;
@@ -49,11 +49,11 @@ void chameleon_pzplrnt( CHAM_desc_t *A, unsigned long long int seed,
         for (n = 0; n < A->nt; n++) {
             tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
 
-            CHAMELEON_INSERT_TASK_zplrnt(
+            INSERT_TASK_zplrnt(
                 &options,
                 tempmm, tempnn, A(m, n),
                 A->m, m*A->mb, n*A->nb, seed );
         }
     }
-    CHAMELEON_RUNTIME_options_finalize(&options, chamctxt);
+    RUNTIME_options_finalize(&options, chamctxt);
 }

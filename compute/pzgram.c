@@ -48,16 +48,16 @@ chameleon_pzgram_internal( cham_uplo_t uplo,
             int tempmm = ( m == (MT-1) ) ? M - m * A->mb : A->mb;
 
             if ( n == m ) {
-                CHAMELEON_INSERT_TASK_dsyssq(
+                INSERT_TASK_dsyssq(
                     options, ChamColumnwise, uplo, tempmm,
                     A(m, n), W( Wcol, m, n) );
             }
             else {
-                CHAMELEON_INSERT_TASK_dgessq(
+                INSERT_TASK_dgessq(
                     options, ChamColumnwise, tempmm, tempnn,
                     A(m, n), W( Wcol, m, n) );
                 if ( uplo != ChamUpperLower ) {
-                    CHAMELEON_INSERT_TASK_dgessq(
+                    INSERT_TASK_dgessq(
                         options, ChamRowwise, tempmm, tempnn,
                         A(m, n), W( Wcol, n, m) );
                 }
@@ -72,7 +72,7 @@ chameleon_pzgram_internal( cham_uplo_t uplo,
          *  2) reduce columns (scl,ssq) tiles per processus (between lines)
          */
         for(m = P; m < MT; m++) {
-            CHAMELEON_INSERT_TASK_dplssq(
+            INSERT_TASK_dplssq(
                 options, ChamColumnwise, 1, tempnn,
                 W( Wcol, m,   n ),
                 W( Wcol, m%P, n ) );
@@ -82,35 +82,35 @@ chameleon_pzgram_internal( cham_uplo_t uplo,
          *  3) reduce columns (scl,ssq) tiles on the first line of tiles
          */
         for(m = 1; m < P; m++) {
-            CHAMELEON_INSERT_TASK_dplssq(
+            INSERT_TASK_dplssq(
                 options, ChamColumnwise, 1, tempnn,
                 W( Wcol, m, n ),
                 W( Wcol, 0, n ) );
         }
 
         /* 4) reduce (scl,ssq) inside each tile of the first line of tiles for the global sum square */
-        CHAMELEON_INSERT_TASK_dplssq(
+        INSERT_TASK_dplssq(
             options, ChamEltwise, 1, tempnn,
             W( Wcol, 0, n ),
             W( Welt, 0, n ) );
 
         /* 5) deduce the sum square for each column from the pairs (scl,ssq) -> sqrt(sum) = scl*sqrt(ssq) */
-        CHAMELEON_INSERT_TASK_dplssq2( options, tempnn, W( Wcol, 0, n ) );
+        INSERT_TASK_dplssq2( options, tempnn, W( Wcol, 0, n ) );
     }
 
     /* 6) reduce global sum squares on each processus (between columns) */
     for(n = Q; n < NT; n++) {
-        CHAMELEON_INSERT_TASK_dplssq( options, ChamEltwise, 1, 1, W( Welt, 0, n), W( Welt, 0, n%Q) );
+        INSERT_TASK_dplssq( options, ChamEltwise, 1, 1, W( Welt, 0, n), W( Welt, 0, n%Q) );
     }
 
     /* 7) reduce global sum squares on the first tile (index 0, 0) */
     for(n = 1; n < Q; n++) {
-        CHAMELEON_INSERT_TASK_dplssq(
+        INSERT_TASK_dplssq(
             options, ChamEltwise, 1, 1, W( Welt, 0, n), W( Welt, 0, 0) );
     }
 
     /* 8) deduce the global sum square from the pair (scl,ssq) -> sqrt(sum) = scl*sqrt(ssq) */
-    CHAMELEON_INSERT_TASK_dplssq2( options, 1, W( Welt, 0, 0) );
+    INSERT_TASK_dplssq2( options, 1, W( Welt, 0, 0) );
 
     /* Finally compute Gram matrix coefficients inplace */
     for(n = 0; n < NT; n++) {
@@ -121,7 +121,7 @@ chameleon_pzgram_internal( cham_uplo_t uplo,
         for(m = mmin; m < mmax; m++) {
             int tempmm = ( m == (MT-1) ) ? M - m * A->mb : A->mb;
 
-            CHAMELEON_INSERT_TASK_zgram(
+            INSERT_TASK_zgram(
                 options,
                 ( m == n ) ? uplo : ChamUpperLower,
                 A->m, A->n, tempmm, tempnn,
@@ -149,12 +149,12 @@ void chameleon_pzgram( cham_uplo_t uplo, CHAM_desc_t *A, RUNTIME_sequence_t *seq
     if ( sequence->status != CHAMELEON_SUCCESS ) {
         return;
     }
-    CHAMELEON_RUNTIME_options_init(&options, chamctxt, sequence, request);
+    RUNTIME_options_init(&options, chamctxt, sequence, request);
 
     workmt = chameleon_max( A->mt, A->p );
     worknt = chameleon_max( A->nt, A->q );
 
-    CHAMELEON_RUNTIME_options_ws_alloc( &options, 1, 0 );
+    RUNTIME_options_ws_alloc( &options, 1, 0 );
 
     chameleon_desc_init( &Wcol, CHAMELEON_MAT_ALLOC_TILE, ChamRealDouble, 2, A->nb, 2*A->nb,
                          2*workmt, A->n, 0, 0, 2*workmt, A->n, A->p, A->q,
@@ -169,7 +169,7 @@ void chameleon_pzgram( cham_uplo_t uplo, CHAM_desc_t *A, RUNTIME_sequence_t *seq
         tempmm = m == Wcol.mt-1 ? Wcol.m-m*Wcol.mb : Wcol.mb;
         for(n = 0; n < Wcol.nt; n++) {
             tempnn = n == Wcol.nt-1 ? Wcol.n-n*Wcol.nb : Wcol.nb;
-            CHAMELEON_INSERT_TASK_dlaset(
+            INSERT_TASK_dlaset(
                 &options,
                 ChamUpperLower, tempmm, tempnn,
                 -1., -1.,
@@ -181,7 +181,7 @@ void chameleon_pzgram( cham_uplo_t uplo, CHAM_desc_t *A, RUNTIME_sequence_t *seq
         tempmm = m == Welt.mt-1 ? Welt.m-m*Welt.mb : Welt.mb;
         for(n = 0; n < Welt.nt; n++) {
             tempnn = n == Welt.nt-1 ? Welt.n-n*Welt.nb : Welt.nb;
-            CHAMELEON_INSERT_TASK_dlaset(
+            INSERT_TASK_dlaset(
                 &options,
                 ChamUpperLower, tempmm, tempnn,
                 -1., -1.,
@@ -194,11 +194,11 @@ void chameleon_pzgram( cham_uplo_t uplo, CHAM_desc_t *A, RUNTIME_sequence_t *seq
     CHAMELEON_Desc_Flush( &Wcol, sequence );
     CHAMELEON_Desc_Flush( &Welt, sequence );
     CHAMELEON_Desc_Flush( A, sequence );
-    CHAMELEON_RUNTIME_sequence_wait( chamctxt, sequence );
+    RUNTIME_sequence_wait( chamctxt, sequence );
 
     chameleon_desc_destroy( &Wcol );
     chameleon_desc_destroy( &Welt );
 
-    CHAMELEON_RUNTIME_options_ws_free(&options);
-    CHAMELEON_RUNTIME_options_finalize(&options, chamctxt);
+    RUNTIME_options_ws_free(&options);
+    RUNTIME_options_finalize(&options, chamctxt);
 }

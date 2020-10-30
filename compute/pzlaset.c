@@ -48,20 +48,20 @@ void chameleon_pzlaset( cham_uplo_t uplo,
         return;
     }
 
-    CHAMELEON_RUNTIME_options_init(&options, chamctxt, sequence, request);
+    RUNTIME_options_init(&options, chamctxt, sequence, request);
 
     if (uplo == ChamLower) {
        for (j = 0; j < minmn; j++){
            tempjm = j == A->mt-1 ? A->m-j*A->mb : A->mb;
            tempjn = j == A->nt-1 ? A->n-j*A->nb : A->nb;
-           CHAMELEON_INSERT_TASK_zlaset(
+           INSERT_TASK_zlaset(
                &options,
                ChamLower, tempjm, tempjn, alpha, beta,
                A(j, j));
 
            for (i = j+1; i < A->mt; i++){
                tempim = i == A->mt-1 ? A->m-i*A->mb : A->mb;
-               CHAMELEON_INSERT_TASK_zlaset(
+               INSERT_TASK_zlaset(
                    &options,
                    ChamUpperLower, tempim, tempjn, alpha, alpha,
                    A(i, j));
@@ -76,7 +76,7 @@ void chameleon_pzlaset( cham_uplo_t uplo,
                 j = i;
                 tempjn = j == A->nt-1 ? A->n-j*A->nb : A->nb;
 
-                CHAMELEON_INSERT_TASK_zlaset(
+                INSERT_TASK_zlaset(
                     &options,
                     uplo, tempim, tempjn,
                     alpha, beta, A(i, j));
@@ -84,7 +84,7 @@ void chameleon_pzlaset( cham_uplo_t uplo,
             for (j = i+1; j < A->nt; j++) {
                 tempjn = j == A->nt-1 ? A->n-j*A->nb : A->nb;
 
-                CHAMELEON_INSERT_TASK_zlaset(
+                INSERT_TASK_zlaset(
                     &options,
                     ChamUpperLower, tempim, tempjn,
                     alpha, alpha, A(i, j));
@@ -96,7 +96,7 @@ void chameleon_pzlaset( cham_uplo_t uplo,
            tempim = i == A->mt-1 ? A->m-i*A->mb : A->mb;
            for (j = 0; j < A->nt; j++){
                tempjn = j == A->nt-1 ? A->n-j*A->nb : A->nb;
-               CHAMELEON_INSERT_TASK_zlaset(
+               INSERT_TASK_zlaset(
                    &options,
                    ChamUpperLower, tempim, tempjn,
                    alpha, (i == j) ? beta : alpha,
@@ -104,5 +104,5 @@ void chameleon_pzlaset( cham_uplo_t uplo,
            }
        }
     }
-    CHAMELEON_RUNTIME_options_finalize(&options, chamctxt);
+    RUNTIME_options_finalize(&options, chamctxt);
 }

@@ -49,7 +49,7 @@ void chameleon_pzgelqf_param( int genD, const libhqr_tree_t *qrtree, CHAM_desc_t
     if (sequence->status != CHAMELEON_SUCCESS) {
         return;
     }
-    CHAMELEON_RUNTIME_options_init(&options, chamctxt, sequence, request);
+    RUNTIME_options_init(&options, chamctxt, sequence, request);
 
     ib = CHAMELEON_IB;
 
@@ -78,7 +78,7 @@ void chameleon_pzgelqf_param( int genD, const libhqr_tree_t *qrtree, CHAM_desc_t
     ws_worker *= sizeof(CHAMELEON_Complex64_t);
     ws_host   *= sizeof(CHAMELEON_Complex64_t);
 
-    CHAMELEON_RUNTIME_options_ws_alloc( &options, ws_worker, ws_host );
+    RUNTIME_options_ws_alloc( &options, ws_worker, ws_host );
 
     /* Initialisation of temporary tiles array */
     tiles = (int*)calloc(qrtree->mt, sizeof(int));
@@ -86,7 +86,7 @@ void chameleon_pzgelqf_param( int genD, const libhqr_tree_t *qrtree, CHAM_desc_t
     K = chameleon_min(A->mt, A->nt);
 
     for (k = 0; k < K; k++) {
-        CHAMELEON_RUNTIME_iteration_push(chamctxt, k);
+        RUNTIME_iteration_push(chamctxt, k);
 
         tempkm = k == A->mt-1 ? A->m-k*A->mb : A->mb;
 
@@ -99,7 +99,7 @@ void chameleon_pzgelqf_param( int genD, const libhqr_tree_t *qrtree, CHAM_desc_t
             temppn = p == A->nt-1 ? A->n-p*A->nb : A->nb;
             tempkmin = chameleon_min(tempkm, temppn);
 
-            CHAMELEON_INSERT_TASK_zgelqt(
+            INSERT_TASK_zgelqt(
                 &options,
                 tempkm, temppn, ib, T->nb,
                 A( k, p),
@@ -109,13 +109,13 @@ void chameleon_pzgelqf_param( int genD, const libhqr_tree_t *qrtree, CHAM_desc_t
                 int tempDkm = k == D->mt-1 ? D->m-k*D->mb : D->mb;
                 int tempDpn = p == D->nt-1 ? D->n-p*D->nb : D->nb;
 
-                CHAMELEON_INSERT_TASK_zlacpy(
+                INSERT_TASK_zlacpy(
                     &options,
                     ChamUpper, tempDkm, tempDpn, A->nb,
                     A(k, p),
                     D(k, p) );
 #if defined(CHAMELEON_USE_CUDA)
-                CHAMELEON_INSERT_TASK_zlaset(
+                INSERT_TASK_zlaset(
                     &options,
                     ChamLower, tempDkm, tempDpn,
                     0., 1.,
@@ -125,7 +125,7 @@ void chameleon_pzgelqf_param( int genD, const libhqr_tree_t *qrtree, CHAM_desc_t
 
             for (m = k+1; m < A->mt; m++) {
                 tempmm = m == A->mt-1 ? A->m-m*A->mb : A->mb;
-                CHAMELEON_INSERT_TASK_zunmlq(
+                INSERT_TASK_zunmlq(
                     &options,
                     ChamRight, ChamConjTrans,
                     tempmm, temppn, tempkmin, ib, T->nb,
@@ -133,8 +133,8 @@ void chameleon_pzgelqf_param( int genD, const libhqr_tree_t *qrtree, CHAM_desc_t
                     T(k, p),
                     A(m, p));
             }
-            CHAMELEON_RUNTIME_data_flush( sequence, D(k, p) );
-            CHAMELEON_RUNTIME_data_flush( sequence, T(k, p) );
+            RUNTIME_data_flush( sequence, D(k, p) );
+            RUNTIME_data_flush( sequence, T(k, p) );
         }
 
         /* Setting the order of the tiles */
@@ -158,10 +158,10 @@ void chameleon_pzgelqf_param( int genD, const libhqr_tree_t *qrtree, CHAM_desc_t
             }
 
             node = A->get_rankof( A, k, n );
-            CHAMELEON_RUNTIME_data_migrate( sequence, A(k, p), node );
-            CHAMELEON_RUNTIME_data_migrate( sequence, A(k, n), node );
+            RUNTIME_data_migrate( sequence, A(k, p), node );
+            RUNTIME_data_migrate( sequence, A(k, n), node );
 
-            CHAMELEON_INSERT_TASK_ztplqt(
+            INSERT_TASK_ztplqt(
                 &options,
                 tempkm, tempnn, chameleon_min(L, tempkm), ib, T->nb,
                 A(k, p),
@@ -172,10 +172,10 @@ void chameleon_pzgelqf_param( int genD, const libhqr_tree_t *qrtree, CHAM_desc_t
                 tempmm = m == A->mt-1 ? A->m-m*A->mb : A->mb;
 
                 node = A->get_rankof( A, m, n );
-                CHAMELEON_RUNTIME_data_migrate( sequence, A(m, p), node );
-                CHAMELEON_RUNTIME_data_migrate( sequence, A(m, n), node );
+                RUNTIME_data_migrate( sequence, A(m, p), node );
+                RUNTIME_data_migrate( sequence, A(m, n), node );
 
-                CHAMELEON_INSERT_TASK_ztpmlqt(
+                INSERT_TASK_ztpmlqt(
                     &options,
                     ChamRight, ChamConjTrans,
                     tempmm, tempnn, tempkm, L, ib, T->nb,
@@ -184,20 +184,20 @@ void chameleon_pzgelqf_param( int genD, const libhqr_tree_t *qrtree, CHAM_desc_t
                     A(m, p),
                     A(m, n));
             }
-            CHAMELEON_RUNTIME_data_flush( sequence, A(k, n) );
-            CHAMELEON_RUNTIME_data_flush( sequence, T(k, n) );
+            RUNTIME_data_flush( sequence, A(k, n) );
+            RUNTIME_data_flush( sequence, T(k, n) );
         }
 
         /* Restore the original location of the tiles */
         for (m = k; m < A->mt; m++) {
-            CHAMELEON_RUNTIME_data_migrate( sequence, A(m, k),
+            RUNTIME_data_migrate( sequence, A(m, k),
                                   A->get_rankof( A, m, k ) );
         }
 
-        CHAMELEON_RUNTIME_iteration_pop(chamctxt);
+        RUNTIME_iteration_pop(chamctxt);
     }
 
     free(tiles);
-    CHAMELEON_RUNTIME_options_ws_free(&options);
-    CHAMELEON_RUNTIME_options_finalize(&options, chamctxt);
+    RUNTIME_options_ws_free(&options);
+    RUNTIME_options_finalize(&options, chamctxt);
 }

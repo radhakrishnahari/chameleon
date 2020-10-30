@@ -58,7 +58,7 @@ void chameleon_pzgetrf_incpiv( CHAM_desc_t *A, CHAM_desc_t *L, CHAM_desc_t *D, i
     if (sequence->status != CHAMELEON_SUCCESS) {
         return;
     }
-    CHAMELEON_RUNTIME_options_init(&options, chamctxt, sequence, request);
+    RUNTIME_options_init(&options, chamctxt, sequence, request);
 
     ib = CHAMELEON_IB;
 
@@ -77,14 +77,14 @@ void chameleon_pzgetrf_incpiv( CHAM_desc_t *A, CHAM_desc_t *L, CHAM_desc_t *D, i
     ws_worker *= sizeof(CHAMELEON_Complex64_t);
     ws_host   *= sizeof(CHAMELEON_Complex64_t);
 
-    CHAMELEON_RUNTIME_options_ws_alloc( &options, ws_worker, ws_host );
+    RUNTIME_options_ws_alloc( &options, ws_worker, ws_host );
 
     for (k = 0; k < minMNT; k++) {
-        CHAMELEON_RUNTIME_iteration_push(chamctxt, k);
+        RUNTIME_iteration_push(chamctxt, k);
 
         tempkm = k == A->mt-1 ? A->m-k*A->mb : A->mb;
         tempkn = k == A->nt-1 ? A->n-k*A->nb : A->nb;
-        CHAMELEON_INSERT_TASK_zgetrf_incpiv(
+        INSERT_TASK_zgetrf_incpiv(
             &options,
             tempkm, tempkn, ib, L->nb,
             A(k, k),
@@ -94,7 +94,7 @@ void chameleon_pzgetrf_incpiv( CHAM_desc_t *A, CHAM_desc_t *L, CHAM_desc_t *D, i
 
         if ( k < (minMNT-1) ) {
 #if defined(CHAMELEON_COPY_DIAG)
-            CHAMELEON_INSERT_TASK_zlacpy(
+            INSERT_TASK_zlacpy(
                 &options,
                 ChamUpperLower, tempkm, tempkn, A->nb,
                 A(k, k),
@@ -104,7 +104,7 @@ void chameleon_pzgetrf_incpiv( CHAM_desc_t *A, CHAM_desc_t *L, CHAM_desc_t *D, i
 
         for (n = k+1; n < A->nt; n++) {
             tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
-            CHAMELEON_INSERT_TASK_zgessm(
+            INSERT_TASK_zgessm(
                 &options,
                 tempkm, tempnn, tempkm, ib, L->nb,
                 IPIV(k, k),
@@ -114,7 +114,7 @@ void chameleon_pzgetrf_incpiv( CHAM_desc_t *A, CHAM_desc_t *L, CHAM_desc_t *D, i
         }
         for (m = k+1; m < A->mt; m++) {
             tempmm = m == A->mt-1 ? A->m-m*A->mb : A->mb;
-            CHAMELEON_INSERT_TASK_ztstrf(
+            INSERT_TASK_ztstrf(
                 &options,
                 tempmm, tempkn, ib, L->nb,
                 A(k, k),
@@ -125,7 +125,7 @@ void chameleon_pzgetrf_incpiv( CHAM_desc_t *A, CHAM_desc_t *L, CHAM_desc_t *D, i
 
             for (n = k+1; n < A->nt; n++) {
                 tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
-                CHAMELEON_INSERT_TASK_zssssm(
+                INSERT_TASK_zssssm(
                     &options,
                     A->nb, tempnn, tempmm, tempnn, A->nb, ib, L->nb,
                     A(k, n),
@@ -136,10 +136,10 @@ void chameleon_pzgetrf_incpiv( CHAM_desc_t *A, CHAM_desc_t *L, CHAM_desc_t *D, i
             }
         }
 
-        CHAMELEON_RUNTIME_iteration_pop(chamctxt);
+        RUNTIME_iteration_pop(chamctxt);
     }
 
-    CHAMELEON_RUNTIME_options_ws_free(&options);
-    CHAMELEON_RUNTIME_options_finalize(&options, chamctxt);
+    RUNTIME_options_ws_free(&options);
+    RUNTIME_options_finalize(&options, chamctxt);
     (void)D;
 }

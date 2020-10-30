@@ -48,7 +48,7 @@ void chameleon_pzsyrk(cham_uplo_t uplo, cham_trans_t trans,
     if (sequence->status != CHAMELEON_SUCCESS) {
         return;
     }
-    CHAMELEON_RUNTIME_options_init(&options, chamctxt, sequence, request);
+    RUNTIME_options_init(&options, chamctxt, sequence, request);
 
     for (n = 0; n < C->nt; n++) {
         tempnn = n == C->nt-1 ? C->n-n*C->nb : C->nb;
@@ -59,7 +59,7 @@ void chameleon_pzsyrk(cham_uplo_t uplo, cham_trans_t trans,
             for (k = 0; k < A->nt; k++) {
                 tempkn = k == A->nt-1 ? A->n-k*A->nb : A->nb;
                 zbeta = k == 0 ? beta : zone;
-                CHAMELEON_INSERT_TASK_zsyrk(
+                INSERT_TASK_zsyrk(
                     &options,
                     uplo, trans,
                     tempnn, tempkn, A->mb,
@@ -75,7 +75,7 @@ void chameleon_pzsyrk(cham_uplo_t uplo, cham_trans_t trans,
                     for (k = 0; k < A->nt; k++) {
                         tempkn = k == A->nt-1 ? A->n-k*A->nb : A->nb;
                         zbeta = k == 0 ? beta : zone;
-                        CHAMELEON_INSERT_TASK_zgemm(
+                        INSERT_TASK_zgemm(
                             &options,
                             trans, ChamTrans,
                             tempmm, tempnn, tempkn, A->mb,
@@ -94,7 +94,7 @@ void chameleon_pzsyrk(cham_uplo_t uplo, cham_trans_t trans,
                     for (k = 0; k < A->nt; k++) {
                         tempkn = k == A->nt-1 ? A->n-k*A->nb : A->nb;
                         zbeta = k == 0 ? beta : zone;
-                        CHAMELEON_INSERT_TASK_zgemm(
+                        INSERT_TASK_zgemm(
                             &options,
                             trans, ChamTrans,
                             tempnn, tempmm, tempkn, A->mb,
@@ -112,7 +112,7 @@ void chameleon_pzsyrk(cham_uplo_t uplo, cham_trans_t trans,
             for (k = 0; k < A->mt; k++) {
                 tempkm = k == A->mt-1 ? A->m-k*A->mb : A->mb;
                 zbeta = k == 0 ? beta : zone;
-                CHAMELEON_INSERT_TASK_zsyrk(
+                INSERT_TASK_zsyrk(
                     &options,
                     uplo, trans,
                     tempnn, tempkm, A->mb,
@@ -128,7 +128,7 @@ void chameleon_pzsyrk(cham_uplo_t uplo, cham_trans_t trans,
                     for (k = 0; k < A->mt; k++) {
                         tempkm = k == A->mt-1 ? A->m-k*A->mb : A->mb;
                         zbeta = k == 0 ? beta : zone;
-                        CHAMELEON_INSERT_TASK_zgemm(
+                        INSERT_TASK_zgemm(
                             &options,
                             trans, ChamNoTrans,
                             tempmm, tempnn, tempkm, A->mb,
@@ -147,7 +147,7 @@ void chameleon_pzsyrk(cham_uplo_t uplo, cham_trans_t trans,
                     for (k = 0; k < A->mt; k++) {
                         tempkm = k == A->mt-1 ? A->m-k*A->mb : A->mb;
                         zbeta = k == 0 ? beta : zone;
-                        CHAMELEON_INSERT_TASK_zgemm(
+                        INSERT_TASK_zgemm(
                             &options,
                             trans, ChamNoTrans,
                             tempnn, tempmm, tempkm, A->mb,
@@ -159,5 +159,5 @@ void chameleon_pzsyrk(cham_uplo_t uplo, cham_trans_t trans,
             }
         }
     }
-    CHAMELEON_RUNTIME_options_finalize(&options, chamctxt);
+    RUNTIME_options_finalize(&options, chamctxt);
 }

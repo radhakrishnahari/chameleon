@@ -58,20 +58,20 @@ chameleon_pzlange_one( cham_uplo_t uplo, cham_diag_t diag, CHAM_desc_t *A,
             int tempmm = ( m == (MT-1) ) ? M - m * A->mb : A->mb;
 
             if ( (n == m) && (uplo != ChamUpperLower) ) {
-                CHAMELEON_INSERT_TASK_ztrasm(
+                INSERT_TASK_ztrasm(
                     options,
                     ChamColumnwise, uplo, diag, tempmm, tempnn,
                     A(m, n), W( Wcol, m, n ) );
             }
             else {
-                CHAMELEON_INSERT_TASK_dzasum(
+                INSERT_TASK_dzasum(
                     options,
                     ChamColumnwise, ChamUpperLower, tempmm, tempnn,
                     A(m, n), W( Wcol, m, n ) );
             }
 
             if ( m >= P ) {
-                CHAMELEON_INSERT_TASK_daxpy(
+                INSERT_TASK_daxpy(
                     options, tempnn, 1.,
                     W( Wcol, m,   n ), 1,
                     W( Wcol, m%P, n ), 1 );
@@ -83,13 +83,13 @@ chameleon_pzlange_one( cham_uplo_t uplo, cham_diag_t diag, CHAM_desc_t *A,
          *  For each i, W(i, n) = reduce( W(0..P-1, n) )
          */
         for(m = 1; m < P; m++) {
-            CHAMELEON_INSERT_TASK_daxpy(
+            INSERT_TASK_daxpy(
                 options, tempnn, 1.,
                 W( Wcol, m, n ), 1,
                 W( Wcol, 0, n ), 1 );
         }
 
-        CHAMELEON_INSERT_TASK_dlange(
+        INSERT_TASK_dlange(
             options,
             ChamMaxNorm, 1, tempnn, A->nb,
             W( Wcol, 0, n ),
@@ -101,7 +101,7 @@ chameleon_pzlange_one( cham_uplo_t uplo, cham_diag_t diag, CHAM_desc_t *A,
      *  For n in 0..Q-1, W(m, n) = max( W(m, n..nt[Q] ) )
      */
     for(n = Q; n < NT; n++) {
-        CHAMELEON_INSERT_TASK_dlange_max(
+        INSERT_TASK_dlange_max(
             options,
             W( Welt, 0, n   ),
             W( Welt, 0, n%Q ) );
@@ -112,7 +112,7 @@ chameleon_pzlange_one( cham_uplo_t uplo, cham_diag_t diag, CHAM_desc_t *A,
      *  For each i, Welt(i, n) = max( Welt(0..P-1, n) )
      */
     for(n = 1; n < Q; n++) {
-        CHAMELEON_INSERT_TASK_dlange_max(
+        INSERT_TASK_dlange_max(
             options,
             W( Welt, 0, n ),
             W( Welt, 0, 0 ) );
@@ -148,20 +148,20 @@ chameleon_pzlange_inf( cham_uplo_t uplo, cham_diag_t diag, CHAM_desc_t *A,
             int tempnn = ( n == (NT-1) ) ? N - n * A->nb : A->nb;
 
             if ( (n == m)  && (uplo != ChamUpperLower) ) {
-                CHAMELEON_INSERT_TASK_ztrasm(
+                INSERT_TASK_ztrasm(
                     options,
                     ChamRowwise, uplo, diag, tempmm, tempnn,
                     A(m, n), W( Wcol, m, n) );
             }
             else {
-                CHAMELEON_INSERT_TASK_dzasum(
+                INSERT_TASK_dzasum(
                     options,
                     ChamRowwise, ChamUpperLower, tempmm, tempnn,
                     A(m, n), W( Wcol, m, n) );
             }
 
             if ( n >= Q ) {
-                CHAMELEON_INSERT_TASK_daxpy(
+                INSERT_TASK_daxpy(
                     options, tempmm, 1.,
                     W( Wcol, m, n   ), 1,
                     W( Wcol, m, n%Q ), 1 );
@@ -173,13 +173,13 @@ chameleon_pzlange_inf( cham_uplo_t uplo, cham_diag_t diag, CHAM_desc_t *A,
          *  For each j, W(m, j) = reduce( Wcol(m, 0..Q-1) )
          */
         for(n = 1; n < Q; n++) {
-            CHAMELEON_INSERT_TASK_daxpy(
+            INSERT_TASK_daxpy(
                 options, tempmm, 1.,
                 W( Wcol, m, n ), 1,
                 W( Wcol, m, 0 ), 1 );
         }
 
-        CHAMELEON_INSERT_TASK_dlange(
+        INSERT_TASK_dlange(
             options,
             ChamMaxNorm, tempmm, 1, A->nb,
             W( Wcol, m, 0), W( Welt, m, 0));
@@ -190,7 +190,7 @@ chameleon_pzlange_inf( cham_uplo_t uplo, cham_diag_t diag, CHAM_desc_t *A,
      *  For m in 0..P-1, Welt(m, n) = max( Wcol(m..mt[P], n ) )
      */
     for(m = P; m < MT; m++) {
-        CHAMELEON_INSERT_TASK_dlange_max(
+        INSERT_TASK_dlange_max(
             options,
             W( Welt, m, 0), W( Welt, m%P, 0) );
     }
@@ -200,7 +200,7 @@ chameleon_pzlange_inf( cham_uplo_t uplo, cham_diag_t diag, CHAM_desc_t *A,
      *  For each i, Welt(i, n) = max( Welt(0..P-1, n) )
      */
     for(m = 1; m < P; m++) {
-        CHAMELEON_INSERT_TASK_dlange_max(
+        INSERT_TASK_dlange_max(
             options,
             W( Welt, m, 0), W( Welt, 0, 0) );
     }
@@ -234,20 +234,20 @@ chameleon_pzlange_max( cham_uplo_t uplo, cham_diag_t diag, CHAM_desc_t *A, CHAM_
             int tempnn = ( n == (NT-1) ) ? N - n * A->nb : A->nb;
 
             if ( (n == m)  && (uplo != ChamUpperLower) ) {
-                CHAMELEON_INSERT_TASK_zlantr(
+                INSERT_TASK_zlantr(
                     options,
                     ChamMaxNorm, uplo, diag, tempmm, tempnn, A->nb,
                     A(m, n), W( Welt, m, n));
             }
             else {
-                CHAMELEON_INSERT_TASK_zlange(
+                INSERT_TASK_zlange(
                     options,
                     ChamMaxNorm, tempmm, tempnn, A->nb,
                     A(m, n), W( Welt, m, n ));
             }
 
             if ( n >= Q ) {
-                CHAMELEON_INSERT_TASK_dlange_max(
+                INSERT_TASK_dlange_max(
                     options,
                     W( Welt, m, n   ),
                     W( Welt, m, n%Q ) );
@@ -259,7 +259,7 @@ chameleon_pzlange_max( cham_uplo_t uplo, cham_diag_t diag, CHAM_desc_t *A, CHAM_
          *  For each j, W(m, j) = reduce( Welt(m, 0..Q-1) )
          */
         for(n = 1; n < Q; n++) {
-            CHAMELEON_INSERT_TASK_dlange_max(
+            INSERT_TASK_dlange_max(
                 options,
                 W( Welt, m, n ),
                 W( Welt, m, 0 ) );
@@ -271,7 +271,7 @@ chameleon_pzlange_max( cham_uplo_t uplo, cham_diag_t diag, CHAM_desc_t *A, CHAM_
      *  For m in 0..P-1, Welt(m, n) = max( Welt(m..mt[P], n ) )
      */
     for(m = P; m < MT; m++) {
-        CHAMELEON_INSERT_TASK_dlange_max(
+        INSERT_TASK_dlange_max(
             options,
             W( Welt, m,   0 ),
             W( Welt, m%P, 0 ) );
@@ -282,7 +282,7 @@ chameleon_pzlange_max( cham_uplo_t uplo, cham_diag_t diag, CHAM_desc_t *A, CHAM_
      *  For each i, Welt(i, n) = max( Welt(0..P-1, n) )
      */
     for(m = 1; m < P; m++) {
-        CHAMELEON_INSERT_TASK_dlange_max(
+        INSERT_TASK_dlange_max(
             options,
             W( Welt, m, 0 ),
             W( Welt, 0, 0 ) );
@@ -317,13 +317,13 @@ chameleon_pzlange_frb( cham_uplo_t uplo, cham_diag_t diag, CHAM_desc_t *A, CHAM_
             int tempnn = ( n == (NT-1) ) ? N - n * A->nb : A->nb;
 
             if ( (n == m) && (uplo != ChamUpperLower) ) {
-                CHAMELEON_INSERT_TASK_ztrssq(
+                INSERT_TASK_ztrssq(
                     options,
                     uplo, diag, tempmm, tempnn,
                     A(m, n), W( Welt, m, n) );
             }
             else {
-                CHAMELEON_INSERT_TASK_zgessq(
+                INSERT_TASK_zgessq(
                     options,
                     ChamEltwise,
                     tempmm, tempnn,
@@ -331,7 +331,7 @@ chameleon_pzlange_frb( cham_uplo_t uplo, cham_diag_t diag, CHAM_desc_t *A, CHAM_
             }
 
             if ( n >= Q ) {
-                CHAMELEON_INSERT_TASK_dplssq(
+                INSERT_TASK_dplssq(
                     options, ChamEltwise, 1, 1, W( Welt, m, n), W( Welt, m, n%Q) );
             }
         }
@@ -341,7 +341,7 @@ chameleon_pzlange_frb( cham_uplo_t uplo, cham_diag_t diag, CHAM_desc_t *A, CHAM_
          *  For each j, W(m, j) = reduce( Welt(m, 0..Q-1) )
          */
         for(n = 1; n < Q; n++) {
-            CHAMELEON_INSERT_TASK_dplssq(
+            INSERT_TASK_dplssq(
                 options, ChamEltwise, 1, 1, W( Welt, m, n), W( Welt, m, 0) );
         }
     }
@@ -351,7 +351,7 @@ chameleon_pzlange_frb( cham_uplo_t uplo, cham_diag_t diag, CHAM_desc_t *A, CHAM_
      *  For m in 0..P-1, Welt(m, n) = max( Welt(m..mt[P], n ) )
      */
     for(m = P; m < MT; m++) {
-        CHAMELEON_INSERT_TASK_dplssq(
+        INSERT_TASK_dplssq(
             options, ChamEltwise, 1, 1, W( Welt, m, 0), W( Welt, m%P, 0) );
     }
 
@@ -360,11 +360,11 @@ chameleon_pzlange_frb( cham_uplo_t uplo, cham_diag_t diag, CHAM_desc_t *A, CHAM_
      *  For each i, Welt(i, n) = max( Welt(0..P-1, n) )
      */
     for(m = 1; m < P; m++) {
-        CHAMELEON_INSERT_TASK_dplssq(
+        INSERT_TASK_dplssq(
             options, ChamEltwise, 1, 1, W( Welt, m, 0), W( Welt, 0, 0) );
     }
 
-    CHAMELEON_INSERT_TASK_dplssq2(
+    INSERT_TASK_dplssq2(
         options, 1, W( Welt, 0, 0) );
 }
 
@@ -389,7 +389,7 @@ void chameleon_pzlange_generic( cham_normtype_t norm, cham_uplo_t uplo, cham_dia
     if ( sequence->status != CHAMELEON_SUCCESS ) {
         return;
     }
-    CHAMELEON_RUNTIME_options_init(&options, chamctxt, sequence, request);
+    RUNTIME_options_init(&options, chamctxt, sequence, request);
 
     *result = 0.0;
 
@@ -398,7 +398,7 @@ void chameleon_pzlange_generic( cham_normtype_t norm, cham_uplo_t uplo, cham_dia
 
     switch ( norm ) {
     case ChamOneNorm:
-        CHAMELEON_RUNTIME_options_ws_alloc( &options, 1, 0 );
+        RUNTIME_options_ws_alloc( &options, 1, 0 );
 
         chameleon_desc_init( &Wcol, CHAMELEON_MAT_ALLOC_TILE, ChamRealDouble, 1, A->nb, A->nb,
                              workmt, worknt * A->nb, 0, 0, workmt, worknt * A->nb, A->p, A->q,
@@ -418,7 +418,7 @@ void chameleon_pzlange_generic( cham_normtype_t norm, cham_uplo_t uplo, cham_dia
          *  ChamInfNorm
          */
     case ChamInfNorm:
-        CHAMELEON_RUNTIME_options_ws_alloc( &options, A->mb, 0 );
+        RUNTIME_options_ws_alloc( &options, A->mb, 0 );
 
         chameleon_desc_init( &Wcol, CHAMELEON_MAT_ALLOC_TILE, ChamRealDouble, A->mb, 1, A->mb,
                              workmt * A->mb, worknt, 0, 0, workmt * A->mb, worknt, A->p, A->q,
@@ -434,7 +434,7 @@ void chameleon_pzlange_generic( cham_normtype_t norm, cham_uplo_t uplo, cham_dia
          *  ChamFrobeniusNorm
          */
     case ChamFrobeniusNorm:
-        CHAMELEON_RUNTIME_options_ws_alloc( &options, 1, 0 );
+        RUNTIME_options_ws_alloc( &options, 1, 0 );
 
         alpha = 1.;
         chameleon_desc_init( &Welt, CHAMELEON_MAT_ALLOC_GLOBAL, ChamRealDouble, 2, 1, 2,
@@ -447,7 +447,7 @@ void chameleon_pzlange_generic( cham_normtype_t norm, cham_uplo_t uplo, cham_dia
          */
     case ChamMaxNorm:
     default:
-        CHAMELEON_RUNTIME_options_ws_alloc( &options, 1, 0 );
+        RUNTIME_options_ws_alloc( &options, 1, 0 );
 
         chameleon_desc_init( &Welt, CHAMELEON_MAT_ALLOC_GLOBAL, ChamRealDouble, 1, 1, 1,
                              workmt, worknt, 0, 0, workmt, worknt, A->p, A->q,
@@ -461,7 +461,7 @@ void chameleon_pzlange_generic( cham_normtype_t norm, cham_uplo_t uplo, cham_dia
         /* Initialize Wcol tile */
         for(m = 0; m < Wcol.mt; m++) {
             for(n = 0; n < Wcol.nt; n++) {
-                CHAMELEON_INSERT_TASK_dlaset(
+                INSERT_TASK_dlaset(
                     &options,
                     ChamUpperLower, Wcol.mb, Wcol.nb,
                     alpha, beta,
@@ -471,7 +471,7 @@ void chameleon_pzlange_generic( cham_normtype_t norm, cham_uplo_t uplo, cham_dia
     }
     for(m = 0; m < Welt.mt; m++) {
         for(n = 0; n < Welt.nt; n++) {
-            CHAMELEON_INSERT_TASK_dlaset(
+            INSERT_TASK_dlaset(
                 &options,
                 ChamUpperLower, Welt.mb, Welt.nb,
                 alpha, beta,
@@ -505,7 +505,7 @@ void chameleon_pzlange_generic( cham_normtype_t norm, cham_uplo_t uplo, cham_dia
     for(m = 0; m < A->p; m++) {
         for(n = 0; n < A->q; n++) {
             if ( (m != 0) || (n != 0) ) {
-                CHAMELEON_INSERT_TASK_dlacpy(
+                INSERT_TASK_dlacpy(
                     &options,
                     ChamUpperLower, 1, 1, 1,
                     W( &Welt, 0, 0 ), W( &Welt, m, n ) );
@@ -518,7 +518,7 @@ void chameleon_pzlange_generic( cham_normtype_t norm, cham_uplo_t uplo, cham_dia
     }
     CHAMELEON_Desc_Flush( &Welt, sequence );
     CHAMELEON_Desc_Flush( A, sequence );
-    CHAMELEON_RUNTIME_sequence_wait( chamctxt, sequence );
+    RUNTIME_sequence_wait( chamctxt, sequence );
 
     *result = *((double *)Welt.get_blkaddr( &Welt, A->myrank / A->q, A->myrank % A->q ));
 
@@ -527,6 +527,6 @@ void chameleon_pzlange_generic( cham_normtype_t norm, cham_uplo_t uplo, cham_dia
     }
     chameleon_desc_destroy( &Welt );
 
-    CHAMELEON_RUNTIME_options_ws_free(&options);
-    CHAMELEON_RUNTIME_options_finalize(&options, chamctxt);
+    RUNTIME_options_ws_free(&options);
+    RUNTIME_options_finalize(&options, chamctxt);
 }
