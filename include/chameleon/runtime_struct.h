@@ -66,15 +66,17 @@ typedef enum runtime_id_e {
  *
  */
 typedef struct runtime_request_s {
-    int   status;   /**< Return status registered by the tasks for the request   */
-    int   flush;    /**< Enable/disable automatic data flush within this request */
-    void *schedopt; /**< Specific runtime data pointer to handle the request     */
+    int   status;     /**< Return status registered by the tasks for the request */
+    int   flush;      /**< Enable/disable automatic data flush within this request */
+    void *parent;     /**< Specify the parent in recursive submission mode       */
+    void *dependency; /**< Specify the parent in recursive submission mode       */
+    void *schedopt;   /**< Specific runtime data pointer to handle the request   */
 } RUNTIME_request_t;
 
 /**
  *  @brief Runtime request initializer
  */
-#define RUNTIME_REQUEST_INITIALIZER { .status = 0, .flush = CHAMELEON_TRUE, .schedopt = NULL }
+#define RUNTIME_REQUEST_INITIALIZER { .status = 0, .flush = 1, .parent = NULL, .dependency = NULL, .schedopt = NULL }
 
 /**
  * @brief RUNTIME sequence structure
