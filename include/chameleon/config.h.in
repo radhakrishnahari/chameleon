@@ -90,6 +90,11 @@
 /* chameleon runtime starpu */
 #cmakedefine CHAMELEON_ENABLE_PRUNING_STATS
 
+/* Parallel insertion of tasks within bubbles */
+#cmakedefine CHAMELEON_USE_BUBBLE
+#cmakedefine CHAMELEON_BUBBLE_PARALLEL_INSERT
+#cmakedefine CHAMELEON_BUBBLE_PROFILE
+
 #cmakedefine HAVE_FALLTHROUGH
 #if defined(HAVE_FALLTHROUGH)
 #define chameleon_attr_fallthrough __attribute__((fallthrough))

@@ -500,18 +500,9 @@ void* chameleon_getaddr_ccrb( const CHAM_desc_t *A, int m, int n )
  */
 void *chameleon_getaddr_cm( const CHAM_desc_t *A, int m, int n )
 {
-    size_t mm = m + A->i / A->mb;
-    size_t nn = n + A->j / A->nb;
     size_t eltsize = CHAMELEON_Element_Size(A->dtyp);
-    size_t offset = 0;
+    size_t offset  = chameleon_getaddr_cm_offset( A, m, n, A->llm );
 
-#if defined(CHAMELEON_USE_MPI)
-    assert( A->myrank == A->get_rankof( A, mm, nn ) );
-    mm = mm / chameleon_desc_datadist_get_iparam(A, 0);
-    nn = nn / chameleon_desc_datadist_get_iparam(A, 1);
-#endif
-
-    offset = (size_t)(A->llm * A->nb) * nn + (size_t)(A->mb) * mm;
     return (void*)((intptr_t)A->mat + (offset*eltsize) );
 }
 
