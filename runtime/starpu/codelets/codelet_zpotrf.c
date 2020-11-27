@@ -21,6 +21,7 @@
  * @author Florent Pruvost
  * @author Samuel Thibault
  * @author Terry Cojean
+ * @author Gwenole Lucas
  * @date 2024-10-18
  * @precisions normal z -> c d s
  *
@@ -54,6 +55,8 @@ cl_zpotrf_bubble_func( struct starpu_task *t, void *_args )
     bubble_args_t           *b_args  = (bubble_args_t *)_args;
     RUNTIME_request_t        request = RUNTIME_REQUEST_INITIALIZER;
 
+    /* We don't want to flush subdata in bubbles */
+    request.flush = 0;
     /* Register the task parent */
     request.parent = t;
 
@@ -123,14 +126,26 @@ void INSERT_TASK_zpotrf( const RUNTIME_option_t *options,
         clargs = malloc( sizeof( struct cl_zpotrf_args_s ) );
         clargs->uplo     = uplo;
         clargs->n        = n;
-        clargs->tileA    = A->get_blktile( A, Am, An );
         clargs->iinfo    = iinfo;
         clargs->sequence = options->sequence;
         clargs->request  = options->request;
+        clargs->tileA    = A->get_blktile( A, Am, An );
     }
 
     /* Callback fro profiling information */
     callback = options->profiling ? cl_zpotrf_callback : NULL;
+
+#if defined(CHAMELEON_USE_BUBBLE)
+    /* Check if this is a bubble */
+    is_bubble = ( clargs->tileA->format & CHAMELEON_TILE_DESC );
+    if ( is_bubble ) {
+        b_args = malloc( sizeof(bubble_args_t) + sizeof(struct cl_zpotrf_args_s) );
+        b_args->sequence = options->sequence;
+        b_args->parent   = request->parent;
+        memcpy( &(b_args->clargs), clargs, sizeof(struct cl_zpotrf_args_s) );
+        cl_name = "zpotrf_bubble";
+    }
+#endif
 
     /* Refine name */
     cl_name = chameleon_codelet_name( cl_name, 1,

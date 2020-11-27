@@ -35,8 +35,8 @@ struct cl_zsyrk_args_s {
     int                   n;
     int                   k;
     CHAMELEON_Complex64_t alpha;
-    CHAM_tile_t *tileA;
     CHAMELEON_Complex64_t beta;
+    CHAM_tile_t *tileA;
     CHAM_tile_t *tileC;
 };
 
@@ -58,6 +58,8 @@ cl_zsyrk_bubble_func( struct starpu_task *t, void *_args )
     bubble_args_t          *b_args  = (bubble_args_t *)_args;
     RUNTIME_request_t       request = RUNTIME_REQUEST_INITIALIZER;
 
+    /* We don't want to flush subdata in bubbles */
+    request.flush = 0;
     /* Register the task parent */
     request.parent = t;
 
@@ -183,8 +185,8 @@ void INSERT_TASK_zsyrk( const RUNTIME_option_t *options,
         clargs->n     = n;
         clargs->k     = k;
         clargs->alpha = alpha;
-        clargs->tileA = A->get_blktile( A, Am, An );
         clargs->beta  = beta;
+        clargs->tileA = A->get_blktile( A, Am, An );
         clargs->tileC = C->get_blktile( C, Cm, Cn );
     }
 
@@ -194,11 +196,7 @@ void INSERT_TASK_zsyrk( const RUNTIME_option_t *options,
     /* Reduce the C access if needed */
     accessC = ( beta == 0. ) ? STARPU_W : STARPU_RW;
 
-    /* Refine name */
-    cl_name = chameleon_codelet_name( cl_name, 2,
-                                      A->get_blktile( A, Am, An ),
-                                      C->get_blktile( C, Cm, Cn ) );
-
+#if defined(CHAMELEON_USE_BUBBLE)
     /* Check if this is a bubble */
     is_bubble = ( ( clargs->tileA->format & CHAMELEON_TILE_DESC ) &&
                   ( clargs->tileC->format & CHAMELEON_TILE_DESC ) );
@@ -209,6 +207,12 @@ void INSERT_TASK_zsyrk( const RUNTIME_option_t *options,
         memcpy( &(b_args->clargs), clargs, sizeof(struct cl_zsyrk_args_s) );
         cl_name = "zsyrk_bubble";
     }
+#endif
+
+    /* Refine name */
+    cl_name = chameleon_codelet_name( cl_name, 2,
+                                      A->get_blktile( A, Am, An ),
+                                      C->get_blktile( C, Cm, Cn ) );
 
     /* Insert the task */
     rt_starpu_insert_task(

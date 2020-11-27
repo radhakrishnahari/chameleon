@@ -30,10 +30,44 @@ struct cl_zgetrf_nopiv_args_s {
     int                 m;
     int                 n;
     int                 ib;
+    CHAM_tile_t        *tileA;
     int                 iinfo;
     RUNTIME_sequence_t *sequence;
     RUNTIME_request_t  *request;
 };
+
+#if defined(CHAMELEON_USE_BUBBLE)
+static inline int
+cl_zgetrf_nopiv_is_bubble( struct starpu_task *t, void *_args )
+{
+    struct cl_zgetrf_nopiv_args_s *clargs = (struct cl_zgetrf_nopiv_args_s *)(t->cl_arg);
+    (void)_args;
+
+    return( clargs->tileA->format & CHAMELEON_TILE_DESC );
+}
+
+static void
+cl_zgetrf_nopiv_bubble_func( struct starpu_task *t, void *_args )
+{
+    struct cl_zgetrf_nopiv_args_s *clargs  = (struct cl_zgetrf_nopiv_args_s *)(t->cl_arg);
+    bubble_args_t           *b_args  = (bubble_args_t *)_args;
+    RUNTIME_request_t        request = RUNTIME_REQUEST_INITIALIZER;
+
+    /* We don't want to flush subdata in bubbles */
+    request.flush = 0;
+    /* Register the task parent */
+    request.parent = t;
+
+#if defined(CHAMELEON_BUBBLE_PARALLEL_INSERT)
+    request.dependency = t;
+    starpu_task_end_dep_add( t, 1 );
+#endif
+
+    chameleon_pzgetrf_nopiv( clargs->tileA->mat, b_args->sequence, &request );
+
+    free( _args );
+}
+#endif /* defined(CHAMELEON_USE_BUBBLE) */
 
 /*
  * Codelet CPU
@@ -71,6 +105,9 @@ void INSERT_TASK_zgetrf_nopiv(const RUNTIME_option_t *options,
     struct cl_zgetrf_nopiv_args_s *clargs  = NULL;
     int                            exec    = 0;
     const char                    *cl_name = "zgetrf_nopiv";
+    int                    is_bubble;
+    char                  *cl_name = "zgetrf_nopiv";
+    bubble_args_t         *b_args = NULL;
 
     /* Handle cache */
     CHAMELEON_BEGIN_ACCESS_DECLARATION;
@@ -84,10 +121,23 @@ void INSERT_TASK_zgetrf_nopiv(const RUNTIME_option_t *options,
         clargs->m        = m;
         clargs->n        = n;
         clargs->ib       = ib;
+        clargs->tileA    = A->get_blktile( A, Am, An );
         clargs->iinfo    = iinfo;
         clargs->sequence = options->sequence;
         clargs->request  = options->request;
     }
+
+#if defined(CHAMELEON_USE_BUBBLE)
+    /* Check if this is a bubble */
+    is_bubble = ( clargs->tileA->format & CHAMELEON_TILE_DESC );
+    if ( is_bubble ) {
+        b_args = malloc( sizeof(bubble_args_t) + sizeof(struct cl_zgetrf_nopiv_args_s) );
+        b_args->sequence = options->sequence;
+        b_args->parent   = request->parent;
+        memcpy( &(b_args->clargs), clargs, sizeof(struct cl_zgetrf_nopiv_args_s) );
+        cl_name = "zgetrf_nopiv_bubble";
+    }
+#endif
 
     /* Callback for profiling information */
     callback = options->profiling ? cl_zgetrf_nopiv_callback : NULL;
@@ -107,6 +157,19 @@ void INSERT_TASK_zgetrf_nopiv(const RUNTIME_option_t *options,
         STARPU_CALLBACK,          callback,
         STARPU_EXECUTE_ON_WORKER, options->workerid,
         STARPU_NAME,              cl_name,
+
+        /* Bubble management */
+#if defined(CHAMELEON_USE_BUBBLE)
+        STARPU_BUBBLE_FUNC,             is_bubble_func,
+        STARPU_BUBBLE_FUNC_ARG,         b_args,
+        STARPU_BUBBLE_GEN_DAG_FUNC,     cl_zgetrf_nopiv_bubble_func,
+        STARPU_BUBBLE_GEN_DAG_FUNC_ARG, b_args,
+
+#if defined(CHAMELEON_BUBBLE_PROFILE)
+        STARPU_BUBBLE_PARENT, request->parent,
+#endif
+#endif
+
         0 );
 
     (void)nb;

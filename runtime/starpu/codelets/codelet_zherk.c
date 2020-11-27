@@ -57,6 +57,8 @@ cl_zherk_bubble_func( struct starpu_task *t, void *_args )
     bubble_args_t          *b_args  = (bubble_args_t *)_args;
     RUNTIME_request_t       request = RUNTIME_REQUEST_INITIALIZER;
 
+    /* We don't want to flush subdata in bubbles */
+    request.flush = 0;
     /* Register the task parent */
     request.parent = t;
 
@@ -182,8 +184,8 @@ void INSERT_TASK_zherk( const RUNTIME_option_t *options,
         clargs->n     = n;
         clargs->k     = k;
         clargs->alpha = alpha;
-        clargs->tileA = A->get_blktile( A, Am, An );
         clargs->beta  = beta;
+        clargs->tileA = A->get_blktile( A, Am, An );
         clargs->tileC = C->get_blktile( C, Cm, Cn );
     }
 
@@ -193,6 +195,7 @@ void INSERT_TASK_zherk( const RUNTIME_option_t *options,
     /* Reduce the C access if needed */
     accessC = ( beta == 0. ) ? STARPU_W : STARPU_RW;
 
+#if defined(CHAMELEON_USE_BUBBLE)
     /* Check if this is a bubble */
     is_bubble = ( ( clargs->tileA->format & CHAMELEON_TILE_DESC ) &&
                   ( clargs->tileC->format & CHAMELEON_TILE_DESC ) );
@@ -203,6 +206,7 @@ void INSERT_TASK_zherk( const RUNTIME_option_t *options,
         memcpy( &(b_args->clargs), clargs, sizeof(struct cl_zherk_args_s) );
         cl_name = "zherk_bubble";
     }
+#endif
 
     /* Refine name */
     cl_name = chameleon_codelet_name( cl_name, 2,

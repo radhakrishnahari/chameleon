@@ -53,6 +53,8 @@ cl_zlaset_bubble_func( struct starpu_task *t, void *_args )
     bubble_args_t           *b_args  = (bubble_args_t *)_args;
     RUNTIME_request_t        request = RUNTIME_REQUEST_INITIALIZER;
 
+    /* We don't want to flush subdata in bubbles */
+    request.flush = 0;
     /* Register the task parent */
     request.parent = t;
 
@@ -118,6 +120,7 @@ void INSERT_TASK_zlaset( const RUNTIME_option_t *options,
     /* Callback fro profiling information */
     callback = options->profiling ? cl_zlaset_callback : NULL;
 
+#if defined(CHAMELEON_USE_BUBBLE)
     /* Check if this is a bubble */
     is_bubble = ( clargs->tileA->format & CHAMELEON_TILE_DESC );
     if ( is_bubble ) {
@@ -127,6 +130,7 @@ void INSERT_TASK_zlaset( const RUNTIME_option_t *options,
         memcpy( &(b_args->clargs), clargs, sizeof(struct cl_zlaset_args_s) );
         cl_name = "zlaset_bubble";
     }
+#endif
 
     /* Insert the task */
     rt_starpu_insert_task(

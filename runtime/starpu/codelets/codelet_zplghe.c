@@ -32,11 +32,11 @@ struct cl_zplghe_args_s {
     double bump;
     int m;
     int n;
-    CHAM_tile_t *tileA;
     int bigM;
     int m0;
     int n0;
     unsigned long long int seed;
+    CHAM_tile_t *tileA;
 };
 
 #if defined(CHAMELEON_USE_BUBBLE)
@@ -56,6 +56,8 @@ cl_zplghe_bubble_func( struct starpu_task *t, void *_args )
     bubble_args_t           *b_args  = (bubble_args_t *)_args;
     RUNTIME_request_t        request = RUNTIME_REQUEST_INITIALIZER;
 
+    /* We don't want to flush subdata in bubbles */
+    request.flush = 0;
     /* Register the task parent */
     request.parent = t;
 
@@ -113,16 +115,17 @@ void INSERT_TASK_zplghe( const RUNTIME_option_t *options,
         clargs->bump  = bump;
         clargs->m     = m;
         clargs->n     = n;
-        clargs->tileA = A->get_blktile( A, Am, An );
         clargs->bigM  = bigM;
         clargs->m0    = m0;
         clargs->n0    = n0;
         clargs->seed  = seed;
+        clargs->tileA = A->get_blktile( A, Am, An );
     }
 
     /* Callback fro profiling information */
     callback = options->profiling ? cl_zplghe_callback : NULL;
 
+#if defined(CHAMELEON_USE_BUBBLE)
     /* Check if this is a bubble */
     is_bubble = ( clargs->tileA->format & CHAMELEON_TILE_DESC );
     if ( is_bubble ) {
@@ -132,6 +135,7 @@ void INSERT_TASK_zplghe( const RUNTIME_option_t *options,
         memcpy( &(b_args->clargs), clargs, sizeof(struct cl_zplghe_args_s) );
         cl_name = "zplghe_bubble";
     }
+#endif
 
     /* Insert the task */
     rt_starpu_insert_task(

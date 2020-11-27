@@ -52,6 +52,8 @@ cl_zgemm_bubble_func( struct starpu_task *t, void *_args )
     RUNTIME_request_t       request = RUNTIME_REQUEST_INITIALIZER;
     (void)_args;
 
+    /* We don't want to flush subdata in bubbles */
+    request.flush = 0;
     /* Register the task parent */
     request.parent = t;
 
@@ -298,15 +300,23 @@ void INSERT_TASK_zgemm( const RUNTIME_option_t *options,
         clargs->k      = k;
         clargs->alpha  = alpha;
         clargs->beta   = beta;
+        clargs->tileA  = A->get_blktile( A, Am, An );
+        clargs->tileB  = B->get_blktile( B, Bm, Bn );
+        clargs->tileC  = C->get_blktile( C, Cm, Cn );
     }
 
     /* Callback for profiling information */
     callback = options->profiling ? cl_zgemm_callback : NULL;
 
+#if defined(CHAMELEON_USE_BUBBLE)
+    accessC = STARPU_RW;
+#else
     /* Reduce the C access if needed */
     accessC = ( beta == (CHAMELEON_Complex64_t)0. ) ? STARPU_W :
         (STARPU_RW | ((beta == (CHAMELEON_Complex64_t)1.) ? STARPU_COMMUTE : 0));
+#endif
 
+#if defined(CHAMELEON_USE_BUBBLE)
     /* Check if this is a bubble */
     is_bubble = ( ( clargs->tileA->format & CHAMELEON_TILE_DESC ) &&
                   ( clargs->tileB->format & CHAMELEON_TILE_DESC ) &&
@@ -317,6 +327,7 @@ void INSERT_TASK_zgemm( const RUNTIME_option_t *options,
         b_args->parent   = request->parent;
         cl_name = "zgemm_bubble";
     }
+#endif
 
     /* Refine name */
     cl_name = chameleon_codelet_name( cl_name, 3,

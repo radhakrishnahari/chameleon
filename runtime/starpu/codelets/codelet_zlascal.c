@@ -29,6 +29,7 @@ struct cl_zlascal_args_s {
     int                   m;
     int                   n;
     CHAMELEON_Complex64_t alpha;
+    CHAM_tile_t *tileA;
 };
 
 #if defined(CHAMELEON_USE_BUBBLE)
@@ -48,6 +49,8 @@ cl_zlascal_bubble_func( struct starpu_task *t, void *_args )
     bubble_args_t            *b_args = (bubble_args_t *)_args;
     RUNTIME_request_t        request = RUNTIME_REQUEST_INITIALIZER;
 
+    /* We don't want to flush subdata in bubbles */
+    request.flush = 0;
     /* Register the task parent */
     request.parent = t;
 

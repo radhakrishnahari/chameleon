@@ -20,6 +20,7 @@
  * @author Lucas Barros de Assis
  * @author Florent Pruvost
  * @author Samuel Thibault
+ * @author Gwenole Lucas
  * @date 2024-10-18
  * @precisions normal z -> c d s
  *
@@ -31,10 +32,10 @@ struct cl_ztrtri_args_s {
     cham_uplo_t uplo;
     cham_diag_t diag;
     int n;
-    CHAM_tile_t *tileA;
     int iinfo;
     RUNTIME_sequence_t *sequence;
     RUNTIME_request_t *request;
+    CHAM_tile_t *tileA;
 };
 
 #if defined(CHAMELEON_USE_BUBBLE)
@@ -54,6 +55,8 @@ cl_ztrtri_bubble_func( struct starpu_task *t, void *_args )
     bubble_args_t           *b_args  = (bubble_args_t *)_args;
     RUNTIME_request_t        request = RUNTIME_REQUEST_INITIALIZER;
 
+    /* We don't want to flush subdata in bubbles */
+    request.flush = 0;
     /* Register the task parent */
     request.parent = t;
 
@@ -116,15 +119,16 @@ void INSERT_TASK_ztrtri( const RUNTIME_option_t *options,
         clargs->uplo     = uplo;
         clargs->diag     = diag;
         clargs->n        = n;
-        clargs->tileA    = A->get_blktile( A, Am, An );
         clargs->iinfo    = iinfo;
         clargs->sequence = options->sequence;
         clargs->request  = options->request;
+        clargs->tileA    = A->get_blktile( A, Am, An );
     }
 
     /* Callback fro profiling information */
     callback = options->profiling ? cl_ztrtri_callback : NULL;
 
+#if defined(CHAMELEON_USE_BUBBLE)
     /* Check if this is a bubble */
     is_bubble = ( clargs->tileA->format & CHAMELEON_TILE_DESC );
     if ( is_bubble ) {
@@ -134,6 +138,7 @@ void INSERT_TASK_ztrtri( const RUNTIME_option_t *options,
         memcpy( &(b_args->clargs), clargs, sizeof(struct cl_ztrtri_args_s) );
         cl_name = "ztrtri_bubble";
     }
+#endif
 
     /* Refine name */
     cl_name = chameleon_codelet_name( cl_name, 1, A->get_blktile( A, Am, An ) );

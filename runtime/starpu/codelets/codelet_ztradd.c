@@ -16,6 +16,7 @@
  * @author Lucas Barros de Assis
  * @author Florent Pruvost
  * @author Samuel Thibault
+ * @author Gwenole Lucas
  * @date 2024-10-18
  * @precisions normal z -> c d s
  *
@@ -52,6 +53,8 @@ cl_ztradd_bubble_func( struct starpu_task *t, void *_args )
     bubble_args_t           *b_args  = (bubble_args_t *)_args;
     RUNTIME_request_t        request = RUNTIME_REQUEST_INITIALIZER;
 
+    /* We don't want to flush subdata in bubbles */
+    request.flush = 0;
     /* Register the task parent */
     request.parent = t;
 
@@ -125,8 +128,8 @@ void INSERT_TASK_ztradd( const RUNTIME_option_t *options,
         clargs->m     = m;
         clargs->n     = n;
         clargs->alpha = alpha;
-        clargs->tileA = A->get_blktile( A, Am, An );
         clargs->beta  = beta;
+        clargs->tileA = A->get_blktile( A, Am, An );
         clargs->tileB = B->get_blktile( B, Bm, Bn );
     }
 
@@ -136,6 +139,7 @@ void INSERT_TASK_ztradd( const RUNTIME_option_t *options,
     /* Reduce the B access if needed */
     accessB = ( beta == 0. ) ? STARPU_W : STARPU_RW;
 
+#if defined(CHAMELEON_USE_BUBBLE)
     /* Check if this is a bubble */
     is_bubble = ( ( clargs->tileA->format & CHAMELEON_TILE_DESC ) &&
                   ( clargs->tileB->format & CHAMELEON_TILE_DESC ) );
@@ -146,6 +150,7 @@ void INSERT_TASK_ztradd( const RUNTIME_option_t *options,
         memcpy( &(b_args->clargs), clargs, sizeof(struct cl_ztradd_args_s) );
         cl_name = "ztradd_bubble";
     }
+#endif
 
     /* Insert the task */
     rt_starpu_insert_task(

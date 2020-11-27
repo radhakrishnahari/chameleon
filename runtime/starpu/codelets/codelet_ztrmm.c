@@ -19,6 +19,7 @@
  * @author Cedric Castagnede
  * @author Lucas Barros de Assis
  * @author Florent Pruvost
+ * @author Gwenole Lucas
  * @author Loris Lucido
  * @date 2024-10-18
  * @precisions normal z -> c d s
@@ -57,6 +58,8 @@ cl_ztrmm_bubble_func( struct starpu_task *t, void *_args )
     bubble_args_t          *b_args  = (bubble_args_t *)_args;
     RUNTIME_request_t       request = RUNTIME_REQUEST_INITIALIZER;
 
+    /* We don't want to flush subdata in bubbles */
+    request.flush = 0;
     /* Register the task parent */
     request.parent = t;
 
@@ -181,6 +184,7 @@ void INSERT_TASK_ztrmm( const RUNTIME_option_t *options,
     /* Callback fro profiling information */
     callback = options->profiling ? cl_ztrmm_callback : NULL;
 
+#if defined(CHAMELEON_USE_BUBBLE)
     /* Check if this is a bubble */
     is_bubble = ( ( clargs->tileA->format & CHAMELEON_TILE_DESC ) &&
                   ( clargs->tileB->format & CHAMELEON_TILE_DESC ) );
@@ -191,6 +195,7 @@ void INSERT_TASK_ztrmm( const RUNTIME_option_t *options,
         memcpy( &(b_args->clargs), clargs, sizeof(struct cl_ztrmm_args_s) );
         cl_name = "ztrmm_bubble";
     }
+#endif
 
     /* Refine name */
     cl_name = chameleon_codelet_name( cl_name, 2,
