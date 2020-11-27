@@ -160,3 +160,15 @@ CHAMELEON_Recursive_Desc_Create( CHAM_desc_t **descptr, void *mat, cham_flttype_
     *descptr = desc;
     return status;
 }
+
+void
+CHAMELEON_Recursive_Desc_Partition_Submit( CHAM_desc_t *desc )
+{
+    RUNTIME_recdesc_partition_submit( desc );
+}
+
+void
+CHAMELEON_Recursive_Desc_Unpartition_Submit( CHAM_desc_t *desc )
+{
+    RUNTIME_recdesc_unpartition_submit( desc );
+}

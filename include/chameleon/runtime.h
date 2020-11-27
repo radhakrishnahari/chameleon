@@ -477,6 +477,18 @@ RUNTIME_desc_flush( const CHAM_desc_t     *desc,
                     const RUNTIME_sequence_t *sequence );
 
 /**
+ *
+ */
+void
+RUNTIME_recdesc_partition_submit( CHAM_desc_t *desc );
+
+/**
+ *
+ */
+void
+RUNTIME_recdesc_unpartition_submit( CHAM_desc_t *desc );
+
+/**
  * @brief Flush all data submitted to the runtime systems from the distributed
  * cache, and/or mark for eviction from the GPU memory.
  *
