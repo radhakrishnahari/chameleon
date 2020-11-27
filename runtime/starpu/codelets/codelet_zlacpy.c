@@ -21,6 +21,7 @@
  * @author Florent Pruvost
  * @author Samuel Thibault
  * @author Alycia Lisito
+ * @author Gwenole Lucas
  * @date 2024-10-18
  * @precisions normal z -> c d s
  *
@@ -72,7 +73,42 @@ struct cl_zlacpy_args_s {
     int displB;
     int lda;
     int ldb;
+    CHAM_tile_t *tileA;
+    CHAM_tile_t *tileB;
 };
+
+#if defined(CHAMELEON_USE_BUBBLE)
+static inline int
+cl_zlacpy_is_bubble( struct starpu_task *t, void *_args )
+{
+    struct cl_zlacpy_args_s *clargs = (struct cl_zlacpy_args_s *)(t->cl_arg);
+    (void)_args;
+
+    return( ( clargs->tileA->format & CHAMELEON_TILE_DESC ) &&
+            ( clargs->tileB->format & CHAMELEON_TILE_DESC ) );
+}
+
+static void
+cl_zlacpy_bubble_func( struct starpu_task *t, void *_args )
+{
+    struct cl_zlacpy_args_s *clargs  = (struct cl_zlacpy_args_s *)(t->cl_arg);
+    bubble_args_t           *b_args  = (bubble_args_t *)_args;
+    RUNTIME_request_t        request = RUNTIME_REQUEST_INITIALIZER;
+
+    /* Register the task parent */
+    request.parent = t;
+
+#if defined(CHAMELEON_BUBBLE_PARALLEL_INSERT)
+    request.dependency = t;
+    starpu_task_end_dep_add( t, 1 );
+#endif
+
+    chameleon_pzlacpy( clargs->uplo, clargs->tileA->mat, clargs->tileB->mat,
+                       b_args->sequence, &request );
+
+    free( _args );
+}
+#endif /* defined(CHAMELEON_USE_BUBBLE) */
 
 #if !defined(CHAMELEON_SIMULATION)
 static void cl_zlacpy_starpu_func(void *descr[], void *cl_arg)
@@ -184,6 +220,7 @@ void INSERT_TASK_zlacpyx( const RUNTIME_option_t *options,
                           int displA, const CHAM_desc_t *A, int Am, int An, int lda,
                           int displB, const CHAM_desc_t *B, int Bm, int Bn, int ldb )
 {
+    int          is_bubble;
     int          exec    = 0;
     char        *cl_name = "zlacpyx";
     CHAM_tile_t *tileA   = A->get_blktile( A, Am, An );
@@ -213,43 +250,73 @@ void INSERT_TASK_zlacpyx( const RUNTIME_option_t *options,
                                           RTBLKADDR(A, ChamComplexDouble, Am, An),
                                           RTBLKADDR(B, ChamComplexDouble, Bm, Bn) );
 #endif
+        return;
     }
-    else
 #endif
-    {
-        struct cl_zlacpy_args_s *clargs = NULL;
-        void (*callback)(void*);
 
-        if ( exec ) {
-            clargs = malloc( sizeof( struct cl_zlacpy_args_s ) );
-            clargs->uplo   = uplo;
-            clargs->m      = m;
-            clargs->n      = n;
-            clargs->displA = displA;
-            clargs->displB = displB;
-            clargs->lda    = lda;
-            clargs->ldb    = ldb;
-        }
+    struct cl_zlacpy_args_s *clargs = NULL;
+    void (*callback)(void*);
 
-        /* Callback fro profiling information */
-        callback = options->profiling ? cl_zlacpyx_callback : NULL;
-
-        /* Insert the task */
-        rt_starpu_insert_task(
-            &cl_zlacpyx,
-            /* Task codelet arguments */
-            STARPU_CL_ARGS, clargs, sizeof(struct cl_zlacpy_args_s),
-            STARPU_R,      RTBLKADDR(A, ChamComplexDouble, Am, An),
-            STARPU_W,      RTBLKADDR(B, ChamComplexDouble, Bm, Bn),
-
-            /* Common task arguments */
-            STARPU_PRIORITY,          options->priority,
-            STARPU_CALLBACK,          callback,
-            STARPU_EXECUTE_ON_WORKER, options->workerid,
-            STARPU_NAME,              cl_name,
-            0 );
+    if ( exec ) {
+        clargs = malloc( sizeof( struct cl_zlacpy_args_s ) );
+        clargs->uplo   = uplo;
+        clargs->m      = m;
+        clargs->n      = n;
+        clargs->displA = displA;
+        clargs->displB = displB;
+        clargs->tileA  = tileA;
+        clargs->tileB  = tileB;
+        clargs->lda    = lda;
+        clargs->ldb    = ldb;
     }
 
+    /* Callback fro profiling information */
+    callback = options->profiling ? cl_zlacpyx_callback : NULL;
+
+    /* Check if this is a bubble */
+    is_bubble = ( ( clargs->tileA->format & CHAMELEON_TILE_DESC ) &&
+                  ( clargs->tileB->format & CHAMELEON_TILE_DESC ) );
+    if ( is_bubble ) {
+        b_args = malloc( sizeof(bubble_args_t) + sizeof(struct cl_zlacpy_args_s) );
+        b_args->sequence = options->sequence;
+        b_args->parent   = request->parent;
+        memcpy( &(b_args->clargs), clargs, sizeof(struct cl_zlacpy_args_s) );
+        cl_name = "zlacpy_bubble";
+    }
+
+    /* Insert the task */
+    rt_starpu_insert_task(
+        &cl_zlacpyx,
+        /* Task codelet arguments */
+        STARPU_CL_ARGS, clargs, sizeof(struct cl_zlacpy_args_s),
+        STARPU_R,      RTBLKADDR(A, ChamComplexDouble, Am, An),
+        STARPU_W,      RTBLKADDR(B, ChamComplexDouble, Bm, Bn),
+
+        /* Common task arguments */
+        STARPU_PRIORITY,          options->priority,
+        STARPU_CALLBACK,          callback,
+        STARPU_EXECUTE_ON_WORKER, options->workerid,
+        STARPU_NAME,              cl_name,
+
+        /* Bubble management */
+#if defined(CHAMELEON_USE_BUBBLE)
+        STARPU_BUBBLE_FUNC,             is_bubble_func,
+        STARPU_BUBBLE_FUNC_ARG,         b_args,
+        STARPU_BUBBLE_GEN_DAG_FUNC,     cl_zlacpy_bubble_func,
+        STARPU_BUBBLE_GEN_DAG_FUNC_ARG, b_args,
+
+#if defined(CHAMELEON_BUBBLE_PROFILE)
+        STARPU_BUBBLE_PARENT, request->parent,
+#endif
+
+#if defined(CHAMELEON_BUBBLE_PARALLEL_INSERT)
+        STARPU_CALLBACK_WITH_ARG_NFREE, callback_end_dep_release, request->dependency,
+#endif
+#endif
+        0 );
+
+    /* Dependency is used only by the first submitted task and should not be reused */
+    request->dependency = NULL;
     (void)tileA;
     (void)tileB;
 }
@@ -264,7 +331,7 @@ void INSERT_TASK_zlacpy( const RUNTIME_option_t *options,
     CHAM_tile_t *tileA   = A->get_blktile( A, Am, An );
     CHAM_tile_t *tileB   = B->get_blktile( B, Bm, Bn );
 
-        /* Handle cache */
+    /* Handle cache */
     CHAMELEON_BEGIN_ACCESS_DECLARATION;
     CHAMELEON_ACCESS_R(A, Am, An);
     CHAMELEON_ACCESS_W(B, Bm, Bn);
@@ -287,39 +354,38 @@ void INSERT_TASK_zlacpy( const RUNTIME_option_t *options,
                                           RTBLKADDR(A, ChamComplexDouble, Am, An),
                                           RTBLKADDR(B, ChamComplexDouble, Bm, Bn) );
 #endif
+        return;
     }
-    else
 #endif
-    {
-        struct cl_zlacpy_args_s *clargs = NULL;
-        void (*callback)(void*);
 
-        if ( exec ) {
-            clargs = malloc( sizeof( struct cl_zlacpy_args_s ) );
-            clargs->uplo   = uplo;
-            clargs->m      = m;
-            clargs->n      = n;
-            clargs->displA = 0;
-            clargs->displB = 0;
-            clargs->lda    = tileA->ld;
-            clargs->ldb    = tileB->ld;
-        }
+    struct cl_zlacpy_args_s *clargs = NULL;
+    void (*callback)(void*);
 
-        /* Callback for profiling information */
-        callback = options->profiling ? cl_zlacpy_callback : NULL;
-
-        rt_starpu_insert_task(
-            &cl_zlacpy,
-            /* Task codelet arguments */
-            STARPU_CL_ARGS, clargs, sizeof(struct cl_zlacpy_args_s),
-            STARPU_R,      RTBLKADDR(A, ChamComplexDouble, Am, An),
-            STARPU_W,      RTBLKADDR(B, ChamComplexDouble, Bm, Bn),
-
-            /* Common task arguments */
-            STARPU_PRIORITY,          options->priority,
-            STARPU_CALLBACK,          callback,
-            STARPU_EXECUTE_ON_WORKER, options->workerid,
-            STARPU_NAME,              cl_name,
-            0 );
+    if ( exec ) {
+        clargs = malloc( sizeof( struct cl_zlacpy_args_s ) );
+        clargs->uplo   = uplo;
+        clargs->m      = m;
+        clargs->n      = n;
+        clargs->displA = 0;
+        clargs->displB = 0;
+        clargs->lda    = tileA->ld;
+        clargs->ldb    = tileB->ld;
     }
+
+    /* Callback for profiling information */
+    callback = options->profiling ? cl_zlacpy_callback : NULL;
+
+    rt_starpu_insert_task(
+        &cl_zlacpy,
+        /* Task codelet arguments */
+        STARPU_CL_ARGS, clargs, sizeof(struct cl_zlacpy_args_s),
+        STARPU_R,      RTBLKADDR(A, ChamComplexDouble, Am, An),
+        STARPU_W,      RTBLKADDR(B, ChamComplexDouble, Bm, Bn),
+
+        /* Common task arguments */
+        STARPU_PRIORITY,          options->priority,
+        STARPU_CALLBACK,          callback,
+        STARPU_EXECUTE_ON_WORKER, options->workerid,
+        STARPU_NAME,              cl_name,
+        0 );
 }

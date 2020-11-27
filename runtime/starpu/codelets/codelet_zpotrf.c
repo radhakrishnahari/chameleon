@@ -31,10 +31,43 @@
 struct cl_zpotrf_args_s {
     cham_uplo_t         uplo;
     int                 n;
+    CHAM_tile_t        *tileA;
     int                 iinfo;
     RUNTIME_sequence_t *sequence;
     RUNTIME_request_t  *request;
 };
+
+#if defined(CHAMELEON_USE_BUBBLE)
+static inline int
+cl_zpotrf_is_bubble( struct starpu_task *t, void *_args )
+{
+    struct cl_zpotrf_args_s *clargs = (struct cl_zpotrf_args_s *)(t->cl_arg);
+    (void)_args;
+
+    return( clargs->tileA->format & CHAMELEON_TILE_DESC );
+}
+
+static void
+cl_zpotrf_bubble_func( struct starpu_task *t, void *_args )
+{
+    struct cl_zpotrf_args_s *clargs  = (struct cl_zpotrf_args_s *)(t->cl_arg);
+    bubble_args_t           *b_args  = (bubble_args_t *)_args;
+    RUNTIME_request_t        request = RUNTIME_REQUEST_INITIALIZER;
+
+    /* Register the task parent */
+    request.parent = t;
+
+#if defined(CHAMELEON_BUBBLE_PARALLEL_INSERT)
+    request.dependency = t;
+    starpu_task_end_dep_add( t, 1 );
+#endif
+
+    chameleon_pzpotrf( clargs->uplo, clargs->tileA->mat,
+                       b_args->sequence, &request );
+
+    free( _args );
+}
+#endif /* defined(CHAMELEON_USE_BUBBLE) */
 
 #if !defined(CHAMELEON_SIMULATION)
 static void
@@ -76,6 +109,9 @@ void INSERT_TASK_zpotrf( const RUNTIME_option_t *options,
     struct cl_zpotrf_args_s *clargs  = NULL;
     int                      exec    = 0;
     const char              *cl_name = "zpotrf";
+    RUNTIME_request_t       *request = options->request;
+    bubble_args_t           *b_args  = NULL;
+    int                      is_bubble;
 
     /* Handle cache */
     CHAMELEON_BEGIN_ACCESS_DECLARATION;
@@ -87,6 +123,7 @@ void INSERT_TASK_zpotrf( const RUNTIME_option_t *options,
         clargs = malloc( sizeof( struct cl_zpotrf_args_s ) );
         clargs->uplo     = uplo;
         clargs->n        = n;
+        clargs->tileA    = A->get_blktile( A, Am, An );
         clargs->iinfo    = iinfo;
         clargs->sequence = options->sequence;
         clargs->request  = options->request;
@@ -112,8 +149,26 @@ void INSERT_TASK_zpotrf( const RUNTIME_option_t *options,
         STARPU_EXECUTE_ON_WORKER, options->workerid,
         STARPU_POSSIBLY_PARALLEL, options->parallel,
         STARPU_NAME,              cl_name,
+
+        /* Bubble management */
+#if defined(CHAMELEON_USE_BUBBLE)
+        STARPU_BUBBLE_FUNC,             is_bubble_func,
+        STARPU_BUBBLE_FUNC_ARG,         b_args,
+        STARPU_BUBBLE_GEN_DAG_FUNC,     cl_zpotrf_bubble_func,
+        STARPU_BUBBLE_GEN_DAG_FUNC_ARG, b_args,
+
+#if defined(CHAMELEON_BUBBLE_PROFILE)
+        STARPU_BUBBLE_PARENT, request->parent,
+#endif
+
+#if defined(CHAMELEON_BUBBLE_PARALLEL_INSERT)
+        STARPU_CALLBACK_WITH_ARG_NFREE, callback_end_dep_release, request->dependency,
+#endif
+#endif
         0 );
 
+    /* Dependency is used only by the first submitted task and should not be reused */
+    request->dependency = NULL;
     (void)nb;
 }
 
