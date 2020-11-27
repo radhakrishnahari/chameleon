@@ -293,7 +293,14 @@ cmake_dependent_option( CHAMELEON_RECURSIVE_TASKS_PARALLEL_INSERT
   "Enable parallel recursive tasks insertion" ON
   "CHAMELEON_USE_RECURSIVE_TASKS;NOT CHAMELEON_RUNTIME_SYNC" OFF )
 
+cmake_dependent_option( CHAMELEON_RECURSIVE_TASKS_PROFILE
+  "Insert additional information to generate correct DAG information with recursive tasks" OFF
+  "CHAMELEON_RECURSIVE_TASKS" OFF )
+
 if ( CHAMELEON_USE_RECURSIVE_TASKS )
+  if ( CHAMELEON_USE_MPI )
+    message( FATAL_ERROR "For now, recursive tasks are incompatibles with MPI. Please disable MPI or the recursive tasks\n   -DCHAMELEON_USE_MPI=OFF or -DCHAMELEON_USE_RECURSIVE_TASKS=OFF" )
+  endif()
   if ( BUILD_SHARED_LIBS )
     message( WARNING "Shared libraries are not available when compiling with recursive tasks (Force static libraries)" )
   endif()

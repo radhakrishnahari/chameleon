@@ -410,6 +410,10 @@ target_include_directories(chameleon_starpu PRIVATE
   $<BUILD_INTERFACE:${CHAMELEON_SOURCE_DIR}/coreblas/include>
   $<BUILD_INTERFACE:${CHAMELEON_BINARY_DIR}/coreblas/include>)
 
+if (CHAMELEON_USE_BUBBLE)
+  target_link_libraries(chameleon_starpu PRIVATE chameleon)
+endif()
+
 if (CHAMELEON_SIMULATION)
   # need PUBLIC here because simulation mode with starpu requires to replace the
   # main function by a starpu main one
