@@ -161,6 +161,52 @@ CHAMELEON_Recursive_Desc_Create( CHAM_desc_t **descptr, void *mat, cham_flttype_
     return status;
 }
 
+int
+CHAMELEON_Recursive_Desc_Create_Full( CHAM_desc_t **descptr, void *mat, cham_flttype_t dtyp,
+                                      int *mb, int *nb, int lm, int ln, int m, int n, int p, int q,
+                                      blkaddr_fct_t get_blkaddr, blkldd_fct_t get_blkldd,
+                                      blkrankof_fct_t get_rankof, void* get_rankof_arg,
+                                      const char *name )
+{
+    /*
+     * The first layer must be allocated, otherwise we will give unitialized
+     * pointers to the lower layers
+     */
+    assert( (mat != CHAMELEON_MAT_ALLOC_TILE) &&
+            (mat != CHAMELEON_MAT_OOC) );
+
+    cham_rec_t rec = ChamRecFull;
+    int rarg = 0;
+
+    return chameleon_recdesc_create( name, descptr, mat, dtyp, rec, rarg,
+                                     mb, nb, lm, ln, m, n, p, q, 0, 0,
+                                     get_blkaddr, get_blkldd,
+                                     get_rankof, get_rankof_arg );
+}
+
+int
+CHAMELEON_Recursive_Desc_Create_Diag( CHAM_desc_t **descptr, void *mat, cham_flttype_t dtyp,
+                                      int *mb, int *nb, int lm, int ln, int m, int n, int p, int q,
+                                      blkaddr_fct_t get_blkaddr, blkldd_fct_t get_blkldd,
+                                      blkrankof_fct_t get_rankof, void* get_rankof_arg,
+                                      const char *name )
+{
+    /*
+     * The first layer must be allocated, otherwise we will give unitialized
+     * pointers to the lower layers
+     */
+    assert( (mat != CHAMELEON_MAT_ALLOC_TILE) &&
+            (mat != CHAMELEON_MAT_OOC) );
+
+    cham_rec_t rec = ChamRecDiag;
+    int rarg = 1;
+
+    return chameleon_recdesc_create( name, descptr, mat, dtyp, rec, rarg,
+                                     mb, nb, lm, ln, m, n, p, q, 0, 0,
+                                     get_blkaddr, get_blkldd,
+                                     get_rankof, get_rankof_arg );
+}
+
 void
 CHAMELEON_Recursive_Desc_Partition_Submit( CHAM_desc_t *desc )
 {

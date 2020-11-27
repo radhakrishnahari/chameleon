@@ -34,6 +34,7 @@
 
 /* Chameleon interfaces for StarPU */
 #include "cham_tile_interface.h"
+#include "cham_tile_filters.h"
 #include "cppi_interface.h"
 #include "cpui_interface.h"
 
@@ -52,6 +53,53 @@ typedef struct CHAM_context_starpu_s
 typedef struct RUNTIME_request_starpu_s {
     int workerid; // to force task execution on a specific workerid
 } RUNTIME_request_starpu_t;
+
+/*
+ * Bubble definitions
+ *
+ * All structures/functions are always defined even if they are not used.
+ */
+
+struct bubble_args_s;
+typedef struct bubble_args_s bubble_args_t;
+
+struct bubble_args_s {
+    /**
+     * The sequence defines the context in which the tasks are submitted, it
+     * will be destroyed only after a synchronization that guaranties the
+     * execution of all tasks. Thus, we can hold here a pointer to sumbit bubble
+     * tasks within the same context.
+     */
+    RUNTIME_sequence_t     *sequence;
+    /**
+     * We need to know the parent of all the tasks that will be submited within
+     * this bubble.
+     */
+    struct starpu_task     *parent;
+    /**
+     * Each codelet has a different amount of arguments, thus we store at the end
+     * of the structure a variadic size field to store a copy of these argument
+     * that may be destroyed after the submission.
+     */
+    char                    clargs[1];
+};
+
+static inline
+int is_bubble_func(struct starpu_task *t, void *arg)
+{
+    (void)t;
+    return (arg != NULL);
+}
+
+static inline
+void callback_end_dep_release(void *arg)
+{
+    if (arg)
+    {
+        struct starpu_task *t = (struct starpu_task*)arg;
+        starpu_task_end_dep_release(t);
+    }
+}
 
 /**
  * @brief Convert the Chameleon access enum to the StarPU one

@@ -1,16 +1,12 @@
 #include "chameleon_starpu.h"
 
-void starpu_CHAM_tile_filter_square_block(void *father_interface, void *child_interface,
-                                          STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
-                                          unsigned id, unsigned nchunks)
+void starpu_CHAM_tile_filter_square_block( void *father_interface, void *child_interface,
+                                           struct starpu_data_filter *f,
+                                           unsigned id, unsigned nchunks)
 {
     starpu_cham_tile_interface_t *father = (starpu_cham_tile_interface_t *)father_interface;
     starpu_cham_tile_interface_t *child = (starpu_cham_tile_interface_t *)child_interface;
     CHAM_tile_t *father_tile = &(father->tile);
-
-    assert( father_tile->format & CHAMELEON_TILE_DESC );
-
-    //CHAM_desc_t *desc = (CHAM_desc_t*)(father_tile->mat);
     CHAM_desc_t *desc = (CHAM_desc_t*)(f->filter_arg_ptr);
 
     size_t elemsize = CHAMELEON_Element_Size(father->flttype);
@@ -22,41 +18,37 @@ void starpu_CHAM_tile_filter_square_block(void *father_interface, void *child_in
     int    child_m, child_n;
 
     child->id         = father->id;
-    child->dev_handle = 0;
     child->flttype    = father->flttype;
+    child->dev_handle = 0;
     child->allocsize  = -1;
     child->tilesize   = 0;
 
+    /*
+     * Copy the tile information from the desc that is always defined on the CPU
+     * side.  Note that the father_tile may not be a CHAMELEON_TILE_DESC after
+     * copy on a remote device.
+     */
     child->tile = desc->tiles[id];
+
     child_m = child->tile.m;
     child_n = child->tile.n;
     assert( child_m <= desc->mb );
     assert( child_n <= desc->nb );
-
-    /* } */
-    /* else */
-    /* { */
-    /*     /\* Should be col major for chameleon (row major rn) *\/ */
-    /*     /\* Utiliser le champ de starpu_data_filter, filter_arg pour avoir le côté du bloc (nchunks doit être ajusté en initialisant le filtre) *\/ */
-    /*     unsigned nchunks_col_line = (unsigned)(sqrt((double)nchunks)); */
-    /*     starpu_filter_nparts_compute_chunk_size_and_offset(n, nchunks_col_line, elemsize, id%nchunks_col_line, father_tile.ld, &child_n, &offset); */
-    /*     size_t mem_offset = offset; */
-    /*     starpu_filter_nparts_compute_chunk_size_and_offset(m, nchunks_col_line, elemsize, id/nchunks_col_line, 1, &child_m, &offset); */
-    /*     offset += mem_offset; */
-
-    /*     child->tile.m = child_m; */
-    /*     child->tile.n = child_n; */
-    /* } */
     child->tilesize  = child_m * child_n * elemsize;
     child->allocsize = child_m * child_n * elemsize;
 
-    /* STARPU_ASSERT_MSG(matrix_father->allocsize == matrix_father->m * matrix_father->n * matrix_father->elemsize, */
-    /*                   "partitioning matrix with non-trivial allocsize not supported yet, patch welcome"); */
-
     if (father->dev_handle)
     {
-        //child->tile.mat   = father_tile.mat + offset;
-        //child->tile.ld    = father_tile.ld;
-        child->dev_handle = (intptr_t)(child->tile.mat);
+        child->dev_handle = father->dev_handle;
+    }
+
+    if ( father_tile->format & CHAMELEON_TILE_DESC ) {
+        assert( CHAM_tile_get_ptr( &(child->tile) ) == desc->get_blkaddr( desc, id % desc->lmt, id / desc->lmt ) );
+    }
+    else {
+        assert( father_tile->format & CHAMELEON_TILE_FULLRANK );
+        size_t offset = chameleon_getaddr_cm_offset( desc, id % desc->lmt, id / desc->lmt, father_tile->ld );
+        child->tile.mat = ((char *)(father_tile->mat)) + offset * elemsize;
+        child->tile.ld  = father_tile->ld;
     }
 }

@@ -26,15 +26,15 @@ runtime_recdesc_partition_submit_rec( CHAM_desc_t *desc )
     int m, n;
     for ( m=0; m<desc->mt; m++ ) {
         for ( n=0; n<desc->nt; n++ ) {
-            CHAM_tile_t *tile = desc->get_blktile( desc, m, n );
-            starpu_data_handle_t  handle = (starpu_data_handle_t)RUNTIME_data_getaddr(desc, m, n);
+            CHAM_tile_t         *tile   = desc->get_blktile( desc, m, n );
+            starpu_data_handle_t handle = (starpu_data_handle_t)RUNTIME_data_getaddr(desc, m, n);
 
             if ( !(tile->format & CHAMELEON_TILE_DESC) ) {
                 continue;
             }
 
             CHAM_desc_t *tiledesc = (CHAM_desc_t*)(tile->mat);
-            int nparts = tiledesc->nt * tiledesc->mt;
+            int          nparts   = tiledesc->mt * tiledesc->nt;
             struct starpu_data_filter f =
                 {
                     .filter_func = starpu_CHAM_tile_filter_square_block,

@@ -156,6 +156,9 @@ struct cl_zgemm_args_s {
     int k;
     CHAMELEON_Complex64_t alpha;
     CHAMELEON_Complex64_t beta;
+    CHAM_tile_t *tileA;
+    CHAM_tile_t *tileB;
+    CHAM_tile_t *tileC;
 };
 
 #endif /* _runtime_codelet_z_h_ */

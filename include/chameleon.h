@@ -216,6 +216,12 @@ int  CHAMELEON_Recursive_Desc_Create( CHAM_desc_t **descptr, void *mat,
                                       blkaddr_fct_t get_blkaddr, blkldd_fct_t get_blkldd,
                                       blkrankof_fct_t get_rankof, void* get_rankof_arg,
                                       const char *name );
+/* Added for testing */
+int  CHAMELEON_Recursive_Desc_Create_Full( CHAM_desc_t **descptr, void *mat, cham_flttype_t dtyp,
+                                           int *mb, int *nb, int lm, int ln, int m, int n, int p, int q,
+                                           blkaddr_fct_t get_blkaddr, blkldd_fct_t get_blkldd,
+                                           blkrankof_fct_t get_rankof, void* get_rankof_arg,
+                                           const char *name );
 void CHAMELEON_Recursive_Desc_Partition_Submit( CHAM_desc_t *desc );
 void CHAMELEON_Recursive_Desc_Unpartition_Submit( CHAM_desc_t *desc );
 
