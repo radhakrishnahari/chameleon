@@ -88,7 +88,7 @@ int CHAMELEON_zplghe_batch_Tile( double bump, CHAM_desc_t *A,
 
     chameleon_pmap( ChamUpperLower, A,
                     chameleon_zplghe_batch_operator, &params,
-                    sequence, &request );
+                    sequence, &request, "zplghe" );
 
     CHAMELEON_Desc_Flush( A, sequence );
 

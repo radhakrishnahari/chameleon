@@ -117,7 +117,7 @@ int CHAMELEON_zgemm_batch_Tile( cham_trans_t transA, cham_trans_t transB,
 
     chameleon_pmap3( ChamUpperLower, A, B, C,
                      chameleon_zgemm_batch_operator, &params,
-                     sequence, &request );
+                     sequence, &request, "zgemm" );
 
     CHAMELEON_Desc_Flush( A, sequence );
     CHAMELEON_Desc_Flush( B, sequence );

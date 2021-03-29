@@ -113,7 +113,7 @@ int CHAMELEON_zherk_batch_Tile( cham_uplo_t uplo, cham_trans_t trans,
 
     chameleon_pmap2( ChamUpperLower, A, B,
                      chameleon_zherk_batch_operator, &params,
-                     sequence, &request );
+                     sequence, &request, "zherk" );
 
     CHAMELEON_Desc_Flush( A, sequence );
     CHAMELEON_Desc_Flush( B, sequence );

@@ -85,7 +85,7 @@ int CHAMELEON_zpotrf_batch_Tile( cham_uplo_t uplo, CHAM_desc_t *A )
 
     chameleon_pmap( ChamUpperLower, A,
                     chameleon_zpotrf_batch_operator, &params,
-                    sequence, &request );
+                    sequence, &request, "zpotrf" );
 
     CHAMELEON_Desc_Flush( A, sequence );
 

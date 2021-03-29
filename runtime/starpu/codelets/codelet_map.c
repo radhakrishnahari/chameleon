@@ -44,12 +44,13 @@ CODELETS_CPU(map, cl_map_cpu_func)
 
 void INSERT_TASK_map( const RUNTIME_option_t *options,
                       cham_access_t accessA, cham_uplo_t uplo, const CHAM_desc_t *A, int Am, int An,
-                      cham_unary_operator_t op_fct, void *op_args )
+                      cham_unary_operator_t op_fct, void *op_args,
+                      const char *name )
 {
 
     struct starpu_codelet *codelet = &cl_map;
     void (*callback)(void*) = options->profiling ? cl_map_callback : NULL;
-    char                  *cl_name = "map";
+    char                  *cl_name = (name == NULL) ? "map" : name;
 
     CHAMELEON_BEGIN_ACCESS_DECLARATION;
     CHAMELEON_ACCESS_RW(A, Am, An);

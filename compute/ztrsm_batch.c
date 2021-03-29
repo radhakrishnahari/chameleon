@@ -116,7 +116,7 @@ int CHAMELEON_ztrsm_batch_Tile( cham_side_t side, cham_uplo_t uplo,
 
     chameleon_pmap2( ChamUpperLower, A, B,
                      chameleon_ztrsm_batch_operator, &params,
-                     sequence, &request );
+                     sequence, &request, "ztrsm" );
 
     CHAMELEON_Desc_Flush( A, sequence );
     CHAMELEON_Desc_Flush( B, sequence );

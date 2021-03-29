@@ -64,7 +64,8 @@ int CHAMELEON_map_Tile( cham_access_t         access,
                         cham_uplo_t           uplo,
                         CHAM_desc_t          *A,
                         cham_unary_operator_t op_fct,
-                        void                 *op_args )
+                        void                 *op_args,
+                        const char           *name )
 {
     CHAM_context_t     *chamctxt;
     RUNTIME_sequence_t *sequence = NULL;
@@ -78,7 +79,7 @@ int CHAMELEON_map_Tile( cham_access_t         access,
     }
     chameleon_sequence_create( chamctxt, &sequence );
 
-    CHAMELEON_map_Tile_Async( access, uplo, A, op_fct, op_args, sequence, &request );
+    CHAMELEON_map_Tile_Async( access, uplo, A, op_fct, op_args, sequence, &request, name );
 
     CHAMELEON_Desc_Flush( A, sequence );
 
@@ -128,7 +129,8 @@ int CHAMELEON_map_Tile_Async( cham_access_t         access,
                               cham_unary_operator_t op_fct,
                               void                 *op_args,
                               RUNTIME_sequence_t   *sequence,
-                              RUNTIME_request_t    *request )
+                              RUNTIME_request_t    *request,
+                              const char           *name)
 {
     CHAM_context_t *chamctxt;
 
@@ -164,7 +166,7 @@ int CHAMELEON_map_Tile_Async( cham_access_t         access,
         return CHAMELEON_SUCCESS;
     }
 
-    chameleon_pmap( access, uplo, A, op_fct, op_args, sequence, request );
+    chameleon_pmap( access, uplo, A, op_fct, op_args, sequence, request, name );
 
     return CHAMELEON_SUCCESS;
 }

@@ -53,7 +53,8 @@ void INSERT_TASK_map3( const RUNTIME_option_t *options,
                        const CHAM_desc_t *A, int Am, int An,
                        const CHAM_desc_t *B, int Bm, int Bn,
                        const CHAM_desc_t *C, int Cm, int Cn,
-                       cham_ternary_operator_t op_fct, void *op_args )
+                       cham_ternary_operator_t op_fct, void *op_args,
+                       const char *name )
 {
 
     struct starpu_codelet *codelet = &cl_map3;
@@ -81,7 +82,7 @@ void INSERT_TASK_map3( const RUNTIME_option_t *options,
         STARPU_PRIORITY,  options->priority,
         STARPU_CALLBACK,  callback,
 #if defined(CHAMELEON_CODELETS_HAVE_NAME)
-        STARPU_NAME, "map3",
+        STARPU_NAME,      name == NULL ? "map3" : name,
 #endif
         0);
 }

@@ -110,18 +110,21 @@ typedef int (*cham_ternary_operator_t)( cham_uplo_t uplo, int m, int n,
 
 void INSERT_TASK_map( const RUNTIME_option_t *options,
                       cham_access_t accessA, cham_uplo_t uplo, const CHAM_desc_t *A, int Am, int An,
-                      cham_unary_operator_t op_fct, void *op_args );
+                      cham_unary_operator_t op_fct, void *op_args,
+                      const char *name );
 void INSERT_TASK_map2( const RUNTIME_option_t *options,
                        cham_uplo_t uplo,
                        const CHAM_desc_t *A, int Am, int An,
                        const CHAM_desc_t *B, int Bm, int Bn,
-                       cham_binary_operator_t op_fct, void *op_args );
+                       cham_binary_operator_t op_fct, void *op_args,
+                       const char *name );
 void INSERT_TASK_map3( const RUNTIME_option_t *options,
                        cham_uplo_t uplo,
                        const CHAM_desc_t *A, int Am, int An,
                        const CHAM_desc_t *B, int Bm, int Bn,
                        const CHAM_desc_t *C, int Cm, int Cn,
-                       cham_ternary_operator_t op_fct, void *op_args );
+                       cham_ternary_operator_t op_fct, void *op_args,
+                       const char *name );
 
 void INSERT_TASK_gemm( const RUNTIME_option_t *options,
                        cham_trans_t transA, cham_trans_t transB,
