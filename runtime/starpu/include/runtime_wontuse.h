@@ -22,14 +22,14 @@
 /**
  * Different implementations of the flush call based on StarPU version
  */
-#if defined(HAVE_STARPU_DATA_WONT_USE)
+#if defined(HAVE_STARPU_DATA_WONT_USE) && !defined(CHAMELEON_USE_BUBBLE)
 
 static inline void
 chameleon_starpu_data_wont_use( starpu_data_handle_t handle ) {
     starpu_data_wont_use( handle );
 }
 
-#elif defined(HAVE_STARPU_IDLE_PREFETCH)
+#elif defined(HAVE_STARPU_IDLE_PREFETCH) && !defined(CHAMELEON_USE_BUBBLE)
 
 static inline void
 chameleon_starpu_data_flush( void *_handle)
