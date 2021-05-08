@@ -27,6 +27,9 @@
 #include <coreblas.h>
 #include <coreblas/lapacke.h>
 #endif
+#endif
+//#include <papi.h>
+#include "power_measurement.h"
 
 #if !defined(CHAMELEON_TESTINGS_VENDOR)
 int
@@ -46,6 +49,29 @@ testing_zpotrf_desc( run_arg_list_t *args, int check )
     /* Descriptors */
     CHAM_desc_t *descA;
 
+        /* PAPI variables*/
+    int EventSet = PAPI_NULL;
+    long long *values;
+    int retval;
+    values=calloc(N_SOCK * N_EVTS,sizeof(long long));
+    if (values==NULL) {
+        exit(1);
+    }
+
+    if (PAPI_library_init(PAPI_VER_CURRENT) != PAPI_VER_CURRENT) {
+        perror("unable to initialize PAPI");
+        exit(1);
+    }
+
+    retval = PAPI_create_eventset( &EventSet );
+    if (retval != PAPI_OK) {
+        perror("unable to create eventSet");
+        exit(1);
+    }
+
+    for (int i = 0 ; i < N_SOCK ; i ++ )
+        add_event(EventSet, i);
+
     CHAMELEON_Set( CHAMELEON_TILE_SIZE, nb );
 
     /* Creates the matrices */
@@ -55,6 +81,7 @@ testing_zpotrf_desc( run_arg_list_t *args, int check )
     CHAMELEON_zplghe_Tile( (double)N, uplo, descA, seedA );
 
     /* Calculates the solution */
+    retval = PAPI_start( EventSet );
     testing_start( &test_data );
     if ( async ) {
         hres = CHAMELEON_zpotrf_Tile_Async( uplo, descA,
@@ -67,6 +94,21 @@ testing_zpotrf_desc( run_arg_list_t *args, int check )
     test_data.hres = hres;
     testing_stop( &test_data, flops_zpotrf( N ) );
 
+    retval = PAPI_stop( EventSet, values );
+    if (retval != PAPI_OK) {
+        perror("unable to papi stop");
+        exit(1);
+    }
+
+    for( int s = 0 ; s < N_SOCK ; s ++){
+        for( int i = 0 ; i < N_EVTS; i++) {
+            printf("%-40s%12.6f J\t(Average Power %.1fW)\n",
+                   event_names[i],
+                   (double)values[s * N_EVTS + i]/1.0e9,
+                   ((double)values[s * N_EVTS + i]/1.0e9)/t);
+        }
+    }
+
     /* Checks the factorisation and residue */
     if ( check ) {
         CHAM_desc_t *descA0 = CHAMELEON_Desc_Copy( descA, CHAMELEON_MAT_ALLOC_TILE );
@@ -78,6 +120,18 @@ testing_zpotrf_desc( run_arg_list_t *args, int check )
     }
 
     parameters_desc_destroy( &descA );
+
+    retval = PAPI_cleanup_eventset( EventSet );
+    if (retval != PAPI_OK) {
+        perror("unable to cleanup");
+        exit(1);
+    }
+
+    retval = PAPI_destroy_eventset( &EventSet );
+    if (retval != PAPI_OK) {
+        perror("unable to destroy eventset");
+        exit(1);
+    }
 
     return hres;
 }
