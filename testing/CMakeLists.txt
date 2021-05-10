@@ -29,6 +29,7 @@
 #
 ###
 
+find_package (PAPI REQUIRED)
 # Generate chameleon auxiliary testing sources for all possible precisions
 # --------------------------------------------------------------------
 set(TESTING_HDRS_GENERATED "")
@@ -189,6 +190,8 @@ foreach(_precision ${CHAMELEON_PRECISION} )
       MORSE::CBLAS)
   endif()
   target_link_libraries(${__target_name} PRIVATE MORSE::M)
+
+  target_link_libraries(${__target_name} PRIVATE MORSE::PAPI)
 
   install(TARGETS ${__target_name}
     DESTINATION bin/ )
