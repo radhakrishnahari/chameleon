@@ -43,7 +43,7 @@ double RUNTIME_get_time(){
 void RUNTIME_iteration_push( CHAM_context_t *chamctxt, unsigned long iteration )
 {
     (void)chamctxt;
-#if defined(HAVE_STARPU_ITERATION_PUSH)
+#if defined(HAVE_STARPU_ITERATION_PUSH) && !(defined(CHAMELEON_USE_BUBBLE))
     starpu_iteration_push(iteration);
 #endif
     (void)iteration;
@@ -52,7 +52,7 @@ void RUNTIME_iteration_push( CHAM_context_t *chamctxt, unsigned long iteration )
 void RUNTIME_iteration_pop( CHAM_context_t *chamctxt )
 {
     (void)chamctxt;
-#if defined(HAVE_STARPU_ITERATION_PUSH)
+#if defined(HAVE_STARPU_ITERATION_PUSH) && !(defined(CHAMELEON_USE_BUBBLE))
     starpu_iteration_pop();
 #endif
 }
