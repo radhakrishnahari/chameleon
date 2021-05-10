@@ -59,6 +59,8 @@ void INSERT_TASK_map3( const RUNTIME_option_t *options,
 
     struct starpu_codelet *codelet = &cl_map3;
     void (*callback)(void*) = options->profiling ? cl_map3_callback : NULL;
+    starpu_option_request_t* schedopt = (starpu_option_request_t *)(options->request->schedopt);
+    int workerid = (schedopt == NULL) ? -1 : schedopt->workerid;
 
     CHAMELEON_BEGIN_ACCESS_DECLARATION;
     CHAMELEON_ACCESS_R( A, Am, An);
