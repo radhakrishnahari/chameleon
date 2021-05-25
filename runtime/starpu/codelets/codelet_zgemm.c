@@ -31,51 +31,6 @@
 #include "chameleon_starpu.h"
 #include "runtime_codelet_z.h"
 
-/*
- * Model per code. For now the number of cores is fixed to match the machine I
- * used (with 32 cores). For each worker, we read the power consumption from a file.
- */
-static cham_fixdbl_t zgemm_energy_array [32];
-cham_fixdbl_t gemm_worker_cost_function(struct starpu_task *t, unsigned workerid, unsigned i)
-{
-    (void)t; (void)workerid; (void)i;
-    return zgemm_energy_array[workerid];
-}
-
-static struct starpu_perfmodel energy_model =
-{
-    .type = STARPU_PER_WORKER,
-    .worker_cost_function = gemm_worker_cost_function,
-    .symbol = "zgemm"
-};
-
-__attribute__((constructor))
-static void init_cl_zgemm() {
-    /* copy energy values from env variables, only if variables are
-     defined. Otherwise no energy model will be used*/
-    if(getenv("STARPU_SCHED_GAMMA"))
-    {
-        FILE *fp;
-        char* line = NULL;
-        size_t len = 0;
-        ssize_t read;
-        int i = 0;
-        fp = fopen("/root/gemm_energy_file", "r");
-        if(fp == NULL){
-            printf("failed to open file gemm_energy_file");
-            exit(EXIT_FAILURE);
-        }
-        while((read = getline(&line, &len, fp)) != -1) {
-            zgemm_energy_array[i] = atof(line);
-            i ++;
-        }
-        fclose(fp);
-        if(line)
-            free(line);
-        cl_zgemm.energy_model = &energy_model ;
-    }
-}
-
 #if !defined(CHAMELEON_SIMULATION)
 static void
 cl_zgemm_cpu_func( void *descr[], void *cl_arg )
@@ -166,6 +121,61 @@ CODELETS_GPU( zgemm, cl_zgemm_cpu_func, cl_zgemm_hip_func, STARPU_HIP_ASYNC )
 #else
 CODELETS( zgemm, cl_zgemm_cpu_func, cl_zgemm_cuda_func, STARPU_CUDA_ASYNC )
 #endif
+
+/*struct starpu_codelet cl_zgemm = {                                                     
+        .cpu_func  = cl_zgemm_cpu_func,                                                               
+        .nbuffers  = 3,                         
+        .model     = &cl_zgemm_model,                            
+        .energy_model     = &cl_zgemm_energy_model,              
+        .name      = #cl_name                                          
+    };                        
+*/
+
+/*
+ * Model per code. For now the number of cores is fixed to match the machine I
+ * used (with 32 cores). For each worker, we read the power consumption from a file.
+ */
+/*static cham_fixdbl_t zgemm_energy_array [32];
+cham_fixdbl_t gemm_worker_cost_function(struct starpu_task *t, unsigned workerid, unsigned i)
+{
+    (void)t; (void)workerid; (void)i;
+    return zgemm_energy_array[workerid];
+}
+*/
+/*static struct starpu_perfmodel energy_model =
+{
+    .type = STARPU_PER_WORKER,
+    .worker_cost_function = gemm_worker_cost_function,
+    .symbol = "zgemm"
+};*/
+
+
+/*__attribute__((constructor))
+static void init_cl_zgemm() {
+    /* copy energy values from env variables, only if variables are
+     defined. Otherwise no energy model will be used*/
+   /* if(getenv("STARPU_SCHED_GAMMA"))
+    {
+        FILE *fp;
+        char* line = NULL;
+        size_t len = 0;
+        ssize_t read;
+        int i = 0;
+        fp = fopen("/root/gemm_energy_file", "r");
+        if(fp == NULL){
+            printf("failed to open file gemm_energy_file");
+            exit(EXIT_FAILURE);
+        }
+        while((read = getline(&line, &len, fp)) != -1) {
+            zgemm_energy_array[i] = atof(line);
+            i ++;
+        }
+        fclose(fp);
+        if(line)
+            free(line);
+        cl_zgemm.energy_model = &energy_model ;
+    }
+}*/
 
 void INSERT_TASK_zgemm_Astat( const RUNTIME_option_t *options,
                               cham_trans_t transA, cham_trans_t transB,

@@ -230,6 +230,7 @@ set(RUNTIME_COMMON
   control/runtime_tags.c
   control/runtime_options.c
   control/runtime_profiling.c
+  control/runtime_energy.c
   control/runtime_workspace.c
   interface/cham_tile_interface.c
   interface/cppi_interface.c

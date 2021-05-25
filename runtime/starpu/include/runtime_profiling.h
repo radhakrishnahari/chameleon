@@ -36,8 +36,9 @@ typedef struct measure_s {
 } measure_t;
 
 void RUNTIME_profiling_display_info(const char *kernel_name, measure_t perf[STARPU_NMAXWORKERS]);
+void RUNTIME_start_energy();
+void RUNTIME_stop_energy_gemm();
 void RUNTIME_profiling_display_efficiency(void);
-
 void RUNTIME_profiling_zdisplay_all(void);
 void RUNTIME_profiling_cdisplay_all(void);
 void RUNTIME_profiling_ddisplay_all(void);
