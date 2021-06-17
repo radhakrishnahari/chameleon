@@ -186,6 +186,7 @@ set(RUNTIME_HDRS
   include/runtime_codelet_profile.h
   include/runtime_codelets.h
   include/runtime_profiling.h
+  include/runtime_energy.h
   include/runtime_workspace.h
   include/cham_tile_interface.h
   )

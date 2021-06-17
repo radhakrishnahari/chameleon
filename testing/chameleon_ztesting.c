@@ -56,6 +56,7 @@ parameter_t parameters[] = {
     { "generic",  "Switch to the non optimized generic algorithms",       -35, PARAM_OPTION, 0, 0, TestValInt, {0}, NULL, pread_int, sprint_int },
     { "api",      "Select the API to test (0: Descriptors, 1: Standard, 2: Lapack)", -36, PARAM_OPTION, 1, 3, TestValInt, {0}, NULL, pread_int, sprint_int },
 #endif
+    { "energy",  "Display the execution energy consumption",  -37, PARAM_OPTION, 0, 0, TestValInt, {0}, NULL, pread_int, sprint_int },
 
     { NULL, "Machine parameters", 0, PARAM_OPTION, 0, 0, 0, {0}, NULL, NULL, NULL },
     { "threads", "Number of CPU workers per node",      't', PARAM_OPTION | PARAM_OUTPUT, 1, 7, TestValInt, {-1}, NULL, pread_int,    sprint_int    },
@@ -235,6 +236,10 @@ int main (int argc, char **argv) {
 
     if ( options.generic ) {
         CHAMELEON_Enable( CHAMELEON_GENERIC );
+    }
+
+    if ( options.energy ) {
+        CHAMELEON_Enable( CHAMELEON_ENERGY_MEASUREMENT );
     }
 
     /* Perform all runs */

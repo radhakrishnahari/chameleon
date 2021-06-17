@@ -59,6 +59,10 @@ void INSERT_TASK_map3( const RUNTIME_option_t *options,
 
     struct starpu_codelet *codelet = &cl_map3;
     void (*callback)(void*) = options->profiling ? cl_map3_callback : NULL;
+    if ((options->energy) && (name != NULL)) {
+        create_fake_task_and_count_total_tasks(name, codelet);
+        //call function with name parameter
+    }
     starpu_option_request_t* schedopt = (starpu_option_request_t *)(options->request->schedopt);
     int workerid = (schedopt == NULL) ? -1 : schedopt->workerid;
 

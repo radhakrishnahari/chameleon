@@ -84,6 +84,7 @@
 #define CHAMELEON_TRANSLATION chamctxt->translation
 #define CHAMELEON_PARALLEL    chamctxt->parallel_enabled
 #define CHAMELEON_STATISTICS  chamctxt->statistics_enabled
+#define CHAMELEON_ENERGY      chamctxt->energy_enabled
 
 /**
  *  IPT internal define

@@ -28,6 +28,7 @@ void RUNTIME_options_init( RUNTIME_option_t *options, CHAM_context_t *chamctxt,
     options->sequence  = sequence;
     options->request   = request;
     options->profiling = CHAMELEON_STATISTICS == CHAMELEON_TRUE;
+    option->energy     = CHAMELEON_ENERGY == CHAMELEON_TRUE;
     options->parallel  = CHAMELEON_PARALLEL == CHAMELEON_TRUE;
     options->priority  = RUNTIME_PRIORITY_MIN;
     options->workerid  = (schedopt == NULL) ? -1 : schedopt->workerid;

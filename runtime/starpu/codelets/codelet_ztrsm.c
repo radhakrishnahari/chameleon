@@ -114,46 +114,46 @@ CODELETS( ztrsm, cl_ztrsm_cpu_func, cl_ztrsm_cuda_func, STARPU_CUDA_ASYNC )
  * Model per code. For now the number of cores is fixed to match the machine I
  * used (with 32 cores). For each worker, we read the power consumption from a file.
  */
-static cham_fixdbl_t ztrsm_energy_array [32];
-cham_fixdbl_t trsm_worker_cost_function(struct starpu_task *t, unsigned workerid, unsigned i)
-{
-    (void)t; (void)workerid; (void)i;
-    return ztrsm_energy_array[workerid];
-}
+/* static cham_fixdbl_t ztrsm_energy_array [32]; */
+/* cham_fixdbl_t trsm_worker_cost_function(struct starpu_task *t, unsigned workerid, unsigned i) */
+/* { */
+/*     (void)t; (void)workerid; (void)i; */
+/*     return ztrsm_energy_array[workerid]; */
+/* } */
 
-static struct starpu_perfmodel energy_model =
-{
-    .type = STARPU_PER_WORKER,
-    .worker_cost_function = trsm_worker_cost_function,
-    .symbol = "ztrsm"
-};
+/* static struct starpu_perfmodel energy_model = */
+/* { */
+/*     .type = STARPU_PER_WORKER, */
+/*     .worker_cost_function = trsm_worker_cost_function, */
+/*     .symbol = "ztrsm" */
+/* }; */
 
-__attribute__((constructor))
-static void init_cl_ztrsm() {
-    /* copy energy values from env variables, only if variables are
-     defined. Otherwise no energy model will be used*/
-    if(getenv("STARPU_SCHED_GAMMA"))
-    {
-        FILE *fp;
-        char* line = NULL;
-        size_t len = 0;
-        ssize_t read;
-        int i = 0;
-        fp = fopen("/root/trsm_energy_file", "r");
-        if(fp == NULL){
-            printf("failed to open file trsm_energy_file");
-            exit(EXIT_FAILURE);
-        }
-        while((read = getline(&line, &len, fp)) != -1) {
-            ztrsm_energy_array[i] = atof(line);
-            i ++;
-        }
-        fclose(fp);
-        if(line)
-            free(line);
-        cl_ztrsm.energy_model = &energy_model ;
-    }
-}
+/* __attribute__((constructor)) */
+/* static void init_cl_ztrsm() { */
+/*     /\* copy energy values from env variables, only if variables are */
+/*      defined. Otherwise no energy model will be used*\/ */
+/*     if(getenv("STARPU_SCHED_GAMMA")) */
+/*     { */
+/*         FILE *fp; */
+/*         char* line = NULL; */
+/*         size_t len = 0; */
+/*         ssize_t read; */
+/*         int i = 0; */
+/*         fp = fopen("/root/trsm_energy_file", "r"); */
+/*         if(fp == NULL){ */
+/*             printf("failed to open file trsm_energy_file"); */
+/*             exit(EXIT_FAILURE); */
+/*         } */
+/*         while((read = getline(&line, &len, fp)) != -1) { */
+/*             ztrsm_energy_array[i] = atof(line); */
+/*             i ++; */
+/*         } */
+/*         fclose(fp); */
+/*         if(line) */
+/*             free(line); */
+/*         cl_ztrsm.energy_model = &energy_model ; */
+/*     } */
+/* } */
 
 void INSERT_TASK_ztrsm( const RUNTIME_option_t *options,
                         cham_side_t side, cham_uplo_t uplo, cham_trans_t transA, cham_diag_t diag,

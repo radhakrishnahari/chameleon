@@ -28,38 +28,67 @@
 #include <starpu_fxt.h>
 #include "chameleon/config.h"
 #include "runtime_codelet_profile.h"
-#include "runtime_profiling.h"
+#include "runtime_codelets.h"
+#include "runtime_energy.h"
 
-static struct starpu_perfmodel cl_zgemm_model =
-{
-    .type = STARPU_HISTORY_BASED,
-    .symbol = "zgemm"
-};
+struct starpu_task * task = NULL;
+struct starpu_perfmodel *energy;
+static int ntasks = 0;
 
-static struct starpu_perfmodel cl_zgemm_energy_model =
-{
-    .type = STARPU_HISTORY_BASED,
-    .symbol = "zgemm_energy"
-};
+/* static struct starpu_perfmodel cl_##cl_name##_model = */
+/* { */
+/*     .type = STARPU_HISTORY_BASED, */
+/*     .symbol = #cl_name */
+/* }; */
+
+/* static struct starpu_perfmodel cl_##cl_name##_energy_model = */
+/* { */
+/*     .type = STARPU_HISTORY_BASED, */
+/*     .symbol = #cl_name"_energy" */
+/* }; */
 
 void RUNTIME_start_energy(){
 
     unsigned worker;
-    
     starpu_energy_start(-1, STARPU_CPU_WORKER);
 }
 
-void RUNTIME_stop_energy_gemm(){
+void create_fake_task_and_count_total_tasks(const char* name, struct starpu_codelet *cl)
+{
+    static int times = 0;
+    if(times == 0)
+    {
+        task = starpu_task_create();
+        task->cl = cl;
+        if( strcmp(name, "zgemm") ){
+            energy = &cl_zgemm_energy_model;
+        }
+        else if ( strcmp(name, "ztrsm") ){
+            //task->cl = &cl_ztrsm;
+            energy = &cl_ztrsm_energy_model;
+        }
+        else if ( strcmp(name, "zherk") ){
+            //task->cl = &cl_zherk;
+            energy = &cl_zherk_energy_model;
+        }
+        else if ( strcmp(name, "zpotrf") ){
+            //task->cl = &cl_zpotrf;
+            energy = &cl_zpotrf_energy_model;
+        }
+        else fprintf(stderr, "unhandled kernel");
+        times = 1;
+    }
+    ntasks ++;
+}
 
-  
-    struct starpu_task *task = starpu_task_create(); 
-   
-    int ntasks=starpu_worker_get_count_by_type(STARPU_CPU_WORKER);
-    //callback = options->profiling ? cl_zgemm_callback : NULL;
+void RUNTIME_stop_energy(){
 
-    task->cl = &cl_zgemm;
-    printf("nbre tasks %d",ntasks);    
-    starpu_energy_stop(&cl_zgemm_energy_model, task , 0, ntasks, -1, STARPU_CPU_WORKER);
+    if(task == NULL)
+    {
+        fprintf(stderr, "task for energy measurement not created\n");
+        exit(0);
+    }
+    starpu_energy_stop(energy, task , 0, ntasks, -1, STARPU_CPU_WORKER);
     //starpu_task_destroy (task);
 }
 

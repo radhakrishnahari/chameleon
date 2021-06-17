@@ -77,7 +77,6 @@
         .symbol = ""#cl_name"_energy"                                   \
     };                                                                  \
                                                                         \
-                                                                        \
     struct starpu_codelet cl_##cl_name = {                              \
         .where     = (_original_location_),                             \
         .cpu_func  = ((cpu_func_name)),                                 \
@@ -102,12 +101,7 @@
     void cl_##cl_name##_restore_model(void)                             \
     {                                                                   \
         cl_##cl_name.model = &cl_##cl_name##_model;                     \
-    }                                                                   \
-    void cl_##cl_name##_restore_energy_model(void)                      \
-    {                                                                   \
-        cl_##cl_name.energy_model = &cl_##cl_name##_energy_model;       \
-    }                                                                   \
-                                                                        \
+    }
 
 #if defined(CHAMELEON_SIMULATION)
 #define CODELETS_CPU(name, cpu_func_name)                    \
@@ -129,8 +123,8 @@
      CHAMELEON_CL_CB_HEADER(name);                           \
      void cl_##name##_load_fake_model(void);                 \
      void cl_##name##_restore_model(void);                   \
-     void cl_##name##_restore_energy_model(void);            \
      extern struct starpu_codelet cl_##name;                 \
+     extern struct starpu_perfmodel cl_##name##_energy_model;\
      void cl_##name##_restrict_where(uint32_t where);        \
      void cl_##name##_restore_where(void)
 

@@ -304,6 +304,7 @@ typedef enum chameleon_getrf_e {
 #define CHAMELEON_PROGRESS            9
 #define CHAMELEON_GEMM3M             10
 #define CHAMELEON_GENERIC            11
+#define CHAMELEON_ENERGY_MEASUREMENT 12
 
 /**
  *  CHAMELEON constants - configuration parameters
