@@ -107,3 +107,56 @@ void RUNTIME_zdisplay_oneprofile( cham_tasktype_t kernel )
     }
 }
 
+void
+RUNTIME_zget_codelet( cham_tasktype_t kernel )
+{
+    struct starpu_task *task = __chameleon_starpu_energy_task;
+
+    switch( kernel ) {
+        /* Blas 3 */
+    case TASK_GEMM:
+        task->cl    = &cl_zgemm;
+        task->flops = flops_zgemm( cti_handle_get_m(task->handles[2]),
+                                   cti_handle_get_n(task->handles[2]),
+                                   cti_handle_get_n(task->handles[0]) );
+        break;
+
+/* #if defined(PRECISION_z) || defined(PRECISION_c) */
+/*     case TASK_HEMM:         return &cl_zhemm; */
+/*     case TASK_HER2K:        return &cl_zher2k; */
+/*     case TASK_HERK:         return &cl_zherk; */
+/*     case TASK_SYTRF_NOPIV:  return &zsytrf_nopiv; */
+/* #endif */
+/*     case TASK_SYMM:         return &cl_zsymm; */
+/*     case TASK_SYR2K:        return &cl_zsyr2k; */
+/*     case TASK_SYRK:         return &cl_zsyrk; */
+/*     case TASK_TRMM:         return &cl_ztrmm; */
+/*     case TASK_TRSM:         return &cl_ztrsm; */
+
+/*         /\* Lapack *\/ */
+/*     case TASK_GELQT:        return &cl_zgelqt; */
+/*     case TASK_GEQRT:        return &cl_zgeqrt; */
+/*     case TASK_GESSM:        return &cl_zgessm; */
+/*     case TASK_GETRF:        return &cl_zgetrf; */
+/*     case TASK_GETRF_INCPIV: return &cl_zgetrf_incpiv; */
+/*     case TASK_GETRF_NOPIV:  return &cl_zgetrf_nopiv; */
+/*     case TASK_LAUUM:        return &cl_zlauum; */
+/*     case TASK_POTRF:        return &cl_zpotrf; */
+/*     case TASK_SSSSM:        return &cl_zssssm; */
+/*     case TASK_TRTRI:        return &cl_ztrtri; */
+/*     case TASK_TSTRF:        return &cl_ztstrf; */
+
+/*     case TASK_TPLQT:        return &cl_ztplqt; */
+/*     case TASK_TPMLQT:       return &cl_ztpmlqt; */
+/*     case TASK_TPMQRT:       return &cl_ztpmqrt; */
+/*     case TASK_TPQRT:        return &cl_ztpqrt; */
+
+/*     case TASK_UNMLQ:        return &cl_zunmlq; */
+/*     case TASK_UNMQR:        return &cl_zunmqr; */
+
+/*     case TASK_LANGE:        return &cl_zlange; */
+
+    default:
+        return NULL;
+    }
+}
