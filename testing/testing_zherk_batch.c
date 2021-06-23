@@ -19,7 +19,7 @@
 #include "testings.h"
 #include "testing_zcheck.h"
 #include <chameleon/flops.h>
-#include "power_measurement.h"
+//#include "power_measurement.h"
 
 static cham_fixdbl_t
 flops_zherk_batch( int nb, int K, int N )
@@ -52,27 +52,27 @@ testing_zherk_batch( run_arg_list_t *args, int check )
     cham_fixdbl_t flops = flops_zherk_batch( nb*ib, K, N );
 
     /* PAPI variables*/
-    int EventSet = PAPI_NULL;
-    long long *values;
-    int retval;
-    values=calloc(N_SOCK * N_EVTS,sizeof(long long));
-    if (values==NULL) {
-        exit(1);
-    }
+    /* int EventSet = PAPI_NULL; */
+    /* long long *values; */
+    /* int retval; */
+    /* values=calloc(N_SOCK * N_EVTS,sizeof(long long)); */
+    /* if (values==NULL) { */
+    /*     exit(1); */
+    /* } */
 
-    if (PAPI_library_init(PAPI_VER_CURRENT) != PAPI_VER_CURRENT) {
-        perror("unable to initialize PAPI");
-        exit(1);
-    }
+    /* if (PAPI_library_init(PAPI_VER_CURRENT) != PAPI_VER_CURRENT) { */
+    /*     perror("unable to initialize PAPI"); */
+    /*     exit(1); */
+    /* } */
 
-    retval = PAPI_create_eventset( &EventSet );
-    if (retval != PAPI_OK) {
-        perror("unable to create eventSet");
-        exit(1);
-    }
+    /* retval = PAPI_create_eventset( &EventSet ); */
+    /* if (retval != PAPI_OK) { */
+    /*     perror("unable to create eventSet"); */
+    /*     exit(1); */
+    /* } */
 
-    for (int i = 0 ; i < N_SOCK ; i ++ )
-        add_event(EventSet, i);
+    /* for (int i = 0 ; i < N_SOCK ; i ++ ) */
+    /*     add_event(EventSet, i); */
 
     alpha = run_arg_get_double( args, "alpha", alpha );
     beta  = run_arg_get_double( args, "beta", beta );
@@ -105,42 +105,42 @@ testing_zherk_batch( run_arg_list_t *args, int check )
     CHAMELEON_zplghe_batch_Tile( bump, descC, seedC );
 
     /* Calculate the product */
-    retval = PAPI_start( EventSet );
+    //    retval = PAPI_start( EventSet );
     START_TIMING( t );
     hres = CHAMELEON_zherk_batch_Tile( uplo, trans, alpha, descA, beta, descC );
     STOP_TIMING( t );
-    retval = PAPI_stop( EventSet, values );
-    if (retval != PAPI_OK) {
-        perror("unable to papi stop");
-        exit(1);
-    }
+    /* retval = PAPI_stop( EventSet, values ); */
+    /* if (retval != PAPI_OK) { */
+    /*     perror("unable to papi stop"); */
+    /*     exit(1); */
+    /* } */
     gflops = flops * 1.e-9 / t;
     run_arg_add_fixdbl( args, "time", t );
     run_arg_add_fixdbl( args, "gflops", ( hres == CHAMELEON_SUCCESS ) ? gflops : -1. );
 
-    for( int s = 0 ; s < N_SOCK ; s ++){
-        for( int i = 0 ; i < N_EVTS; i++) {
-            printf("%-40s%12.6f J\t(Average Power %.1fW)\n",
-                   event_names[i],
-                   (double)values[s * N_EVTS + i]/1.0e9,
-                   ((double)values[s * N_EVTS + i]/1.0e9)/t);
-        }
-    }
+    /* for( int s = 0 ; s < N_SOCK ; s ++){ */
+    /*     for( int i = 0 ; i < N_EVTS; i++) { */
+    /*         printf("%-40s%12.6f J\t(Average Power %.1fW)\n", */
+    /*                event_names[i], */
+    /*                (double)values[s * N_EVTS + i]/1.0e9, */
+    /*                ((double)values[s * N_EVTS + i]/1.0e9)/t); */
+    /*     } */
+    /* } */
 
     CHAMELEON_Desc_Destroy( &descA );
     CHAMELEON_Desc_Destroy( &descC );
 
-    retval = PAPI_cleanup_eventset( EventSet );
-    if (retval != PAPI_OK) {
-        perror("unable to cleanup");
-        exit(1);
-    }
+    /* retval = PAPI_cleanup_eventset( EventSet ); */
+    /* if (retval != PAPI_OK) { */
+    /*     perror("unable to cleanup"); */
+    /*     exit(1); */
+    /* } */
 
-    retval = PAPI_destroy_eventset( &EventSet );
-    if (retval != PAPI_OK) {
-        perror("unable to destroy eventset");
-        exit(1);
-    }
+    /* retval = PAPI_destroy_eventset( &EventSet ); */
+    /* if (retval != PAPI_OK) { */
+    /*     perror("unable to destroy eventset"); */
+    /*     exit(1); */
+    /* } */
 
     (void)check;
     return hres;

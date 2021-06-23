@@ -29,7 +29,7 @@
 #endif
 #endif
 //#include <papi.h>
-#include "power_measurement.h"
+//#include "power_measurement.h"
 
 #if !defined(CHAMELEON_TESTINGS_VENDOR)
 int

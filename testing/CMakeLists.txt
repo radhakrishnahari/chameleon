@@ -155,7 +155,7 @@ foreach(_precision ${CHAMELEON_PRECISION} )
     run_list.c
     parameters.c
     testings.c
-    power_measurement.c
+#    power_measurement.c
     )
   add_dependencies(${__target_name}
     chameleon_include
