@@ -59,9 +59,14 @@ void INSERT_TASK_map3( const RUNTIME_option_t *options,
 
     struct starpu_codelet *codelet = &cl_map3;
     void (*callback)(void*) = options->profiling ? cl_map3_callback : NULL;
-    if ((options->energy) && (name != NULL)) {
-        create_fake_task_and_count_total_tasks(name, codelet);
-        //call function with name parameter
+
+    if ( options->energy ) {
+        if ( chameleon_starpu_register_energy_task() ) {
+            __chameleon_starpu_energy_task->nbuffers   = 3;
+            __chameleon_starpu_energy_task->handles[0] = RTBLKADDR(A, CHAMELEON_Complex64_t, Am, An);
+            __chameleon_starpu_energy_task->handles[1] = RTBLKADDR(B, CHAMELEON_Complex64_t, Bm, Bn);
+            __chameleon_starpu_energy_task->handles[2] = RTBLKADDR(C, CHAMELEON_Complex64_t, Cm, Cn);
+        }
     }
     starpu_option_request_t* schedopt = (starpu_option_request_t *)(options->request->schedopt);
     int workerid = (schedopt == NULL) ? -1 : schedopt->workerid;
