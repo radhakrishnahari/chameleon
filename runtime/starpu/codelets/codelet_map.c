@@ -54,11 +54,11 @@ void INSERT_TASK_map( const RUNTIME_option_t *options,
     void (*callback)(void*) = options->profiling ? cl_map_callback : NULL;
     char                  *cl_name = (name == NULL) ? "map" : name;
 
-    if ((options->energy) && (times == 0) && (name != NULL)) {
-        create_fake_task_and_count_total_tasks(name, codelet);
-        //call function with name parameter
-        times = 1;
-    }
+    /* if ((options->energy) && (times == 0) && (name != NULL)) { */
+    /*     create_fake_task_and_count_total_tasks(name, codelet); */
+    /*     //call function with name parameter */
+    /*     times = 1; */
+    /* } */
 
     CHAMELEON_BEGIN_ACCESS_DECLARATION;
     CHAMELEON_ACCESS_RW(A, Am, An);

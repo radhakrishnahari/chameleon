@@ -99,6 +99,7 @@
 #include "runtime_workspace.h"
 #include "cham_tile_interface.h"
 #include "cppi_interface.h"
+#include <chameleon/flops.h>
 
 typedef struct starpu_schedopt_s
 {

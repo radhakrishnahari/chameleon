@@ -157,6 +157,6 @@ RUNTIME_zget_codelet( cham_tasktype_t kernel )
 /*     case TASK_LANGE:        return &cl_zlange; */
 
     default:
-        return NULL;
+        return;
     }
 }
