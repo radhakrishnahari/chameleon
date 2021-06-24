@@ -115,7 +115,7 @@ testing_ztrsm_batch( run_arg_list_t *args, int check )
     STOP_TIMING( t );
 
     if ( energy ) {
-        RUNTIME_stop_energy( ChamComplexDouble, TASK_TRSM, side );
+        RUNTIME_stop_energy( ChamComplexDouble, TASK_TRSM );
     }
     /* retval = PAPI_stop( EventSet, values ); */
     /* if (retval != PAPI_OK) { */

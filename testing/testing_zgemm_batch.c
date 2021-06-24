@@ -109,8 +109,7 @@ testing_zgemm_batch( run_arg_list_t *args, int check )
 
     /*Stop energy measurement*/
     if ( energy ) {
-        /* the last parameter is side, which is not used for gemm, let's set it to -1*/
-        RUNTIME_stop_energy( ChamComplexDouble, TASK_GEMM, -1 );
+        RUNTIME_stop_energy( ChamComplexDouble, TASK_GEMM );
     }
 
     gflops = flops * 1.e-9 / t;

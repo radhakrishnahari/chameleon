@@ -92,8 +92,7 @@ testing_zpotrf_batch( run_arg_list_t *args, int check )
     STOP_TIMING( t );
 
      if ( energy ) {
-         /* the last parameter is side, which is not used for gemm, let's set it to -1*/
-         RUNTIME_stop_energy( ChamComplexDouble, TASK_POTRF, -1 );
+         RUNTIME_stop_energy( ChamComplexDouble, TASK_POTRF);
     }
     /* retval = PAPI_stop( EventSet, values ); */
     /* if (retval != PAPI_OK) { */

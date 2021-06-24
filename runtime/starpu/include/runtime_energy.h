@@ -25,7 +25,7 @@
 extern struct starpu_task *__chameleon_starpu_energy_task;
 
 void RUNTIME_start_energy();
-void RUNTIME_stop_energy( cham_flttype_t flttype, cham_tasktype_t kernel, cham_side_t side );
+void RUNTIME_stop_energy( cham_flttype_t flttype, cham_tasktype_t kernel );
 
 int chameleon_starpu_register_energy_task();
 

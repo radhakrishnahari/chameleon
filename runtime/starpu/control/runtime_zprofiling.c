@@ -108,7 +108,7 @@ void RUNTIME_zdisplay_oneprofile( cham_tasktype_t kernel )
 }
 
 void
-RUNTIME_zget_codelet( cham_tasktype_t kernel, cham_side_t side )
+RUNTIME_zget_codelet( cham_tasktype_t kernel )
 {
     struct starpu_task *task = __chameleon_starpu_energy_task;
 
@@ -128,7 +128,7 @@ RUNTIME_zget_codelet( cham_tasktype_t kernel, cham_side_t side )
 
     case TASK_TRSM:
         task->cl    = &cl_ztrsm;
-        task->flops = flops_ztrsm( side, cti_handle_get_m(task->handles[1]),
+        task->flops = flops_ztrsm( ChamLeft, cti_handle_get_m(task->handles[1]),
                                    cti_handle_get_n(task->handles[1]));
         break;
 
