@@ -223,6 +223,10 @@ int main (int argc, char **argv) {
 #endif
     }
 
+    if ( options.energy ) {
+        CHAMELEON_Enable( CHAMELEON_ENERGY_MEASUREMENT );
+    }
+
     /* Warmup */
     if ( !options.nowarmup ) {
         run_arg_list_t copy = run_arg_list_copy( &(run->args) );
@@ -236,10 +240,6 @@ int main (int argc, char **argv) {
 
     if ( options.generic ) {
         CHAMELEON_Enable( CHAMELEON_GENERIC );
-    }
-
-    if ( options.energy ) {
-        CHAMELEON_Enable( CHAMELEON_ENERGY_MEASUREMENT );
     }
 
     /* Perform all runs */
