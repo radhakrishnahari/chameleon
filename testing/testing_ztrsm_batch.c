@@ -19,6 +19,7 @@
 #include "testings.h"
 #include "testing_zcheck.h"
 #include <chameleon/flops.h>
+#include "runtime_energy.h"
 //#include "power_measurement.h"
 
 static cham_fixdbl_t
@@ -50,6 +51,7 @@ testing_ztrsm_batch( run_arg_list_t *args, int check )
     int                   Q     = parameters_compute_q( P );
     cham_fixdbl_t t, gflops;
     cham_fixdbl_t flops = flops_ztrsm_batch( nb*ib, side, M, N );
+    int energy = parameters_getvalue_int( "energy" );
 
     /* PAPI variables*/
     /* int EventSet = PAPI_NULL; */
@@ -104,9 +106,17 @@ testing_ztrsm_batch( run_arg_list_t *args, int check )
 
     /* Calculate the product */
     //    retval = PAPI_start( EventSet );
+    if ( energy ) {
+        RUNTIME_start_energy();
+    }
+
     START_TIMING( t );
     hres = CHAMELEON_ztrsm_batch_Tile( side, uplo, trans, diag, alpha, descA, descB );
     STOP_TIMING( t );
+
+    if ( energy ) {
+        RUNTIME_stop_energy( ChamComplexDouble, TASK_TRSM, side );
+    }
     /* retval = PAPI_stop( EventSet, values ); */
     /* if (retval != PAPI_OK) { */
     /*     perror("unable to papi stop"); */

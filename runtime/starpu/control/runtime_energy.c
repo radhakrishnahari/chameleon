@@ -104,7 +104,7 @@ int chameleon_starpu_register_energy_task()
 /*     ntasks ++; */
 /* } */
 
-void RUNTIME_stop_energy( cham_flttype_t flttype, cham_tasktype_t kernel )
+void RUNTIME_stop_energy( cham_flttype_t flttype, cham_tasktype_t kernel, cham_side_t side )
 {
     struct starpu_task *task = __chameleon_starpu_energy_task;
 
@@ -115,19 +115,19 @@ void RUNTIME_stop_energy( cham_flttype_t flttype, cham_tasktype_t kernel )
 
     switch( flttype ) {
     case ChamComplexDouble:
-        RUNTIME_zget_codelet( kernel );
+        RUNTIME_zget_codelet( kernel, side );
         break;
 
     case ChamComplexFloat:
-        RUNTIME_cget_codelet( kernel );
+        RUNTIME_cget_codelet( kernel, side );
         break;
 
     case ChamRealDouble:
-        RUNTIME_dget_codelet( kernel );
+        RUNTIME_dget_codelet( kernel, side );
         break;
 
     case ChamRealFloat:
-        RUNTIME_sget_codelet( kernel );
+        RUNTIME_sget_codelet( kernel, side );
         break;
 
     default:

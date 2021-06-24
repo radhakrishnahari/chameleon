@@ -55,6 +55,13 @@ void INSERT_TASK_map2( const RUNTIME_option_t *options,
 
     struct starpu_codelet *codelet = &cl_map2;
     void (*callback)(void*) = options->profiling ? cl_map2_callback : NULL;
+    if ( options->energy ) {
+        if ( chameleon_starpu_register_energy_task() ) {
+            __chameleon_starpu_energy_task->nbuffers   = 2;
+            __chameleon_starpu_energy_task->handles[0] = RTBLKADDR(A, CHAMELEON_Complex64_t, Am, An);
+            __chameleon_starpu_energy_task->handles[1] = RTBLKADDR(B, CHAMELEON_Complex64_t, Bm, Bn);
+        }
+    }
     starpu_option_request_t* schedopt = (starpu_option_request_t *)(options->request->schedopt);
     int workerid = (schedopt == NULL) ? -1 : schedopt->workerid;
 

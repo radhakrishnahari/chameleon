@@ -19,6 +19,7 @@
 #include "testings.h"
 #include "testing_zcheck.h"
 #include <chameleon/flops.h>
+#include "runtime_energy.h"
 //#include "power_measurement.h"
 
 static cham_fixdbl_t
@@ -50,6 +51,7 @@ testing_zherk_batch( run_arg_list_t *args, int check )
     int           Q     = parameters_compute_q( P );
     cham_fixdbl_t t, gflops;
     cham_fixdbl_t flops = flops_zherk_batch( nb*ib, K, N );
+    int energy = parameters_getvalue_int( "energy" );
 
     /* PAPI variables*/
     /* int EventSet = PAPI_NULL; */
@@ -106,9 +108,20 @@ testing_zherk_batch( run_arg_list_t *args, int check )
 
     /* Calculate the product */
     //    retval = PAPI_start( EventSet );
+     /*Start energy measurement*/
+    if ( energy ) {
+        RUNTIME_start_energy();
+    }
+
     START_TIMING( t );
     hres = CHAMELEON_zherk_batch_Tile( uplo, trans, alpha, descA, beta, descC );
     STOP_TIMING( t );
+
+    if ( energy ) {
+        /* the last parameter is side, which is not used for gemm, let's set it to -1*/
+        RUNTIME_stop_energy( ChamComplexDouble, TASK_HERK, -1 );
+    }
+
     /* retval = PAPI_stop( EventSet, values ); */
     /* if (retval != PAPI_OK) { */
     /*     perror("unable to papi stop"); */

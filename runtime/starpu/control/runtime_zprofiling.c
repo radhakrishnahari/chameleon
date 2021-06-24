@@ -108,7 +108,7 @@ void RUNTIME_zdisplay_oneprofile( cham_tasktype_t kernel )
 }
 
 void
-RUNTIME_zget_codelet( cham_tasktype_t kernel )
+RUNTIME_zget_codelet( cham_tasktype_t kernel, cham_side_t side )
 {
     struct starpu_task *task = __chameleon_starpu_energy_task;
 
@@ -119,6 +119,23 @@ RUNTIME_zget_codelet( cham_tasktype_t kernel )
         task->flops = flops_zgemm( cti_handle_get_m(task->handles[2]),
                                    cti_handle_get_n(task->handles[2]),
                                    cti_handle_get_n(task->handles[0]) );
+        break;
+
+    case TASK_POTRF:
+        task->cl    = &cl_zpotrf;
+        task->flops = flops_zpotrf( cti_handle_get_m(task->handles[0]));
+        break;
+
+    case TASK_TRSM:
+        task->cl    = &cl_ztrsm;
+        task->flops = flops_ztrsm( side, cti_handle_get_m(task->handles[1]),
+                                   cti_handle_get_n(task->handles[1]));
+        break;
+
+     case TASK_HERK:
+        task->cl    = &cl_zherk;
+        task->flops = flops_zherk( cti_handle_get_m(task->handles[0]),
+                                   cti_handle_get_n(task->handles[0]));
         break;
 
 /* #if defined(PRECISION_z) || defined(PRECISION_c) */
