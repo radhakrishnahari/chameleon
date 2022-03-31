@@ -11,19 +11,109 @@
  *
  * @brief Chameleon zgetrf_nopiv wrappers
  *
- * @version 1.2.0
+ * @version 1.3.0
  * @author Omar Zenati
  * @author Mathieu Faverge
  * @author Emmanuel Agullo
  * @author Cedric Castagnede
  * @author Florent Pruvost
  * @author Alycia Lisito
- * @date 2022-02-22
+ * @author Matthieu Kuhn
+ * @date 2024-10-17
  *
  * @precisions normal z -> s d c
  *
  */
 #include "control/common.h"
+/**
+ ********************************************************************************
+ *
+ * @ingroup CHAMELEON_Complex64_t
+ *
+ *  @brief Allocate the required workspaces for asynchronous getrf
+ *
+ *******************************************************************************
+ *
+ * @param[in] A
+ *          The descriptor of the matrix A.
+ *
+ *******************************************************************************
+ *
+ * @retval An allocated opaque pointer to use in CHAMELEON_zgetrf_nopiv_Tile_Async()
+ * and to free with CHAMELEON_zgetrf_nopiv_WS_Free().
+ *
+ *******************************************************************************
+ *
+ * @sa CHAMELEON_zgetrf_nopiv_Tile_Async
+ * @sa CHAMELEON_zgetrf_nopiv_WS_Free
+ *
+ */
+void *CHAMELEON_zgetrf_nopiv_WS_Alloc( const CHAM_desc_t *A )
+{
+    CHAM_context_t *chamctxt;
+    struct chameleon_pzgetrf_nopiv_s *options;
+
+    chamctxt = chameleon_context_self();
+    if ( chamctxt == NULL ) {
+        return NULL;
+    }
+
+    options = calloc( 1, sizeof(struct chameleon_pzgetrf_nopiv_s) );
+    options->use_workspace = 0;
+
+    if ( ( ( A->p > 1 ) || ( A->q > 1 ) ) &&
+         ( A->get_rankof_init == chameleon_getrankof_2d ) &&
+         ( chamctxt->generic_enabled != CHAMELEON_TRUE ) )
+    {
+        int lookahead = chamctxt->lookahead;
+        options->use_workspace = 1;
+
+        chameleon_desc_init( &(options->WL), CHAMELEON_MAT_ALLOC_TILE,
+                             ChamComplexDouble, A->mb, A->nb, (A->mb * A->nb),
+                             A->mt * A->mb, A->nb * A->q * lookahead, 0, 0,
+                             A->mt * A->mb, A->nb * A->q * lookahead, A->p, A->q,
+                             NULL, NULL, A->get_rankof_init, A->get_rankof_init_arg );
+
+        chameleon_desc_init( &(options->WU), CHAMELEON_MAT_ALLOC_TILE,
+                             ChamComplexDouble,
+                             A->mb, A->nb, (A->mb * A->nb),
+                             A->mb * A->p * lookahead, A->nt * A->nb, 0, 0,
+                             A->mb * A->p * lookahead, A->nt * A->nb, A->p, A->q,
+                             NULL, NULL, A->get_rankof_init, A->get_rankof_init_arg );
+    }
+
+    return (void*)options;
+}
+
+/**
+ ********************************************************************************
+ *
+ * @ingroup CHAMELEON_Complex64_t
+ *
+ * @brief Free the allocated workspaces for asynchronous getrf
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] user_ws
+ *          On entry, the opaque pointer allocated by CHAMELEON_zgetrf_nopiv_WS_Alloc()
+ *          On exit, all data are freed.
+ *
+ *******************************************************************************
+ *
+ * @sa CHAMELEON_zgetrf_nopiv_Tile_Async
+ * @sa CHAMELEON_zgetrf_nopiv_WS_Alloc
+ *
+ */
+void CHAMELEON_zgetrf_nopiv_WS_Free( void *user_ws )
+{
+    struct chameleon_pzgetrf_nopiv_s *ws = (struct chameleon_pzgetrf_nopiv_s*)user_ws;
+
+    if ( ws->use_workspace ) {
+        chameleon_desc_destroy( &(ws->WL) );
+        chameleon_desc_destroy( &(ws->WU) );
+    }
+    free( ws );
+}
 
 /**
  ********************************************************************************
