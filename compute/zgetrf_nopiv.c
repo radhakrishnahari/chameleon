@@ -159,7 +159,7 @@ void CHAMELEON_zgetrf_nopiv_WS_Free( void *user_ws )
  *
  */
 int CHAMELEON_zgetrf_nopiv( int M, int N,
-                        CHAMELEON_Complex64_t *A, int LDA )
+                            CHAMELEON_Complex64_t *A, int LDA )
 {
     int NB;
     int status;
@@ -353,7 +353,7 @@ int CHAMELEON_zgetrf_nopiv_Tile_Async( CHAM_desc_t *A,
         return chameleon_request_fail(sequence, request, CHAMELEON_ERR_ILLEGAL_VALUE);
     }
 
-    chameleon_pzgetrf_nopiv( A, sequence, request );
+    chameleon_pzgetrf_nopiv( NULL, A, sequence, request );
 
     return CHAMELEON_SUCCESS;
 }

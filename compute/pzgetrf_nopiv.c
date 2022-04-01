@@ -11,7 +11,7 @@
  *
  * @brief Chameleon zgetrf_nopiv parallel algorithm
  *
- * @version 1.2.0
+ * @version 1.3.0
  * @author Omar Zenati
  * @author Mathieu Faverge
  * @author Emmanuel Agullo
@@ -20,7 +20,7 @@
  * @author Samuel Thibault
  * @author Terry Cojean
  * @author Matthieu Kuhn
- * @date 2022-02-22
+ * @date 2024-10-17
  * @precisions normal z -> s d c
  *
  */
@@ -31,9 +31,9 @@
 /**
  *  Parallel tile LU factorization with no pivoting - dynamic scheduling
  */
-void chameleon_pzgetrf_nopiv( CHAM_desc_t *A,
-                              RUNTIME_sequence_t *sequence,
-                              RUNTIME_request_t *request )
+void chameleon_pzgetrf_nopiv_generic( CHAM_desc_t        *A,
+                                      RUNTIME_sequence_t *sequence,
+                                      RUNTIME_request_t  *request )
 {
     CHAM_context_t *chamctxt;
     RUNTIME_option_t options;
@@ -120,4 +120,12 @@ void chameleon_pzgetrf_nopiv( CHAM_desc_t *A,
     }
 
     RUNTIME_options_finalize(&options, chamctxt);
+}
+
+void chameleon_pzgetrf_nopiv( struct chameleon_pzgetrf_nopiv_s *ws,
+                              CHAM_desc_t                      *A,
+                              RUNTIME_sequence_t               *sequence,
+                              RUNTIME_request_t                *request )
+{
+    chameleon_pzgetrf_nopiv_generic( A, sequence, request );
 }
