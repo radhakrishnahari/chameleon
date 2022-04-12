@@ -33,6 +33,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
+#include <math.h>
 #include "control/descriptor.h"
 #include "chameleon/runtime.h"
 
