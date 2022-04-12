@@ -53,7 +53,7 @@ testing_zposv_desc( run_arg_list_t *args, int check )
     int         seedA = run_arg_get_int( args, "seedA", testing_ialea() );
     int         seedB = run_arg_get_int( args, "seedB", testing_ialea() );
 
-    /* Descriptors */
+    // Descriptors of matrix A and X
     CHAM_desc_t *descA, *descX;
 
     CHAMELEON_Set( CHAMELEON_TILE_SIZE, nb );

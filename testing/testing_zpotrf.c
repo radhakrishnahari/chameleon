@@ -42,6 +42,10 @@ testing_zpotrf_desc( run_arg_list_t *args, int check )
     int         N     = run_arg_get_int( args, "N", 1000 );
     int         LDA   = run_arg_get_int( args, "LDA", N );
     int         seedA = run_arg_get_int( args, "seedA", testing_ialea() );
+    int         D     = parameters_getvalue_int( "nmpi_2dbc" );
+    int         Q     = D/P;
+    int         v     = parameters_getvalue_int( "mapping" );
+    int         w     = parameters_getvalue_int( "remap" );
 
     /* Descriptors */
     CHAM_desc_t *descA;
@@ -57,9 +61,24 @@ testing_zpotrf_desc( run_arg_list_t *args, int check )
     /* Calculates the solution */
     testing_start( &test_data );
     if ( async ) {
-        hres = CHAMELEON_zpotrf_Tile_Async( uplo, descA,
-                                            test_data.sequence, &test_data.request );
-        CHAMELEON_Desc_Flush( descA, test_data.sequence );
+      // Remap A before operation: 2DBC -> SBC
+      if ( ( A->get_rankof_init == chameleon_getrankof_2d ) &&
+           ( ( w == 1 ) || ( w == 3 ) ) )
+      {
+          CHAMELEON_Desc_Change_Distribution_Async( uplo, descA, chameleon_getrankof_sbc,
+                                                    test_data.sequence );
+      }
+      // Compute POTRF
+      hres = CHAMELEON_zpotrf_Tile_Async( uplo, descA, test_data.sequence, &test_data.request );
+      // Remap A after operation: SBC -> 2DBC
+      if ( ( ( A->get_rankof_init != chameleon_getrankof_2d ) && ( w == 2 ) ) ||
+           ( ( A->get_rankof_init == chameleon_getrankof_2d ) && ( w == 3 ) ) )
+      {
+          CHAMELEON_Desc_Change_Distribution_Async( uplo, descA, chameleon_getrankof_2d,
+                                                    test_data.sequence );
+      }
+      // Flush data
+      CHAMELEON_Desc_Flush( descA, test_data.sequence );
     }
     else {
         hres = CHAMELEON_zpotrf_Tile( uplo, descA );
