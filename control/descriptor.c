@@ -165,6 +165,21 @@ void chameleon_desc_set_datadist( CHAM_desc_t *to, cham_data_dist_t *from )
 }
 
 /**
+ * Helper to visualize mapping
+ */
+void display_mapping( CHAM_desc_t *desc)
+{
+  for (int i = 0; i < desc->mt; i++) {
+    for (int j = 0; j < desc->nt; j++) {
+      //printf((i%((v == 0) ? P : R) == j%((v == 0) ? P : R)) ? "[" : " ");
+      printf("%2d", desc->get_rankof(desc, i, j));
+      //printf((i%((v == 0) ? P : R) == j%((v == 0) ? P : R)) ? "]" : " ");
+    }
+    printf("\n");
+  }
+}
+
+/**
  ******************************************************************************
  *
  * @ingroup Descriptor
