@@ -98,7 +98,7 @@ and [[sec:ug:brew][Brew]] on macOS.
     make -j5
     sudo make install
 
-    # Install PaRSEC: to be used in place of StarPU
+    # Install PaRSEC
     mkdir -p $HOME/install
     cd $HOME/install
     git clone https://bitbucket.org/mfaverge/parsec.git
@@ -111,7 +111,7 @@ and [[sec:ug:brew][Brew]] on macOS.
     make -j5
     sudo make install
 
-    # Install QUARK: to be used in place of StarPU
+    # Install QUARK
     mkdir -p $HOME/install
     cd $HOME/install
     git clone https://github.com/ecrc/quark
