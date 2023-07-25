@@ -77,8 +77,8 @@ typedef int8_t cham_bool_t;
 #undef CHAMELEON_HAS_COMPLEX_H
 #endif /* __SUNPRO_C */
 
-#ifndef __cplusplus
-    #undef CHAMELEON_COMPLEX_CPP
+#ifdef __cplusplus
+    #define CHAMELEON_COMPLEX_CPP
 #endif
 
 #if defined(CHAMELEON_COMPLEX_CPP)
