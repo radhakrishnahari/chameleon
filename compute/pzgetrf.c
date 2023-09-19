@@ -630,6 +630,7 @@ void chameleon_pzgetrf( struct chameleon_pzgetrf_s *ws,
 
     int k, m, n;
     int min_mnt = chameleon_min( A->mt, A->nt );
+    int kmin, kmax;
 
     chamctxt = chameleon_context_self();
     if (sequence->status != CHAMELEON_SUCCESS) {
@@ -637,8 +638,9 @@ void chameleon_pzgetrf( struct chameleon_pzgetrf_s *ws,
     }
     RUNTIME_options_init( &options, chamctxt, sequence, request );
 
-    for (k = 0; k < min_mnt; k++) {
-        RUNTIME_iteration_push( chamctxt, k );
+    kmin = chameleon_max( 0,       chamctxt->first_step );
+    kmax = chameleon_min( min_mnt, chamctxt->last_step  );
+    for (k = kmin; k < kmax; k++ ) {
 
         options.priority = A->nt;
         /*
@@ -680,13 +682,15 @@ void chameleon_pzgetrf( struct chameleon_pzgetrf_s *ws,
     CHAMELEON_Ipiv_Flush( IPIV, sequence );
     chameleon_pivot_destroy_submit( pivot, sequence );
 
+    options.priority = 0;
+
     /* Backward pivoting */
     if ( ws->backperm_enabled ) {
 
         /* Disable allreduce for the backward permutation */
         ws->laswp->allreduce = 0;
 
-        for (k = 1; k < min_mnt; k++) {
+        for (k = kmin+1; k < kmax; k++) {
             for (n = 0; n < k; n++) {
                 if ( chameleon_involved_in_panelk_2dbc( A, k ) ||
                      chameleon_involved_in_panelk_2dbc( A, n ) )
