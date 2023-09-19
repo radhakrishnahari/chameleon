@@ -34,6 +34,7 @@
 #include "control/context.h"
 #include "chameleon/runtime.h"
 #include <stdlib.h>
+#include <limits.h>
 
 #if !defined(CHAMELEON_SIMULATION)
 #include "coreblas.h"
@@ -146,6 +147,12 @@ CHAM_context_t *chameleon_context_create()
 
     chamctxt->householder = chameleon_getenv_householder( "CHAMELEON_HOUSEHOLDER_MODE", ChamFlatHouseholder );
     chamctxt->translation = chameleon_getenv_translation( "CHAMELEON_TRANSLATION_MODE", ChamInPlace );
+
+    /* First and last step for main algorithms to get partial traces for example */
+    chamctxt->first_step = chameleon_getenv_get_value_int( "CHAMELEON_FIRST_STEP", 0       );
+    chamctxt->first_step = chameleon_max( chamctxt->first_step, 0 );
+    chamctxt->last_step  = chameleon_getenv_get_value_int( "CHAMELEON_LAST_STEP",  INT_MAX );
+    chamctxt->last_step  = ( chamctxt->last_step >= 0 ) ? chamctxt->last_step : 0;
 
     /* Initialize scheduler */
     RUNTIME_context_create(chamctxt);

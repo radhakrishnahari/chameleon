@@ -51,6 +51,10 @@ typedef struct chameleon_context_s {
 
     int                nb;
     int                ib;
+
+    int                first_step;         /**< First step to run in the main algorithm */
+    int                last_step;          /**< Last step to run in the main algorithm  */
+
     int                rhblock;            /**< block size for tree-based (reduction) Householder     */
     int                lookahead;          /**< depth of the look ahead in algorithms                 */
     void              *schedopt;           /**< structure for runtimes                                */
