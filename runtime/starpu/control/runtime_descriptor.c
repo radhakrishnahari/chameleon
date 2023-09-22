@@ -404,6 +404,7 @@ void *RUNTIME_data_getaddr( const CHAM_desc_t *A, int m, int n )
     {
         int64_t block_ind = A->lmt * nn + mm;
         starpu_mpi_data_register( *ptrtile, A->mpitag + block_ind, owner );
+        cti_set_reduction_methods(*ptrtile);
     }
 #endif /* defined(CHAMELEON_USE_MPI) */
 

@@ -56,4 +56,6 @@ cti_interface_get( starpu_cham_tile_interface_t *interface )
 void starpu_cham_tile_interface_init();
 void starpu_cham_tile_interface_fini();
 
+void cti_set_reduction_methods( starpu_data_handle_t handle);
+
 #endif /* _cham_tile_interface_h_ */

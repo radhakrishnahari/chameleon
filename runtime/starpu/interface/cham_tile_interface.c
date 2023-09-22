@@ -742,6 +742,122 @@ cti_free_datatype( MPI_Datatype *datatype )
 }
 #endif
 
+static int
+input_max(cham_flttype_t type, int h, void * redux, void * input){
+    if(type == ChamRealFloat){
+        return fabs(((float*) redux)[h]) < fabs(((float*) input)[h]);
+    }
+    else if (type == ChamRealDouble)
+    {
+        return fabs(((double*) redux)[h]) < fabs(((double*) input)[h]);
+    }
+    else if (type == ChamComplexFloat)
+    {
+        return cabsf(((CHAMELEON_Complex32_t*) redux)[h]) < cabsf(((CHAMELEON_Complex32_t*) input)[h]);
+    }
+    else if (type == ChamComplexDouble)
+    {
+        return cabs(((CHAMELEON_Complex64_t*) redux)[h]) < cabs(((CHAMELEON_Complex64_t*) input)[h]);
+    }
+}
+
+void
+cl_cti_redux_cpu_func(void *descr[], void *cl_arg)
+{
+    starpu_cham_tile_interface_t *cti_redux = ((starpu_cham_tile_interface_t *) descr[0]);
+    starpu_cham_tile_interface_t *cti_input = ((starpu_cham_tile_interface_t *) descr[1]);
+
+    CHAM_tile_t * tile_redux = &(cti_redux->tile);
+    CHAM_tile_t * tile_input = &(cti_input->tile);
+
+    int M = tile_input->m;
+    int N = tile_input->n;
+
+    cham_flttype_t type = cti_redux->flttype;
+    void * input_ptr = CHAM_tile_get_ptr(tile_input);
+    void * redux_ptr = CHAM_tile_get_ptr(tile_redux);
+    /* Redux for tiles is the sum of the two tiles */
+    if(type == ChamRealFloat){
+#if defined CHAMELEON_PREC_S
+        CORE_sgeadd( ChamNoTrans,
+                     M, N,
+                     1.0, input_ptr, tile_input->ld,
+                     1.0, redux_ptr, tile_redux->ld );
+#endif
+    }
+    else if (type == ChamRealDouble)
+    {
+#if defined CHAMELEON_PREC_D
+        CORE_dgeadd( ChamNoTrans,
+                     M, N,
+                     1.0, input_ptr, tile_input->ld,
+                     1.0, redux_ptr, tile_redux->ld );
+#endif
+    }
+    else if (type == ChamComplexFloat)
+    {
+#if defined CHAMELEON_PREC_C
+        CORE_cgeadd( ChamNoTrans,
+                     M, N,
+                     1.0, input_ptr, tile_input->ld,
+                     1.0, redux_ptr, tile_redux->ld );
+#endif
+    }
+    else if (type == ChamComplexDouble)
+    {
+#if defined CHAMELEON_PREC_Z
+        CORE_zgeadd( ChamNoTrans,
+                     M, N,
+                     1.0, input_ptr, tile_input->ld,
+                     1.0, redux_ptr, tile_redux->ld );
+#endif
+    }
+    return;
+}
+/*
+ * Codelet definition
+ */
+CODELETS_CPU(cti_redux, cl_cti_redux_cpu_func)
+
+static void
+cl_cti_init_redux_cpu_func( void *descr[], void *cl_arg )
+{
+    (void)cl_arg;
+    /* (void)descr; */
+    starpu_cham_tile_interface_t *cti_redux = ((starpu_cham_tile_interface_t *) descr[0]);
+    /* Initialize tile entries to 0 */
+    size_t        size = cti_redux->tilesize;
+    CHAM_tile_t * tile = &(cti_redux->tile);
+    memset(CHAM_tile_get_ptr(tile), 0, size);
+}
+/*
+ * Codelet definition
+ */
+CODELETS_CPU( cti_init_redux, cl_cti_init_redux_cpu_func );
+
+static void cti_redux_init( void ) __attribute__( ( constructor ) );
+static void cti_redux_init( void )
+{
+    cl_cti_init_redux.nbuffers = 1;
+    cl_cti_init_redux.modes[0] = STARPU_W;
+    cl_cti_init_redux.name = "CHAM_TILE REDUX INIT";
+
+    cl_cti_redux.nbuffers = 2;
+    cl_cti_redux.modes[0] = STARPU_RW | STARPU_COMMUTE;
+    cl_cti_redux.modes[1] = STARPU_R;
+    cl_cti_redux.name = "CHAM_TILE REDUX TASK";
+}
+
+void
+cti_set_reduction_methods( starpu_data_handle_t handle)
+{
+#if defined(HAVE_STARPU_MPI_REDUX)
+    starpu_data_set_reduction_methods( handle ,
+                                       &cl_cti_redux,
+                                       &cl_cti_init_redux );
+#endif
+}
+
 void
 starpu_cham_tile_interface_init()
 {
@@ -760,6 +876,7 @@ starpu_cham_tile_interface_init()
   #endif
 #endif
     }
+    cti_redux_init();
 }
 
 void
