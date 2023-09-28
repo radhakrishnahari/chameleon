@@ -75,6 +75,7 @@ if (CUDAToolkit_FOUND)
     ${ZSRC}
     cuda_zlag2c.cu
     cuda_dlag2h.cu
+    cuda_zlaswp.cu
   )
 endif()
 

@@ -33,12 +33,30 @@ static void cl_zlaswp_get_cpu_func( void *descr[], void *cl_arg )
 
     TCORE_zlaswp_get( m0, A->m, A->n, k, A, B, perm );
 }
+
+#  if defined(CHAMELEON_USE_CUDA)
+static void cl_zlaswp_get_cuda_func( void *descr[], void *cl_arg )
+{
+    int            m0, k, *perm;
+    CHAM_tile_t   *A, *B;
+    cublasHandle_t handle = starpu_cublas_get_local_handle();
+
+    starpu_codelet_unpack_args( cl_arg, &m0, &k );
+
+    perm = (int *)STARPU_VECTOR_GET_PTR( descr[0] );
+    A    = (CHAM_tile_t *) cti_interface_get( descr[1] );
+    B    = (CHAM_tile_t *) cti_interface_get( descr[2] );
+
+    CUDA_zlaswp_get( m0, A->m, A->n, k, A->mat, A->ld, B->mat, B->ld, perm, handle );
+}
+#  endif
 #endif
 
 /*
  * Codelet definition
  */
-CODELETS_CPU( zlaswp_get, cl_zlaswp_get_cpu_func )
+//CODELETS_CPU( zlaswp_get, cl_zlaswp_get_cpu_func )
+CODELETS( zlaswp_get, cl_zlaswp_get_cpu_func, cl_zlaswp_get_cuda_func, STARPU_CUDA_ASYNC )
 
 void INSERT_TASK_zlaswp_get( const RUNTIME_option_t *options,
                              int m0, int k,
@@ -49,6 +67,10 @@ void INSERT_TASK_zlaswp_get( const RUNTIME_option_t *options,
     struct starpu_codelet *codelet = &cl_zlaswp_get;
 
     //void (*callback)(void*) = options->profiling ? cl_zlaswp_get_callback : NULL;
+    cl_zlaswp_get.specific_nodes = 1;
+    cl_zlaswp_get.nodes[0] = STARPU_SPECIFIC_NODE_CPU;
+    cl_zlaswp_get.nodes[1] = STARPU_SPECIFIC_NODE_LOCAL;
+    cl_zlaswp_get.nodes[2] = STARPU_SPECIFIC_NODE_LOCAL;
 
     rt_starpu_insert_task(
         codelet,
@@ -77,12 +99,30 @@ static void cl_zlaswp_set_cpu_func( void *descr[], void *cl_arg )
 
     TCORE_zlaswp_set( m0, B->m, B->n, k, A, B, invp );
 }
+
+#  if defined(CHAMELEON_USE_CUDA)
+static void cl_zlaswp_set_cuda_func( void *descr[], void *cl_arg )
+{
+    int            m0, k, *invp;
+    CHAM_tile_t   *A, *B;
+    cublasHandle_t handle = starpu_cublas_get_local_handle();
+
+    starpu_codelet_unpack_args( cl_arg, &m0, &k );
+
+    invp = (int *)STARPU_VECTOR_GET_PTR( descr[0] );
+    A    = (CHAM_tile_t *) cti_interface_get( descr[1] );
+    B    = (CHAM_tile_t *) cti_interface_get( descr[2] );
+
+    CUDA_zlaswp_set( m0, B->m, B->n, k, A->mat, A->ld, B->mat, B->ld, invp, handle );
+}
+#  endif
 #endif
 
 /*
  * Codelet definition
  */
-CODELETS_CPU( zlaswp_set, cl_zlaswp_set_cpu_func )
+//CODELETS_CPU( zlaswp_set, cl_zlaswp_set_cpu_func )
+CODELETS( zlaswp_set, cl_zlaswp_set_cpu_func, cl_zlaswp_set_cuda_func,  STARPU_CUDA_ASYNC )
 
 void INSERT_TASK_zlaswp_set( const RUNTIME_option_t *options,
                              int m0, int k,
@@ -91,6 +131,10 @@ void INSERT_TASK_zlaswp_set( const RUNTIME_option_t *options,
                              const CHAM_desc_t *B, int Bm, int Bn )
 {
     struct starpu_codelet *codelet = &cl_zlaswp_set;
+    cl_zlaswp_set.specific_nodes = 1;
+    cl_zlaswp_set.nodes[0] = STARPU_SPECIFIC_NODE_CPU;
+    cl_zlaswp_set.nodes[1] = STARPU_SPECIFIC_NODE_LOCAL;
+    cl_zlaswp_set.nodes[2] = STARPU_SPECIFIC_NODE_LOCAL;
 
     //void (*callback)(void*) = options->profiling ? cl_zlaswp_set_callback : NULL;
 
