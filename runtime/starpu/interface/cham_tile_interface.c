@@ -814,10 +814,83 @@ cl_cti_redux_cpu_func(void *descr[], void *cl_arg)
     }
     return;
 }
+
+#if defined(CHAMELEON_USE_CUDA)
+void
+cl_cti_redux_cuda_func(void *descr[], void *cl_arg)
+{
+    starpu_cham_tile_interface_t *cti_redux = ((starpu_cham_tile_interface_t *) descr[0]);
+    starpu_cham_tile_interface_t *cti_input = ((starpu_cham_tile_interface_t *) descr[1]);
+
+    cublasHandle_t handle = starpu_cublas_get_local_handle();
+
+    CHAM_tile_t * tile_redux = &(cti_redux->tile);
+    CHAM_tile_t * tile_input = &(cti_input->tile);
+
+    int M = tile_input->m;
+    int N = tile_input->n;
+
+    cham_flttype_t type = cti_redux->flttype;
+    const void * input_ptr = CHAM_tile_get_ptr(tile_input);
+    void * redux_ptr = CHAM_tile_get_ptr(tile_redux);
+
+
+    /* Redux for tiles is the sum of the two tiles */
+    if(type == ChamRealFloat){
+#if defined CHAMELEON_PREC_S
+        float one=1.0;
+        cublasSgeam( handle,
+                     CUBLAS_OP_N, CUBLAS_OP_N,
+                     M, N,
+                     &one, input_ptr, tile_input->ld,
+                     &one, redux_ptr, tile_redux->ld,
+                           redux_ptr, tile_redux->ld );
+#endif
+    }
+    else if (type == ChamRealDouble)
+    {
+#if defined CHAMELEON_PREC_D
+        double one=1.0;
+        cublasDgeam( handle,
+                     CUBLAS_OP_N, CUBLAS_OP_N,
+                     M, N,
+                     &one, input_ptr, tile_input->ld,
+                     &one, redux_ptr, tile_redux->ld,
+                           redux_ptr, tile_redux->ld );
+#endif
+    }
+    else if (type == ChamComplexFloat)
+    {
+#if defined CHAMELEON_PREC_C
+        cuComplex one=1.0;
+        cublasCgeam( handle,
+                     CUBLAS_OP_N, CUBLAS_OP_N,
+                     M, N,
+                     &one, input_ptr, tile_input->ld,
+                     &one, redux_ptr, tile_redux->ld,
+                           redux_ptr, tile_redux->ld );
+#endif
+    }
+    else if (type == ChamComplexDouble)
+    {
+#if defined CHAMELEON_PREC_Z
+        cuDoubleComplex one=1.0;
+        cublasZgeam( handle,
+                     CUBLAS_OP_N, CUBLAS_OP_N,
+                     M, N,
+                     &one, input_ptr, tile_input->ld,
+                     &one, redux_ptr, tile_redux->ld,
+                           redux_ptr, tile_redux->ld );
+#endif
+    }
+    return;
+}
+#endif
+
 /*
  * Codelet definition
  */
-CODELETS_CPU(cti_redux, cl_cti_redux_cpu_func)
+CODELETS(cti_redux, cl_cti_redux_cpu_func, cl_cti_redux_cuda_func, STARPU_CUDA_ASYNC)
 
 static void
 cl_cti_init_redux_cpu_func( void *descr[], void *cl_arg )
@@ -830,10 +903,29 @@ cl_cti_init_redux_cpu_func( void *descr[], void *cl_arg )
     CHAM_tile_t * tile = &(cti_redux->tile);
     memset(CHAM_tile_get_ptr(tile), 0, size);
 }
+
+#if defined(CHAMELEON_USE_CUDA)
+cl_cti_init_redux_cuda_func( void *descr[], void *cl_arg )
+{
+    (void)cl_arg;
+    /* (void)descr; */
+    starpu_cham_tile_interface_t *cti_redux = ((starpu_cham_tile_interface_t *) descr[0]);
+    /* Initialize tile entries to 0 */
+    size_t        size = cti_redux->tilesize;
+    CHAM_tile_t * tile = &(cti_redux->tile);
+    cublasStatus_t rc;
+
+    rc = cudaMemset(CHAM_tile_get_ptr(tile), 0, size);
+    assert( rc == CUBLAS_STATUS_SUCCESS );
+
+    (void)rc;
+
+}
+#endif
 /*
  * Codelet definition
  */
-CODELETS_CPU( cti_init_redux, cl_cti_init_redux_cpu_func );
+CODELETS( cti_init_redux, cl_cti_init_redux_cpu_func,  cl_cti_init_redux_cuda_func, STARPU_CUDA_ASYNC);
 
 static void cti_redux_init( void ) __attribute__( ( constructor ) );
 static void cti_redux_init( void )
