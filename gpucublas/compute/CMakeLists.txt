@@ -76,6 +76,7 @@ if (CUDAToolkit_FOUND)
     cuda_zlag2c.cu
     cuda_dlag2h.cu
     cuda_zlaswp.cu
+    cuda_zlacpy.cu
   )
 endif()
 
