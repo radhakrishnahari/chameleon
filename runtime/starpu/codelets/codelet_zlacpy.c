@@ -108,7 +108,7 @@ cl_zlacpyx_cuda_func(void *descr[], void *cl_arg)
     CUDA_zlacpy( clargs->uplo, clargs->m, clargs->n,
                  ((CHAMELEON_Complex64_t *)tileA->mat)+clargs->displA, tileA->ld,
                  ((CHAMELEON_Complex64_t *)tileB->mat)+clargs->displB, tileB->ld,
-                 handle )
+                 handle );
 }
 #  endif
 #endif /* !defined(CHAMELEON_SIMULATION) */

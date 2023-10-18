@@ -1,13 +1,13 @@
 /**
  *
- * @file cuda_zlaswp.c
+ * @file cuda_zlacpy.c
  *
  * @copyright 2012-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  ***
  *
- * @brief Chameleon cuda_zgetrf with partial pivoting CPU kernel
+ * @brief Chameleon cuda_zlacpy largely inspired rom magmablas zlacpy
  *
  * @version 1.0.0
  * @author Xavier Lacoste
@@ -17,6 +17,11 @@
  */
 #include "gpucublas.h"
 
+// To deal with really large matrices, this launchs multiple super blocks,
+// each with up to 64K-1 x 64K-1 thread blocks, which is up to 4194240 x 4194240 matrix with BLK=64.
+// CUDA architecture 2.0 limits each grid dimension to 64K-1.
+// Instances arose for vectors used by sparse matrices with M > 4194240, though N is small.
+const int max_blocks = 65535;
 
 // BLK_X and BLK_Y need to be equal for zlaset_q to deal with diag & offdiag
 // when looping over super blocks.
@@ -224,41 +229,40 @@ void zlacpy_upper_kernel(
  *          ldb >= max(1,m).
  *
  */
-extern "C"
 int CUDA_zlacpy(cham_uplo_t uplo, int M, int N,
                 const CHAMELEON_Complex64_t *A, int LDA,
                 CHAMELEON_Complex64_t *B, int LDB,
                 cublasHandle_t handle )
 {
-#define dA(i_, j_) (dA + (i_) + (j_)*ldda)
-#define dB(i_, j_) (dB + (i_) + (j_)*lddb)
+#define dA(i_, j_) (A + (i_) + (j_)*LDA)
+#define dB(i_, j_) (B + (i_) + (j_)*LDB)
 
   cudaStream_t stream;
-  magma_int_t info = 0;
+  int info = 0;
   if ( uplo != ChamLower && uplo != ChamUpper && uplo != ChamUpperLower )
     info = -1;
-  else if ( m < 0 )
+  else if ( M < 0 )
     info = -2;
-  else if ( n < 0 )
+  else if ( N < 0 )
     info = -3;
-  else if ( ldda < max(1,m))
+  else if (LDA < max(1,M))
     info = -5;
-  else if ( lddb < max(1,m))
+  else if ( LDB < max(1,M))
     info = -7;
 
   if ( info != 0 ) {
     return info;
   }
 
-  if ( m == 0 || n == 0 ) {
+  if ( M == 0 || N == 0 ) {
     return 0;
   }
 
-      cublasGetStream( handle, &stream );
+  cublasGetStream( handle, &stream );
 
   assert( BLK_X == BLK_Y );
   const int super_NB = max_blocks*BLK_X;
-  dim3 super_grid( magma_ceildiv( m, super_NB ), magma_ceildiv( n, super_NB ) );
+  dim3 super_grid( chameleon_ceil( M, super_NB ), chameleon_ceil( N, super_NB ) );
 
   dim3 threads( BLK_X, 1 );
   dim3 grid;
@@ -266,36 +270,36 @@ int CUDA_zlacpy(cham_uplo_t uplo, int M, int N,
   int mm, nn;
   if ( uplo == ChamLower ) {
     for( unsigned int i=0; i < super_grid.x; ++i ) {
-      mm = (i == super_grid.x-1 ? m % super_NB : super_NB);
-      grid.x = magma_ceildiv( mm, BLK_X );
+      mm = (i == super_grid.x-1 ? M % super_NB : super_NB);
+      grid.x = chameleon_ceil( mm, BLK_X );
       for( unsigned int j=0; j < super_grid.y && j <= i; ++j ) {  // from left to diagonal
-        nn = (j == super_grid.y-1 ? n % super_NB : super_NB);
-        grid.y = magma_ceildiv( nn, BLK_Y );
+        nn = (j == super_grid.y-1 ? N % super_NB : super_NB);
+        grid.y = chameleon_ceil( nn, BLK_Y );
         if ( i == j ) {  // diagonal super block
           zlacpy_lower_kernel<<< grid, threads, 0, stream >>>
-            ( mm, nn, dA(i*super_NB, j*super_NB), ldda, dB(i*super_NB, j*super_NB), lddb );
+            ( mm, nn, dA(i*super_NB, j*super_NB), LDA, dB(i*super_NB, j*super_NB), LDB );
         }
         else {           // off diagonal super block
           zlacpy_full_kernel <<< grid, threads, 0, stream >>>
-                                 ( mm, nn, dA(i*super_NB, j*super_NB), ldda, dB(i*super_NB, j*super_NB), lddb );
+                                 ( mm, nn, dA(i*super_NB, j*super_NB), LDA, dB(i*super_NB, j*super_NB), LDB );
         }
       }
     }
   }
   else if ( uplo == ChamUpper ) {
     for( unsigned int i=0; i < super_grid.x; ++i ) {
-      mm = (i == super_grid.x-1 ? m % super_NB : super_NB);
-      grid.x = magma_ceildiv( mm, BLK_X );
+      mm = (i == super_grid.x-1 ? M % super_NB : super_NB);
+      grid.x = chameleon_ceil( mm, BLK_X );
       for( unsigned int j=i; j < super_grid.y; ++j ) {  // from diagonal to right
-        nn = (j == super_grid.y-1 ? n % super_NB : super_NB);
-        grid.y = magma_ceildiv( nn, BLK_Y );
+        nn = (j == super_grid.y-1 ? N % super_NB : super_NB);
+        grid.y = chameleon_ceil( nn, BLK_Y );
         if ( i == j ) {  // diagonal super block
           zlacpy_upper_kernel<<< grid, threads, 0, stream >>>
-            ( mm, nn, dA(i*super_NB, j*super_NB), ldda, dB(i*super_NB, j*super_NB), lddb );
+            ( mm, nn, dA(i*super_NB, j*super_NB), LDA, dB(i*super_NB, j*super_NB), LDB );
         }
         else {           // off diagonal super block
           zlacpy_full_kernel <<< grid, threads, 0, stream >>>
-            ( mm, nn, dA(i*super_NB, j*super_NB), ldda, dB(i*super_NB, j*super_NB), lddb );
+            ( mm, nn, dA(i*super_NB, j*super_NB), LDA, dB(i*super_NB, j*super_NB), LDB );
         }
       }
     }
@@ -303,14 +307,15 @@ int CUDA_zlacpy(cham_uplo_t uplo, int M, int N,
   else {
     // TODO: use cudaMemcpy or cudaMemcpy2D ?
     for( unsigned int i=0; i < super_grid.x; ++i ) {
-      mm = (i == super_grid.x-1 ? m % super_NB : super_NB);
-      grid.x = magma_ceildiv( mm, BLK_X );
+      mm = (i == super_grid.x-1 ? M % super_NB : super_NB);
+      grid.x = chameleon_ceil( mm, BLK_X );
       for( unsigned int j=0; j < super_grid.y; ++j ) {  // full row
-        nn = (j == super_grid.y-1 ? n % super_NB : super_NB);
-        grid.y = magma_ceildiv( nn, BLK_Y );
+        nn = (j == super_grid.y-1 ? N % super_NB : super_NB);
+        grid.y = chameleon_ceil( nn, BLK_Y );
         zlacpy_full_kernel <<< grid, threads, 0, stream >>>
-          ( mm, nn, dA(i*super_NB, j*super_NB), ldda, dB(i*super_NB, j*super_NB), lddb );
+          ( mm, nn, dA(i*super_NB, j*super_NB), LDA, dB(i*super_NB, j*super_NB), LDB );
       }
     }
   }
+  return 0;
 }
