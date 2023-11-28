@@ -235,6 +235,11 @@ cmake_dependent_option(CHAMELEON_HMAT_EXTERNAL
                     "Use external hmat-oss library" OFF
                     "CHAMELEON_USE_HMATOSS" OFF)
 
+option(CHAMELEON_USE_LR "Enable low rank kernels" ON)
+cmake_dependent_option(CHAMELEON_RAPACK_EXTERNAL
+                    "Use external rapack library" OFF
+                    "CHAMELEON_USE_LR" OFF)
+
 option(CHAMELEON_RUNTIME_SYNC "Enable synchronous task submission when available to debug the code without parallelism" OFF)
 if (CHAMELEON_RUNTIME_SYNC)
     message("-- ${BoldGreen}CHAMELEON_RUNTIME_SYNC is set to ON, turn it OFF to avoid synchronisation in the tasks submission${ColourReset}")
@@ -340,6 +345,27 @@ if ( CHAMELEON_USE_HMATOSS )
   else()
     message( STATUS "HMAT: Use internal HMat-OSS" )
   endif()
+endif()
+
+if ( CHAMELEON_USE_LR )
+    if ( CHAMELEON_RAPACK_EXTERNAL )
+        find_package(RAPACK REQUIRED)
+        if(RAPACK_FOUND)
+            if( NOT TARGET RAPACK::rapack )
+                set_target_properties(RAPACK::rapack PROPERTIES
+                    INTERFACE_INCLUDE_DIRECTORIES "${RAPACK_INCLUDE_DIRS}"
+                    INTERFACE_COMPILE_DEFINITIONS "${RAPACK_DEFINITIONS}"
+                    INTERFACE_LINK_DIRECTORIES "${RAPACK_LIBRARY_DIRS}"
+                    INTERFACE_LINK_LIBRARIES "rapack"
+                    )
+            endif()
+            message( STATUS "RAPACK: Found" )
+        else()
+            message( ERROR "RAPACK: Not found" )
+        endif()
+    else()
+        message( STATUS "RAPACK: Use internal RAPACK" )
+    endif()
 endif()
 
 ###############################################################################
@@ -692,6 +718,19 @@ endif()
 # ----------------------------
 
 set(CHAMELEON_SOURCES_TARGETS "" CACHE INTERNAL "List of targets of sources")
+
+###############################################################################
+# RAPACK library (low rank kernels) #
+###################################
+if (CHAMELEON_USE_LR AND NOT CHAMELEON_RAPACK_EXTERNAL)
+    add_subdirectory(rapack)
+    add_library(RAPACK::rapack ALIAS rapack)
+endif()
+
+###############################################################################
+# runtime_support library
+###############################################################################
+add_subdirectory(runtime_support)
 
 ###############################################################################
 # coreblas library (kernels for CPUs, interface to cblas/lapacke) #

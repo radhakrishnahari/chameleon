@@ -10,3 +10,7 @@
 [submodule "testing/test_fembem"]
         path = testing/test_fembem
         url = https://gitlab.inria.fr/solverstack/test_fembem.git
+[submodule "rapack"]
+	path = rapack
+	url = https://gitlab.inria.fr/acalluau/rapack.git
+	branch = advanced_memory_management
