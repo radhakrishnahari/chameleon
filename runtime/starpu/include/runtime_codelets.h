@@ -78,13 +78,13 @@
     };                                                                  \
                                                                         \
     struct starpu_codelet cl_##cl_name = {                              \
-        .where     = (_original_location_),                             \
-        .cpu_func  = ((cpu_func_name)),                                 \
+        .where        = (_original_location_),                          \
+        .cpu_func     = ((cpu_func_name)),                              \
         CODELET_GPU_FIELDS( gpu_func_name, gpu_flags )                  \
-        .nbuffers  = STARPU_VARIABLE_NBUFFERS,                          \
-        .model     = &cl_##cl_name##_model,                             \
-        .energy_model     = &cl_##cl_name##_energy_model,               \
-        .name      = #cl_name                                           \
+        .nbuffers     = STARPU_VARIABLE_NBUFFERS,                       \
+        .model        = &cl_##cl_name##_model,                          \
+        .energy_model = &cl_##cl_name##_energy_model,                   \
+        .name         = #cl_name                                        \
     };                                                                  \
                                                                         \
     void cl_##cl_name##_restrict_where(uint32_t where)                  \

@@ -52,7 +52,7 @@ void RUNTIME_start_energy() {
     assert( __chameleon_starpu_energy_ntask == 0 );
 }
 
-int chameleon_starpu_register_energy_task()
+int chameleon_starpu_register_energy_task( )
 {
     if ( __chameleon_starpu_energy_task == NULL ) {
         __chameleon_starpu_energy_task = starpu_task_create();

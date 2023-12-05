@@ -22,8 +22,6 @@
  */
 #include "chameleon_starpu.h"
 #include <math.h>
-#include "runtime_codelet_z.h"
-#include "starpu_perfmodel.h"
 #if defined(STARPU_USE_FXT)
 #include <starpu_fxt.h>
 #endif

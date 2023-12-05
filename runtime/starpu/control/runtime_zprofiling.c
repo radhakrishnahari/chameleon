@@ -128,7 +128,8 @@ RUNTIME_zget_codelet( cham_tasktype_t kernel )
 
     case TASK_TRSM:
         task->cl    = &cl_ztrsm;
-        task->flops = flops_ztrsm( ChamLeft, cti_handle_get_m(task->handles[1]),
+        task->flops = flops_ztrsm( ChamLeft,
+                                   cti_handle_get_m(task->handles[1]),
                                    cti_handle_get_n(task->handles[1]));
         break;
 

@@ -50,7 +50,6 @@ void INSERT_TASK_map( const RUNTIME_option_t *options,
 {
 
     struct starpu_codelet *codelet = &cl_map;
-    static int times = 0;
     void (*callback)(void*) = options->profiling ? cl_map_callback : NULL;
     char                  *cl_name = (name == NULL) ? "map" : name;
 
