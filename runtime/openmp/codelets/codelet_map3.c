@@ -342,9 +342,8 @@ static access_fct_t array_access_fct_t[3][3][3] = {
     }
 };
 
-void INSERT_TASK_map3(const RUNTIME_option_t *options,
+void INSERT_TASK_map3(const RUNTIME_option_t *options, cham_uplo_t uplo,
                       cham_access_t accessA, cham_access_t accessB, cham_access_t accessC,
-                      cham_uplo_t uplo,
                       const CHAM_desc_t *A, int Am, int An,
                       const CHAM_desc_t *B, int Bm, int Bn,
                       const CHAM_desc_t *C, int Cm, int Cn,

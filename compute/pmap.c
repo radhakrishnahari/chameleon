@@ -39,13 +39,13 @@ void chameleon_pmap( cham_access_t access, cham_uplo_t uplo, CHAM_desc_t *A,
         for (n = 0; n < A->nt; n++) {
             for (m = 0; m < n; m++) {
                 INSERT_TASK_map(
-                    &options,
-                    access, ChamUpperLower, A(m, n),
+                    &options, ChamUpperLower,
+                    access, A(m, n),
                     op_fct, op_args, name );
             }
             INSERT_TASK_map(
-                &options,
-                access, uplo, A(n, n),
+                &options, uplo,
+                access, A(n, n),
                 op_fct, op_args, name );
         }
         break;
@@ -53,13 +53,13 @@ void chameleon_pmap( cham_access_t access, cham_uplo_t uplo, CHAM_desc_t *A,
     case ChamLower:
         for (n = 0; n < A->nt; n++) {
             INSERT_TASK_map(
-                &options,
-                access, uplo, A(n, n),
+                &options, uplo,
+                access, A(n, n),
                 op_fct, op_args, name );
             for (m = n+1; m < A->mt; m++) {
                 INSERT_TASK_map(
-                    &options,
-                    access, ChamUpperLower, A(m, n),
+                    &options, ChamUpperLower,
+                    access, A(m, n),
                     op_fct, op_args, name );
             }
         }
@@ -70,8 +70,8 @@ void chameleon_pmap( cham_access_t access, cham_uplo_t uplo, CHAM_desc_t *A,
         for (m = 0; m < A->mt; m++) {
             for (n = 0; n < A->nt; n++) {
                 INSERT_TASK_map(
-                    &options,
-                    access, uplo, A(m, n),
+                    &options, uplo,
+                    access, A(m, n),
                     op_fct, op_args, name );
             }
         }

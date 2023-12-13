@@ -51,8 +51,8 @@ void access_fct_RW(cham_uplo_t uplo,
 
 static access_fct_t array_access_fct_t[3] = { access_fct_R, access_fct_W, access_fct_RW };
 
-void INSERT_TASK_map( const RUNTIME_option_t *options,
-                      cham_access_t accessA, cham_uplo_t uplo, const CHAM_desc_t *A, int Am, int An,
+void INSERT_TASK_map( const RUNTIME_option_t *options, cham_uplo_t uplo,
+                      cham_access_t accessA, const CHAM_desc_t *A, int Am, int An,
                       cham_unary_operator_t op_fct, void *op_args, const char *name )
 {
     CHAM_tile_t *tileA = A->get_blktile( A, Am, An );

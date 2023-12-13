@@ -166,7 +166,7 @@ void chameleon_pzlatms( cham_dist_t idist, unsigned long long int seed, cham_sym
     for (n = 0; n < kt; n++) {
         INSERT_TASK_map(
             &options,
-            ChamRW, ChamUpperLower, A(n, n),
+            ChamUpperLower, ChamRW, A(n, n),
             zlaset_diag, D, "zlaset_diag" );
     }
 
