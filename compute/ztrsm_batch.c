@@ -114,7 +114,8 @@ int CHAMELEON_ztrsm_batch_Tile( cham_side_t side, cham_uplo_t uplo,
     }
     chameleon_sequence_create( chamctxt, &sequence );
 
-    chameleon_pmap2( ChamUpperLower, A, B,
+    chameleon_pmap2( ChamR, ChamRW,
+                     ChamUpperLower, A, B,
                      chameleon_ztrsm_batch_operator, &params,
                      sequence, &request, "ztrsm" );
 

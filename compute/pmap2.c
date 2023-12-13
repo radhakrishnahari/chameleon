@@ -22,7 +22,8 @@
 /**
  *  chameleon_pmap2
  */
-void chameleon_pmap2( cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B,
+void chameleon_pmap2( cham_access_t accessA, cham_access_t accessB,
+                      cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B,
                       cham_binary_operator_t op_fct, void *op_args,
                       RUNTIME_sequence_t *sequence, RUNTIME_request_t *request,
                       const char *name )
@@ -42,12 +43,14 @@ void chameleon_pmap2( cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B,
             for (m = 0; m < n; m++) {
                 INSERT_TASK_map2(
                     &options, ChamUpperLower,
+                    accessA, accessB,
                     A(m, n), B(m, n),
                     op_fct, op_args,
                     name );
             }
             INSERT_TASK_map2(
                 &options, uplo,
+                accessA, accessB,
                 A(n, n), B(n, n),
                 op_fct, op_args,
                 name );
@@ -58,12 +61,14 @@ void chameleon_pmap2( cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B,
         for (n = 0; n < A->nt; n++) {
             INSERT_TASK_map2(
                 &options, uplo,
+                accessA, accessB,
                 A(n, n), B(n, n),
                 op_fct, op_args,
                 name );
             for (m = n+1; m < A->mt; m++) {
                 INSERT_TASK_map2(
                     &options, ChamUpperLower,
+                    accessA, accessB,
                     A(m, n), B(m, n),
                     op_fct, op_args,
                     name );
@@ -77,6 +82,7 @@ void chameleon_pmap2( cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B,
             for (n = 0; n < A->nt; n++) {
                 INSERT_TASK_map2(
                     &options, uplo,
+                    accessA, accessB,
                     A(m, n), B(m, n),
                     op_fct, op_args,
                     name );

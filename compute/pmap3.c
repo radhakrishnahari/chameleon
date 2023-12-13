@@ -23,7 +23,8 @@
 /**
  *  chameleon_pmap3
  */
-void chameleon_pmap3( cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B, CHAM_desc_t *C,
+void chameleon_pmap3( cham_access_t accessA, cham_access_t accessB, cham_access_t accessC,
+                      cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B, CHAM_desc_t *C,
                       cham_ternary_operator_t op_fct, void *op_args,
                       RUNTIME_sequence_t *sequence, RUNTIME_request_t *request,
                       const char *name )
@@ -43,12 +44,14 @@ void chameleon_pmap3( cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B, CHAM_des
             for (m = 0; m < n; m++) {
                 INSERT_TASK_map3(
                     &options, ChamUpperLower,
+                    accessA, accessB, accessC,
                     A(m, n), B(m, n), C(m, n),
                     op_fct, op_args,
                     name );
             }
             INSERT_TASK_map3(
                 &options, uplo,
+                accessA, accessB, accessC,
                 A(n, n), B(n, n), C(n, n),
                 op_fct, op_args,
                 name );
@@ -59,12 +62,14 @@ void chameleon_pmap3( cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B, CHAM_des
         for (n = 0; n < A->nt; n++) {
             INSERT_TASK_map3(
                 &options, uplo,
+                accessA, accessB, accessC,
                 A(n, n), B(n, n), C(n, n),
                 op_fct, op_args,
                 name );
             for (m = n+1; m < A->mt; m++) {
                 INSERT_TASK_map3(
                     &options, ChamUpperLower,
+                    accessA, accessB, accessC,
                     A(m, n), B(m, n), C(m, n),
                     op_fct, op_args,
                     name );
@@ -78,6 +83,7 @@ void chameleon_pmap3( cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B, CHAM_des
             for (n = 0; n < A->nt; n++) {
                 INSERT_TASK_map3(
                     &options, uplo,
+                    accessA, accessB, accessC,
                     A(m, n), B(m, n), C(m, n),
                     op_fct, op_args,
                     name );

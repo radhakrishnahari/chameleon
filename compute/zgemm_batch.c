@@ -107,6 +107,7 @@ int CHAMELEON_zgemm_batch_Tile( cham_trans_t transA, cham_trans_t transB,
     RUNTIME_request_t request = RUNTIME_REQUEST_INITIALIZER;
     zgemm_batch_args_t params = { transA, transB, alpha, beta };
     int status;
+    int accessC;
 
     chamctxt = chameleon_context_self();
     if (chamctxt == NULL) {
@@ -115,7 +116,11 @@ int CHAMELEON_zgemm_batch_Tile( cham_trans_t transA, cham_trans_t transB,
     }
     chameleon_sequence_create( chamctxt, &sequence );
 
-    chameleon_pmap3( ChamUpperLower, A, B, C,
+    /* Reduce the C access if needed */
+    accessC = ( beta == 0. ) ? ChamW : ChamRW;
+
+    chameleon_pmap3( ChamR, ChamR, accessC,
+                     ChamUpperLower, A, B, C,
                      chameleon_zgemm_batch_operator, &params,
                      sequence, &request, "zgemm" );
 

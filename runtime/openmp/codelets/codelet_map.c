@@ -17,35 +17,47 @@
  */
 #include "chameleon_openmp.h"
 
+// Define the access function interface
+typedef void (*access_fct_t)(cham_uplo_t uplo,
+                                 CHAM_tile_t *tileA, const CHAM_desc_t *A, int Am, int An,
+                                 cham_unary_operator_t op_fct, void *op_args);
+
+void access_fct_R(cham_uplo_t uplo,
+                 CHAM_tile_t *tileA, const CHAM_desc_t *A, int Am, int An,
+                 cham_unary_operator_t op_fct, void *op_args) {
+#pragma omp task depend( in:tileA[0])
+    {
+        op_fct( A, uplo, Am, An, tileA, op_args );
+    }
+}
+
+void access_fct_W(cham_uplo_t uplo,
+               CHAM_tile_t *tileA, const CHAM_desc_t *A, int Am, int An,
+               cham_unary_operator_t op_fct, void *op_args) {
+#pragma omp task depend( out:tileA[0])
+    {
+        op_fct( A, uplo, Am, An, tileA, op_args );
+    }
+}
+
+void access_fct_RW(cham_uplo_t uplo,
+               CHAM_tile_t *tileA, const CHAM_desc_t *A, int Am, int An,
+               cham_unary_operator_t op_fct, void *op_args) {
+#pragma omp task depend( inout:tileA[0])
+    {
+        op_fct( A, uplo, Am, An, tileA, op_args );
+    }
+}
+
+static access_fct_t array_access_fct_t[3] = { access_fct_R, access_fct_W, access_fct_RW };
+
 void INSERT_TASK_map( const RUNTIME_option_t *options,
                       cham_access_t accessA, cham_uplo_t uplo, const CHAM_desc_t *A, int Am, int An,
-                      cham_unary_operator_t op_fct, void *op_args )
+                      cham_unary_operator_t op_fct, void *op_args, const char *name )
 {
     CHAM_tile_t *tileA = A->get_blktile( A, Am, An );
 
-    switch( accessA ) {
-    case ChamW:
-#pragma omp task depend( out: tileA[0] )
-    {
-        op_fct( A, uplo, Am, An, tileA, op_args );
-    }
-    break;
-
-    case ChamR:
-#pragma omp task depend( in: tileA[0] )
-    {
-        op_fct( uplo, Am, An, A, tileA, op_args );
-    }
-
-    break;
-
-    case ChamRW:
-    default:
-#pragma omp task depend( inout: tileA[0] )
-    {
-        op_fct( A, uplo, Am, An, tileA, op_args );
-    }
-    }
+    array_access_fct_t[accessA - 1](uplo, tileA, A, Am, An, op_fct, op_args);
 
     (void)options;
 }

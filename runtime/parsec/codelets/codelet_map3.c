@@ -45,6 +45,7 @@ CORE_map3_parsec( parsec_execution_stream_t *context,
 
 void INSERT_TASK_map3( const RUNTIME_option_t *options,
                        cham_uplo_t uplo,
+                       cham_access_t accessA, cham_access_t accessB, cham_access_t accessC,
                        const CHAM_desc_t *A, int Am, int An,
                        const CHAM_desc_t *B, int Bm, int Bn,
                        const CHAM_desc_t *C, int Cm, int Cn,
@@ -52,17 +53,21 @@ void INSERT_TASK_map3( const RUNTIME_option_t *options,
 {
     parsec_taskpool_t* PARSEC_dtd_taskpool = (parsec_taskpool_t *)(options->sequence->schedopt);
 
+    int parsec_accessA = cham_to_parsec_access( accessA );
+    int parsec_accessB = cham_to_parsec_access( accessB );
+    int parsec_accessC = cham_to_parsec_access( accessC );
+
     parsec_dtd_taskpool_insert_task(
         PARSEC_dtd_taskpool, CORE_map3_parsec, options->priority, "map3",
         sizeof(cham_uplo_t),              &uplo, VALUE,
         sizeof(int),                      &Am,   VALUE,
         sizeof(int),                      &An,   VALUE,
         sizeof(CHAM_desc_t*),             &A,    VALUE,
-        PASSED_BY_REF, RTBLKADDR(A, void, Am, An), chameleon_parsec_get_arena_index( A ) | INPUT,
+        PASSED_BY_REF, RTBLKADDR(A, void, Am, An), chameleon_parsec_get_arena_index( A ) | parsec_accessA,
         sizeof(CHAM_desc_t*),             &B,    VALUE,
-        PASSED_BY_REF, RTBLKADDR(B, void, Bm, Bn), chameleon_parsec_get_arena_index( B ) | INPUT,
+        PASSED_BY_REF, RTBLKADDR(B, void, Bm, Bn), chameleon_parsec_get_arena_index( B ) | parsec_accessB,
         sizeof(CHAM_desc_t*),             &C,    VALUE,
-        PASSED_BY_REF, RTBLKADDR(C, void, Cm, Cn), chameleon_parsec_get_arena_index( C ) | INOUT,
+        PASSED_BY_REF, RTBLKADDR(C, void, Cm, Cn), chameleon_parsec_get_arena_index( C ) | parsec_accessC,
         sizeof(cham_ternary_operator_t),  &op_fct,  VALUE,
         sizeof(void*),                    &op_args, VALUE,
         PARSEC_DTD_ARG_END );

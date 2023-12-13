@@ -37,6 +37,7 @@ void CORE_map2_quark(Quark *quark)
 
 void INSERT_TASK_map2( const RUNTIME_option_t *options,
                        cham_uplo_t uplo,
+                       cham_access_t accessA, cham_access_t accessB,
                        const CHAM_desc_t *A, int Am, int An,
                        const CHAM_desc_t *B, int Bm, int Bn,
                        cham_binary_operator_t op_fct, void *op_args )
@@ -49,9 +50,9 @@ void INSERT_TASK_map2( const RUNTIME_option_t *options,
         sizeof(int),                      &Am,   VALUE,
         sizeof(int),                      &An,   VALUE,
         sizeof(CHAM_desc_t*),             &A,    VALUE,
-        sizeof(void*), RTBLKADDR(A, void, Am, An), INPUT,
+        sizeof(void*), RTBLKADDR(A, void, Am, An), cham_to_quark_access( accessA ),
         sizeof(CHAM_desc_t*),             &B,    VALUE,
-        sizeof(void*), RTBLKADDR(B, void, Bm, Bn), INOUT,
+        sizeof(void*), RTBLKADDR(B, void, Bm, Bn), cham_to_quark_access( accessB ),
         sizeof(cham_binary_operator_t),   &op_fct,  VALUE,
         sizeof(void*),                    &op_args, VALUE,
         0);

@@ -103,6 +103,7 @@ int CHAMELEON_zherk_batch_Tile( cham_uplo_t uplo, cham_trans_t trans,
     RUNTIME_request_t request = RUNTIME_REQUEST_INITIALIZER;
     zherk_batch_args_t params = { uplo, trans, alpha, beta };
     int status;
+    int accessB;
 
     chamctxt = chameleon_context_self();
     if (chamctxt == NULL) {
@@ -111,7 +112,11 @@ int CHAMELEON_zherk_batch_Tile( cham_uplo_t uplo, cham_trans_t trans,
     }
     chameleon_sequence_create( chamctxt, &sequence );
 
-    chameleon_pmap2( ChamUpperLower, A, B,
+    /* Reduce the B access if needed */
+    accessB = ( beta == 0. ) ? ChamW : ChamRW;
+
+    chameleon_pmap2( ChamR, accessB,
+                     ChamUpperLower, A, B,
                      chameleon_zherk_batch_operator, &params,
                      sequence, &request, "zherk" );
 
