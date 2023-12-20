@@ -16,6 +16,7 @@
  *
  */
 #include "testings.h"
+#include "runtime_energy.h"
 
 extern testing_options_t options;
 
@@ -107,6 +108,7 @@ testing_options_init( testing_options_t *options )
     options->splitsub  = parameters_getvalue_int( "splitsub" );
     options->threads   = parameters_getvalue_int( "threads" );
     options->trace     = parameters_getvalue_int( "trace" );
+    options->energy    = parameters_getvalue_int( "energy" );
 #endif
 
     options->file = parameters_getvalue_str( "file" );
@@ -161,6 +163,11 @@ testing_start( testdata_t *tdata )
         CHAMELEON_Pause();
     }
 #endif
+
+    /* Start energy measurement */
+    if ( options.energy ) {
+        RUNTIME_start_energy();
+    }
 
     /* Register starting time */
     tdata->tsub  = RUNTIME_get_time();
@@ -231,6 +238,11 @@ testing_stop( testdata_t *tdata, cham_fixdbl_t flops )
      */
     CHAMELEON_Resume();
 #endif
+
+    /* Stop energy measurement */
+    if ( options.energy ) {
+        RUNTIME_stop_energy( ChamComplexDouble, tdata->kernel );
+    }
 }
 
 /**

@@ -21,7 +21,7 @@
 #include <chameleon/flops.h>
 //#include "runtime_codelet_z.h"
 //#include "runtime_codelets.h"
-#include "runtime_energy.h"
+//#include "runtime_energy.h"
 
 
 static cham_fixdbl_t
@@ -33,6 +33,9 @@ flops_zgemm_batch( int nb, int M, int N, int K )
 int
 testing_zgemm_batch( run_arg_list_t *args, int check )
 {
+    testdata_t test_data = { .args = args };
+    test_data.task = TASK_GEMM;
+
     int          Am, An, Bm, Bn;
     int          hres = 0;
     CHAM_desc_t *descA, *descB, *descC;
@@ -54,7 +57,6 @@ testing_zgemm_batch( run_arg_list_t *args, int check )
     int                   Q     = parameters_compute_q( P );
     cham_fixdbl_t t, gflops;
     cham_fixdbl_t flops = flops_zgemm_batch( nb*ib, M, N, K );
-    int energy = parameters_getvalue_int( "energy" );
 
     alpha = run_arg_get_complex64( args, "alpha", alpha );
     beta  = run_arg_get_complex64( args, "beta",  beta  );
@@ -98,19 +100,13 @@ testing_zgemm_batch( run_arg_list_t *args, int check )
     CHAMELEON_zplrnt_Tile( descB, seedB );
     CHAMELEON_zplrnt_Tile( descC, seedC );
 
-    /*Start energy measurement*/
-    if ( energy ) {
-        RUNTIME_start_energy();
-    }
+    /* Start measurement */
+    testing_start( &test_data );
 
-    START_TIMING( t );
     hres = CHAMELEON_zgemm_batch_Tile( transA, transB, alpha, descA, descB, beta, descC );
-    STOP_TIMING( t );
 
-    /*Stop energy measurement*/
-    if ( energy ) {
-        RUNTIME_stop_energy( ChamComplexDouble, TASK_GEMM );
-    }
+    /* Stop measurement */
+    testing_stop( &test_data, flops);
 
     gflops = flops * 1.e-9 / t;
     run_arg_add_fixdbl( args, "time", t );
