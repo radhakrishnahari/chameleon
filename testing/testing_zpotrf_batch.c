@@ -31,6 +31,9 @@ flops_zpotrf_batch( int nb, int N )
 int
 testing_zpotrf_batch( run_arg_list_t *args, int check )
 {
+    testdata_t test_data = { .args = args };
+    test_data.task = TASK_POTRF;
+
     int          hres   = 0;
     CHAM_desc_t *descA;
 
@@ -83,17 +86,15 @@ testing_zpotrf_batch( run_arg_list_t *args, int check )
 
     /* Calculate the product */
     //    retval = PAPI_start( EventSet );
-    if ( energy ) {
-        RUNTIME_start_energy();
-    }
 
-    START_TIMING( t );
+    /* Start measurement */
+    testing_start( &test_data );
+
     hres = CHAMELEON_zpotrf_batch_Tile( uplo, descA );
-    STOP_TIMING( t );
+    
+    /* Stop measurement */
+    testing_stop( &test_data, flops);
 
-     if ( energy ) {
-         RUNTIME_stop_energy( ChamComplexDouble, TASK_POTRF);
-    }
     /* retval = PAPI_stop( EventSet, values ); */
     /* if (retval != PAPI_OK) { */
     /*     perror("unable to papi stop"); */
@@ -142,13 +143,13 @@ void testing_zpotrf_batch_init( void ) __attribute__( ( constructor ) );
 void
 testing_zpotrf_batch_init( void )
 {
-    test_zpotrf_batch.name   = "zpotrf_batch";
-    test_zpotrf_batch.helper = "Perform nb*ib Cholesky factorization potrf( uplo, N, ... )";
-    test_zpotrf_batch.params = zpotrf_batch_params;
-    test_zpotrf_batch.output = zpotrf_batch_output;
-    test_zpotrf_batch.outchk = zpotrf_batch_outchk;
-    test_zpotrf_batch.fptr   = testing_zpotrf_batch;
-    test_zpotrf_batch.next   = NULL;
+    test_zpotrf_batch.name        = "zpotrf_batch";
+    test_zpotrf_batch.helper      = "Perform nb*ib Cholesky factorization potrf( uplo, N, ... )";
+    test_zpotrf_batch.params      = zpotrf_batch_params;
+    test_zpotrf_batch.output      = zpotrf_batch_output;
+    test_zpotrf_batch.outchk      = zpotrf_batch_outchk;
+    test_zpotrf_batch.fptr_desc   = testing_zpotrf_batch;
+    test_zpotrf_batch.next        = NULL;
 
     testing_register( &test_zpotrf_batch );
 }

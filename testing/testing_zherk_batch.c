@@ -31,6 +31,9 @@ flops_zherk_batch( int nb, int K, int N )
 int
 testing_zherk_batch( run_arg_list_t *args, int check )
 {
+    testdata_t test_data = { .args = args };
+    test_data.task = TASK_HERK;
+
     int          Am, An;
     int          hres = 0;
     CHAM_desc_t *descA, *descC;
@@ -108,18 +111,14 @@ testing_zherk_batch( run_arg_list_t *args, int check )
 
     /* Calculate the product */
     //    retval = PAPI_start( EventSet );
-     /*Start energy measurement*/
-    if ( energy ) {
-        RUNTIME_start_energy();
-    }
+     
+    /* Start measurement */
+    testing_start( &test_data );
 
-    START_TIMING( t );
     hres = CHAMELEON_zherk_batch_Tile( uplo, trans, alpha, descA, beta, descC );
-    STOP_TIMING( t );
-
-    if ( energy ) {
-        RUNTIME_stop_energy( ChamComplexDouble, TASK_HERK);
-    }
+    
+    /* Stop measurement */
+    testing_stop( &test_data, flops);
 
     /* retval = PAPI_stop( EventSet, values ); */
     /* if (retval != PAPI_OK) { */
@@ -171,13 +170,13 @@ void testing_zherk_batch_init( void ) __attribute__( ( constructor ) );
 void
 testing_zherk_batch_init( void )
 {
-    test_zherk_batch.name   = "zherk_batch";
-    test_zherk_batch.helper = "Perform nb*ib rank-k updates zherk( uplo, trans, N, K, ... )";
-    test_zherk_batch.params = zherk_batch_params;
-    test_zherk_batch.output = zherk_batch_output;
-    test_zherk_batch.outchk = zherk_batch_outchk;
-    test_zherk_batch.fptr   = testing_zherk_batch;
-    test_zherk_batch.next   = NULL;
+    test_zherk_batch.name        = "zherk_batch";
+    test_zherk_batch.helper      = "Perform nb*ib rank-k updates zherk( uplo, trans, N, K, ... )";
+    test_zherk_batch.params      = zherk_batch_params;
+    test_zherk_batch.output      = zherk_batch_output;
+    test_zherk_batch.outchk      = zherk_batch_outchk;
+    test_zherk_batch.fptr_desc   = testing_zherk_batch;
+    test_zherk_batch.next        = NULL;
 
     testing_register( &test_zherk_batch );
 }

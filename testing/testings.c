@@ -241,7 +241,7 @@ testing_stop( testdata_t *tdata, cham_fixdbl_t flops )
 
     /* Stop energy measurement */
     if ( options.energy ) {
-        RUNTIME_stop_energy( ChamComplexDouble, tdata->kernel );
+        RUNTIME_stop_energy( ChamComplexDouble, tdata->task );
     }
 }
 

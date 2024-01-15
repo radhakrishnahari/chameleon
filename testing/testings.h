@@ -289,6 +289,7 @@ typedef struct testing_options_ {
     char *op;
     /* Additionnal information to exchange between the main and the testings */
     int run_id;
+    int energy;
 } testing_options_t;
 
 void       testing_register( testing_t *test );

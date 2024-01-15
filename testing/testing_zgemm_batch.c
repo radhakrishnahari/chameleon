@@ -116,7 +116,8 @@ testing_zgemm_batch( run_arg_list_t *args, int check )
     CHAMELEON_Desc_Destroy( &descB );
     CHAMELEON_Desc_Destroy( &descC );
 
-    (void)check;
+    /* TODO check */
+    
     return hres;
 }
 
@@ -133,13 +134,13 @@ void testing_zgemm_batch_init( void ) __attribute__( ( constructor ) );
 void
 testing_zgemm_batch_init( void )
 {
-    test_zgemm_batch.name   = "zgemm_batch";
-    test_zgemm_batch.helper = "Perform nb*ib general matrix-matrix multiply of size MxNxK";
-    test_zgemm_batch.params = zgemm_batch_params;
-    test_zgemm_batch.output = zgemm_batch_output;
-    test_zgemm_batch.outchk = zgemm_batch_outchk;
-    test_zgemm_batch.fptr   = testing_zgemm_batch;
-    test_zgemm_batch.next   = NULL;
+    test_zgemm_batch.name        = "zgemm_batch";
+    test_zgemm_batch.helper      = "Perform nb*ib general matrix-matrix multiply of size MxNxK";
+    test_zgemm_batch.params      = zgemm_batch_params;
+    test_zgemm_batch.output      = zgemm_batch_output;
+    test_zgemm_batch.outchk      = zgemm_batch_outchk;
+    test_zgemm_batch.fptr_desc   = testing_zgemm_batch;
+    test_zgemm_batch.next        = NULL;
 
     testing_register( &test_zgemm_batch );
 }

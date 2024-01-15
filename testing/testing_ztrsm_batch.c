@@ -31,6 +31,9 @@ flops_ztrsm_batch( int nb, cham_side_t side, int M, int N )
 int
 testing_ztrsm_batch( run_arg_list_t *args, int check )
 {
+    testdata_t test_data = { .args = args };
+    test_data.task = TASK_TRSM;
+
     int          Am, An;
     int          hres = 0;
     CHAM_desc_t *descA, *descB;
@@ -106,17 +109,15 @@ testing_ztrsm_batch( run_arg_list_t *args, int check )
 
     /* Calculate the product */
     //    retval = PAPI_start( EventSet );
-    if ( energy ) {
-        RUNTIME_start_energy();
-    }
+    
+    /* Start measurement */
+    testing_start( &test_data );
 
-    START_TIMING( t );
     hres = CHAMELEON_ztrsm_batch_Tile( side, uplo, trans, diag, alpha, descA, descB );
-    STOP_TIMING( t );
+    
+    /* Stop measurement */
+    testing_stop( &test_data, flops);
 
-    if ( energy ) {
-        RUNTIME_stop_energy( ChamComplexDouble, TASK_TRSM );
-    }
     /* retval = PAPI_stop( EventSet, values ); */
     /* if (retval != PAPI_OK) { */
     /*     perror("unable to papi stop"); */
@@ -167,13 +168,13 @@ void testing_ztrsm_batch_init( void ) __attribute__( ( constructor ) );
 void
 testing_ztrsm_batch_init( void )
 {
-    test_ztrsm_batch.name   = "ztrsm_batch";
-    test_ztrsm_batch.helper = "Perform nb*ib triangular solve trsm( side, uplo, trns, diag, M, N, ... )";
-    test_ztrsm_batch.params = ztrsm_batch_params;
-    test_ztrsm_batch.output = ztrsm_batch_output;
-    test_ztrsm_batch.outchk = ztrsm_batch_outchk;
-    test_ztrsm_batch.fptr   = testing_ztrsm_batch;
-    test_ztrsm_batch.next   = NULL;
+    test_ztrsm_batch.name        = "ztrsm_batch";
+    test_ztrsm_batch.helper      = "Perform nb*ib triangular solve trsm( side, uplo, trns, diag, M, N, ... )";
+    test_ztrsm_batch.params      = ztrsm_batch_params;
+    test_ztrsm_batch.output      = ztrsm_batch_output;
+    test_ztrsm_batch.outchk      = ztrsm_batch_outchk;
+    test_ztrsm_batch.fptr_desc   = testing_ztrsm_batch;
+    test_ztrsm_batch.next        = NULL;
 
     testing_register( &test_ztrsm_batch );
 }
