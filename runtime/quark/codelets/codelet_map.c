@@ -28,7 +28,7 @@ void CORE_map_quark(Quark *quark)
     void *op_args;
 
     quark_unpack_args_7( quark, desc, uplo, m, n, tile, op_fct, op_args );
-    op_fct( desc, uplo, m, n, tile, op_args );
+    op_fct( uplo, m, n, desc, tile, op_args );
 }
 
 void INSERT_TASK_map( const RUNTIME_option_t *options, cham_uplo_t uplo,

@@ -31,7 +31,7 @@ CORE_map_parsec( parsec_execution_stream_t *context,
 
     parsec_dtd_unpack_args(
         this_task, &desc, &uplo, &m, &n, &data, &op_fct, &op_args );
-    op_fct( desc, uplo, m, n, data, op_args );
+    op_fct(uplo, m, n, desc, data, op_args );
 
     (void)context;
     return PARSEC_HOOK_RETURN_DONE;

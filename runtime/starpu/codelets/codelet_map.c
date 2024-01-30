@@ -34,7 +34,7 @@ static void cl_map_cpu_func(void *descr[], void *cl_arg)
 
     tile = cti_interface_get(descr[0]);
     starpu_codelet_unpack_args(cl_arg, &desc, &uplo, &m, &n, &op_fct, &op_args );
-    op_fct( desc, uplo, m, n, tile, op_args );
+    op_fct(uplo, m, n, desc, tile, op_args );
 }
 #endif /* !defined(CHAMELEON_SIMULATION) */
 
