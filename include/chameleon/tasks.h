@@ -93,9 +93,9 @@ typedef enum chameleon_tasktype_e {
 #define TASK_TTMQR TASK_TPMQRT
 #define TASK_TTQRT TASK_TPQRT
 
-typedef int (*cham_unary_operator_t)( const CHAM_desc_t *desc,
-                                      cham_uplo_t uplo, int m, int n,
-                                      CHAM_tile_t *data, void *op_args );
+typedef int (*cham_unary_operator_t)( cham_uplo_t uplo, int m, int n,
+                                      const CHAM_desc_t *desc, CHAM_tile_t *data,
+                                      void *op_args );
 
 typedef int (*cham_binary_operator_t)( cham_uplo_t uplo, int m, int n,
                                        const CHAM_desc_t *descA, CHAM_tile_t *tileA,

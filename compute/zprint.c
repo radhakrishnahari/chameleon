@@ -33,9 +33,9 @@ struct zprint_args_s {
 };
 
 static inline int
-zprint( const CHAM_desc_t *descA,
-        cham_uplo_t uplo, int m, int n,
-        CHAM_tile_t *tileA, void *op_args )
+zprint( cham_uplo_t uplo, int m, int n,
+        const CHAM_desc_t *descA, CHAM_tile_t *tileA,
+        void *op_args )
 {
     CHAMELEON_Complex64_t *A;
     struct zprint_args_s  *options = (struct zprint_args_s *)op_args;
