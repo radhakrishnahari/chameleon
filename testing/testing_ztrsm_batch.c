@@ -56,29 +56,6 @@ testing_ztrsm_batch( run_arg_list_t *args, int check )
     cham_fixdbl_t flops = flops_ztrsm_batch( nb*ib, side, M, N );
     int energy = parameters_getvalue_int( "energy" );
 
-    /* PAPI variables*/
-    /* int EventSet = PAPI_NULL; */
-    /* long long *values; */
-    /* int retval; */
-    /* values=calloc(N_SOCK * N_EVTS,sizeof(long long)); */
-    /* if (values==NULL) { */
-    /*     exit(1); */
-    /* } */
-
-    /* if (PAPI_library_init(PAPI_VER_CURRENT) != PAPI_VER_CURRENT) { */
-    /*     perror("unable to initialize PAPI"); */
-    /*     exit(1); */
-    /* } */
-
-    /* retval = PAPI_create_eventset( &EventSet ); */
-    /* if (retval != PAPI_OK) { */
-    /*     perror("unable to create eventSet"); */
-    /*     exit(1); */
-    /* } */
-
-    /* for (int i = 0 ; i < N_SOCK ; i ++ ) */
-    /*     add_event(EventSet, i); */
-
     alpha = run_arg_get_complex64( args, "alpha", alpha );
 
     CHAMELEON_Set( CHAMELEON_TILE_SIZE, N );
@@ -106,9 +83,6 @@ testing_ztrsm_batch( run_arg_list_t *args, int check )
     /* Fill the matrices with random values */
     CHAMELEON_zplrnt_Tile( descA, seedA );
     CHAMELEON_zplrnt_Tile( descB, seedB );
-
-    /* Calculate the product */
-    //    retval = PAPI_start( EventSet );
     
     /* Start measurement */
     testing_start( &test_data );
@@ -118,38 +92,8 @@ testing_ztrsm_batch( run_arg_list_t *args, int check )
     /* Stop measurement */
     testing_stop( &test_data, flops);
 
-    /* retval = PAPI_stop( EventSet, values ); */
-    /* if (retval != PAPI_OK) { */
-    /*     perror("unable to papi stop"); */
-    /*     exit(1); */
-    /* } */
-    gflops = flops * 1.e-9 / t;
-    run_arg_add_fixdbl( args, "time", t );
-    run_arg_add_fixdbl( args, "gflops", ( hres == CHAMELEON_SUCCESS ) ? gflops : -1. );
-
-    /* for( int s = 0 ; s < N_SOCK ; s ++){ */
-    /*     for( int i = 0 ; i < N_EVTS; i++) { */
-    /*         printf("%-40s%12.6f J\t(Average Power %.1fW)\n", */
-    /*                event_names[i], */
-    /*                (double)values[s * N_EVTS + i]/1.0e9, */
-    /*                ((double)values[s * N_EVTS + i]/1.0e9)/t); */
-    /*     } */
-    /* } */
-
     CHAMELEON_Desc_Destroy( &descA );
     CHAMELEON_Desc_Destroy( &descB );
-
-    /* retval = PAPI_cleanup_eventset( EventSet ); */
-    /* if (retval != PAPI_OK) { */
-    /*     perror("unable to cleanup"); */
-    /*     exit(1); */
-    /* } */
-
-    /* retval = PAPI_destroy_eventset( &EventSet ); */
-    /* if (retval != PAPI_OK) { */
-    /*     perror("unable to destroy eventset"); */
-    /*     exit(1); */
-    /* } */
 
     (void)check;
     return hres;

@@ -108,16 +108,11 @@ testing_zgemm_batch( run_arg_list_t *args, int check )
     /* Stop measurement */
     testing_stop( &test_data, flops);
 
-    gflops = flops * 1.e-9 / t;
-    run_arg_add_fixdbl( args, "time", t );
-    run_arg_add_fixdbl( args, "gflops", ( hres == CHAMELEON_SUCCESS ) ? gflops : -1. );
-
     CHAMELEON_Desc_Destroy( &descA );
     CHAMELEON_Desc_Destroy( &descB );
     CHAMELEON_Desc_Destroy( &descC );
-
-    /* TODO check */
     
+    (void)check;
     return hres;
 }
 

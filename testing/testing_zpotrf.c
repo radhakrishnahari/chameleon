@@ -27,7 +27,7 @@
 #include <coreblas.h>
 #include <coreblas/lapacke.h>
 #endif
-#endif
+//#endif
 //#include <papi.h>
 //#include "power_measurement.h"
 
