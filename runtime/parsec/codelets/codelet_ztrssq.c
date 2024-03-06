@@ -52,14 +52,14 @@ void INSERT_TASK_ztrssq( const RUNTIME_option_t *options,
     parsec_taskpool_t* PARSEC_dtd_taskpool = (parsec_taskpool_t *)(options->sequence->schedopt);
     CHAM_tile_t *tileA = A->get_blktile( A, Am, An );
 
-    parsec_dtd_taskpool_insert_task(
-        PARSEC_dtd_taskpool, CORE_ztrssq_parsec, options->priority, "trssq",
-        sizeof(cham_uplo_t),     &uplo,                  VALUE,
-        sizeof(cham_diag_t),     &diag,                  VALUE,
-        sizeof(int),            &m,                     VALUE,
-        sizeof(int),            &n,                     VALUE,
-        PASSED_BY_REF,          RTBLKADDR( A, CHAMELEON_Complex64_t, Am, An ), chameleon_parsec_get_arena_index( A ) | INPUT,
-        sizeof(int), &(tileA->ld), VALUE,
-        PASSED_BY_REF,          RTBLKADDR( SCALESUMSQ, double, SCALESUMSQm, SCALESUMSQn ),    INOUT | AFFINITY,
+    parsec_dtd_insert_task(
+        PARSEC_dtd_taskpool, CORE_ztrssq_parsec, options->priority, PARSEC_DEV_CPU, "trssq",
+        sizeof(cham_uplo_t),     &uplo,                  PARSEC_VALUE,
+        sizeof(cham_diag_t),     &diag,                  PARSEC_VALUE,
+        sizeof(int),            &m,                     PARSEC_VALUE,
+        sizeof(int),            &n,                     PARSEC_VALUE,
+        PASSED_BY_REF,          RTBLKADDR( A, CHAMELEON_Complex64_t, Am, An ), chameleon_parsec_get_arena_index( A ) | PARSEC_INPUT,
+        sizeof(int), &(tileA->ld), PARSEC_VALUE,
+        PASSED_BY_REF,          RTBLKADDR( SCALESUMSQ, double, SCALESUMSQm, SCALESUMSQn ),    PARSEC_INOUT | PARSEC_AFFINITY,
         PARSEC_DTD_ARG_END );
 }

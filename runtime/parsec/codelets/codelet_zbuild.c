@@ -55,15 +55,15 @@ void INSERT_TASK_zbuild( const RUNTIME_option_t *options,
     col_min = An*A->nb ;
     col_max = An == A->nt-1 ? A->n-1 : col_min+A->nb-1 ;
 
-    parsec_dtd_taskpool_insert_task(
-        PARSEC_dtd_taskpool, CORE_zbuild_parsec, options->priority, "zbuild",
-        sizeof(int),   &row_min,                          VALUE,
-        sizeof(int),   &row_max,                          VALUE,
-        sizeof(int),   &col_min,                          VALUE,
-        sizeof(int),   &col_max,                          VALUE,
-        PASSED_BY_REF,  RTBLKADDR( A, CHAMELEON_Complex64_t, Am, An ), chameleon_parsec_get_arena_index( A ) | OUTPUT | AFFINITY,
-        sizeof(int), &(tileA->ld), VALUE,
-        sizeof(void*), &user_data,                        VALUE,
-        sizeof(void*), &user_build_callback,              VALUE,
+    parsec_dtd_insert_task(
+        PARSEC_dtd_taskpool, CORE_zbuild_parsec, options->priority, PARSEC_DEV_CPU, "zbuild",
+        sizeof(int),   &row_min,                          PARSEC_VALUE,
+        sizeof(int),   &row_max,                          PARSEC_VALUE,
+        sizeof(int),   &col_min,                          PARSEC_VALUE,
+        sizeof(int),   &col_max,                          PARSEC_VALUE,
+        PASSED_BY_REF,  RTBLKADDR( A, CHAMELEON_Complex64_t, Am, An ), chameleon_parsec_get_arena_index( A ) | PARSEC_OUTPUT | PARSEC_AFFINITY,
+        sizeof(int), &(tileA->ld), PARSEC_VALUE,
+        sizeof(void*), &user_data,                        PARSEC_VALUE,
+        sizeof(void*), &user_build_callback,              PARSEC_VALUE,
         PARSEC_DTD_ARG_END );
 }

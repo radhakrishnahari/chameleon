@@ -58,18 +58,18 @@ void INSERT_TASK_zsyrk(const RUNTIME_option_t *options,
     CHAM_tile_t *tileA = A->get_blktile( A, Am, An );
     CHAM_tile_t *tileC = C->get_blktile( C, Cm, Cn );
 
-    parsec_dtd_taskpool_insert_task(
-        PARSEC_dtd_taskpool, CORE_zsyrk_parsec, options->priority, "syrk",
-        sizeof(cham_uplo_t),    &uplo,                              VALUE,
-        sizeof(cham_trans_t),    &trans,                             VALUE,
-        sizeof(int),           &n,                                 VALUE,
-        sizeof(int),           &k,                                 VALUE,
-        sizeof(CHAMELEON_Complex64_t),           &alpha,               VALUE,
-        PASSED_BY_REF,         RTBLKADDR( A, CHAMELEON_Complex64_t, Am, An ), chameleon_parsec_get_arena_index( A ) | INPUT,
-        sizeof(int), &(tileA->ld), VALUE,
-        sizeof(CHAMELEON_Complex64_t),           &beta,                VALUE,
-        PASSED_BY_REF,         RTBLKADDR( C, CHAMELEON_Complex64_t, Cm, Cn ), chameleon_parsec_get_arena_index( C ) | INOUT | AFFINITY,
-        sizeof(int), &(tileC->ld), VALUE,
+    parsec_dtd_insert_task(
+        PARSEC_dtd_taskpool, CORE_zsyrk_parsec, options->priority, PARSEC_DEV_CPU, "syrk",
+        sizeof(cham_uplo_t),    &uplo,                              PARSEC_VALUE,
+        sizeof(cham_trans_t),    &trans,                             PARSEC_VALUE,
+        sizeof(int),           &n,                                 PARSEC_VALUE,
+        sizeof(int),           &k,                                 PARSEC_VALUE,
+        sizeof(CHAMELEON_Complex64_t),           &alpha,               PARSEC_VALUE,
+        PASSED_BY_REF,         RTBLKADDR( A, CHAMELEON_Complex64_t, Am, An ), chameleon_parsec_get_arena_index( A ) | PARSEC_INPUT,
+        sizeof(int), &(tileA->ld), PARSEC_VALUE,
+        sizeof(CHAMELEON_Complex64_t),           &beta,                PARSEC_VALUE,
+        PASSED_BY_REF,         RTBLKADDR( C, CHAMELEON_Complex64_t, Cm, Cn ), chameleon_parsec_get_arena_index( C ) | PARSEC_INOUT | PARSEC_AFFINITY,
+        sizeof(int), &(tileC->ld), PARSEC_VALUE,
         PARSEC_DTD_ARG_END );
 
     (void)nb;

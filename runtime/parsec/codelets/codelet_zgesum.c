@@ -49,13 +49,13 @@ void INSERT_TASK_zgesum( const RUNTIME_option_t *options,
     parsec_taskpool_t* PARSEC_dtd_taskpool = (parsec_taskpool_t *)(options->sequence->schedopt);
     CHAM_tile_t *tileA = A->get_blktile( A, Am, An );
 
-    parsec_dtd_taskpool_insert_task(
-        PARSEC_dtd_taskpool, CORE_zgesum_parsec, options->priority, "gessum",
-        sizeof(cham_store_t), &storev,       VALUE,
-        sizeof(int),          &m,            VALUE,
-        sizeof(int),          &n,            VALUE,
-        PASSED_BY_REF,   RTBLKADDR( A, CHAMELEON_Complex64_t, Am, An ), chameleon_parsec_get_arena_index( A ) | INPUT,
-        sizeof(int), &(tileA->ld), VALUE,
-        PASSED_BY_REF,   RTBLKADDR( SUMS, CHAMELEON_Complex64_t, SUMSm, SUMSn ), chameleon_parsec_get_arena_index( SUMS ) | INOUT | AFFINITY,
+    parsec_dtd_insert_task(
+        PARSEC_dtd_taskpool, CORE_zgesum_parsec, options->priority, PARSEC_DEV_CPU, "gessum",
+        sizeof(cham_store_t), &storev,       PARSEC_VALUE,
+        sizeof(int),          &m,            PARSEC_VALUE,
+        sizeof(int),          &n,            PARSEC_VALUE,
+        PASSED_BY_REF,   RTBLKADDR( A, CHAMELEON_Complex64_t, Am, An ), chameleon_parsec_get_arena_index( A ) | PARSEC_INPUT,
+        sizeof(int), &(tileA->ld), PARSEC_VALUE,
+        PASSED_BY_REF,   RTBLKADDR( SUMS, CHAMELEON_Complex64_t, SUMSm, SUMSn ), chameleon_parsec_get_arena_index( SUMS ) | PARSEC_INOUT | PARSEC_AFFINITY,
         PARSEC_DTD_ARG_END );
 }

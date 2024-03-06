@@ -56,13 +56,13 @@ void INSERT_TASK_ipiv_to_perm( const RUNTIME_option_t *options,
 {
     parsec_taskpool_t* PARSEC_dtd_taskpool = (parsec_taskpool_t *)(options->sequence->schedopt);
 
-    parsec_dtd_taskpool_insert_task(
-        PARSEC_dtd_taskpool, CORE_ipiv_to_perm_parsec, options->priority, "ipiv_to_perm",
-        sizeof(int),         &m0,           VALUE,
-        sizeof(int),         &m,            VALUE,
-        sizeof(int),         &k,            VALUE,
-        PASSED_BY_REF, RUNTIME_ipiv_getaddr( ipivdesc, ipivk ), chameleon_parsec_get_arena_index_ipiv( ipivdesc ) | INPUT,
-        PASSED_BY_REF, RUNTIME_perm_getaddr( ipivdesc, ipivk ), chameleon_parsec_get_arena_index_perm( ipivdesc ) | OUTPUT,
-        PASSED_BY_REF, RUNTIME_invp_getaddr( ipivdesc, ipivk ), chameleon_parsec_get_arena_index_invp( ipivdesc ) | OUTPUT,
+    parsec_dtd_insert_task(
+        PARSEC_dtd_taskpool, CORE_ipiv_to_perm_parsec, options->priority, PARSEC_DEV_CPU, "ipiv_to_perm",
+        sizeof(int),         &m0,           PARSEC_VALUE,
+        sizeof(int),         &m,            PARSEC_VALUE,
+        sizeof(int),         &k,            PARSEC_VALUE,
+        PASSED_BY_REF, RUNTIME_ipiv_getaddr( ipivdesc, ipivk ), chameleon_parsec_get_arena_index_ipiv( ipivdesc ) | PARSEC_INPUT,
+        PASSED_BY_REF, RUNTIME_perm_getaddr( ipivdesc, ipivk ), chameleon_parsec_get_arena_index_perm( ipivdesc ) | PARSEC_OUTPUT,
+        PASSED_BY_REF, RUNTIME_invp_getaddr( ipivdesc, ipivk ), chameleon_parsec_get_arena_index_invp( ipivdesc ) | PARSEC_OUTPUT,
         PARSEC_DTD_ARG_END );
 }

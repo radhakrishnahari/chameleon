@@ -149,26 +149,26 @@ void INSERT_TASK_map( const RUNTIME_option_t *options,
 
     switch( ndata ) {
     case 1:
-        parsec_dtd_taskpool_insert_task(
-            PARSEC_dtd_taskpool, CORE_map_one_parsec, options->priority, op_fcts->name,
-            sizeof(struct parsec_map_args_s*), &pargs, VALUE,
+        parsec_dtd_insert_task(
+            PARSEC_dtd_taskpool, CORE_map_one_parsec, options->priority, PARSEC_DEV_CPU, op_fcts->name,
+            sizeof(struct parsec_map_args_s*), &pargs, PARSEC_VALUE,
             PASSED_BY_REF, RTBLKADDR( data[0].desc, void, m, n ), chameleon_parsec_get_arena_index( data[0].desc ) | cham_to_parsec_access( data[0].access ),
             PARSEC_DTD_ARG_END );
         break;
 
     case 2:
-        parsec_dtd_taskpool_insert_task(
-            PARSEC_dtd_taskpool, CORE_map_two_parsec, options->priority, op_fcts->name,
-            sizeof(struct parsec_map_args_s*), &pargs, VALUE,
+        parsec_dtd_insert_task(
+            PARSEC_dtd_taskpool, CORE_map_two_parsec, options->priority, PARSEC_DEV_CPU, op_fcts->name,
+            sizeof(struct parsec_map_args_s*), &pargs, PARSEC_VALUE,
             PASSED_BY_REF, RTBLKADDR( data[0].desc, void, m, n ), chameleon_parsec_get_arena_index( data[0].desc ) | cham_to_parsec_access( data[0].access ),
             PASSED_BY_REF, RTBLKADDR( data[1].desc, void, m, n ), chameleon_parsec_get_arena_index( data[1].desc ) | cham_to_parsec_access( data[1].access ),
             PARSEC_DTD_ARG_END );
         break;
 
     case 3:
-        parsec_dtd_taskpool_insert_task(
-            PARSEC_dtd_taskpool, CORE_map_three_parsec, options->priority, op_fcts->name,
-            sizeof(struct parsec_map_args_s*), &pargs, VALUE,
+        parsec_dtd_insert_task(
+            PARSEC_dtd_taskpool, CORE_map_three_parsec, options->priority, PARSEC_DEV_CPU, op_fcts->name,
+            sizeof(struct parsec_map_args_s*), &pargs, PARSEC_VALUE,
             PASSED_BY_REF, RTBLKADDR( data[0].desc, void, m, n ), chameleon_parsec_get_arena_index( data[0].desc ) | cham_to_parsec_access( data[0].access ),
             PASSED_BY_REF, RTBLKADDR( data[1].desc, void, m, n ), chameleon_parsec_get_arena_index( data[1].desc ) | cham_to_parsec_access( data[1].access ),
             PASSED_BY_REF, RTBLKADDR( data[2].desc, void, m, n ), chameleon_parsec_get_arena_index( data[2].desc ) | cham_to_parsec_access( data[2].access ),

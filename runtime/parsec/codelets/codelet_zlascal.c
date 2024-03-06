@@ -54,14 +54,14 @@ void INSERT_TASK_zlascal(const RUNTIME_option_t *options,
     parsec_taskpool_t* PARSEC_dtd_taskpool = (parsec_taskpool_t *)(options->sequence->schedopt);
     CHAM_tile_t *tileA = A->get_blktile( A, Am, An );
 
-    parsec_dtd_taskpool_insert_task(
-        PARSEC_dtd_taskpool, CORE_zlascal_parsec, options->priority, "lascal",
-        sizeof(cham_uplo_t),        &uplo,  VALUE,
-        sizeof(int),               &m,     VALUE,
-        sizeof(int),               &n,     VALUE,
-        sizeof(CHAMELEON_Complex64_t), &alpha, VALUE,
-        PASSED_BY_REF,              RTBLKADDR(A, CHAMELEON_Complex64_t, Am, An), INOUT | AFFINITY,
-        sizeof(int), &(tileA->ld), VALUE,
+    parsec_dtd_insert_task(
+        PARSEC_dtd_taskpool, CORE_zlascal_parsec, options->priority, PARSEC_DEV_CPU, "lascal",
+        sizeof(cham_uplo_t),        &uplo,  PARSEC_VALUE,
+        sizeof(int),               &m,     PARSEC_VALUE,
+        sizeof(int),               &n,     PARSEC_VALUE,
+        sizeof(CHAMELEON_Complex64_t), &alpha, PARSEC_VALUE,
+        PASSED_BY_REF,              RTBLKADDR(A, CHAMELEON_Complex64_t, Am, An), PARSEC_INOUT | PARSEC_AFFINITY,
+        sizeof(int), &(tileA->ld), PARSEC_VALUE,
         PARSEC_DTD_ARG_END );
 
     (void)nb;

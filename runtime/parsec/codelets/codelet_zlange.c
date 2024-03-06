@@ -53,15 +53,15 @@ void INSERT_TASK_zlange(const RUNTIME_option_t *options,
 
     int szeW = chameleon_max( M, N );
 
-    parsec_dtd_taskpool_insert_task(
-        PARSEC_dtd_taskpool, CORE_zlange_parsec, options->priority, "lange",
-        sizeof(cham_normtype_t),            &norm,          VALUE,
-        sizeof(int),                   &M,             VALUE,
-        sizeof(int),                   &N,             VALUE,
-        PASSED_BY_REF,         RTBLKADDR( A, CHAMELEON_Complex64_t, Am, An ), chameleon_parsec_get_arena_index( A ) | INPUT,
-        sizeof(int), &(tileA->ld), VALUE,
-        sizeof(double)*szeW,           NULL,           SCRATCH,
-        PASSED_BY_REF,         RTBLKADDR( B, double, Bm, Bn ),            OUTPUT | AFFINITY,
+    parsec_dtd_insert_task(
+        PARSEC_dtd_taskpool, CORE_zlange_parsec, options->priority, PARSEC_DEV_CPU, "lange",
+        sizeof(cham_normtype_t),            &norm,          PARSEC_VALUE,
+        sizeof(int),                   &M,             PARSEC_VALUE,
+        sizeof(int),                   &N,             PARSEC_VALUE,
+        PASSED_BY_REF,         RTBLKADDR( A, CHAMELEON_Complex64_t, Am, An ), chameleon_parsec_get_arena_index( A ) | PARSEC_INPUT,
+        sizeof(int), &(tileA->ld), PARSEC_VALUE,
+        sizeof(double)*szeW,           NULL,           PARSEC_SCRATCH,
+        PASSED_BY_REF,         RTBLKADDR( B, double, Bm, Bn ),            PARSEC_OUTPUT | PARSEC_AFFINITY,
         PARSEC_DTD_ARG_END );
 
     (void)NB;
@@ -90,9 +90,9 @@ void INSERT_TASK_zlange_max(const RUNTIME_option_t *options,
 {
     parsec_taskpool_t* PARSEC_dtd_taskpool = (parsec_taskpool_t *)(options->sequence->schedopt);
 
-    parsec_dtd_taskpool_insert_task(
-        PARSEC_dtd_taskpool, CORE_zlange_max_parsec, options->priority, "lange_max",
-        PASSED_BY_REF,         RTBLKADDR( A, double, Am, An ), INPUT,
-        PASSED_BY_REF,         RTBLKADDR( B, double, Bm, Bn ), OUTPUT | AFFINITY,
+    parsec_dtd_insert_task(
+        PARSEC_dtd_taskpool, CORE_zlange_max_parsec, options->priority, PARSEC_DEV_CPU, "lange_max",
+        PASSED_BY_REF,         RTBLKADDR( A, double, Am, An ), PARSEC_INPUT,
+        PASSED_BY_REF,         RTBLKADDR( B, double, Bm, Bn ), PARSEC_OUTPUT | PARSEC_AFFINITY,
         PARSEC_DTD_ARG_END );
 }
