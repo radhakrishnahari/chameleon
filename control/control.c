@@ -121,7 +121,7 @@ int __chameleon_initparcomm(int ncpus, int ngpus, int nthreads_per_worker, MPI_C
         return CHAMELEON_ERR_OUT_OF_RESOURCES;
     }
 
-#if defined(CHAMELEON_USE_MPI)
+#if defined(CHAMELEON_USE_MPI) || defined(CHAMELEON_SCHED_PARSEC)
 #  if defined(CHAMELEON_SIMULATION)
     /* Assuming that we don't initialize MPI ourself (which SMPI doesn't support anyway) */
     chamctxt->mpi_outer_init = 1;
@@ -191,7 +191,7 @@ int __chameleon_finalize(void)
     /* Stop the runtime system */
     RUNTIME_finalize( chamctxt );
 
-#if defined(CHAMELEON_USE_MPI)
+#if defined(CHAMELEON_USE_MPI) || defined(CHAMELEON_SCHED_PARSEC)
     /* Finalize MPI if initialized by Chameleon */
     if ( !chamctxt->mpi_outer_init ) {
         MPI_Finalize();

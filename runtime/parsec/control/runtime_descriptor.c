@@ -29,6 +29,8 @@
 /* Variable parsec_dtd_no_of_arenas is private and cannot be changed */
 #define CHAMELEON_PARSEC_DTD_NO_OF_ARENA 16 /**< Number of arenas available per DTD */
 
+static int id;
+
 typedef struct chameleon_parsec_arena_s {
     /* int mb; */
     /* int nb; */
@@ -157,7 +159,8 @@ chameleon_parsec_data_of(parsec_data_collection_t *data_collection, ...)
     return parsec_data_create( pdesc->data_map + n * mdesc->lmt + m, data_collection,
                                chameleon_parsec_data_key( data_collection, m, n ),
                                mdesc->get_blkaddr( mdesc, m, n ),
-                               mdesc->bsiz * CHAMELEON_Element_Size(mdesc->dtyp) );
+                               mdesc->bsiz * CHAMELEON_Element_Size(mdesc->dtyp),
+                               PARSEC_DATA_FLAG_PARSEC_OWNED | PARSEC_DATA_FLAG_PARSEC_MANAGED );
 }
 
 static inline parsec_data_t*
@@ -174,7 +177,8 @@ chameleon_parsec_data_of_key(parsec_data_collection_t *data_collection, parsec_d
 #endif
     return parsec_data_create( pdesc->data_map + key, data_collection, key,
                                mdesc->get_blkaddr( mdesc, m, n ),
-                               mdesc->bsiz * CHAMELEON_Element_Size(mdesc->dtyp) );
+                               mdesc->bsiz * CHAMELEON_Element_Size(mdesc->dtyp),
+                               PARSEC_DATA_FLAG_PARSEC_OWNED | PARSEC_DATA_FLAG_PARSEC_MANAGED );
 }
 
 #ifdef parsec_PROF_TRACE
@@ -226,7 +230,7 @@ void RUNTIME_desc_create( CHAM_desc_t *mdesc )
         chameleon_asprintf(&(data_collection->key_dim), "(%d, %d)", mdesc->lmt, mdesc->lnt);
     }
 #endif
-    data_collection->memory_registration_status = MEMORY_STATUS_UNREGISTERED;
+    data_collection->memory_registration_status = PARSEC_MEMORY_STATUS_UNREGISTERED;
 
     pdesc->data_map = calloc( mdesc->lmt * mdesc->lnt, sizeof(parsec_data_t*) );
 
@@ -240,7 +244,7 @@ void RUNTIME_desc_create( CHAM_desc_t *mdesc )
     pdesc->arena_index = 0;
 
     /* taskpool init to bypass a requirement of PaRSEC  */
-#if defined(CHAMELEON_USE_MPI)
+#if defined(CHAMELEON_USE_MPI) & 0
     /* Look if an arena already exists for this descriptor */
     {
         chameleon_parsec_arena_t *arena = chameleon_parsec_registered_arenas;
@@ -277,10 +281,13 @@ void RUNTIME_desc_create( CHAM_desc_t *mdesc )
             }
 
             /* Register the new arena */
-            parsec_matrix_add2arena( parsec_dtd_arenas[i], datatype, matrix_UpperLower, 1,
+            CHAM_context_t* chamctxt = chameleon_context_self();
+            parsec_arena_datatype_t *tile_full = parsec_dtd_create_arena_datatype(chamctxt->schedopt, &id);
+            parsec_add2arena( tile_full, datatype, PARSEC_MATRIX_FULL, 1,
                                      mdesc->mb, mdesc->nb, mdesc->mb, PARSEC_ARENA_ALIGNMENT_SSE, -1 );
+
             arena->size = size;
-            pdesc->arena_index = i;
+            pdesc->arena_index = id;
             chameleon_parsec_nb_arenas++;
         }
     }
@@ -312,7 +319,9 @@ void RUNTIME_desc_destroy( CHAM_desc_t *mdesc )
                 parsec_data_destroy( *data );
             }
         }
-
+        /* Commented while arenas are not supported */
+        //CHAM_context_t* chamctxt = chameleon_context_self();
+        //parsec_dtd_destroy_arena_datatype( chamctxt->schedopt, pdesc->arena_index );
         free( pdesc->data_map );
         pdesc->data_map = NULL;
     }

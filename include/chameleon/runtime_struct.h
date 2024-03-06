@@ -30,7 +30,7 @@ BEGIN_C_DECLS
 /**
  * Datatype for distributed version
  */
-#if defined(CHAMELEON_USE_MPI)
+#if defined(CHAMELEON_USE_MPI) || defined(CHAMELEON_SCHED_PARSEC)
 #include <mpi.h>
 #else
 #ifndef MPI_Comm

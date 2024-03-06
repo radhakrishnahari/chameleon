@@ -22,7 +22,7 @@
  */
 #include "chameleon_parsec.h"
 
-#if defined(CHAMELEON_USE_MPI)
+#if defined(CHAMELEON_USE_MPI) || defined(CHAMELEON_SCHED_PARSEC)
 #include <mpi.h>
 #endif
 
@@ -94,7 +94,9 @@ void RUNTIME_barrier( CHAM_context_t *chamctxt )
 {
     parsec_context_t *parsec = (parsec_context_t*)(chamctxt->schedopt);
     // This will be a problem with the fake tasks inserted to detect end of DTD algorithms
-    parsec_context_wait( parsec );
+    int done = parsec_context_test( parsec );
+    if( !done )
+        parsec_context_wait( parsec );
     return;
 }
 
