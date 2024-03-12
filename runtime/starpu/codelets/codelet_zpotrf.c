@@ -63,6 +63,54 @@ CODELETS( zpotrf, cl_zpotrf_cpu_func, cl_zpotrf_cuda_func, STARPU_CUDA_ASYNC )
 CODELETS_CPU( zpotrf, cl_zpotrf_cpu_func )
 #endif
 
+/*
+ * Model per code. For now the number of cores is fixed to match the machine I
+ * used (with 32 cores). For each worker, we read the power consumption from a file.
+ */
+/* static cham_fixdbl_t zpotrf_energy_array [32]; */
+
+/* cham_fixdbl_t potrf_worker_cost_function(struct starpu_task *t, unsigned workerid, unsigned i) */
+/* { */
+/*     (void)t; (void)workerid; (void)i; */
+
+/*     return zpotrf_energy_array[workerid]; */
+/* } */
+
+/* static struct starpu_perfmodel energy_model = */
+/* { */
+/*     .type = STARPU_PER_WORKER, */
+/*     .worker_cost_function = potrf_worker_cost_function, */
+/*     .symbol = "zpotrf" */
+/* }; */
+
+
+/* __attribute__((constructor)) */
+/* static void init_cl_zpotrf() { */
+/*     /\* copy energy values from env variables, only if variables are */
+/*      defined. Otherwise no energy model will be used*\/ */
+/*     if(getenv("STARPU_SCHED_GAMMA")) */
+/*     { */
+/*         FILE *fp; */
+/*         char* line = NULL; */
+/*         size_t len = 0; */
+/*         ssize_t read; */
+/*         int i = 0; */
+/*         fp = fopen("/root/potrf_energy_file", "r"); */
+/*         if(fp == NULL){ */
+/*             printf("failed to open file portf_energy_file"); */
+/*             exit(EXIT_FAILURE); */
+/*         } */
+/*         while((read = getline(&line, &len, fp)) != -1) { */
+/*             zpotrf_energy_array[i] = atof(line); */
+/*             i ++; */
+/*         } */
+/*         fclose(fp); */
+/*         if(line) */
+/*             free(line); */
+/*         cl_zpotrf.energy_model = &energy_model ; */
+/*     } */
+/* } */
+
 void INSERT_TASK_zpotrf( const RUNTIME_option_t *options,
                          cham_uplo_t uplo, int n, int nb,
                          const CHAM_desc_t *A, int Am, int An,

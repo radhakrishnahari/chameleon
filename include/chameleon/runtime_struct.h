@@ -82,6 +82,7 @@ typedef struct runtime_option_s {
     RUNTIME_sequence_t *sequence;  /**< Runtime sequence to which attach the submitted tasks     */
     RUNTIME_request_t  *request;   /**< Runtime request to which attach the submitted tasks      */
     int                 profiling; /**< Enable/Disable the profiling of the submitted tasks      */
+    int                 energy;    /**< Enable/Disable energy measurement of the submitted tasks */
     int                 parallel;  /**< Enable/Disable the parallel version of submitted tasks   */
     int                 priority;  /**< Define the submitted task priority                       */
     int                 workerid;  /**< Define the prefered worker id to perform the tasks       */

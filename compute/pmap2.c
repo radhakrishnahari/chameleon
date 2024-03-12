@@ -1,0 +1,94 @@
+/**
+ *
+ * @file pmap2.c
+ *
+ * @copyright 2018-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ ***
+ *
+ * @brief Chameleon map2 parallel algorithm
+ *
+ * @version 1.0.0
+ * @author Mathieu Faverge
+ * @date 2020-03-03
+ *
+ */
+#include "control/common.h"
+
+#define A(m, n) A, m, n
+#define B(m, n) B, m, n
+
+/**
+ *  chameleon_pmap2
+ */
+void chameleon_pmap2( cham_access_t accessA, cham_access_t accessB,
+                      cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B,
+                      cham_binary_operator_t op_fct, void *op_args,
+                      RUNTIME_sequence_t *sequence, RUNTIME_request_t *request,
+                      const char *name )
+{
+    CHAM_context_t *chamctxt;
+    RUNTIME_option_t options;
+    int m, n;
+
+    chamctxt = chameleon_context_self();
+    if (sequence->status != CHAMELEON_SUCCESS)
+        return;
+    RUNTIME_options_init(&options, chamctxt, sequence, request);
+
+    switch( uplo ) {
+    case ChamUpper:
+        for (n = 0; n < A->nt; n++) {
+            for (m = 0; m < n; m++) {
+                INSERT_TASK_map2(
+                    &options, ChamUpperLower,
+                    accessA, accessB,
+                    A(m, n), B(m, n),
+                    op_fct, op_args,
+                    name );
+            }
+            INSERT_TASK_map2(
+                &options, uplo,
+                accessA, accessB,
+                A(n, n), B(n, n),
+                op_fct, op_args,
+                name );
+        }
+        break;
+
+    case ChamLower:
+        for (n = 0; n < A->nt; n++) {
+            INSERT_TASK_map2(
+                &options, uplo,
+                accessA, accessB,
+                A(n, n), B(n, n),
+                op_fct, op_args,
+                name );
+            for (m = n+1; m < A->mt; m++) {
+                INSERT_TASK_map2(
+                    &options, ChamUpperLower,
+                    accessA, accessB,
+                    A(m, n), B(m, n),
+                    op_fct, op_args,
+                    name );
+            }
+        }
+        break;
+
+    case ChamUpperLower:
+    default:
+        for (m = 0; m < A->mt; m++) {
+            for (n = 0; n < A->nt; n++) {
+                INSERT_TASK_map2(
+                    &options, uplo,
+                    accessA, accessB,
+                    A(m, n), B(m, n),
+                    op_fct, op_args,
+                    name );
+            }
+        }
+    }
+
+    RUNTIME_options_finalize(&options, chamctxt);
+}

@@ -72,14 +72,19 @@
         .type   = STARPU_HISTORY_BASED,                                 \
         .symbol = ""#cl_name                                            \
     };                                                                  \
+    struct starpu_perfmodel cl_##cl_name##_energy_model = {             \
+        .type   = STARPU_HISTORY_BASED,                                 \
+        .symbol = ""#cl_name"_energy"                                   \
+    };                                                                  \
                                                                         \
     struct starpu_codelet cl_##cl_name = {                              \
-        .where     = (_original_location_),                             \
-        .cpu_func  = ((cpu_func_name)),                                 \
+        .where        = (_original_location_),                          \
+        .cpu_func     = ((cpu_func_name)),                              \
         CODELET_GPU_FIELDS( gpu_func_name, gpu_flags )                  \
-        .nbuffers  = STARPU_VARIABLE_NBUFFERS,                          \
-        .model     = &cl_##cl_name##_model,                             \
-        .name      = #cl_name                                           \
+        .nbuffers     = STARPU_VARIABLE_NBUFFERS,                       \
+        .model        = &cl_##cl_name##_model,                          \
+        .energy_model = &cl_##cl_name##_energy_model,                   \
+        .name         = #cl_name                                        \
     };                                                                  \
                                                                         \
     void cl_##cl_name##_restrict_where(uint32_t where)                  \
@@ -119,6 +124,7 @@
      void cl_##name##_load_fake_model(void);                 \
      void cl_##name##_restore_model(void);                   \
      extern struct starpu_codelet cl_##name;                 \
+     extern struct starpu_perfmodel cl_##name##_energy_model;\
      void cl_##name##_restrict_where(uint32_t where);        \
      void cl_##name##_restore_where(void)
 

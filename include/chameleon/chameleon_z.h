@@ -394,6 +394,15 @@ int CHAMELEON_zgram_Tile_Async( cham_uplo_t uplo, CHAM_desc_t *A, void *user_ws,
 int CHAMELEON_zprint( FILE *file, const char *header, cham_uplo_t uplo, int M, int N, CHAMELEON_Complex64_t *A, int LDA );
 int CHAMELEON_zprint_Tile( FILE *file, const char *header, cham_uplo_t uplo, CHAM_desc_t *descA );
 
+/**
+ * Batch function prototypes
+ */
+int CHAMELEON_zgemm_batch_Tile( cham_trans_t transA, cham_trans_t transB, CHAMELEON_Complex64_t alpha, CHAM_desc_t *A, CHAM_desc_t *B, CHAMELEON_Complex64_t beta,  CHAM_desc_t *C );
+int CHAMELEON_zherk_batch_Tile( cham_uplo_t uplo, cham_trans_t trans, double alpha, CHAM_desc_t *A, double beta,  CHAM_desc_t *B );
+int CHAMELEON_zplghe_batch_Tile( double bump, CHAM_desc_t *A, unsigned long long int seed );
+int CHAMELEON_zpotrf_batch_Tile( cham_uplo_t uplo, CHAM_desc_t *A );
+int CHAMELEON_ztrsm_batch_Tile( cham_side_t side, cham_uplo_t uplo, cham_trans_t trans, cham_diag_t diag, CHAMELEON_Complex64_t alpha, CHAM_desc_t *A, CHAM_desc_t *B );
+
 END_C_DECLS
 
 #endif /* _chameleon_z_h_ */

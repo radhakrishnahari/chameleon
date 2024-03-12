@@ -126,6 +126,8 @@ set(CODELETS_ZSRC
 
 set(CODELETS_SRC
   codelets/codelet_map.c
+  codelets/codelet_map2.c
+  codelets/codelet_map3.c
   codelets/codelet_ipiv_to_perm.c
 )
 

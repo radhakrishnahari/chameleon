@@ -17,6 +17,7 @@
  */
 #include "chameleon_starpu.h"
 #include "runtime_codelet_z.h"
+#include "runtime_energy.h"
 
 CHAMELEON_CL_CB(map, cti_handle_get_m(task->handles[0]), cti_handle_get_n(task->handles[0]), 0, M*N)
 
@@ -33,7 +34,7 @@ static void cl_map_cpu_func(void *descr[], void *cl_arg)
 
     tile = cti_interface_get(descr[0]);
     starpu_codelet_unpack_args(cl_arg, &desc, &uplo, &m, &n, &op_fct, &op_args );
-    op_fct( desc, uplo, m, n, tile, op_args );
+    op_fct(uplo, m, n, desc, tile, op_args );
 }
 #endif /* !defined(CHAMELEON_SIMULATION) */
 
@@ -42,14 +43,22 @@ static void cl_map_cpu_func(void *descr[], void *cl_arg)
  */
 CODELETS_CPU(map, cl_map_cpu_func)
 
-void INSERT_TASK_map( const RUNTIME_option_t *options,
-                      cham_access_t accessA, cham_uplo_t uplo, const CHAM_desc_t *A, int Am, int An,
-                      cham_unary_operator_t op_fct, void *op_args )
+void INSERT_TASK_map( const RUNTIME_option_t *options, cham_uplo_t uplo,
+                      cham_access_t accessA, const CHAM_desc_t *A, int Am, int An,
+                      cham_unary_operator_t op_fct, void *op_args,
+                      const char *name )
 {
 
     struct starpu_codelet *codelet = &cl_map;
     void (*callback)(void*) = options->profiling ? cl_map_callback : NULL;
-    char                  *cl_name = "map";
+    char                  *cl_name = (name == NULL) ? "map" : name;
+
+    if ( options->energy ) {
+        if ( chameleon_starpu_register_energy_task() ) {
+            __chameleon_starpu_energy_task->nbuffers   = 1;
+            __chameleon_starpu_energy_task->handles[0] = RTBLKADDR(A, CHAMELEON_Complex64_t, Am, An);
+        }
+    }
 
     CHAMELEON_BEGIN_ACCESS_DECLARATION;
     CHAMELEON_ACCESS_RW(A, Am, An);

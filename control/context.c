@@ -137,6 +137,7 @@ CHAM_context_t *chameleon_context_create()
     chamctxt->autotuning_enabled = chameleon_env_on_off( "CHAMELEON_AUTOTUNING",      CHAMELEON_FALSE );
     chamctxt->parallel_enabled   = chameleon_env_on_off( "CHAMELEON_PARALLEL_KERNEL", CHAMELEON_FALSE );
     chamctxt->statistics_enabled = chameleon_env_on_off( "CHAMELEON_GENERATE_STATS",  CHAMELEON_FALSE );
+    chamctxt->energy_enabled     = chameleon_env_on_off( "CHAMELEON_ENERGY",          CHAMELEON_FALSE );
     chamctxt->progress_enabled   = chameleon_env_on_off( "CHAMELEON_PROGRESS",        CHAMELEON_FALSE );
     chamctxt->generic_enabled    = chameleon_env_on_off( "CHAMELEON_GENERIC",         CHAMELEON_FALSE );
     chamctxt->autominmax_enabled = chameleon_env_on_off( "CHAMELEON_AUTOMINMAX",      CHAMELEON_TRUE  );
@@ -220,6 +221,9 @@ int CHAMELEON_Enable(int option)
             break;
         case CHAMELEON_GENERATE_STATS:
             chamctxt->statistics_enabled = CHAMELEON_TRUE;
+            break;
+        case CHAMELEON_ENERGY_MEASUREMENT:
+            chamctxt->energy_enabled = CHAMELEON_TRUE;
             break;
         case CHAMELEON_PROGRESS:
             chamctxt->progress_enabled = CHAMELEON_TRUE;

@@ -53,4 +53,9 @@ void CHAMELEON_crestore_Model();
 void CHAMELEON_drestore_Model();
 void CHAMELEON_srestore_Model();
 
+void RUNTIME_zget_codelet( cham_tasktype_t kernel );
+void RUNTIME_cget_codelet( cham_tasktype_t kernel );
+void RUNTIME_dget_codelet( cham_tasktype_t kernel );
+void RUNTIME_sget_codelet( cham_tasktype_t kernel );
+
 #endif /* _runtime_profiling_h_ */

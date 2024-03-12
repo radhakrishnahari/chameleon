@@ -16,13 +16,14 @@
  */
 #include "control/common.h"
 
-#define A(m, n) A,  m,  n
+#define A(m, n) A, m, n
+
 /**
- *  chameleon_pmap - Generate a random matrix by tiles.
+ *  chameleon_pmap
  */
 void chameleon_pmap( cham_access_t access, cham_uplo_t uplo, CHAM_desc_t *A,
                      cham_unary_operator_t op_fct, void *op_args,
-                     RUNTIME_sequence_t *sequence, RUNTIME_request_t *request )
+                     RUNTIME_sequence_t *sequence, RUNTIME_request_t *request, const char *name )
 {
     CHAM_context_t *chamctxt;
     RUNTIME_option_t options;
@@ -38,28 +39,28 @@ void chameleon_pmap( cham_access_t access, cham_uplo_t uplo, CHAM_desc_t *A,
         for (n = 0; n < A->nt; n++) {
             for (m = 0; m < n; m++) {
                 INSERT_TASK_map(
-                    &options,
-                    access, ChamUpperLower, A(m, n),
-                    op_fct, op_args );
+                    &options, ChamUpperLower,
+                    access, A(m, n),
+                    op_fct, op_args, name );
             }
             INSERT_TASK_map(
-                &options,
-                access, uplo, A(n, n),
-                op_fct, op_args );
+                &options, uplo,
+                access, A(n, n),
+                op_fct, op_args, name );
         }
         break;
 
     case ChamLower:
         for (n = 0; n < A->nt; n++) {
             INSERT_TASK_map(
-                &options,
-                access, uplo, A(n, n),
-                op_fct, op_args );
+                &options, uplo,
+                access, A(n, n),
+                op_fct, op_args, name );
             for (m = n+1; m < A->mt; m++) {
                 INSERT_TASK_map(
-                    &options,
-                    access, ChamUpperLower, A(m, n),
-                    op_fct, op_args );
+                    &options, ChamUpperLower,
+                    access, A(m, n),
+                    op_fct, op_args, name );
             }
         }
         break;
@@ -69,9 +70,9 @@ void chameleon_pmap( cham_access_t access, cham_uplo_t uplo, CHAM_desc_t *A,
         for (m = 0; m < A->mt; m++) {
             for (n = 0; n < A->nt; n++) {
                 INSERT_TASK_map(
-                    &options,
-                    access, uplo, A(m, n),
-                    op_fct, op_args );
+                    &options, uplo,
+                    access, A(m, n),
+                    op_fct, op_args, name );
             }
         }
     }

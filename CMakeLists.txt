@@ -759,7 +759,6 @@ if(CHAMELEON_ENABLE_DOC)
 endif()
 #------------------------------------------------------------------------------
 
-
 ###############################################################################
 # Make cmake include starpu_simgrid_wrap.h (which #define main and thus makes #
 # link tests fail) only after tests.                                          #

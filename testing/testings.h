@@ -262,6 +262,7 @@ typedef struct testdata_ {
     cham_fixdbl_t       tsub;     /**< The task submission tome of the test */
     RUNTIME_sequence_t *sequence; /**< The sequence to run the test if splitsub */
     RUNTIME_request_t   request;  /**< The request to run the test if splitsub  */
+    cham_tasktype_t     task;     /**< The kernel to run                        */
 } testdata_t;
 
 /**
@@ -288,6 +289,7 @@ typedef struct testing_options_ {
     char *op;
     /* Additionnal information to exchange between the main and the testings */
     int run_id;
+    int energy;
 } testing_options_t;
 
 void       testing_register( testing_t *test );

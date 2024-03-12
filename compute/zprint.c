@@ -33,9 +33,9 @@ struct zprint_args_s {
 };
 
 static inline int
-zprint( const CHAM_desc_t *descA,
-        cham_uplo_t uplo, int m, int n,
-        CHAM_tile_t *tileA, void *op_args )
+zprint( cham_uplo_t uplo, int m, int n,
+        const CHAM_desc_t *descA, CHAM_tile_t *tileA,
+        void *op_args )
 {
     CHAMELEON_Complex64_t *A;
     struct zprint_args_s  *options = (struct zprint_args_s *)op_args;
@@ -152,7 +152,7 @@ int CHAMELEON_zprint( FILE *file, const char *header,
 
     /* Call the tile interface */
     zprint_runtime_id = chamctxt->scheduler;
-    chameleon_pmap( ChamR, uplo, &descAt, zprint, &options, sequence, &request );
+    chameleon_pmap( ChamR, uplo, &descAt, zprint, &options, sequence, &request, "zprint" );
 
     /* Submit the matrix conversion back */
     chameleon_ztile2lap( chamctxt, &descAl, &descAt,
@@ -216,7 +216,7 @@ int CHAMELEON_zprint_Tile( FILE *file, const char *header,
     chameleon_sequence_create( chamctxt, &sequence );
 
     zprint_runtime_id = chamctxt->scheduler;
-    chameleon_pmap( ChamR, uplo, A, zprint, &options, sequence, &request );
+    chameleon_pmap( ChamR, uplo, A, zprint, &options, sequence, &request, "zprint" );
     CHAMELEON_Desc_Flush( A, sequence );
 
     chameleon_sequence_wait( chamctxt, sequence );

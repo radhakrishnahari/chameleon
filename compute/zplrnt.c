@@ -251,11 +251,6 @@ int CHAMELEON_zplrnt_Tile_Async( CHAM_desc_t     *A,
         chameleon_error("CHAMELEON_zplrnt_Tile", "invalid descriptor");
         return chameleon_request_fail(sequence, request, CHAMELEON_ERR_ILLEGAL_VALUE);
     }
-    /* Check input arguments */
-    if (A->nb != A->mb) {
-        chameleon_error("CHAMELEON_zplrnt_Tile", "only square tiles supported");
-        return chameleon_request_fail(sequence, request, CHAMELEON_ERR_ILLEGAL_VALUE);
-    }
 
     /* Quick return */
     if (chameleon_min( A->m, A->n ) == 0)

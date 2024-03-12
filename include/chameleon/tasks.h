@@ -93,13 +93,45 @@ typedef enum chameleon_tasktype_e {
 #define TASK_TTMQR TASK_TPMQRT
 #define TASK_TTQRT TASK_TPQRT
 
-typedef int (*cham_unary_operator_t)( const CHAM_desc_t *desc,
-                                      cham_uplo_t uplo, int m, int n,
-                                      CHAM_tile_t *data, void *op_args );
+typedef int (*cham_unary_operator_t)( cham_uplo_t uplo, int m, int n,
+                                      const CHAM_desc_t *desc, CHAM_tile_t *data,
+                                      void *op_args );
+
+typedef int (*cham_binary_operator_t)( cham_uplo_t uplo, int m, int n,
+                                       const CHAM_desc_t *descA, CHAM_tile_t *tileA,
+                                       const CHAM_desc_t *descB, CHAM_tile_t *tileB,
+                                       void *op_args );
+
+typedef int (*cham_ternary_operator_t)( cham_uplo_t uplo, int m, int n,
+                                        const CHAM_desc_t *descA, CHAM_tile_t *tileA,
+                                        const CHAM_desc_t *descB, CHAM_tile_t *tileB,
+                                        const CHAM_desc_t *descC, CHAM_tile_t *tileC,
+                                        void *op_args );
 
 void INSERT_TASK_map( const RUNTIME_option_t *options,
-                      cham_access_t accessA, cham_uplo_t uplo, const CHAM_desc_t *A, int Am, int An,
-                      cham_unary_operator_t op_fct, void *op_args );
+                      cham_uplo_t uplo,
+                      cham_access_t accessA,
+                      const CHAM_desc_t *A, int Am, int An,
+                      cham_unary_operator_t op_fct, void *op_args,
+                      const char *name );
+void INSERT_TASK_map2( const RUNTIME_option_t *options,
+                       cham_uplo_t uplo,
+                       cham_access_t accessA,
+                       cham_access_t accessB,
+                       const CHAM_desc_t *A, int Am, int An,
+                       const CHAM_desc_t *B, int Bm, int Bn,
+                       cham_binary_operator_t op_fct, void *op_args,
+                       const char *name );
+void INSERT_TASK_map3( const RUNTIME_option_t *options,
+                       cham_uplo_t uplo,
+                       cham_access_t accessA,
+                       cham_access_t accessB,
+                       cham_access_t accessC,
+                       const CHAM_desc_t *A, int Am, int An,
+                       const CHAM_desc_t *B, int Bm, int Bn,
+                       const CHAM_desc_t *C, int Cm, int Cn,
+                       cham_ternary_operator_t op_fct, void *op_args,
+                       const char *name );
 
 void INSERT_TASK_gemm( const RUNTIME_option_t *options,
                        cham_trans_t transA, cham_trans_t transB,

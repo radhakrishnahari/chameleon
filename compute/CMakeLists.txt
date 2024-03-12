@@ -48,6 +48,8 @@ set(CHAMELEON_CONTROL
     ../control/chameleon_mf77.c
     map.c
     pmap.c
+    pmap2.c
+    pmap3.c
    )
 
 set(flags_to_add "")
@@ -260,6 +262,14 @@ set(ZSRC
     zgenm2.c
     pzgenm2.c
     zprint.c
+    ##################
+    # Batch
+    ##################
+    zplghe_batch.c
+    zgemm_batch.c
+    ztrsm_batch.c
+    zherk_batch.c
+    zpotrf_batch.c
 )
 
 precisions_rules_py(CHAMELEON_SRCS_GENERATED "${ZSRC}"

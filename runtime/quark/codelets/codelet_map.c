@@ -28,11 +28,11 @@ void CORE_map_quark(Quark *quark)
     void *op_args;
 
     quark_unpack_args_7( quark, desc, uplo, m, n, tile, op_fct, op_args );
-    op_fct( desc, uplo, m, n, tile, op_args );
+    op_fct( uplo, m, n, desc, tile, op_args );
 }
 
-void INSERT_TASK_map( const RUNTIME_option_t *options,
-                      cham_access_t accessA, cham_uplo_t uplo, const CHAM_desc_t *A, int Am, int An,
+void INSERT_TASK_map( const RUNTIME_option_t *options, cham_uplo_t uplo,
+                      cham_access_t accessA, const CHAM_desc_t *A, int Am, int An,
                       cham_unary_operator_t op_fct, void *op_args )
 {
     quark_option_t *opt = (quark_option_t*)(options->schedopt);

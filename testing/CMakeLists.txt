@@ -29,6 +29,7 @@
 #
 ###
 
+#find_package (PAPI REQUIRED)
 # Generate chameleon auxiliary testing sources for all possible precisions
 # --------------------------------------------------------------------
 set(TESTING_HDRS_GENERATED "")
@@ -105,7 +106,12 @@ set(ZSRC_WO_STDAPI
   testing_zplrnk.c
   testing_zcesca.c
   testing_zgram.c
-)
+  #
+  testing_zgemm_batch.c
+  testing_zherk_batch.c
+  testing_ztrsm_batch.c
+  testing_zpotrf_batch.c
+  )
 
 foreach(_precision ${CHAMELEON_PRECISION} )
 
@@ -149,6 +155,7 @@ foreach(_precision ${CHAMELEON_PRECISION} )
     run_list.c
     parameters.c
     testings.c
+#    power_measurement.c
     )
   add_dependencies(${__target_name}
     chameleon_include
@@ -183,6 +190,8 @@ foreach(_precision ${CHAMELEON_PRECISION} )
       MORSE::CBLAS)
   endif()
   target_link_libraries(${__target_name} PRIVATE MORSE::M)
+
+#  target_link_libraries(${__target_name} PRIVATE MORSE::PAPI)
 
   install(TARGETS ${__target_name}
     DESTINATION bin/ )
