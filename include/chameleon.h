@@ -30,7 +30,6 @@
  * CHAMELEON types and constants
  */
 #include "chameleon/config.h"
-#define _GNU_SOURCE 1
 #include <stdio.h>
 #include "chameleon/constants.h"
 #include "chameleon/types.h"
