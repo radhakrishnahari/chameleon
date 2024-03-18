@@ -24,7 +24,7 @@
  * @date 2024-03-16
  *
  */
-#include "chameleon_starpu.h"
+#include "chameleon_starpu_internal.h"
 #include <stdio.h>
 #include <stdlib.h>
 #if defined(STARPU_USE_FXT)

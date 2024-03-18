@@ -15,7 +15,7 @@
  * @date 2024-03-11
  *
  */
-#include "chameleon_starpu.h"
+#include "chameleon_starpu_internal.h"
 #include "runtime_codelet_z.h"
 
 struct cl_map_args_s {

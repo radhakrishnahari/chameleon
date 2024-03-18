@@ -26,7 +26,7 @@
 #ifndef _chameleon_starpu_h_
 #define _chameleon_starpu_h_
 
-#include "control/common.h"
+#include <chameleon.h>
 
 /* StarPU options */
 #cmakedefine HAVE_STARPU_IDLE_PREFETCH
@@ -93,33 +93,10 @@
 # endif
 #endif
 
-#include "control/common.h"
 #include "runtime_codelets.h"
 #include "runtime_profiling.h"
 #include "runtime_codelet_profile.h"
 #include "runtime_workspace.h"
-#include "cham_tile_interface.h"
-#include "cppi_interface.h"
-
-typedef struct starpu_schedopt_s
-{
-    struct starpu_conf                    starpu_conf; /**< StarPU main configuration structure   */
-    struct starpu_parallel_worker_config *pw_config;   /**< StarPU parallel workers configuration */
-} starpu_sched_opt_t;
-
-/* Structure used to give some options during one request (procedure) */
-typedef struct starpu_option_request_s {
-    int workerid; // to force task execution on a specific workerid
-} starpu_option_request_t;
-
-/**/
-
-static inline int cham_to_starpu_access( cham_access_t accessA ) {
-    assert( (enum starpu_data_access_mode)ChamR  == STARPU_R  );
-    assert( (enum starpu_data_access_mode)ChamW  == STARPU_W  );
-    assert( (enum starpu_data_access_mode)ChamRW == STARPU_RW );
-    return accessA;
-}
 
 void *RUNTIME_data_getaddr_withconversion( const RUNTIME_option_t *options,
                                            cham_access_t access, cham_flttype_t flttype,

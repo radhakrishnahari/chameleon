@@ -23,7 +23,7 @@
  * @date 2024-07-17
  *
  */
-#include "chameleon_starpu.h"
+#include "chameleon_starpu_internal.h"
 
 /**
  *  Malloc/Free of the data

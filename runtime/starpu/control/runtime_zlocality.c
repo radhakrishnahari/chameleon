@@ -20,7 +20,7 @@
  * @precisions normal z -> s d c
  *
  */
-#include "chameleon_starpu.h"
+#include "chameleon_starpu_internal.h"
 #include "runtime_codelet_z.h"
 
 #if defined(CHAMELEON_USE_CUDA) || defined(CHAMELEON_USE_HIP)

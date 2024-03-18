@@ -21,7 +21,7 @@
  * @date 2022-02-22
  *
  */
-#include "chameleon_starpu.h"
+#include "chameleon_starpu_internal.h"
 
 /**
  * @brief Store the status of some flags to knwo when enable/disable them

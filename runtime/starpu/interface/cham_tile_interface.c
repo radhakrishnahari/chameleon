@@ -18,7 +18,7 @@
  * @date 2024-07-17
  *
  */
-#include "chameleon_starpu.h"
+#include "chameleon_starpu_internal.h"
 #if defined(CHAMELEON_USE_HMATOSS)
 #include "coreblas/hmat.h"
 

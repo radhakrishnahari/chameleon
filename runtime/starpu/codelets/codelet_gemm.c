@@ -16,7 +16,7 @@
  * @date 2024-03-11
  *
  */
-#include "chameleon_starpu.h"
+#include "chameleon_starpu_internal.h"
 #include "runtime_codelets.h"
 #define PRECISION_z
 #include "runtime_codelet_z.h"

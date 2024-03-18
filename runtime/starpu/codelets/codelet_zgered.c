@@ -18,7 +18,7 @@
  * @precisions normal z -> d
  *
  */
-#include "chameleon_starpu.h"
+#include "chameleon_starpu_internal.h"
 #include <coreblas/lapacke.h>
 #include "runtime_codelet_zc.h"
 #include "runtime_codelet_z.h"

@@ -17,7 +17,7 @@
  * @date 2024-03-16
  *
  */
-#include "chameleon_starpu.h"
+#include "chameleon_starpu_internal.h"
 
 /**
  *  Create ws_pivot runtime structures

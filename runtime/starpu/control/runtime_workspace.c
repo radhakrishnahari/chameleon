@@ -19,7 +19,7 @@
  * @date 2023-01-30
  *
  */
-#include "chameleon_starpu.h"
+#include "chameleon_starpu_internal.h"
 
 #if defined(CHAMELEON_USE_CUDA)
 #define GPU_WORKER_TYPE STARPU_CUDA_WORKER

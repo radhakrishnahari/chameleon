@@ -19,7 +19,7 @@
  * @date 2023-07-04
  *
  */
-#include "chameleon_starpu.h"
+#include "chameleon_starpu_internal.h"
 
 void RUNTIME_options_init( RUNTIME_option_t *options, CHAM_context_t *chamctxt,
                            RUNTIME_sequence_t *sequence, RUNTIME_request_t *request )
