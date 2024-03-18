@@ -33,18 +33,21 @@
 #include "cham_tile_interface.h"
 #include "cppi_interface.h"
 
-typedef struct starpu_schedopt_s
+/**
+ * @brief StarPU specific Chameleon structure stored in the schedopt field
+ */
+typedef struct CHAM_context_starpu_s
 {
     struct starpu_conf                    starpu_conf; /**< StarPU main configuration structure   */
     struct starpu_parallel_worker_config *pw_config;   /**< StarPU parallel workers configuration */
-} starpu_sched_opt_t;
+} CHAM_context_starpu_t;
 
 /**
- * Structure used to give some options during one request (procedure)
+ * @brief StarPU specific request field stored in the schedopt field
  */
-typedef struct starpu_option_request_s {
+typedef struct RUNTIME_request_starpu_s {
     int workerid; // to force task execution on a specific workerid
-} starpu_option_request_t;
+} RUNTIME_request_starpu_t;
 
 /**
  * @brief Convert the Chameleon access enum to the StarPU one

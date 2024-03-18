@@ -47,7 +47,7 @@ void RUNTIME_context_create( CHAM_context_t *chamctxt )
     chamctxt->scheduler = RUNTIME_SCHED_STARPU;
 
     if ( !starpu_is_initialized() ) {
-        starpu_sched_opt_t *sched_opt = malloc( sizeof(starpu_sched_opt_t) );
+        CHAM_context_starpu_t *sched_opt = malloc( sizeof(CHAM_context_starpu_t) );
 
         sched_opt->pw_config = NULL;
         starpu_conf_init( &(sched_opt->starpu_conf) );

@@ -34,7 +34,7 @@
 static int starpu_initialized = 0;
 
 #if defined(STARPU_HAVE_HWLOC) && defined(HAVE_STARPU_PARALLEL_WORKER)
-void chameleon_starpu_parallel_worker_init( starpu_sched_opt_t *sched_opt )
+void chameleon_starpu_parallel_worker_init( CHAM_context_starpu_t *sched_opt )
 {
     char *env_pw_level = chameleon_getenv( "CHAMELEON_PARALLEL_WORKER_LEVEL" );
 
@@ -85,7 +85,7 @@ void chameleon_starpu_parallel_worker_init( starpu_sched_opt_t *sched_opt )
     chameleon_cleanenv( env_pw_level );
 }
 
-void chameleon_starpu_parallel_worker_fini( starpu_sched_opt_t *sched_opt )
+void chameleon_starpu_parallel_worker_fini( CHAM_context_starpu_t *sched_opt )
 {
     if ( sched_opt->pw_config != NULL ) {
         starpu_parallel_worker_shutdown( sched_opt->pw_config );
@@ -149,7 +149,7 @@ int RUNTIME_init( CHAM_context_t *chamctxt,
                   int ncudas,
                   int nthreads_per_worker )
 {
-    starpu_sched_opt_t *sched_opt = (starpu_sched_opt_t*)(chamctxt->schedopt);
+    CHAM_context_starpu_t *sched_opt = (CHAM_context_starpu_t*)(chamctxt->schedopt);
     struct starpu_conf *conf = &sched_opt->starpu_conf;
     int hres = CHAMELEON_ERR_NOT_INITIALIZED;
 
@@ -248,7 +248,7 @@ void RUNTIME_finalize( CHAM_context_t *chamctxt )
         return;
     }
 
-    starpu_sched_opt_t *sched_opt = (starpu_sched_opt_t*)(chamctxt->schedopt);
+    CHAM_context_starpu_t *sched_opt = (CHAM_context_starpu_t*)(chamctxt->schedopt);
     chameleon_starpu_parallel_worker_fini( sched_opt );
 
     starpu_cham_tile_interface_fini();
