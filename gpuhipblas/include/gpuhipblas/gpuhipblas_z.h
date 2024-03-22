@@ -34,5 +34,9 @@ int HIP_zsyr2k( cham_uplo_t uplo, cham_trans_t trans, int n, int k, const hipbla
 int HIP_zsyrk(  cham_uplo_t uplo, cham_trans_t trans, int n, int k, const hipblasDoubleComplex *alpha, const hipblasDoubleComplex *A, int lda, const hipblasDoubleComplex *beta, hipblasDoubleComplex *C, int ldc, hipblasHandle_t handle );
 int HIP_ztrmm(  cham_side_t side, cham_uplo_t uplo, cham_trans_t transa, cham_diag_t diag, int m, int n, const hipblasDoubleComplex *alpha, const hipblasDoubleComplex *A, int lda, hipblasDoubleComplex *B, int ldb, hipblasHandle_t handle );
 int HIP_ztrsm(  cham_side_t side, cham_uplo_t uplo, cham_trans_t transa, cham_diag_t diag, int m, int n, const hipblasDoubleComplex *alpha, const hipblasDoubleComplex *A, int lda, hipblasDoubleComplex *B, int ldb, hipblasHandle_t handle );
+int HIP_zlaswp_get( int m0, int m, int n, int k, const CHAMELEON_Complex64_t *A, int lda, CHAMELEON_Complex64_t       *B, int ldb, const int *perm, hipblasHandle_t handle );
+int HIP_zlaswp_set( int m0, int m, int n, int k, const CHAMELEON_Complex64_t *A, int lda, CHAMELEON_Complex64_t *B, int ldb, const int *invp, hipblasHandle_t handle );
+int hip_zlaswp_get_zcopy( int m0, int m, int n, int k, const CHAMELEON_Complex64_t *A, int lda, CHAMELEON_Complex64_t       *B, int ldb, const int *perm, hipblasHandle_t handle );
+int HIP_zlaswp_set_zcopy( int m0, int m, int n, int k, const CHAMELEON_Complex64_t *A, int lda, CHAMELEON_Complex64_t *B, int ldb, const int *invp, hipblasHandle_t handle );
 
 #endif /* _gpuhipblas_z_h_ */

@@ -934,7 +934,8 @@ cl_cti_redux_hip_func(void *descr[], void *cl_arg)
     else if (type == ChamComplexFloat)
     {
 #if defined CHAMELEON_PREC_C
-        cuComplex one=1.0;
+        //hipComplex one=1.0;
+        CHAMELEON_Complex32_t one=1.0;
         hipblasCgeam( handle,
                       HIPBLAS_OP_N, HIPBLAS_OP_N,
                       M, N,
@@ -946,7 +947,8 @@ cl_cti_redux_hip_func(void *descr[], void *cl_arg)
     else if (type == ChamComplexDouble)
     {
 #if defined CHAMELEON_PREC_Z
-        cuDoubleComplex one=1.0;
+        //hipDoubleComplex one=1.0;
+        CHAMELEON_Complex64_t one=1.0;
         hipblasZgeam( handle,
                       HIPBLAS_OP_N, HIPBLAS_OP_N,
                       M, N,
