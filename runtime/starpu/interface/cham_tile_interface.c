@@ -887,10 +887,87 @@ cl_cti_redux_cuda_func(void *descr[], void *cl_arg)
 }
 #endif
 
+#if defined(CHAMELEON_USE_HIP)
+void
+cl_cti_redux_hip_func(void *descr[], void *cl_arg)
+{
+    starpu_cham_tile_interface_t *cti_redux = ((starpu_cham_tile_interface_t *) descr[0]);
+    starpu_cham_tile_interface_t *cti_input = ((starpu_cham_tile_interface_t *) descr[1]);
+
+    hipblasHandle_t handle = starpu_hipblas_get_local_handle();
+
+    CHAM_tile_t * tile_redux = &(cti_redux->tile);
+    CHAM_tile_t * tile_input = &(cti_input->tile);
+
+    int M = tile_input->m;
+    int N = tile_input->n;
+
+    cham_flttype_t type = cti_redux->flttype;
+    const void * input_ptr = CHAM_tile_get_ptr(tile_input);
+    void * redux_ptr = CHAM_tile_get_ptr(tile_redux);
+
+
+    /* Redux for tiles is the sum of the two tiles */
+    if(type == ChamRealFloat){
+#if defined CHAMELEON_PREC_S
+        float one=1.0;
+        hipblasSgeam( handle,
+                      HIPBLAS_OP_N, HIPBLAS_OP_N,
+                      M, N,
+                      &one, input_ptr, tile_input->ld,
+                      &one, redux_ptr, tile_redux->ld,
+                      /* */ redux_ptr, tile_redux->ld );
+#endif
+    }
+    else if (type == ChamRealDouble)
+    {
+#if defined CHAMELEON_PREC_D
+        double one=1.0;
+        hipblasDgeam( handle,
+                      HIPBLAS_OP_N, HIPBLAS_OP_N,
+                      M, N,
+                      &one, input_ptr, tile_input->ld,
+                      &one, redux_ptr, tile_redux->ld,
+                      /* */ redux_ptr, tile_redux->ld );
+#endif
+    }
+    else if (type == ChamComplexFloat)
+    {
+#if defined CHAMELEON_PREC_C
+        cuComplex one=1.0;
+        hipblasCgeam( handle,
+                      HIPBLAS_OP_N, HIPBLAS_OP_N,
+                      M, N,
+                      &one, input_ptr, tile_input->ld,
+                      &one, redux_ptr, tile_redux->ld,
+                      /* */ redux_ptr, tile_redux->ld );
+#endif
+    }
+    else if (type == ChamComplexDouble)
+    {
+#if defined CHAMELEON_PREC_Z
+        cuDoubleComplex one=1.0;
+        hipblasZgeam( handle,
+                      HIPBLAS_OP_N, HIPBLAS_OP_N,
+                      M, N,
+                      &one, input_ptr, tile_input->ld,
+                      &one, redux_ptr, tile_redux->ld,
+                      /* */ redux_ptr, tile_redux->ld );
+#endif
+    }
+    return;
+}
+#endif
+
 /*
  * Codelet definition
  */
+#if defined(CHAMELEON_USE_HIP)
+CODELETS_GPU(cti_redux, cl_cti_redux_cpu_func, cl_cti_redux_hip_func, STARPU_HIP_ASYNC)
+#else
 CODELETS(cti_redux, cl_cti_redux_cpu_func, cl_cti_redux_cuda_func, STARPU_CUDA_ASYNC)
+#endif
+
 
 static void
 cl_cti_init_redux_cpu_func( void *descr[], void *cl_arg )
