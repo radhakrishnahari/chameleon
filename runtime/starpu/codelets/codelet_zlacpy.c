@@ -25,6 +25,7 @@
  * @precisions normal z -> c d s
  *
  */
+#include "chameleon/constants.h"
 #include "chameleon_starpu.h"
 #include "runtime_codelet_z.h"
 
@@ -167,9 +168,11 @@ CODELETS( zlacpy_starpu, cl_zlacpy_starpu_func, cl_zlacpy_starpu_func, STARPU_CU
 #if defined(CHAMELEON_USE_HIP)
 CODELETS_GPU( zlacpy,  cl_zlacpy_cpu_func, cl_zlacpyx_hip_func, STARPU_HIP_ASYNC  )
 CODELETS_GPU( zlacpyx, cl_zlacpyx_cpu_func, cl_zlacpyx_hip_func, STARPU_HIP_ASYNC )
+CODELETS_CPU( zlacpy_cpu,  cl_zlacpy_cpu_func)
+CODELETS_CPU( zlacpyx_cpu, cl_zlacpyx_cpu_func)
 #else
-CODELETS( zlacpy,  cl_zlacpy_cpu_func, cl_zlacpyx_cuda_func, STARPU_CUDA_ASYNC  )
-CODELETS( zlacpyx, cl_zlacpyx_cpu_func, cl_zlacpyx_cuda_func, STARPU_CUDA_ASYNC )
+CODELETS( zlacpy,  cl_zlacpy_cpu_func, cl_zlacpyx_cuda_func, STARPU_CUDA_SYNC  )
+CODELETS( zlacpyx, cl_zlacpyx_cpu_func, cl_zlacpyx_cuda_func, STARPU_CUDA_SYNC )
 #endif
 
 void INSERT_TASK_zlacpyx( const RUNTIME_option_t *options,
@@ -228,7 +231,7 @@ void INSERT_TASK_zlacpyx( const RUNTIME_option_t *options,
 
         /* Insert the task */
         rt_starpu_insert_task(
-            &cl_zlacpyx,
+            (uplo == ChamUpperLower?&cl_zlacpyx:&cl_zlacpyx_cpu),
             /* Task codelet arguments */
             STARPU_CL_ARGS, clargs, sizeof(struct cl_zlacpy_args_s),
             STARPU_R,      RTBLKADDR(A, ChamComplexDouble, Am, An),
@@ -303,7 +306,7 @@ void INSERT_TASK_zlacpy( const RUNTIME_option_t *options,
         callback = options->profiling ? cl_zlacpy_callback : NULL;
 
         rt_starpu_insert_task(
-            &cl_zlacpy,
+            (uplo == ChamUpperLower?&cl_zlacpy:&cl_zlacpy_cpu),
             /* Task codelet arguments */
             STARPU_CL_ARGS, clargs, sizeof(struct cl_zlacpy_args_s),
             STARPU_R,      RTBLKADDR(A, ChamComplexDouble, Am, An),
