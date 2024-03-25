@@ -7,7 +7,7 @@
  *
  ***
  *
- * @brief Chameleon hip_zgetrf with partial pivoting CPU kernel
+ * @brief Chameleon hip zlaswp kernel
  *
  * @version 1.0.0
  * @author Mathieu Faverge

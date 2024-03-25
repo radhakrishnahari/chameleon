@@ -38,5 +38,9 @@ int HIP_zlaswp_get( int m0, int m, int n, int k, const CHAMELEON_Complex64_t *A,
 int HIP_zlaswp_set( int m0, int m, int n, int k, const CHAMELEON_Complex64_t *A, int lda, CHAMELEON_Complex64_t *B, int ldb, const int *invp, hipblasHandle_t handle );
 int hip_zlaswp_get_zcopy( int m0, int m, int n, int k, const CHAMELEON_Complex64_t *A, int lda, CHAMELEON_Complex64_t       *B, int ldb, const int *perm, hipblasHandle_t handle );
 int HIP_zlaswp_set_zcopy( int m0, int m, int n, int k, const CHAMELEON_Complex64_t *A, int lda, CHAMELEON_Complex64_t *B, int ldb, const int *invp, hipblasHandle_t handle );
+int HIP_zlacpy(cham_uplo_t uplo, int M, int N,
+               const CHAMELEON_Complex64_t *A, int LDA,
+               CHAMELEON_Complex64_t *B, int LDB,
+               hipblasHandle_t handle );
 
 #endif /* _gpuhipblas_z_h_ */

@@ -7,7 +7,7 @@
  *
  ***
  *
- * @brief Chameleon cuda_zgetrf with partial pivoting CPU kernel
+ * @brief Chameleon cuda zlaswp kernel
  *
  * @version 1.0.0
  * @author Mathieu Faverge

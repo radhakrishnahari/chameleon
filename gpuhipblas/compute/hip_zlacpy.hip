@@ -1,13 +1,13 @@
 /**
  *
- * @file cuda_zlacpy.cu
+ * @file hip_zlacpy.hip
  *
  * @copyright 2012-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  ***
  *
- * @brief Chameleon cuda_zlacpy largely inspired rom magmablas zlacpy
+ * @brief Chameleon hip_zlacpy largely inspired rom magmablas zlacpy
  *
  * @version 1.0.0
  * @author Xavier Lacoste
@@ -15,11 +15,11 @@
  * @precisions normal z -> c d s
  *
  */
-#include "gpucublas.h"
+#include "gpuhipblas.h"
 
 // To deal with really large matrices, this launchs multiple super blocks,
 // each with up to 64K-1 x 64K-1 thread blocks, which is up to 4194240 x 4194240 matrix with BLK=64.
-// CUDA architecture 2.0 limits each grid dimension to 64K-1.
+// HIP architecture 2.0 limits each grid dimension to 64K-1.
 // Instances arose for vectors used by sparse matrices with M > 4194240, though N is small.
 const int max_blocks = 65535;
 
@@ -229,15 +229,15 @@ void zlacpy_upper_kernel(
  *          ldb >= max(1,m).
  *
  */
-int CUDA_zlacpy(cham_uplo_t uplo, int M, int N,
+int HIP_zlacpy(cham_uplo_t uplo, int M, int N,
                 const CHAMELEON_Complex64_t *A, int LDA,
-                CHAMELEON_Complex64_t *B, int LDA,
-                cublasHandle_t handle )
+                CHAMELEON_Complex64_t *B, int LDB,
+                hipblasHandle_t handle )
 {
 #define dA(i_, j_) (A + (i_) + (j_)*LDA)
 #define dB(i_, j_) (B + (i_) + (j_)*LDB)
 
-  cudaStream_t stream;
+  hipStream_t stream;
   int info = 0;
   if ( uplo != ChamLower && uplo != ChamUpper && uplo != ChamUpperLower )
     info = -1;
@@ -258,7 +258,7 @@ int CUDA_zlacpy(cham_uplo_t uplo, int M, int N,
     return 0;
   }
 
-  cublasGetStream( handle, &stream );
+  hipblasGetStream( handle, &stream );
 
   assert( BLK_X == BLK_Y );
   const int super_NB = max_blocks*BLK_X;
@@ -305,7 +305,7 @@ int CUDA_zlacpy(cham_uplo_t uplo, int M, int N,
     }
   }
   else {
-    // TODO: use cudaMemcpy or cudaMemcpy2D ?
+    // TODO: use hipMemcpy or hipMemcpy2D ?
     for( unsigned int i=0; i < super_grid.x; ++i ) {
       mm = (i == super_grid.x-1 ? M % super_NB : super_NB);
       grid.x = chameleon_ceil( mm, BLK_X );
