@@ -97,6 +97,8 @@ void INSERT_TASK_zlaswp_get( const RUNTIME_option_t *options,
         STARPU_PRIORITY,            options->priority,
         //STARPU_CALLBACK,            callback,
         STARPU_EXECUTE_ON_WORKER,   options->workerid,
+                STARPU_EXECUTE_WHERE, STARPU_HIP|STARPU_CUDA,
+
         0 );
 }
 
@@ -178,5 +180,6 @@ void INSERT_TASK_zlaswp_set( const RUNTIME_option_t *options,
         STARPU_PRIORITY,          options->priority,
         //STARPU_CALLBACK,          callback,
         STARPU_EXECUTE_ON_WORKER, options->workerid,
+        STARPU_EXECUTE_WHERE, STARPU_HIP|STARPU_CUDA,
         0 );
 }

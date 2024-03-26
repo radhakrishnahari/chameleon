@@ -271,6 +271,7 @@ void INSERT_TASK_zgemm( const RUNTIME_option_t *options,
         STARPU_CALLBACK,          callback,
         STARPU_EXECUTE_ON_WORKER, options->workerid,
         STARPU_POSSIBLY_PARALLEL, options->parallel,
+        STARPU_EXECUTE_WHERE, STARPU_HIP|STARPU_CUDA,
 #if defined(CHAMELEON_CODELETS_HAVE_NAME)
         STARPU_NAME,              cl_name,
 #endif

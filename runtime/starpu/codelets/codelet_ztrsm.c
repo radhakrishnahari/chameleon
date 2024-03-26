@@ -163,7 +163,7 @@ void INSERT_TASK_ztrsm( const RUNTIME_option_t *options,
 #if defined(CHAMELEON_CODELETS_HAVE_NAME)
         STARPU_NAME,              cl_name,
 #endif
-
+        STARPU_EXECUTE_WHERE, STARPU_HIP|STARPU_CUDA,
         0 );
 
     (void)nb;

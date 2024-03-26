@@ -168,12 +168,12 @@ CODELETS( zlacpy_starpu, cl_zlacpy_starpu_func, cl_zlacpy_starpu_func, STARPU_CU
 #if defined(CHAMELEON_USE_HIP)
 CODELETS_GPU( zlacpy,  cl_zlacpy_cpu_func, cl_zlacpyx_hip_func, STARPU_HIP_ASYNC  )
 CODELETS_GPU( zlacpyx, cl_zlacpyx_cpu_func, cl_zlacpyx_hip_func, STARPU_HIP_ASYNC )
+#else
+CODELETS( zlacpy,  cl_zlacpy_cpu_func, cl_zlacpyx_cuda_func, STARPU_CUDA_ASYNC  )
+CODELETS( zlacpyx, cl_zlacpyx_cpu_func, cl_zlacpyx_cuda_func, STARPU_CUDA_ASYNC )
+#endif
 CODELETS_CPU( zlacpy_cpu,  cl_zlacpy_cpu_func)
 CODELETS_CPU( zlacpyx_cpu, cl_zlacpyx_cpu_func)
-#else
-CODELETS( zlacpy,  cl_zlacpy_cpu_func, cl_zlacpyx_cuda_func, STARPU_CUDA_SYNC  )
-CODELETS( zlacpyx, cl_zlacpyx_cpu_func, cl_zlacpyx_cuda_func, STARPU_CUDA_SYNC )
-#endif
 
 void INSERT_TASK_zlacpyx( const RUNTIME_option_t *options,
                           cham_uplo_t uplo, int m, int n,
@@ -316,6 +316,7 @@ void INSERT_TASK_zlacpy( const RUNTIME_option_t *options,
             STARPU_PRIORITY,          options->priority,
             STARPU_CALLBACK,          callback,
             STARPU_EXECUTE_ON_WORKER, options->workerid,
+            STARPU_EXECUTE_WHERE, (uplo == ChamUpperLower?STARPU_HIP|STARPU_CUDA:STARPU_CPU),
 #if defined(CHAMELEON_CODELETS_HAVE_NAME)
             STARPU_NAME,              cl_name,
 #endif

@@ -231,7 +231,7 @@ void zlacpy_upper_kernel(
  */
 int CUDA_zlacpy(cham_uplo_t uplo, int M, int N,
                 const CHAMELEON_Complex64_t *A, int LDA,
-                CHAMELEON_Complex64_t *B, int LDA,
+                CHAMELEON_Complex64_t *B, int LDB,
                 cublasHandle_t handle )
 {
 #define dA(i_, j_) (A + (i_) + (j_)*LDA)
