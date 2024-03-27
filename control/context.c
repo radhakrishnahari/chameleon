@@ -146,11 +146,6 @@ CHAM_context_t *chameleon_context_create()
     chamctxt->householder = chameleon_getenv_householder( "CHAMELEON_HOUSEHOLDER_MODE", ChamFlatHouseholder );
     chamctxt->translation = chameleon_getenv_translation( "CHAMELEON_TRANSLATION_MODE", ChamInPlace );
 
-    uint32_t default_force_gpu= chameleon_getenv_get_value_int( "CHAMELEON_FORCE_GPU", 0);
-    chamctxt->force_GPU_GEMM  = chameleon_getenv_get_value_int( "CHAMELEON_FORCE_GPU_GEMM",  default_force_gpu);
-    chamctxt->force_GPU_TRSM  = chameleon_getenv_get_value_int( "CHAMELEON_FORCE_GPU_TRSM",  default_force_gpu);
-    chamctxt->force_GPU_LACPY = chameleon_getenv_get_value_int( "CHAMELEON_FORCE_GPU_LACPY", default_force_gpu);
-    chamctxt->force_GPU_LASWP = chameleon_getenv_get_value_int( "CHAMELEON_FORCE_GPU_LASWP", default_force_gpu);
     /* Initialize scheduler */
     RUNTIME_context_create(chamctxt);
 

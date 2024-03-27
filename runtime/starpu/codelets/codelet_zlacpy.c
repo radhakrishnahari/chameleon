@@ -262,7 +262,6 @@ void INSERT_TASK_zlacpy( const RUNTIME_option_t *options,
     char        *cl_name = "zlacpy";
     CHAM_tile_t *tileA   = A->get_blktile( A, Am, An );
     CHAM_tile_t *tileB   = B->get_blktile( B, Bm, Bn );
-    uint32_t     where   = chameleon_context_self()->force_GPU_LACPY?STARPU_HIP|STARPU_CUDA:STARPU_CPU|STARPU_CUDA|STARPU_HIP;
 
         /* Handle cache */
     CHAMELEON_BEGIN_ACCESS_DECLARATION;
@@ -308,6 +307,7 @@ void INSERT_TASK_zlacpy( const RUNTIME_option_t *options,
         callback = options->profiling ? cl_zlacpy_callback : NULL;
 
         rt_starpu_insert_task(
+            // LACPY kernel bugged on GPU in non UpperLower case ?
             (uplo == ChamUpperLower?&cl_zlacpy:&cl_zlacpy_cpu),
             /* Task codelet arguments */
             STARPU_CL_ARGS, clargs, sizeof(struct cl_zlacpy_args_s),
@@ -318,8 +318,6 @@ void INSERT_TASK_zlacpy( const RUNTIME_option_t *options,
             STARPU_PRIORITY,          options->priority,
             STARPU_CALLBACK,          callback,
             STARPU_EXECUTE_ON_WORKER, options->workerid,
-            // LACPY kernel bugged on GPU in non UpperLower case ?
-            STARPU_EXECUTE_WHERE,     (uplo == ChamUpperLower?where:STARPU_CPU),
 #if defined(CHAMELEON_CODELETS_HAVE_NAME)
             STARPU_NAME,              cl_name,
 #endif

@@ -121,7 +121,6 @@ void INSERT_TASK_ztrsm( const RUNTIME_option_t *options,
     void (*callback)(void*);
     int                     exec    = 0;
     const char             *cl_name = "ztrsm";
-    uint32_t                where   = chameleon_context_self()->force_GPU_TRSM?STARPU_HIP|STARPU_CUDA:STARPU_CPU|STARPU_CUDA|STARPU_HIP;
 
     /* Handle cache */
     CHAMELEON_BEGIN_ACCESS_DECLARATION;
@@ -166,7 +165,6 @@ void INSERT_TASK_ztrsm( const RUNTIME_option_t *options,
 #if defined(CHAMELEON_CODELETS_HAVE_NAME)
         STARPU_NAME,              cl_name,
 #endif
-        STARPU_EXECUTE_WHERE,     where,
         0 );
 
     (void)nb;

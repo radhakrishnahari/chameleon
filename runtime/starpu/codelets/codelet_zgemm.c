@@ -225,7 +225,6 @@ void INSERT_TASK_zgemm( const RUNTIME_option_t *options,
     int                     accessC;
     int                     exec    = 0;
     const char             *cl_name = "zgemm";
-    uint32_t                where   = chameleon_context_self()->force_GPU_GEMM?STARPU_HIP|STARPU_CUDA:STARPU_CPU|STARPU_CUDA|STARPU_HIP;
 
 
     /* Handle cache */
@@ -275,7 +274,6 @@ void INSERT_TASK_zgemm( const RUNTIME_option_t *options,
         STARPU_CALLBACK,          callback,
         STARPU_EXECUTE_ON_WORKER, options->workerid,
         STARPU_POSSIBLY_PARALLEL, options->parallel,
-        STARPU_EXECUTE_WHERE,     where,
 #if defined(CHAMELEON_CODELETS_HAVE_NAME)
         STARPU_NAME,              cl_name,
 #endif
