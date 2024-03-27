@@ -17,6 +17,7 @@
  *
  */
 #include "chameleon_starpu.h"
+#include "control/context.h"
 #include "runtime_codelet_z.h"
 
 #if !defined(CHAMELEON_SIMULATION)
@@ -86,6 +87,7 @@ void INSERT_TASK_zlaswp_get( const RUNTIME_option_t *options,
                              const CHAM_desc_t *U, int Um, int Un )
 {
     struct starpu_codelet *codelet = &cl_zlaswp_get;
+    uint32_t where = chameleon_context_self()->force_GPU_LASWP?STARPU_HIP|STARPU_CUDA:STARPU_CPU|STARPU_CUDA|STARPU_HIP;
 
     rt_starpu_insert_task(
         codelet,
@@ -97,7 +99,7 @@ void INSERT_TASK_zlaswp_get( const RUNTIME_option_t *options,
         STARPU_PRIORITY,            options->priority,
         //STARPU_CALLBACK,            callback,
         STARPU_EXECUTE_ON_WORKER,   options->workerid,
-                STARPU_EXECUTE_WHERE, STARPU_HIP|STARPU_CUDA,
+        STARPU_EXECUTE_WHERE,       where,
 
         0 );
 }
@@ -169,6 +171,7 @@ void INSERT_TASK_zlaswp_set( const RUNTIME_option_t *options,
                              const CHAM_desc_t *B, int Bm, int Bn )
 {
     struct starpu_codelet *codelet = &cl_zlaswp_set;
+    uint32_t where = chameleon_context_self()->force_GPU_LASWP?STARPU_HIP|STARPU_CUDA:STARPU_CPU|STARPU_CUDA|STARPU_HIP;
 
     rt_starpu_insert_task(
         codelet,
@@ -180,6 +183,6 @@ void INSERT_TASK_zlaswp_set( const RUNTIME_option_t *options,
         STARPU_PRIORITY,          options->priority,
         //STARPU_CALLBACK,          callback,
         STARPU_EXECUTE_ON_WORKER, options->workerid,
-        STARPU_EXECUTE_WHERE, STARPU_HIP|STARPU_CUDA,
+        STARPU_EXECUTE_WHERE,     where,
         0 );
 }

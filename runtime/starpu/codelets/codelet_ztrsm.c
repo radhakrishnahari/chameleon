@@ -27,6 +27,7 @@
  *
  */
 #include "chameleon_starpu.h"
+#include "control/context.h"
 #include "runtime_codelet_z.h"
 
 struct cl_ztrsm_args_s {
@@ -116,10 +117,11 @@ void INSERT_TASK_ztrsm( const RUNTIME_option_t *options,
                         CHAMELEON_Complex64_t alpha, const CHAM_desc_t *A, int Am, int An,
                         const CHAM_desc_t *B, int Bm, int Bn )
 {
-    struct cl_ztrsm_args_s  *clargs = NULL;
+    struct cl_ztrsm_args_s *clargs  = NULL;
     void (*callback)(void*);
-    int                      exec = 0;
-    const char              *cl_name = "ztrsm";
+    int                     exec    = 0;
+    const char             *cl_name = "ztrsm";
+    uint32_t                where   = chameleon_context_self()->force_GPU_TRSM?STARPU_HIP|STARPU_CUDA:STARPU_CPU|STARPU_CUDA|STARPU_HIP;
 
     /* Handle cache */
     CHAMELEON_BEGIN_ACCESS_DECLARATION;
@@ -147,6 +149,7 @@ void INSERT_TASK_ztrsm( const RUNTIME_option_t *options,
                                       A->get_blktile( A, Am, An ),
                                       B->get_blktile( B, Bm, Bn ) );
 
+
     /* Insert the task */
     rt_starpu_insert_task(
         &cl_ztrsm,
@@ -163,7 +166,7 @@ void INSERT_TASK_ztrsm( const RUNTIME_option_t *options,
 #if defined(CHAMELEON_CODELETS_HAVE_NAME)
         STARPU_NAME,              cl_name,
 #endif
-        STARPU_EXECUTE_WHERE, STARPU_HIP|STARPU_CUDA,
+        STARPU_EXECUTE_WHERE,     where,
         0 );
 
     (void)nb;

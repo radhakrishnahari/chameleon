@@ -55,6 +55,10 @@ typedef struct chameleon_context_s {
     void              *schedopt;           /**> structure for runtimes                                */
     int                mpi_outer_init;     /**> MPI has been initialized outside our functions        */
     MPI_Comm           comm;               /**> MPI communicator                                      */
+    uint32_t           force_GPU_GEMM;     /**> indicate if we want to execute GEMM kernels on GPU */
+    uint32_t           force_GPU_TRSM;     /**> indicate if we want to execute TRSM kernels on GPU */
+    uint32_t           force_GPU_LACPY;    /**> indicate if we want to execute LACPY kernels on GPU */
+    uint32_t           force_GPU_LASWP;    /**> indicate if we want to execute LACPY kernels on GPU */
 } CHAM_context_t;
 
 END_C_DECLS

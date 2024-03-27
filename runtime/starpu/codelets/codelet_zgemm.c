@@ -29,7 +29,9 @@
  *
  */
 #include "chameleon_starpu.h"
+#include "control/context.h"
 #include "runtime_codelet_z.h"
+#include <stdint.h>
 
 #if !defined(CHAMELEON_SIMULATION)
 static void
@@ -218,11 +220,13 @@ void INSERT_TASK_zgemm( const RUNTIME_option_t *options,
         return;
     }
 
-    struct cl_zgemm_args_s  *clargs = NULL;
+    struct cl_zgemm_args_s *clargs  = NULL;
     void (*callback)(void*);
-    int                      accessC;
-    int                      exec = 0;
-    const char              *cl_name = "zgemm";
+    int                     accessC;
+    int                     exec    = 0;
+    const char             *cl_name = "zgemm";
+    uint32_t                where   = chameleon_context_self()->force_GPU_GEMM?STARPU_HIP|STARPU_CUDA:STARPU_CPU|STARPU_CUDA|STARPU_HIP;
+
 
     /* Handle cache */
     CHAMELEON_BEGIN_ACCESS_DECLARATION;
@@ -271,7 +275,7 @@ void INSERT_TASK_zgemm( const RUNTIME_option_t *options,
         STARPU_CALLBACK,          callback,
         STARPU_EXECUTE_ON_WORKER, options->workerid,
         STARPU_POSSIBLY_PARALLEL, options->parallel,
-        STARPU_EXECUTE_WHERE, STARPU_HIP|STARPU_CUDA,
+        STARPU_EXECUTE_WHERE,     where,
 #if defined(CHAMELEON_CODELETS_HAVE_NAME)
         STARPU_NAME,              cl_name,
 #endif
