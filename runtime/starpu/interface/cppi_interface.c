@@ -78,11 +78,15 @@ cppi_allocate_data_on_node( void *data_interface, unsigned node )
         return -ENOMEM;
     }
 
+    /* WARNING: Should not be a memset if GPU */
+    //memset ((void*) dataptr, 0, requested_memory );
+
     /* update the data properly in consequence */
     cppi_interface->h = -1;
     cppi_interface->has_diag = 0;
     cppi_interface->pivot.pivrow  = dataptr;
     cppi_interface->pivot.diagrow = ((char*)dataptr) + cppi_interface->arraysize;
+
     return requested_memory;
 }
 
@@ -448,10 +452,12 @@ cl_cppi_init_redux_cpu_func( void *descr[], void *cl_arg )
     cppi_redux->has_diag = 0;
     cppi_redux->h        = -1;
 
-
+    /* No need to set to 0, as copies will be made to initalize them */
+#if defined(CHAMELEON_DEBUG_STARPU)
     size_t size = cppi_redux->arraysize;
     memset( cppi_redux->pivot.pivrow,  0, size );
     memset( cppi_redux->pivot.diagrow, 0, size );
+#endif
 }
 
 /*
