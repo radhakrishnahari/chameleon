@@ -41,6 +41,26 @@ set(ZSRC
     hip_ztrsm.c
     )
 
+# Add HIP kernel if compiler and toolkit are available
+# -----------------------------------------------------
+include(CheckLanguage)
+check_language(HIP)
+
+if(CMAKE_HIP_COMPILER)
+  enable_language(HIP)
+else()
+  message(STATUS "HIP language is not supported")
+endif()
+
+if (CMAKE_HIP_COMPILER)
+#  include(SetCMakeHipArchitectures)
+  set(ZSRC
+      ${ZSRC}
+          hip_zlaswp.hip
+          hip_zlacpy.hip
+      )
+endif()
+
 precisions_rules_py(
   GPUHIPBLAS_SRCS_GENERATED "${ZSRC}"
   PRECISIONS "${CHAMELEON_PRECISION}")

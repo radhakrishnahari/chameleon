@@ -29,7 +29,9 @@
  *
  */
 #include "chameleon_starpu.h"
+#include "control/context.h"
 #include "runtime_codelet_z.h"
+#include <stdint.h>
 
 #if !defined(CHAMELEON_SIMULATION)
 static void
@@ -218,11 +220,12 @@ void INSERT_TASK_zgemm( const RUNTIME_option_t *options,
         return;
     }
 
-    struct cl_zgemm_args_s  *clargs = NULL;
+    struct cl_zgemm_args_s *clargs  = NULL;
     void (*callback)(void*);
-    int                      accessC;
-    int                      exec = 0;
-    const char              *cl_name = "zgemm";
+    int                     accessC;
+    int                     exec    = 0;
+    const char             *cl_name = "zgemm";
+
 
     /* Handle cache */
     CHAMELEON_BEGIN_ACCESS_DECLARATION;

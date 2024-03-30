@@ -32,13 +32,23 @@ HIP_ztrmm( cham_side_t side, cham_uplo_t uplo,
 {
     hipblasStatus_t rc;
 
+#if (hipblasVersionMajor < 2)
     rc = hipblasZtrmm( handle,
                        chameleon_hipblas_const(side), chameleon_hipblas_const(uplo),
                        chameleon_hipblas_const(transa), chameleon_hipblas_const(diag),
                        m, n,
                        HIPBLAS_VALUE(alpha), A, lda,
                        B, ldb );
-
+#else
+    rc = hipblasZtrmm( handle,
+                       chameleon_hipblas_const(side), chameleon_hipblas_const(uplo),
+                       chameleon_hipblas_const(transa), chameleon_hipblas_const(diag),
+                       m, n,
+                       HIPBLAS_VALUE(alpha), A, lda,
+                       B, ldb,
+                       B, ldb);
+#endif
+ 
     assert( rc == HIPBLAS_STATUS_SUCCESS );
     (void)rc;
     return CHAMELEON_SUCCESS;

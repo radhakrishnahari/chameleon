@@ -48,5 +48,14 @@ int CUDA_ztsmqr( cham_side_t side, cham_trans_t trans, int M1, int N1, int M2, i
 int CUDA_zttmqr( cham_side_t side, cham_trans_t trans, int M1, int N1, int M2, int N2, int K, int IB, cuDoubleComplex *A1, int LDA1, cuDoubleComplex *A2, int LDA2, const cuDoubleComplex *V, int LDV, const cuDoubleComplex *T, int LDT, cuDoubleComplex *WORK, int LWORK, cublasHandle_t handle );
 int CUDA_zunmlqt(cham_side_t side, cham_trans_t trans, int M, int N, int K, int IB, const cuDoubleComplex *A,    int LDA, const cuDoubleComplex *T,    int LDT, cuDoubleComplex *C,    int LDC, cuDoubleComplex *WORK, int LDWORK, cublasHandle_t handle );
 int CUDA_zunmqrt(cham_side_t side, cham_trans_t trans, int M, int N, int K, int IB, const cuDoubleComplex *A,    int LDA, const cuDoubleComplex *T,    int LDT, cuDoubleComplex *C,    int LDC, cuDoubleComplex *WORK, int LDWORK, cublasHandle_t handle );
+int CUDA_zlaswp_get( int m0, int m, int n, int k, const CHAMELEON_Complex64_t *A, int lda, CHAMELEON_Complex64_t       *B, int ldb, const int *perm, cublasHandle_t handle );
+int CUDA_zlaswp_set( int m0, int m, int n, int k, const CHAMELEON_Complex64_t *A, int lda, CHAMELEON_Complex64_t *B, int ldb, const int *invp, cublasHandle_t handle );
+int cuda_zlaswp_get_zcopy( int m0, int m, int n, int k, const CHAMELEON_Complex64_t *A, int lda, CHAMELEON_Complex64_t       *B, int ldb, const int *perm, cublasHandle_t handle );
+int CUDA_zlaswp_set_zcopy( int m0, int m, int n, int k, const CHAMELEON_Complex64_t *A, int lda, CHAMELEON_Complex64_t *B, int ldb, const int *invp, cublasHandle_t handle );
+int CUDA_zlacpy(cham_uplo_t uplo, int M, int N,
+                const CHAMELEON_Complex64_t *A, int LDA,
+                CHAMELEON_Complex64_t *B, int LDB,
+                cublasHandle_t handle );
+
 
 #endif /* _gpucublas_z_h_ */

@@ -25,7 +25,9 @@
  * @precisions normal z -> c d s
  *
  */
+#include "chameleon/constants.h"
 #include "chameleon_starpu.h"
+#include "control/context.h"
 #include "runtime_codelet_z.h"
 
 struct cl_zlacpy_args_s {
@@ -77,6 +79,7 @@ cl_zlacpy_cpu_func(void *descr[], void *cl_arg)
     TCORE_zlacpy( clargs->uplo, clargs->m, clargs->n, tileA, tileB );
 }
 
+
 static void
 cl_zlacpyx_cpu_func(void *descr[], void *cl_arg)
 {
@@ -90,14 +93,47 @@ cl_zlacpyx_cpu_func(void *descr[], void *cl_arg)
     TCORE_zlacpyx( clargs->uplo, clargs->m, clargs->n, clargs->displA,
                    tileA, clargs->lda, clargs->displB, tileB, clargs->ldb );
 }
-#endif /* !defined(CHAMELEON_SIMULATION) */
 
-/*
- * Codelet definition
- */
-CODELETS_CPU( zlacpy,  cl_zlacpy_cpu_func  )
-CODELETS_CPU( zlacpyx, cl_zlacpyx_cpu_func )
-CODELETS( zlacpy_starpu, cl_zlacpy_starpu_func, cl_zlacpy_starpu_func, STARPU_CUDA_ASYNC )
+#  if defined(CHAMELEON_USE_CUDA)
+static void
+cl_zlacpyx_cuda_func(void *descr[], void *cl_arg)
+{
+    struct cl_zlacpy_args_s *clargs = (struct cl_zlacpy_args_s *)cl_arg;
+    CHAM_tile_t *tileA;
+    CHAM_tile_t *tileB;
+
+    cublasHandle_t handle = starpu_cublas_get_local_handle();
+
+    tileA = cti_interface_get(descr[0]);
+    tileB = cti_interface_get(descr[1]);
+
+    CUDA_zlacpy( clargs->uplo, clargs->m, clargs->n,
+                 ((CHAMELEON_Complex64_t *)tileA->mat)+clargs->displA, tileA->ld,
+                 ((CHAMELEON_Complex64_t *)tileB->mat)+clargs->displB, tileB->ld,
+                 handle );
+}
+#  endif
+
+#  if defined(CHAMELEON_USE_HIP)
+static void
+cl_zlacpyx_hip_func(void *descr[], void *cl_arg)
+{
+    struct cl_zlacpy_args_s *clargs = (struct cl_zlacpy_args_s *)cl_arg;
+    CHAM_tile_t *tileA;
+    CHAM_tile_t *tileB;
+
+    hipblasHandle_t handle = starpu_hipblas_get_local_handle();
+
+    tileA = cti_interface_get(descr[0]);
+    tileB = cti_interface_get(descr[1]);
+
+    HIP_zlacpy( clargs->uplo, clargs->m, clargs->n,
+                ((CHAMELEON_Complex64_t *)tileA->mat)+clargs->displA, tileA->ld,
+                ((CHAMELEON_Complex64_t *)tileB->mat)+clargs->displB, tileB->ld,
+                handle );
+}
+#  endif
+#endif /* !defined(CHAMELEON_SIMULATION) */
 
 static inline void
 insert_task_zlacpy_on_local_node( const RUNTIME_option_t *options,
@@ -126,6 +162,19 @@ insert_task_zlacpy_on_remote_node( const RUNTIME_option_t *options,
 #endif
 }
 #endif
+/*
+ * Codelet definition
+ */
+CODELETS( zlacpy_starpu, cl_zlacpy_starpu_func, cl_zlacpy_starpu_func, STARPU_CUDA_ASYNC )
+#if defined(CHAMELEON_USE_HIP)
+CODELETS_GPU( zlacpy,  cl_zlacpy_cpu_func, cl_zlacpyx_hip_func, STARPU_HIP_ASYNC  )
+CODELETS_GPU( zlacpyx, cl_zlacpyx_cpu_func, cl_zlacpyx_hip_func, STARPU_HIP_ASYNC )
+#else
+CODELETS( zlacpy,  cl_zlacpy_cpu_func, cl_zlacpyx_cuda_func, STARPU_CUDA_ASYNC  )
+CODELETS( zlacpyx, cl_zlacpyx_cpu_func, cl_zlacpyx_cuda_func, STARPU_CUDA_ASYNC )
+#endif
+CODELETS_CPU( zlacpy_cpu,  cl_zlacpy_cpu_func)
+CODELETS_CPU( zlacpyx_cpu, cl_zlacpyx_cpu_func)
 
 void INSERT_TASK_zlacpyx( const RUNTIME_option_t *options,
                           cham_uplo_t uplo, int m, int n,
@@ -183,7 +232,7 @@ void INSERT_TASK_zlacpyx( const RUNTIME_option_t *options,
 
         /* Insert the task */
         rt_starpu_insert_task(
-            &cl_zlacpyx,
+            (uplo == ChamUpperLower?&cl_zlacpyx:&cl_zlacpyx_cpu),
             /* Task codelet arguments */
             STARPU_CL_ARGS, clargs, sizeof(struct cl_zlacpy_args_s),
             STARPU_R,      RTBLKADDR(A, ChamComplexDouble, Am, An),
@@ -258,7 +307,8 @@ void INSERT_TASK_zlacpy( const RUNTIME_option_t *options,
         callback = options->profiling ? cl_zlacpy_callback : NULL;
 
         rt_starpu_insert_task(
-            &cl_zlacpy,
+            // LACPY kernel bugged on GPU in non UpperLower case ?
+            (uplo == ChamUpperLower?&cl_zlacpy:&cl_zlacpy_cpu),
             /* Task codelet arguments */
             STARPU_CL_ARGS, clargs, sizeof(struct cl_zlacpy_args_s),
             STARPU_R,      RTBLKADDR(A, ChamComplexDouble, Am, An),
