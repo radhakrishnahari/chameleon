@@ -28,15 +28,28 @@
 #ifndef CBLAS_SADDR
 #define CBLAS_SADDR( _val_ ) &(_val_)
 #endif
+
+#ifndef CBLAS_H  /* cblas may have been included by another mean */
 #include "coreblas/cblas.h"
+#endif
 
 /**
  * CBlas enum
  */
+#ifndef CBLAS_ORDER
 #define CBLAS_ORDER     enum CBLAS_ORDER
+#endif
+#ifndef CBLAS_TRANSPOSE
 #define CBLAS_TRANSPOSE enum CBLAS_TRANSPOSE
+#endif
+#ifndef CBLAS_UPLO
 #define CBLAS_UPLO      enum CBLAS_UPLO
+#endif
+#ifndef CBLAS_DIAG
 #define CBLAS_DIAG      enum CBLAS_DIAG
+#endif
+#ifndef CBLAS_SIDE
 #define CBLAS_SIDE      enum CBLAS_SIDE
+#endif
 
 #endif /* _cblas_wrapper_h_ */
