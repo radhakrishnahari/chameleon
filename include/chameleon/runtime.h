@@ -557,6 +557,18 @@ RUNTIME_data_migrate( const RUNTIME_sequence_t *sequence,
 void *
 RUNTIME_data_getaddr( const CHAM_desc_t *A, int Am, int An );
 
+
+/**
+ * @brief Get the CHAM_tile_t pointer to a tile from the runtime handle pointer
+ * returned by RUNTIME_data_getaddr.
+ *
+ * @param[in] ptr
+ *            The pointer to convert.
+ *
+ * @retval The associated CHAM_tile_t pointer.
+ */
+CHAM_tile_t *RUNTIME_handle2tile( void *ptr );
+
 /**
  * @}
  *
