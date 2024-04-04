@@ -66,8 +66,8 @@ typedef enum runtime_id_e {
  *
  */
 typedef struct runtime_request_s {
-    int       status; /**< Return status registered by the tasks for the request */
-    void      *schedopt; /**< Specific runtime data pointer to handle the request */
+    int   status;   /**< Return status registered by the tasks for the request */
+    void *schedopt; /**< Specific runtime data pointer to handle the request */
 } RUNTIME_request_t;
 
 /**
