@@ -134,6 +134,8 @@ int CHAMELEON_Distributed_size  (int *size);
 int CHAMELEON_Distributed_rank  (int *rank);
 int CHAMELEON_GetThreadNbr      (void);
 
+CHAM_context_t *CHAMELEON_GetContext();
+
 int CHAMELEON_Lapack_to_Tile( void *Af77, int LDA, CHAM_desc_t *A ) __attribute__((deprecated("Please refer to CHAMELEON_Lap2Desc() instead")));
 int CHAMELEON_Tile_to_Lapack( CHAM_desc_t *A, void *Af77, int LDA ) __attribute__((deprecated("Please refer to CHAMELEON_Desc2Lap() instead")));
 

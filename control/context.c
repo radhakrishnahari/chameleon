@@ -483,3 +483,27 @@ int CHAMELEON_Get( int param, int *value )
 
     return CHAMELEON_SUCCESS;
 }
+
+/**
+ *
+ * @ingroup Options
+ *
+ *  CHAMELEON_GetContext - Get the Chameleon context pointer
+ *
+ *******************************************************************************
+ *
+ * @retval NULL if not initialized
+ * @retval The pointer to the initialized Chameleon context
+ *
+ */
+CHAM_context_t *CHAMELEON_GetContext()
+{
+    CHAM_context_t *chamctxt;
+
+    chamctxt = chameleon_context_self();
+    if (chamctxt == NULL) {
+        chameleon_error("CHAMELEON_Get", "CHAMELEON not initialized");
+        return NULL;
+    }
+    return chamctxt;
+}
