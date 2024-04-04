@@ -25,8 +25,6 @@
 
 #include "chameleon/types.h"
 
-BEGIN_C_DECLS
-
 /**
  * Datatype for distributed version
  */
@@ -40,6 +38,8 @@ typedef uintptr_t MPI_Comm;
 #define MPI_COMM_WORLD 0
 #endif
 #endif
+
+BEGIN_C_DECLS
 
 /**
  * @brief Ids of the runtime supported by the RUNTIME API
