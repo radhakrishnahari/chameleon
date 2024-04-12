@@ -68,7 +68,6 @@ else()
 endif()
 
 include(MorseInit)
-include(GenPkgConfig)
 
 # Ensure that the fortran compiler and c compiler specified are compatible
 # ------------------------------------------------------------------------
@@ -817,10 +816,11 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/CHAMELEONConfig.cmake ${CMAKE_CURRENT_
 ###############################################################################
 # Config files (pkg_config) #
 #############################
+include(ChameleonPkgConfig)
 
 # Create .pc file
 # ---------------
-generate_pkgconfig_file()
+chameleon_generate_pkgconfig_files()
 #------------------------------------------------------------------------------
 
 ###############################################################################
