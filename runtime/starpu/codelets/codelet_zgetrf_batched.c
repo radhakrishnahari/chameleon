@@ -25,7 +25,7 @@
 #include <coreblas/cblas_wrapper.h>
 
 struct cl_getrf_batched_args_t {
-    char                    *cl_name;
+    const char              *cl_name;
     int                      tasks_nbr;
     int                      diag;
     int                      h;
