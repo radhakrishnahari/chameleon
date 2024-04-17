@@ -32,7 +32,7 @@ HIP_ztrmm( cham_side_t side, cham_uplo_t uplo,
 {
     hipblasStatus_t rc;
 
-#if (ROCM_VERSION_MAJOR < 6)
+#if (HIP_VERSION_MAJOR < 6)
     rc = hipblasZtrmm( handle,
                        chameleon_hipblas_const(side), chameleon_hipblas_const(uplo),
                        chameleon_hipblas_const(transa), chameleon_hipblas_const(diag),
