@@ -48,6 +48,9 @@ cl_zherk_cpu_func(void *descr[], void *cl_arg)
     tileA = cti_interface_get(descr[0]);
     tileC = cti_interface_get(descr[1]);
 
+    assert( tileA->flttype == ChamComplexDouble );
+    assert( tileC->flttype == ChamComplexDouble );
+
     TCORE_zherk( clargs->uplo, clargs->trans, clargs->n, clargs->k,
                  clargs->alpha, tileA, clargs->beta, tileC );
 }

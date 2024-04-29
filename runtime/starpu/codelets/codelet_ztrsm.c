@@ -50,6 +50,9 @@ cl_ztrsm_cpu_func(void *descr[], void *cl_arg)
     tileA = cti_interface_get(descr[0]);
     tileB = cti_interface_get(descr[1]);
 
+    assert( tileA->flttype == ChamComplexDouble );
+    assert( tileB->flttype == ChamComplexDouble );
+
     TCORE_ztrsm( clargs->side, clargs->uplo, clargs->transA, clargs->diag,
                  clargs->m, clargs->n, clargs->alpha, tileA, tileB );
 }
