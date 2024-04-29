@@ -183,6 +183,7 @@
      #+begin_example
      export STARPU_FXT_TRACE=1
      #+end_example
+     And passing the ~-T~ option to the ~chameleon_xtesting~ program.
      By doing so, traces are generated after each execution of a program which
      uses StarPU in the directory pointed by the
      [[https://files.inria.fr/starpu/doc/html/ExecutionConfigurationThroughEnvironmentVariables.html][STARPU_FXT_PREFIX]]
