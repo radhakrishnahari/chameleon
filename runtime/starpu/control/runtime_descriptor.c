@@ -388,7 +388,7 @@ void *RUNTIME_data_getaddr( const CHAM_desc_t *A, int m, int n )
         }
     }
 
-    starpu_cham_tile_register( ptrtile, home_node, tile, A->dtyp );
+    starpu_cham_tile_register( ptrtile, home_node, tile, cham_get_flttype( A->dtyp ) );
 
 #if defined(HAVE_STARPU_DATA_SET_OOC_FLAG)
     if ( A->ooc == 0 ) {
