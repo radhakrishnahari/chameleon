@@ -75,7 +75,7 @@ void INSERT_TASK_zgered( const RUNTIME_option_t *options,
 #endif
             starpu_cham_tile_register( &handleAout, -1, tileA, ChamComplexHalf );
 
-            rt_starpu_insert_task(
+            rt_shm_starpu_insert_task(
                 &cl_dlag2h,
                 STARPU_VALUE,    &m,                 sizeof(int),
                 STARPU_VALUE,    &n,                 sizeof(int),
@@ -116,7 +116,7 @@ void INSERT_TASK_zgered( const RUNTIME_option_t *options,
 #endif
         starpu_cham_tile_register( &handleAout, -1, tileA, ChamComplexFloat );
 
-        rt_starpu_insert_task(
+        rt_shm_starpu_insert_task(
             &cl_zlag2c,
             STARPU_VALUE,    &m,                 sizeof(int),
             STARPU_VALUE,    &n,                 sizeof(int),

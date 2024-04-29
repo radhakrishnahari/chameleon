@@ -67,7 +67,7 @@ void INSERT_TASK_zgerst( const RUNTIME_option_t *options,
                  "[%2d] Convert back the tile ( %d, %d ) from half precision\n",
                  A->myrank, Am, An );
 #endif
-        rt_starpu_insert_task(
+        rt_shm_starpu_insert_task(
             &cl_hlag2d,
             STARPU_VALUE,    &m,                 sizeof(int),
             STARPU_VALUE,    &n,                 sizeof(int),
@@ -89,7 +89,7 @@ void INSERT_TASK_zgerst( const RUNTIME_option_t *options,
                  "[%2d] Convert back the tile ( %d, %d ) from half precision\n",
                  A->myrank, Am, An );
 #endif
-        rt_starpu_insert_task(
+        rt_shm_starpu_insert_task(
             &cl_clag2z,
             STARPU_VALUE,    &m,                 sizeof(int),
             STARPU_VALUE,    &n,                 sizeof(int),
