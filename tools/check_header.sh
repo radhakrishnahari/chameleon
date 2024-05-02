@@ -4,10 +4,10 @@
 #  @copyright 2016-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
-#  @version 1.2.0
+#  @version 1.3.0
 #  @author Florent Pruvost
 #  @author Mathieu Faverge
-#  @date 2022-02-22
+#  @date 2024-05-06
 #
 # This script check that basic informations is present and correct in
 # headers of source files.
@@ -193,7 +193,8 @@ files=$( git ls-files                     |
              grep -v "distrib/debian/.*"  |
              grep -v "tools/bench/jube/requirements.txt" |
              grep -v "\.org"              |
-             grep -v "\.scm" )
+             grep -v "\.scm"              |
+             grep -v "\.rb")
 if [ $# -gt 0 ]
 then
     files=$*
