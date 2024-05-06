@@ -10,27 +10,30 @@
 #  @date 2022-02-22
 #
 ###
-set -x
+set -ex
 
 # Configure and Build Chameleon
-mkdir -p $CI_PROJECT_DIR/build-$NODE-$MPI
-cd $CI_PROJECT_DIR/build-$NODE-$MPI
-rm CMake* -rf
-cmake $CHAMELEON_BUILD_OPTIONS ..
-make -j20 VERBOSE=1
-export CHAMELEON_BUILD=$PWD
+if [ -d build-$NODE-$MPI ]; then
+  rm build-$NODE-$MPI -r
+fi
+cmake -B build-$NODE-$MPI $CHAMELEON_BUILD_OPTIONS
+cmake --build build-$NODE-$MPI -j20 --verbose
+export CHAMELEON_BUILD=$PWD/build-$NODE-$MPI
 
 # clean old benchmarks
-cd $CI_PROJECT_DIR/tools/bench/$PLATFORM/results
-jube remove --force --id $JUBE_ID
+if [ -d tools/bench/$PLATFORM/results ]; then
+  rm tools/bench/$PLATFORM/results -r
+fi
 # Execute jube benchmarks
-cd $CI_PROJECT_DIR/tools/bench/$PLATFORM/
-jube run chameleon.xml --tag gemm potrf geqrf --include-path parameters/$NODE --id $JUBE_ID
+jube run tools/bench/$PLATFORM/chameleon.xml --tag gemm potrf geqrf --include-path tools/bench/$PLATFORM/parameters/$NODE --id $JUBE_ID
+#jube run tools/bench/$PLATFORM/chameleon-test.xml --tag gemm potrf geqrf --include-path tools/bench/$PLATFORM/parameters/$NODE --id $JUBE_ID
 # jube analysis
-jube analyse results --id $JUBE_ID
+jube analyse tools/bench/$PLATFORM/results --id $JUBE_ID
 # jube report
-jube result results --id $JUBE_ID > chameleon.csv
+jube result tools/bench/$PLATFORM/results --id $JUBE_ID > chameleon\-$NODE\-$MPI.csv
+cat chameleon\-$NODE\-$MPI.csv
 
 # send results to the elasticsearch server
-cp $CI_PROJECT_DIR/guix.json .
-python3 $CI_PROJECT_DIR/tools/bench/jube/add_result.py -e https://elasticsearch.bordeaux.inria.fr -t hiepacs -p "chameleon" -h $NODE -m $MPI chameleon.csv
+#ls guix.json
+python3 tools/bench/jube/add_result.py -e https://elasticsearch.bordeaux.inria.fr -t hiepacs -p "chameleon" -m $MPI chameleon\-$NODE\-$MPI.csv
+#python3 tools/bench/jube/add_result.py -e https://elasticsearch.bordeaux.inria.fr -t hiepacs -p "chameleon-test" -m $MPI chameleon\-$NODE\-$MPI.csv

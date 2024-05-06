@@ -9,14 +9,15 @@
     - git submodule update --init --recursive
   script:
     - ./tools/bench/plafrim/run.sh
+  allow_failure: true
   artifacts:
     name: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
     expire_in: 1 week
+    when: always
     paths:
       - "chameleon-$NODE-$MPI-$SLURM_NP.err"
       - "chameleon-$NODE-$MPI-$SLURM_NP.out"
-      - "tools/bench/plafrim/chameleon.csv"
-      - "tools/bench/plafrim/results/$JUBE_ID"
+      - "chameleon-$NODE-$MPI.csv"
   variables:
     PLATFORM: plafrim
 
