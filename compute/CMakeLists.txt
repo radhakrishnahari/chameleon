@@ -27,7 +27,8 @@
 #  @author Alycia Lisito
 #  @author Loris Lucido
 #  @author Matthieu Kuhn
-#  @date 2024-04-03
+#  @author Ana Hourcau
+#  @date 2024-07-17
 #
 ###
 
@@ -193,10 +194,12 @@ set(ZSRC
     ##################
     # MIXED PRECISION
     ##################
+    pzhered.c
     pzlag2c.c
     pzgered.c
     pzgerst.c
     ###
+    zhered.c
     zgered.c
     zgerst.c
     #zcgels.c

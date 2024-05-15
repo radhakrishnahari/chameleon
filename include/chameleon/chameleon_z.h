@@ -170,6 +170,7 @@ int CHAMELEON_zpoinv_Tile(cham_uplo_t uplo, CHAM_desc_t *A);
 int CHAMELEON_zposv_Tile(cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B);
 int CHAMELEON_zpotrf_Tile(cham_uplo_t uplo, CHAM_desc_t *A);
 int CHAMELEON_zgered_Tile( cham_uplo_t uplo, double prec, CHAM_desc_t *A );
+int CHAMELEON_zhered_Tile( cham_uplo_t uplo, double prec, CHAM_desc_t *A );
 int CHAMELEON_zgerst_Tile( cham_uplo_t uplo, CHAM_desc_t *A );
 int CHAMELEON_zsytrf_Tile(cham_uplo_t uplo, CHAM_desc_t *A);
 int CHAMELEON_zpotri_Tile(cham_uplo_t uplo, CHAM_desc_t *A);
@@ -249,6 +250,7 @@ int CHAMELEON_zpoinv_Tile_Async(cham_uplo_t uplo, CHAM_desc_t *A, RUNTIME_sequen
 int CHAMELEON_zposv_Tile_Async(cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 int CHAMELEON_zpotrf_Tile_Async(cham_uplo_t uplo, CHAM_desc_t *A, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 int CHAMELEON_zgered_Tile_Async(cham_uplo_t uplo, double prec, CHAM_desc_t *A, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
+int CHAMELEON_zhered_Tile_Async(cham_uplo_t uplo, double prec, CHAM_desc_t *A, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 int CHAMELEON_zgerst_Tile_Async( cham_uplo_t uplo, CHAM_desc_t *A, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request );
 int CHAMELEON_zsytrf_Tile_Async(cham_uplo_t uplo, CHAM_desc_t *A, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 int CHAMELEON_zpotri_Tile_Async(cham_uplo_t uplo, CHAM_desc_t *A, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
