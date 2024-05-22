@@ -13,7 +13,7 @@
  *
  * @version 1.3.0
  * @author Mathieu Faverge
- * @date 2023-07-06
+ * @date 2024-07-17
  * @precisions normal z -> d
  *
  */
@@ -21,8 +21,6 @@
 #include <coreblas/lapacke.h>
 #include "runtime_codelet_zc.h"
 #include "runtime_codelet_z.h"
-
-//#define CHAMELEON_DEBUG_GERED
 
 void INSERT_TASK_zgered( const RUNTIME_option_t *options,
                          double threshold, double Anorm, int m, int n,

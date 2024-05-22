@@ -11,7 +11,7 @@
  *
  * @version 1.3.0
  * @author Mathieu Faverge
- * @date 2023-07-06
+ * @date 2024-07-17
  * @precisions normal z -> d
  *
  */
@@ -19,8 +19,6 @@
 #include <coreblas/lapacke.h>
 #include "runtime_codelet_zc.h"
 #include "runtime_codelet_z.h"
-
-//#define CHAMELEON_DEBUG_GERST
 
 void INSERT_TASK_zgerst( const RUNTIME_option_t *options,
                          int m, int n,
@@ -64,7 +62,7 @@ void INSERT_TASK_zgerst( const RUNTIME_option_t *options,
      * Restore from half precision
      */
     case ChamComplexHalf:
-#if defined(CHAMELEON_DEBUG_GERST)
+#if defined(CHAMELEON_DEBUG_GERED)
         fprintf( stderr,
                  "[%2d] Convert back the tile ( %d, %d ) from half precision\n",
                  A->myrank, Am, An );
@@ -86,7 +84,7 @@ void INSERT_TASK_zgerst( const RUNTIME_option_t *options,
 #endif
 
     case ChamComplexFloat:
-#if defined(CHAMELEON_DEBUG_GERST)
+#if defined(CHAMELEON_DEBUG_GERED)
         fprintf( stderr,
                  "[%2d] Convert back the tile ( %d, %d ) from half precision\n",
                  A->myrank, Am, An );
