@@ -24,7 +24,6 @@
  * @precisions normal z -> s d c
  *
  */
-#include "chameleon/constants.h"
 #include "control/common.h"
 
 /**
