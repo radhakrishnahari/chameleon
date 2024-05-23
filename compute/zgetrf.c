@@ -62,7 +62,7 @@ CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A )
     }
 
     ws = calloc( 1, sizeof( struct chameleon_pzgetrf_s ) );
-    ws->alg = ChamGetrfNoPiv;
+    ws->alg = ChamGetrfPPiv;
     ws->ib  = CHAMELEON_IB;
 
     {
