@@ -11,6 +11,7 @@
  *
  * @version 1.3.0
  * @author Mathieu Faverge
+ * @author Ana Hourcau
  * @date 2024-07-17
  * @precisions normal z -> d
  *
@@ -26,20 +27,11 @@ void INSERT_TASK_zgerst( const RUNTIME_option_t *options,
 {
     CHAM_tile_t          *tileA;
     int64_t               mm, nn;
-#if defined(CHAMELEON_USE_MPI)
-    int                   tag;
-#endif
+    int                   tag = -1;
     starpu_data_handle_t *handleAin;
     starpu_data_handle_t  handleAout;
 
-    CHAMELEON_BEGIN_ACCESS_DECLARATION;
-    CHAMELEON_ACCESS_RW(A, Am, An);
-    CHAMELEON_END_ACCESS_DECLARATION;
-
     tileA = A->get_blktile( A, Am, An );
-    if ( tileA->flttype == ChamComplexDouble ) {
-        return;
-    }
 
     /* Get the Input handle */
     mm = Am + (A->i / A->mb);
@@ -47,7 +39,36 @@ void INSERT_TASK_zgerst( const RUNTIME_option_t *options,
     handleAin = A->schedopt;
     handleAin += ((int64_t)A->lmt) * nn + mm;
 
-    assert( *handleAin != NULL );
+    if ( tileA->flttype == ChamComplexDouble ) {
+        starpu_data_handle_t *copy = handleAin;
+
+        /* Remove first copy */
+        copy += ((int64_t)A->lmt * (int64_t)A->lnt);
+        if ( *copy ) {
+            starpu_data_unregister_no_coherency( *copy );
+            *copy = NULL;
+        }
+
+        /* Remove second copy */
+        copy += ((int64_t)A->lmt * (int64_t)A->lnt);
+        if ( *copy ) {
+            starpu_data_unregister_no_coherency( *copy );
+            *copy = NULL;
+        }
+
+        return;
+    }
+
+    if (A->myrank != tileA->rank)
+    {
+        tileA->flttype = ChamComplexDouble;
+        if (*handleAin != NULL)
+        {
+            starpu_data_unregister_no_coherency(*handleAin);
+            *handleAin = NULL;
+        }
+        return;
+    }
 
 #if defined(CHAMELEON_USE_MPI)
     tag = starpu_mpi_data_get_tag( *handleAin );
@@ -62,6 +83,7 @@ void INSERT_TASK_zgerst( const RUNTIME_option_t *options,
      * Restore from half precision
      */
     case ChamComplexHalf:
+        assert( options->withcuda );
 #if defined(CHAMELEON_DEBUG_GERED)
         fprintf( stderr,
                  "[%2d] Convert back the tile ( %d, %d ) from half precision\n",
@@ -107,10 +129,8 @@ void INSERT_TASK_zgerst( const RUNTIME_option_t *options,
         fprintf( stderr, "ERROR: Unknonw input datatype" );
     }
 
-    starpu_data_unregister_submit( *handleAin );
+    starpu_data_unregister_no_coherency( *handleAin );
     *handleAin = handleAout;
     tileA->flttype = ChamComplexDouble;
-#if defined(CHAMELEON_USE_MPI)
     starpu_mpi_data_register( handleAout, tag, tileA->rank );
-#endif
 }

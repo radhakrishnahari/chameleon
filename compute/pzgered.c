@@ -13,7 +13,8 @@
  *
  * @version 1.3.0
  * @author Mathieu Faverge
- * @date 2023-07-06
+ * @author Ana Hourcau
+ * @date 2024-07-17
  * @precisions normal z -> z d
  *
  */
@@ -28,8 +29,8 @@
 
 static inline void
 chameleon_pzgered_frb( cham_uplo_t uplo,
-                        CHAM_desc_t *A, CHAM_desc_t *Wnorm, CHAM_desc_t *Welt,
-                        RUNTIME_option_t *options )
+                       CHAM_desc_t *A, CHAM_desc_t *Wnorm, CHAM_desc_t *Welt,
+                       RUNTIME_option_t *options )
 {
     double alpha = 1.0;
     double beta  = 0.0;
@@ -233,21 +234,17 @@ void chameleon_pzgered( cham_uplo_t uplo, double prec, CHAM_desc_t *A,
 
         for(n = nmin; n < nmax; n++) {
             CHAM_tile_t *tile = A->get_blktile( A, m, n );
-            if ( tile->rank == A->myrank ) {
-                int tempnn = ( n == (A->nt-1) ) ? A->n - n * A->nb : A->nb;
 
-                /* Get the frobenius norm of the tile A( m, n ) */
-                lnorm = ((double*)((Wcol.get_blktile( &Wcol, m, n ))->mat))[0];
+            int tempnn = ( n == (A->nt-1) ) ? A->n - n * A->nb : A->nb;
 
-                /*
-                 * u_{high} = 1e-16 (later should be application accuraccy)
-                 * u_{low} = 1e-8
-                 * ||A_{i,j}||_F  < u_{high} * || A ||_F / (nt * u_{low})
-                 * ||A_{i,j}||_F  < threshold / u_{low}
-                 */
-                INSERT_TASK_zgered( &options, threshold, lnorm,
-                                     tempmm, tempnn, A( m, n ) );
-            }
+            /*
+                * u_{high} = 1e-16 (later should be application accuracy)
+                * u_{low} = 1e-8
+                * ||A_{i,j}||_F  < u_{high} * || A ||_F / (nt * u_{low})
+                * ||A_{i,j}||_F  < threshold / u_{low}
+                */
+            INSERT_TASK_zgered( &options, threshold,
+                                tempmm, tempnn, A( m, n ), W( &Wcol, m, n ) );
         }
     }
 

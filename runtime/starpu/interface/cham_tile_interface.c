@@ -13,7 +13,9 @@
  * @author Mathieu Faverge
  * @author Gwenole Lucas
  * @author Samuel Thibault
- * @date 2023-08-22
+ * @author Abel Calluaud
+ * @author Ana Hourcau
+ * @date 2024-07-17
  *
  */
 #include "chameleon_starpu.h"
@@ -76,20 +78,6 @@ cti_get_hmat_required_size( starpu_cham_tile_interface_t *cham_tile_interface  _
     return 0;
 }
 #endif
-
-static inline CHAM_tile_t *
-cti_handle_get( starpu_data_handle_t handle )
-{
-    starpu_cham_tile_interface_t *cham_tile_interface = (starpu_cham_tile_interface_t *)
-        starpu_data_get_interface_on_node( handle, STARPU_MAIN_RAM );
-
-#ifdef STARPU_DEBUG
-    STARPU_ASSERT_MSG( cham_tile_interface->id == STARPU_CHAM_TILE_INTERFACE_ID,
-                       "Error. The given data is not a cham_tile." );
-#endif
-
-    return &(cham_tile_interface->tile);
-}
 
 int
 cti_handle_get_m( starpu_data_handle_t handle )
