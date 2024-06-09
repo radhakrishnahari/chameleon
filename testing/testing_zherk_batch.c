@@ -48,8 +48,8 @@ testing_zherk_batch_desc( run_arg_list_t *args, int check )
     double        alpha = testing_dalea();
     double        beta  = testing_dalea();
     double        bump  = 0.;
-    int           seedA = run_arg_get_int( args, "seedA", random() );
-    int           seedC = run_arg_get_int( args, "seedC", random() );
+    int           seedA = run_arg_get_int( args, "seedA", testing_ialea() );
+    int           seedC = run_arg_get_int( args, "seedC", testing_ialea() );
 
     /* Descriptors */
     int          Am, An;
