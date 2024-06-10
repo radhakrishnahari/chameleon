@@ -43,7 +43,7 @@ testing_zpotrf_batch_desc( run_arg_list_t *args, int check )
     int           P     = parameters_getvalue_int( "P" );
     cham_uplo_t   uplo  = run_arg_get_uplo( args, "uplo", ChamUpper );
     int           N     = run_arg_get_int( args, "N", 320 );
-    int           seedA = run_arg_get_int( args, "seedA", random() );
+    int           seedA = run_arg_get_int( args, "seedA", testing_ialea() );
     int           Q     = parameters_compute_q( P );
 
     /* Descriptors */

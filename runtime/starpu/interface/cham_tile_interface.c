@@ -772,3 +772,9 @@ starpu_cham_tile_interface_fini()
 #endif
     }
 }
+
+CHAM_tile_t *
+RUNTIME_handle2tile( void *interface )
+{
+    return cti_interface_get( (starpu_cham_tile_interface_t *)interface );
+}

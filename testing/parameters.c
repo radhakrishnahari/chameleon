@@ -690,19 +690,19 @@ parameters_getvalue_fixdbl( const char *name )
         }
 
         if ( param->has_arg > 1 ) {
-            fprintf( stderr, "parameters_getvalue_double should not be called with parameter %s\n", name );
+            fprintf( stderr, "parameters_getvalue_fixdbl should not be called with parameter %s\n", name );
             return -1;
         }
 
         if ( param->valtype != TestValDouble ) {
-            fprintf( stderr, "parameters_getvalue_double has been called with a non float parameter (%s)\n", name );
+            fprintf( stderr, "parameters_getvalue_fixdbl has been called with a non float parameter (%s)\n", name );
             return -1;
         }
 
         return param->value.dval;
     }
 
-    fprintf( stderr, "parameters_getvalue_int could not find parameter %s\n", name );
+    fprintf( stderr, "parameters_getvalue_fixdbl could not find parameter %s\n", name );
     return -1;
 }
 

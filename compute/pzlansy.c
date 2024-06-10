@@ -239,21 +239,21 @@ chameleon_pzlansy_frb( cham_trans_t trans, cham_uplo_t uplo,
                 if ( trans == ChamConjTrans) {
                     INSERT_TASK_zhessq(
                         options, ChamEltwise, uplo, tempmm,
-                        A(m, n), W( Welt, m, n) );
+                        A(m, n), W( Welt, m, n ) );
                 }
                 else {
                     INSERT_TASK_zsyssq(
                         options, ChamEltwise, uplo, tempmm,
-                        A(m, n), W( Welt, m, n) );
+                        A(m, n), W( Welt, m, n ) );
                 }
             }
             else {
                 INSERT_TASK_zgessq(
                     options, ChamEltwise, tempmm, tempnn,
-                    A(m, n), W( Welt, m, n) );
+                    A(m, n), W( Welt, m, n ) );
                 INSERT_TASK_zgessq(
                     options, ChamEltwise, tempmm, tempnn,
-                    A(m, n), W( Welt, n, m) );
+                    A(m, n), W( Welt, n, m ) );
             }
         }
     }

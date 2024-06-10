@@ -48,8 +48,8 @@ testing_ztrsm_batch_desc( run_arg_list_t *args, int check )
     int                   N     = run_arg_get_int( args, "N", 320 );
     int                   M     = run_arg_get_int( args, "M", N );
     CHAMELEON_Complex64_t alpha = testing_zalea();
-    int                   seedA = run_arg_get_int( args, "seedA", random() );
-    int                   seedB = run_arg_get_int( args, "seedB", random() );
+    int                   seedA = run_arg_get_int( args, "seedA", testing_ialea() );
+    int                   seedB = run_arg_get_int( args, "seedB", testing_ialea() );
 
     /* Descriptors */
     int          Am, An, Bm, Bn;

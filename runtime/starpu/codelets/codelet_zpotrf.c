@@ -46,6 +46,8 @@ cl_zpotrf_cpu_func(void *descr[], void *cl_arg)
 
     tileA = cti_interface_get(descr[0]);
 
+    assert( tileA->flttype == ChamComplexDouble );
+
     TCORE_zpotrf( clargs->uplo, clargs->n, tileA, &info );
 
     if ( (clargs->sequence->status == CHAMELEON_SUCCESS) && (info != 0) ) {

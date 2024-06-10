@@ -44,6 +44,10 @@ cl_zgemm_cpu_func( void *descr[], void *cl_arg )
     tileB = cti_interface_get(descr[1]);
     tileC = cti_interface_get(descr[2]);
 
+    assert( tileA->flttype == ChamComplexDouble );
+    assert( tileB->flttype == ChamComplexDouble );
+    assert( tileC->flttype == ChamComplexDouble );
+
     TCORE_zgemm( clargs->transA, clargs->transB,
                  clargs->m, clargs->n, clargs->k,
                  clargs->alpha, tileA, tileB,
