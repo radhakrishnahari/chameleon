@@ -12,21 +12,27 @@
  * @version 1.3.0
  * @author Mathieu Faverge
  * @author Matthieu Kuhn
+ * @author Alycia Lisito
+ * @author Florent Pruvost
  * @date 2024-03-16
  *
  */
 #include "chameleon_openmp.h"
 
-void RUNTIME_ipiv_create( CHAM_ipiv_t *ipiv )
+void RUNTIME_ipiv_create( CHAM_ipiv_t *ipiv,
+                          const CHAM_desc_t *desc )
 {
     assert( 0 );
     (void)ipiv;
+    (void)desc;
 }
 
-void RUNTIME_ipiv_destroy( CHAM_ipiv_t *ipiv )
+void RUNTIME_ipiv_destroy( CHAM_ipiv_t *ipiv,
+                           const CHAM_desc_t *desc )
 {
     assert( 0 );
     (void)ipiv;
+    (void)desc;
 }
 
 void *RUNTIME_ipiv_getaddr( const CHAM_ipiv_t *ipiv, int m )
@@ -37,19 +43,21 @@ void *RUNTIME_ipiv_getaddr( const CHAM_ipiv_t *ipiv, int m )
     return NULL;
 }
 
-void *RUNTIME_nextpiv_getaddr( const CHAM_ipiv_t *ipiv, int m, int h )
+void *RUNTIME_nextpiv_getaddr( const CHAM_ipiv_t *ipiv, int rank, int m, int h )
 {
     assert( 0 );
     (void)ipiv;
+    (void)rank;
     (void)m;
     (void)h;
     return NULL;
 }
 
-void *RUNTIME_prevpiv_getaddr( const CHAM_ipiv_t *ipiv, int m, int h )
+void *RUNTIME_prevpiv_getaddr( const CHAM_ipiv_t *ipiv, int rank, int m, int h )
 {
     assert( 0 );
     (void)ipiv;
+    (void)rank;
     (void)m;
     (void)h;
     return NULL;

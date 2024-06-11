@@ -28,13 +28,14 @@ void INSERT_TASK_ipiv_init( const RUNTIME_option_t *options,
 }
 
 void INSERT_TASK_ipiv_reducek( const RUNTIME_option_t *options,
-                               CHAM_ipiv_t *ipiv, int k, int h )
+                               CHAM_ipiv_t *ipiv, int k, int h, int rank )
 {
     assert( 0 );
     (void)options;
     (void)ipiv;
     (void)k;
     (void)h;
+    (void)rank;
 }
 
 void INSERT_TASK_ipiv_to_perm( const RUNTIME_option_t *options,
