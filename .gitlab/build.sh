@@ -1,11 +1,5 @@
 #!/usr/bin/env bash
-
-fatal() {
-    echo "$0: error occurred, exit"
-    exit 1
-}
-
-set -x
+set -ex
 
 SCAN=""
 
@@ -29,14 +23,14 @@ if [[ "$SYSTEM" != "windows" ]]; then
     # to avoid the Accelerate framework and get Openblas we use BLA_PREFER_PKGCONFIG
     cmake -B build-${VERSION} -S . \
           -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=$PWD/install-${VERSION} \
-          -DMORSE_ENABLE_COVERAGE=OFF -DBLA_PREFER_PKGCONFIG=ON || fatal
+          -DMORSE_ENABLE_COVERAGE=OFF -DBLA_PREFER_PKGCONFIG=ON
   else
-    source .gitlab-ci-env.sh $CHAM_CI_ENV_ARG || fatal
+    source .gitlab-ci-env.sh $CHAM_CI_ENV_ARG
     if [[ $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH ]]
     then
       SCAN="scan-build -plist --intercept-first --exclude CMakeFiles --analyze-headers -o analyzer_reports "
     fi
-    eval '${SCAN}cmake -B build-${VERSION} -S . -C cmake_modules/gitlab-ci-initial-cache.cmake $BUILD_OPTIONS' || fatal
+    eval '${SCAN}cmake -B build-${VERSION} -S . -C cmake_modules/gitlab-ci-initial-cache.cmake $BUILD_OPTIONS'
   fi
 else
   # on windows the mpi_f08 interface is missing, see https://www.scivision.dev/windows-mpi-msys2/
@@ -44,9 +38,41 @@ else
   # directory can reach more than 10Go
   cmake -GNinja -B build-${VERSION} -S . \
         -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=$PWD/install-${VERSION} \
-        -DCHAMELEON_USE_MPI=OFF \
-        || fatal
+        -DCHAMELEON_USE_MPI=OFF
 fi
-eval '${SCAN}cmake --build build-${VERSION} -j 4' || fatal
-cmake --install build-${VERSION} || fatal
-rm -r install-${VERSION} || fatal
+eval '${SCAN}cmake --build build-${VERSION} -j 4'
+cmake --install build-${VERSION}
+
+#
+# Check link to chameleon
+#
+cd .gitlab/check_link/
+
+# Set the compiler
+if [[ "$SYSTEM" == "macosx" ]]; then
+  export CC=clang
+  if brew ls --versions chameleon > /dev/null; then brew remove --force --ignore-dependencies chameleon; fi
+else
+  export CC=gcc
+fi
+export FC=gfortran
+
+# Set the path variables
+if [[ "$SYSTEM" == "linux" ]]; then
+  export LIBRARY_PATH=$PWD/../../install-${VERSION}/lib:$LIBRARY_PATH
+  export LD_LIBRARY_PATH=$PWD/../../install-${VERSION}/lib:$LD_LIBRARY_PATH
+elif [[ "$SYSTEM" == "macosx" ]]; then
+  export LIBRARY_PATH=$PWD/../../install-${VERSION}/lib:$LIBRARY_PATH
+  export DYLD_LIBRARY_PATH=$PWD/../../install-${VERSION}/lib:$DYLD_LIBRARY_PATH
+elif [[ "$SYSTEM" == "windows" ]]; then
+  export PATH="/c/Windows/WinSxS/x86_microsoft-windows-m..namespace-downlevel_31bf3856ad364e35_10.0.19041.1_none_21374cb0681a6320":$PATH
+  export PATH=$PWD/../../install-${VERSION}/bin:$PATH
+fi
+
+# 1) using cmake:
+./link_cmake.sh $PWD/../../install-${VERSION}
+# 2) using pkg-config:
+./link_pkgconfig.sh $PWD/../../install-${VERSION}
+
+cd ../..
+rm -r install-${VERSION}

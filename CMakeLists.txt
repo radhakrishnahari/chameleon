@@ -262,8 +262,10 @@ endif()
 
 # Option to activate or not simulation mode (use Simgrid through StarPU)
 # ----------------------------------------------------------------------
+cmake_dependent_option(CHAMELEON_SIMULATION
+"Enable simulation mode using Simgrid through StarPU" OFF
+"CHAMELEON_SCHED_STARPU" OFF)
 if(CHAMELEON_SCHED_STARPU)
-    option(CHAMELEON_SIMULATION "Enable simulation mode using Simgrid through StarPU" OFF)
     if (NOT CHAMELEON_SIMULATION)
         message("-- ${BoldGreen}CHAMELEON_SIMULATION is set to OFF, turn it ON to use"
             " SIMULATION mode (only with StarPU compiled with SimGrid)${ColourReset}")
@@ -529,6 +531,12 @@ if(NOT CHAMELEON_SIMULATION)
 
             morse_export_imported_target(HIP HIP hip chameleon)
             morse_export_imported_target(HIP HIPBLAS hipblas chameleon)
+            if (CHAMELEON_USE_HIP_ROC)
+                morse_export_imported_target(roc hipblas rochipblas chameleon)
+                morse_export_imported_target(hip host hiphost chameleon)
+                morse_export_imported_target(hip device hipdevice chameleon)
+                morse_export_imported_target(hip amdhip64 hipamdhip64 chameleon)
+            endif()
         else(HIP_FOUND)
             message(FATAL_ERROR "CHAMELEON_USE_HIP requires HIP to be found")
         endif (HIP_FOUND)
