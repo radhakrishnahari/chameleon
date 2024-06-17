@@ -252,9 +252,15 @@ set(RUNTIME_SRCS_GENERATED "")
 set(ZSRC
   codelets/codelet_zcallback.c
   codelets/codelet_zccallback.c
-  codelets/codelet_dlag2h.c
   ${CODELETS_ZSRC}
+)
+
+if(GPUCUBLAS_HAVE_CUDA_HALF OR CHAMELEON_SIMULATION)
+  set(ZSRC
+    ${ZSRC}
+    codelets/codelet_dlag2h.c
   )
+endif()
 
 precisions_rules_py(RUNTIME_SRCS_GENERATED "${ZSRC}"
   PRECISIONS "${CHAMELEON_PRECISION}"
@@ -262,10 +268,22 @@ precisions_rules_py(RUNTIME_SRCS_GENERATED "${ZSRC}"
 
 set(CODELETS_SRC
   codelets/codelet_convert.c
-  codelets/codelet_hgemm.c
   codelets/codelet_gemm.c
   ${CODELETS_SRC}
   )
+
+if(GPUCUBLAS_HAVE_CUBLASHGEMM OR CHAMELEON_SIMULATION)
+  set(CODELETS_SRC
+    codelets/codelet_hgemm.c
+    ${CODELETS_SRC}
+  )
+endif()
+if(GPUCUBLAS_HAVE_CUBLASGEMMEX OR CHAMELEON_SIMULATION)
+  set(CODELETS_SRC
+    codelets/codelet_gemmex.c
+    ${CODELETS_SRC}
+  )
+endif()
 
 set(RUNTIME_SRCS
   ${RUNTIME_COMMON}

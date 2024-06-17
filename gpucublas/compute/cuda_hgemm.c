@@ -16,6 +16,10 @@
  */
 #include "gpucublas.h"
 
+#if !defined(GPUCUBLAS_HAVE_CUBLASHGEMM)
+#error "This file should not be compiled"
+#endif
+
 extern "C" int
 CUDA_hgemm( cham_trans_t transa, cham_trans_t transb,
             int m, int n, int k,

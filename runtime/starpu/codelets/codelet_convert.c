@@ -75,7 +75,7 @@ insert_task_convert( const RUNTIME_option_t *options,
         break;
 #endif
 
-#if defined(CHAMELEON_PREC_D) && defined(CHAMELON_USE_CUDA)
+#if defined(CHAMELEON_PREC_D) && defined(GPUCUBLAS_HAVE_CUDA_HALF)
     case ChamConvertRealDoubleToHalf:
         codelet = &cl_dlag2h;
         callback = cl_dlag2h_callback;
@@ -87,7 +87,7 @@ insert_task_convert( const RUNTIME_option_t *options,
         break;
 #endif
 
-#if defined(CHAMELEON_PREC_S) && defined(CHAMELON_USE_CUDA)
+#if defined(CHAMELEON_PREC_S) && defined(GPUCUBLAS_HAVE_CUDA_HALF)
     case ChamConvertRealSingleToHalf:
         codelet = &cl_slag2h;
         callback = cl_slag2h_callback;

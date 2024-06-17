@@ -52,6 +52,11 @@
 #include "chameleon/struct.h"
 #include "chameleon/constants.h"
 
+#cmakedefine GPUCUBLAS_HAVE_CUDA_TOOLKIT
+#cmakedefine GPUCUBLAS_HAVE_CUDA_HALF
+#cmakedefine GPUCUBLAS_HAVE_CUBLASHGEMM
+#cmakedefine GPUCUBLAS_HAVE_CUBLASGEMMEX
+
 /**
  * CUDA BLAS headers
  */
@@ -64,6 +69,7 @@ BEGIN_C_DECLS
 #include "gpucublas/gpucublas_zc.h"
 #include "gpucublas/gpucublas_ds.h"
 
+#if defined(GPUCUBLAS_HAVE_CUBLASHGEMM)
 int CUDA_hgemm( cham_trans_t transa, cham_trans_t transb,
                 int m, int n, int k,
                 const CHAMELEON_Real16_t *alpha,
@@ -72,7 +78,9 @@ int CUDA_hgemm( cham_trans_t transa, cham_trans_t transb,
                 const CHAMELEON_Real16_t *beta,
                 CHAMELEON_Real16_t *C, int ldc,
                 cublasHandle_t handle );
+#endif
 
+#if defined(GPUCUBLAS_HAVE_CUBLASGEMMEX)
 int CUDA_gemmex( cham_trans_t transa, cham_trans_t transb,
                  int m, int n, int k,
                  const void *alpha,
@@ -81,6 +89,7 @@ int CUDA_gemmex( cham_trans_t transa, cham_trans_t transb,
                  const void *beta,
                  void *C, int ldc, cham_flttype_t Ctype,
                  cublasHandle_t handle );
+#endif
 
 static inline cublasComputeType_t
 chameleon_cublas_ctype( cham_flttype_t flttype ) {
