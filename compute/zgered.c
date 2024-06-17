@@ -13,7 +13,7 @@
  *
  * @version 1.3.0
  * @author Mathieu Faverge
- * @date 2023-07-06
+ * @date 2024-07-17
  * @precisions normal z -> z d
  *
  */
@@ -166,6 +166,15 @@ int CHAMELEON_zgered_Tile_Async( cham_uplo_t uplo, double precision, CHAM_desc_t
         return CHAMELEON_SUCCESS;
     }
 
+    if ( precision < 0. ) {
+        char *algostr = chameleon_getenv( "CHAMELEON_GERED_ACC" );
+        if ( algostr == NULL ) {
+            precision = 1e-12;
+        }
+        else {
+            precision = strtod( algostr, NULL );
+        }
+    }
     chameleon_pzgered( uplo, precision, A, sequence, request );
 
     return CHAMELEON_SUCCESS;

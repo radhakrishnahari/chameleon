@@ -167,6 +167,15 @@ int CHAMELEON_zhered_Tile_Async( cham_uplo_t uplo, double precision, CHAM_desc_t
         return CHAMELEON_SUCCESS;
     }
 
+    if ( precision < 0. ) {
+        char *algostr = chameleon_getenv( "CHAMELEON_GERED_ACC" );
+        if ( algostr == NULL ) {
+            precision = 1e-12;
+        }
+        else {
+            precision = strtod( algostr, NULL );
+        }
+    }
     chameleon_pzhered( ChamConjTrans, uplo, precision, A, sequence, request );
 
     return CHAMELEON_SUCCESS;
