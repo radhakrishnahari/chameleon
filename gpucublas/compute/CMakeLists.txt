@@ -56,24 +56,15 @@ set(ZSRC
     cuda_zunmqrt.c
     )
 
-# Add CUDA kernel if compiler and toolkit are available
-# -----------------------------------------------------
-include(CheckLanguage)
-check_language(CUDA)
-
-if(CMAKE_CUDA_COMPILER)
-  enable_language(CUDA)
-  find_package(CUDAToolkit)
-else()
-  message(STATUS "CUDA language is not supported")
-endif()
-
-if (CUDAToolkit_FOUND)
-  include(SetCMakeCudaArchitectures)
-
+if ( GPUCUBLAS_HAVE_CUDA_TOOLKIT )
   set(ZSRC
     ${ZSRC}
     cuda_zlag2c.cu
+  )
+endif()
+if ( GPUCUBLAS_HAVE_CUDA_HALF )
+  set(ZSRC
+    ${ZSRC}
     cuda_dlag2h.cu
   )
 endif()
@@ -102,13 +93,24 @@ precisions_rules_py(
 
 set(GPUCUBLAS_SRCS
   ${GPUCUBLAS_SRCS_GENERATED}
-  cuda_hgemm.c
-  cuda_gemmex.c
   cudaglobal.c
-  )
+)
 
-# Need to use CXX compiler to have the __half support and access to cublasHgemm()
-set_source_files_properties( cuda_hgemm.c PROPERTIES LANGUAGE CXX )
+if (GPUCUBLAS_HAVE_CUBLASHGEMM)
+  set(GPUCUBLAS_SRCS
+    ${GPUCUBLAS_SRCS}
+    cuda_hgemm.c
+  )
+  # Need to use CXX compiler to have the __half support and access to cublasHgemm()
+  set_source_files_properties( cuda_hgemm.c PROPERTIES LANGUAGE CXX )
+endif()
+
+if (GPUCUBLAS_HAVE_CUBLASGEMMEX)
+  set(GPUCUBLAS_SRCS
+    ${GPUCUBLAS_SRCS}
+    cuda_gemmex.c
+  )
+endif()
 
 # Force generation of sources
 # ---------------------------
