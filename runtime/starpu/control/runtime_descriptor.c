@@ -20,7 +20,7 @@
  * @author Raphael Boucherie
  * @author Samuel Thibault
  * @author Loris Lucido
- * @date 2024-03-16
+ * @date 2024-07-17
  *
  */
 #include "chameleon_starpu.h"
@@ -432,6 +432,26 @@ void *RUNTIME_data_getaddr_withconversion( const RUNTIME_option_t *options,
     /* Get the correct starpu_handle */
     ptrtile += shift;
 
+    /* Invalidate copies on write access */
+    if ( access & ChamW ) {
+        starpu_data_handle_t *copy = ptrtile;
+        assert( fltshift == 0 );
+
+        /* Remove first copy */
+        copy += ((int64_t)A->lmt * (int64_t)A->lnt);
+        if ( *copy ) {
+            starpu_data_unregister_no_coherency( *copy );
+            *copy = NULL;
+        }
+
+        /* Remove second copy */
+        copy += ((int64_t)A->lmt * (int64_t)A->lnt);
+        if ( *copy ) {
+            starpu_data_unregister_no_coherency( *copy );
+            *copy = NULL;
+        }
+    }
+
     if ( *ptrtile != NULL ) {
         return (void*)(*ptrtile);
     }
@@ -440,7 +460,7 @@ void *RUNTIME_data_getaddr_withconversion( const RUNTIME_option_t *options,
     int myrank = A->myrank;
     int owner  = A->get_rankof( A, m, n );
 
-    if ( myrank == owner ) {
+    if ( (myrank == owner) && (shift == 0) ) {
         if ( (tile->format & CHAMELEON_TILE_HMAT) ||
              (tile->mat != NULL) )
         {
@@ -476,6 +496,8 @@ void *RUNTIME_data_getaddr_withconversion( const RUNTIME_option_t *options,
         starpu_data_handle_t *totile = ptrtile;
 
         fromtile += ((int64_t)A->lmt) * nn + mm;
+        assert( fromtile != totile );
+        assert( tile->flttype != flttype );
         if ( *fromtile != NULL ) {
             insert_task_convert( options, tile->m, tile->n, tile->flttype, *fromtile, flttype, *totile );
         }
