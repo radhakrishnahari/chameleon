@@ -43,51 +43,16 @@ cl_gemmex_cuda_func( void *descr[], void *cl_arg )
     CHAM_tile_t *tileC;
     void *ptrAlpha, *ptrBeta;
 
-    switch( tileC->flttype ) {
-    case ChamRealHalf:
-    {
-        CHAMELEON_Real16_t halpha = clargs->alpha;
-        CHAMELEON_Real16_t hbeta  = clargs->beta;
-        ptrAlpha = &halpha;
-        ptrBeta  = &hbeta;
-    }
-    break;
-    case ChamRealFloat:
-    {
-        float salpha = clargs->alpha;
-        float sbeta  = clargs->beta;
-        ptrAlpha = &salpha;
-        ptrBeta  = &sbeta;
-    }
-    break;
-    case ChamRealDouble:
-    {
-        double dalpha = clargs->alpha;
-        double dbeta  = clargs->beta;
-        ptrAlpha = &dalpha;
-        ptrBeta  = &dbeta;
-    }
-    break;
-    case ChamComplexFloat:
-    {
-        CHAMELEON_Complex32_t calpha = clargs->alpha;
-        CHAMELEON_Complex32_t cbeta  = clargs->beta;
-        ptrAlpha = &calpha;
-        ptrBeta  = &cbeta;
-    }
-    break;
-    case ChamComplexDouble:
-    {
-        CHAMELEON_Complex64_t zalpha = clargs->alpha;
-        CHAMELEON_Complex64_t zbeta  = clargs->beta;
-        ptrAlpha = &zalpha;
-        ptrBeta  = &zbeta;
-    }
-    break;
-    default:
-        fprintf( stderr, "cl_gemmex: Unknown C datatype\n" );
-        return;
-    }
+    CHAMELEON_Real16_t    halpha = clargs->alpha;
+    CHAMELEON_Real16_t    hbeta  = clargs->beta;
+    float                 salpha = clargs->alpha;
+    float                 sbeta  = clargs->beta;
+    double                dalpha = clargs->alpha;
+    double                dbeta  = clargs->beta;
+    CHAMELEON_Complex32_t calpha = clargs->alpha;
+    CHAMELEON_Complex32_t cbeta  = clargs->beta;
+    CHAMELEON_Complex64_t zalpha = clargs->alpha;
+    CHAMELEON_Complex64_t zbeta  = clargs->beta;
 
     tileA = cti_interface_get(descr[0]);
     tileB = cti_interface_get(descr[1]);
@@ -96,6 +61,42 @@ cl_gemmex_cuda_func( void *descr[], void *cl_arg )
     assert( tileA->format & CHAMELEON_TILE_FULLRANK );
     assert( tileB->format & CHAMELEON_TILE_FULLRANK );
     assert( tileC->format & CHAMELEON_TILE_FULLRANK );
+
+    switch( tileC->flttype ) {
+    case ChamRealHalf:
+    {
+        ptrAlpha = &halpha;
+        ptrBeta  = &hbeta;
+    }
+    break;
+    case ChamRealFloat:
+    {
+        ptrAlpha = &salpha;
+        ptrBeta  = &sbeta;
+    }
+    break;
+    case ChamRealDouble:
+    {
+        ptrAlpha = &dalpha;
+        ptrBeta  = &dbeta;
+    }
+    break;
+    case ChamComplexFloat:
+    {
+        ptrAlpha = &calpha;
+        ptrBeta  = &cbeta;
+    }
+    break;
+    case ChamComplexDouble:
+    {
+        ptrAlpha = &zalpha;
+        ptrBeta  = &zbeta;
+    }
+    break;
+    default:
+        fprintf( stderr, "cl_gemmex: Unknown C datatype\n" );
+        return;
+    }
 
     CUDA_gemmex(
         clargs->transA, clargs->transB,
