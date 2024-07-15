@@ -16,6 +16,10 @@
  */
 #include "gpucublas.h"
 
+#if !defined(GPUCUBLAS_HAVE_CUBLASGEMMEX)
+#error "This file should not be compiled"
+#endif
+
 int
 CUDA_gemmex( cham_trans_t transa, cham_trans_t transb,
              int m, int n, int k,

@@ -38,9 +38,13 @@ precisions_rules_py(
 
 # Define the list of headers
 # --------------------------
+configure_file("gpucublas.h.in"
+               "gpucublas.h"
+               @ONLY)
+
 set(GPUCUBLAS_HDRS
-    gpucublas.h
-    )
+  ${CMAKE_CURRENT_BINARY_DIR}/gpucublas.h
+)
 
 # Add generated headers
 # ---------------------
@@ -55,7 +59,7 @@ set(CHAMELEON_SOURCES_TARGETS "${CHAMELEON_SOURCES_TARGETS};gpucublas_include" C
 
 # Installation
 # ------------
-install( FILES gpucublas.h
+install( FILES ${CMAKE_CURRENT_BINARY_DIR}/gpucublas.h
          DESTINATION include )
 
 install( FILES ${GPUCUBLAS_HDRS}

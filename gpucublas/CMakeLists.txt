@@ -26,6 +26,48 @@
 #
 ###
 
+# Add CUDA kernel if compiler and toolkit are available
+# -----------------------------------------------------
+include(CheckLanguage)
+check_language(CUDA)
+
+if(CMAKE_CUDA_COMPILER)
+  enable_language(CUDA)
+  find_package(CUDAToolkit)
+else()
+  message(STATUS "CUDA language is not supported")
+endif()
+
+if (CUDAToolkit_FOUND)
+  set(GPUCUBLAS_HAVE_CUDA_TOOLKIT ON CACHE INTERNAL "Indicate if cuda kernels are enabled or not" FORCE)
+
+  include(SetCMakeCudaArchitectures)
+
+  if (CUDAToolkit_VERSION VERSION_GREATER_EQUAL "7.5")
+    set(GPUCUBLAS_HAVE_CUDA_HALF ON CACHE INTERNAL "Indicate if half precision support is enabled or not" FORCE)
+  else()
+    set(GPUCUBLAS_HAVE_CUDA_HALF OFF CACHE INTERNAL "Indicate if half precision support is enabled or not" FORCE)
+  endif()
+else()
+  set(GPUCUBLAS_HAVE_CUDA_TOOLKIT OFF CACHE INTERNAL "Indicate if cuda kernels are enabled or not" FORCE)
+  set(GPUCUBLAS_HAVE_CUDA_HALF OFF CACHE INTERNAL "Indicate if half precision support is enabled or not" FORCE)
+endif()
+
+if ( GPUCUBLAS_HAVE_CUDA_HALF )
+  ##morse_cmake_required_set( CUBLAS )
+  set(CMAKE_REQUIRED_LIBRARIES CUDA::CUBLAS)
+
+  check_function_exists(cublasHgemm GPUCUBLAS_HAVE_CUBLASHGEMM)
+  if ( GPUCUBLAS_HAVE_CUBLASHGEMM )
+    message("-- ${Blue}Add definition HAVE_CUBLASHGEMM${ColourReset}")
+  endif()
+  check_function_exists(cublasGemmEx GPUCUBLAS_HAVE_CUBLASGEMMEX)
+  if ( GPUCUBLAS_HAVE_CUBLASGEMMEX )
+    message("-- ${Blue}Add definition HAVE_CUBLASGEMMEX${ColourReset}")
+  endif()
+  morse_cmake_required_unset()
+endif()
+
 add_subdirectory(include)
 add_subdirectory(compute)
 add_subdirectory(eztrace_module)

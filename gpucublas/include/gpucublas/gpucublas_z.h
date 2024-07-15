@@ -24,8 +24,10 @@
 /**
  *  Declarations of cuda kernels - alphabetical order
  */
+#if defined(GPUCUBLAS_HAVE_CUDA_HALF)
 int CUDA_dlag2h( int m, int n, const double *A, int lda, CHAMELEON_Real16_t *B, int ldb, cublasHandle_t handle );
 int CUDA_hlag2d( int m, int n, const CHAMELEON_Real16_t *A, int lda, double *B, int ldb, cublasHandle_t handle );
+#endif
 int CUDA_zgeadd( cham_trans_t trans, int m, int n, const cuDoubleComplex *alpha, const cuDoubleComplex *A, int lda, const cuDoubleComplex *beta, cuDoubleComplex *B, int ldb, cublasHandle_t handle );
 int CUDA_zgemerge( cham_side_t side, cham_diag_t diag, int M, int N, const cuDoubleComplex *A, int LDA, cuDoubleComplex *B, int LDB, cublasHandle_t handle );
 int CUDA_zgemm(  cham_trans_t transa, cham_trans_t transb, int m, int n, int k, const cuDoubleComplex *alpha, const cuDoubleComplex *A, int lda, const cuDoubleComplex *B, int ldb, const cuDoubleComplex *beta, cuDoubleComplex *C, int ldc, cublasHandle_t handle );
