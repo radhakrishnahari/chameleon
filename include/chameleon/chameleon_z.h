@@ -23,7 +23,8 @@
  * @author Florent Pruvost
  * @author Alycia Lisito
  * @author Matthieu Kuhn
- * @date 2024-04-03
+ * @author Ana Hourcau
+ * @date 2024-07-17
  * @precisions normal z -> c d s
  *
  */
@@ -168,10 +169,9 @@ int CHAMELEON_zplrnk_Tile(int K, CHAM_desc_t *C, unsigned long long int seedA, u
 int CHAMELEON_zpoinv_Tile(cham_uplo_t uplo, CHAM_desc_t *A);
 int CHAMELEON_zposv_Tile(cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B);
 int CHAMELEON_zpotrf_Tile(cham_uplo_t uplo, CHAM_desc_t *A);
-#if defined(PRECISION_z) || defined(PRECISION_d)
 int CHAMELEON_zgered_Tile( cham_uplo_t uplo, double prec, CHAM_desc_t *A );
+int CHAMELEON_zhered_Tile( cham_uplo_t uplo, double prec, CHAM_desc_t *A );
 int CHAMELEON_zgerst_Tile( cham_uplo_t uplo, CHAM_desc_t *A );
-#endif
 int CHAMELEON_zsytrf_Tile(cham_uplo_t uplo, CHAM_desc_t *A);
 int CHAMELEON_zpotri_Tile(cham_uplo_t uplo, CHAM_desc_t *A);
 int CHAMELEON_zpotrimm_Tile(cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B, CHAM_desc_t *C);
@@ -249,10 +249,9 @@ int CHAMELEON_zplrnk_Tile_Async(int K, CHAM_desc_t *C, unsigned long long int se
 int CHAMELEON_zpoinv_Tile_Async(cham_uplo_t uplo, CHAM_desc_t *A, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 int CHAMELEON_zposv_Tile_Async(cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 int CHAMELEON_zpotrf_Tile_Async(cham_uplo_t uplo, CHAM_desc_t *A, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
-#if defined(PRECISION_z) || defined(PRECISION_d)
 int CHAMELEON_zgered_Tile_Async(cham_uplo_t uplo, double prec, CHAM_desc_t *A, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
+int CHAMELEON_zhered_Tile_Async(cham_uplo_t uplo, double prec, CHAM_desc_t *A, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 int CHAMELEON_zgerst_Tile_Async( cham_uplo_t uplo, CHAM_desc_t *A, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request );
-#endif
 int CHAMELEON_zsytrf_Tile_Async(cham_uplo_t uplo, CHAM_desc_t *A, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 int CHAMELEON_zpotri_Tile_Async(cham_uplo_t uplo, CHAM_desc_t *A, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 int CHAMELEON_zpotrimm_Tile_Async(cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B, CHAM_desc_t *C, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);

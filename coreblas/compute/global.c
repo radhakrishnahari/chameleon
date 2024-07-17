@@ -11,14 +11,14 @@
  *
  * @brief Chameleon global coreblas variables and functions
  *
- * @version 1.2.0
+ * @version 1.3.0
  * @author Jakub Kurzak
  * @author Piotr Luszczek
  * @author Florent Pruvost
  * @author Guillaume Sylvand
  * @author Mathieu Faverge
  * @author Alycia Lisito
- * @date 2022-02-22
+ * @date 2024-07-17
  *
  */
 #include "coreblas.h"
@@ -58,6 +58,8 @@ void __coreblas_kernel_trace( const char *func, ... )
         size += snprintf( output+size, len-size, "%s%s",
                           first ? "" : ", ",
                           tile->name );
+        size += snprintf( output+size, len-size, " / %p",
+                          CHAM_tile_get_ptr( tile ) );
         first = 0;
     }
     va_end( va_list );

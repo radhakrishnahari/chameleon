@@ -11,24 +11,28 @@
  *
  * @version 1.3.0
  * @author Mathieu Faverge
- * @date 2023-07-06
+ * @author Ana Hourcau
+ * @date 2024-07-17
  * @precisions normal z -> d
  *
  */
 #include "chameleon_parsec.h"
 
 void INSERT_TASK_zgered( const RUNTIME_option_t *options,
-                         double threshold, double Anorm, int m, int n,
-                         const CHAM_desc_t *A, int Am, int An )
+                         double threshold, int m, int n,
+                         const CHAM_desc_t *A,     int Am,  int An,
+                         const CHAM_desc_t *Wnorm, int Wnm, int Wnn )
 {
     fprintf( stderr, "WARNING: gered kernel is not available with PaRSEC\n" );
 
     (void)options;
     (void)threshold;
-    (void)Anorm;
     (void)m;
     (void)n;
     (void)A;
     (void)Am;
     (void)An;
+    (void)Wnorm;
+    (void)Wnm;
+    (void)Wnn;
 }

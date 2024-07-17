@@ -1,6 +1,6 @@
 /**
  *
- * @file zgered.c
+ * @file zhered.c
  *
  * @copyright 2009-2014 The University of Tennessee and The University of
  *                      Tennessee Research Foundation. All rights reserved.
@@ -9,10 +9,11 @@
  *
  ***
  *
- * @brief Chameleon zgered wrappers
+ * @brief Chameleon zhered wrappers
  *
  * @version 1.3.0
  * @author Mathieu Faverge
+ * @author Ana Hourcau
  * @date 2024-07-17
  * @precisions normal z -> z d
  *
@@ -27,7 +28,7 @@
  * @brief Computes the Cholesky factorization of a symmetric positive definite
  * or Hermitian positive definite matrix with mixed precision.
  *
- * This is the synchronous version of CHAMELEON_zgeredinit_Tile_Async().  It
+ * This is the synchronous version of CHAMELEON_zheredinit_Tile_Async().  It
  * operates on matrices stored by tiles with tiles of potentially different
  * precisions.  All matrices are passed through descriptors.  All dimensions are
  * taken from the descriptors.
@@ -57,15 +58,15 @@
  *
  *******************************************************************************
  *
- * @sa CHAMELEON_zgered
- * @sa CHAMELEON_zgered_Tile_Async
+ * @sa CHAMELEON_zhered
+ * @sa CHAMELEON_zhered_Tile_Async
  * @sa CHAMELEON_cpotrfmp_Tile
  * @sa CHAMELEON_dpotrfmp_Tile
  * @sa CHAMELEON_spotrfmp_Tile
  * @sa CHAMELEON_zpotrs_Tile
  *
  */
-int CHAMELEON_zgered_Tile( cham_uplo_t uplo, double precision, CHAM_desc_t *A )
+int CHAMELEON_zhered_Tile( cham_uplo_t uplo, double precision, CHAM_desc_t *A )
 {
     CHAM_context_t *chamctxt;
     RUNTIME_sequence_t *sequence = NULL;
@@ -74,12 +75,12 @@ int CHAMELEON_zgered_Tile( cham_uplo_t uplo, double precision, CHAM_desc_t *A )
 
     chamctxt = chameleon_context_self();
     if (chamctxt == NULL) {
-        chameleon_fatal_error("CHAMELEON_zgeredinit_Tile", "CHAMELEON not initialized");
+        chameleon_fatal_error("CHAMELEON_zheredinit_Tile", "CHAMELEON not initialized");
         return CHAMELEON_ERR_NOT_INITIALIZED;
     }
     chameleon_sequence_create( chamctxt, &sequence );
 
-    CHAMELEON_zgered_Tile_Async( uplo, precision, A, sequence, &request );
+    CHAMELEON_zhered_Tile_Async( uplo, precision, A, sequence, &request );
 
     CHAMELEON_Desc_Flush( A, sequence );
 
@@ -97,7 +98,7 @@ int CHAMELEON_zgered_Tile( cham_uplo_t uplo, double precision, CHAM_desc_t *A )
  * @brief Computes the Cholesky factorization of a symmetric positive definite
  * or Hermitian positive definite matrix with mixed precision.
  *
- * This is the non-blocking equivalent of CHAMELEON_zgered_Tile().  It
+ * This is the non-blocking equivalent of CHAMELEON_zhered_Tile().  It
  * operates on matrices stored by tiles with tiles of potentially different
  * precisions.  All matrices are passed through descriptors.  All dimensions are
  * taken from the descriptors. It may return before the computation is
@@ -114,30 +115,30 @@ int CHAMELEON_zgered_Tile( cham_uplo_t uplo, double precision, CHAM_desc_t *A )
  *
  *******************************************************************************
  *
- * @sa CHAMELEON_zgered
- * @sa CHAMELEON_zgered_Tile
+ * @sa CHAMELEON_zhered
+ * @sa CHAMELEON_zhered_Tile
  * @sa CHAMELEON_cpotrfmp_Tile_Async
  * @sa CHAMELEON_dpotrfmp_Tile_Async
  * @sa CHAMELEON_spotrfmp_Tile_Async
  * @sa CHAMELEON_zpotrs_Tile_Async
  *
  */
-int CHAMELEON_zgered_Tile_Async( cham_uplo_t uplo, double precision, CHAM_desc_t *A,
+int CHAMELEON_zhered_Tile_Async( cham_uplo_t uplo, double precision, CHAM_desc_t *A,
                                  RUNTIME_sequence_t *sequence, RUNTIME_request_t *request )
 {
     CHAM_context_t *chamctxt;
 
     chamctxt = chameleon_context_self();
     if (chamctxt == NULL) {
-        chameleon_fatal_error("CHAMELEON_zgered_Tile_Async", "CHAMELEON not initialized");
+        chameleon_fatal_error("CHAMELEON_zhered_Tile_Async", "CHAMELEON not initialized");
         return CHAMELEON_ERR_NOT_INITIALIZED;
     }
     if (sequence == NULL) {
-        chameleon_fatal_error("CHAMELEON_zgered_Tile_Async", "NULL sequence");
+        chameleon_fatal_error("CHAMELEON_zhered_Tile_Async", "NULL sequence");
         return CHAMELEON_ERR_UNALLOCATED;
     }
     if (request == NULL) {
-        chameleon_fatal_error("CHAMELEON_zgered_Tile_Async", "NULL request");
+        chameleon_fatal_error("CHAMELEON_zhered_Tile_Async", "NULL request");
         return CHAMELEON_ERR_UNALLOCATED;
     }
     /* Check sequence status */
@@ -150,12 +151,12 @@ int CHAMELEON_zgered_Tile_Async( cham_uplo_t uplo, double precision, CHAM_desc_t
 
     /* Check descriptors for correctness */
     if (chameleon_desc_check(A) != CHAMELEON_SUCCESS) {
-        chameleon_error("CHAMELEON_zgered_Tile_Async", "invalid descriptor");
+        chameleon_error("CHAMELEON_zhered_Tile_Async", "invalid descriptor");
         return chameleon_request_fail(sequence, request, CHAMELEON_ERR_ILLEGAL_VALUE);
     }
     /* Check input arguments */
     if (A->nb != A->mb) {
-        chameleon_error("CHAMELEON_zgered_Tile_Async", "only square tiles supported");
+        chameleon_error("CHAMELEON_zhered_Tile_Async", "only square tiles supported");
         return chameleon_request_fail(sequence, request, CHAMELEON_ERR_ILLEGAL_VALUE);
     }
 
@@ -175,7 +176,7 @@ int CHAMELEON_zgered_Tile_Async( cham_uplo_t uplo, double precision, CHAM_desc_t
             precision = strtod( algostr, NULL );
         }
     }
-    chameleon_pzgered( uplo, precision, A, sequence, request );
+    chameleon_pzhered( ChamConjTrans, uplo, precision, A, sequence, request );
 
     return CHAMELEON_SUCCESS;
 }

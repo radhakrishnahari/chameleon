@@ -24,7 +24,8 @@
  * @author Alycia Lisito
  * @author Romain Peressoni
  * @author Matthieu Kuhn
- * @date 2023-09-11
+ * @author Ana Hourcau
+ * @date 2024-07-17
  * @precisions normal z -> c d s
  *
  */
@@ -79,8 +80,9 @@ void INSERT_TASK_zgeqrt( const RUNTIME_option_t *options,
                          const CHAM_desc_t *A, int Am, int An,
                          const CHAM_desc_t *T, int Tm, int Tn );
 void INSERT_TASK_zgered( const RUNTIME_option_t *options,
-                         double threshold, double Anorm, int m, int n,
-                         const CHAM_desc_t *A, int Am, int An );
+                         double threshold, int m, int n,
+                         const CHAM_desc_t *A, int Am, int An,
+                         const CHAM_desc_t *Wnorm, int Wnm, int Wnn );
 void INSERT_TASK_zgerst( const RUNTIME_option_t *options,
                          int m, int n,
                          const CHAM_desc_t *A, int Am, int An );

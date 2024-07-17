@@ -9,10 +9,11 @@
  *
  * @brief Header to describe the Chameleon tile interface in StarPU
  *
- * @version 1.2.0
+ * @version 1.3.0
  * @author Mathieu Faverge
  * @author Gwenole Lucas
- * @date 2022-02-22
+ * @author Ana Hourcau
+ * @date 2024-07-17
  *
  */
 #ifndef _cham_tile_interface_h_
@@ -51,6 +52,20 @@ static inline CHAM_tile_t *
 cti_interface_get( starpu_cham_tile_interface_t *interface )
 {
     return &(interface->tile);
+}
+
+static inline CHAM_tile_t *
+cti_handle_get( starpu_data_handle_t handle )
+{
+    starpu_cham_tile_interface_t *cham_tile_interface = (starpu_cham_tile_interface_t *)
+        starpu_data_get_interface_on_node( handle, STARPU_MAIN_RAM );
+
+#ifdef STARPU_DEBUG
+    STARPU_ASSERT_MSG( cham_tile_interface->id == STARPU_CHAM_TILE_INTERFACE_ID,
+                       "Error. The given data is not a cham_tile." );
+#endif
+
+    return &(cham_tile_interface->tile);
 }
 
 void starpu_cham_tile_interface_init();

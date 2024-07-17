@@ -11,13 +11,15 @@
  *
  * @brief Chameleon configuration file
  *
- * @version 1.2.0
+ * @version 1.3.0
  * @author Florent Pruvost
  * @author Mathieu Faverge
  * @author Philippe Virouleau
  * @author Raphael Boucherie
  * @author Loris Lucido
- * @date 2023-01-30
+ * @author Abel Calluaud
+ * @author Alycia Lisito
+ * @date 2024-07-17
  *
  */
 #ifndef CHAMELEON_CONFIG_H_HAS_BEEN_INCLUDED
@@ -78,6 +80,9 @@
 
 /* chameleon compute */
 #cmakedefine CHAMELEON_COPY_DIAG
+
+/* Debug options */
+#cmakedefine CHAMELEON_DEBUG_GERED
 
 /* Define the maximum batch size for kernels using it */
 #define CHAMELEON_BATCH_SIZE @CHAMELEON_BATCH_SIZE@

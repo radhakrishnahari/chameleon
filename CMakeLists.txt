@@ -30,7 +30,8 @@
 #  @author Alycia Lisito
 #  @author Loris Lucido
 #  @author Nathan Précigout
-#  @date 2024-03-11
+#  @author Abel Calluaud
+#  @date 2024-07-17
 #
 ###
 cmake_minimum_required(VERSION 3.5)
@@ -259,6 +260,8 @@ option(CHAMELEON_ENABLE_TESTING  "Enable testings build"       ON)
 if (CHAMELEON_ENABLE_TESTING)
     message("-- ${BoldGreen}CHAMELEON_ENABLE_TESTING is set to ON, turn it OFF to avoid building testing${ColourReset}")
 endif()
+
+option(CHAMELEON_DEBUG_GERED  "Enable GERED debug"  OFF)
 
 # Option to activate or not simulation mode (use Simgrid through StarPU)
 # ----------------------------------------------------------------------

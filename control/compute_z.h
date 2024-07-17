@@ -22,7 +22,8 @@
  * @author Alycia Lisito
  * @author Matthieu Kuhn
  * @author Lionel Eyraud-Dubois
- * @date 2023-09-08
+ * @author Ana Hourcau
+ * @date 2024-07-17
  * @precisions normal z -> c d s
  *
  */
@@ -80,6 +81,8 @@ int chameleon_zshift(CHAM_context_t *chamctxt, int m, int n, CHAMELEON_Complex64
  */
 #if defined(PRECISION_z) || defined(PRECISION_d)
 void chameleon_pzgered( cham_uplo_t uplo, double prec, CHAM_desc_t *A,
+                        RUNTIME_sequence_t *sequence, RUNTIME_request_t *request );
+void chameleon_pzhered( cham_trans_t trans, cham_uplo_t uplo, double prec, CHAM_desc_t *A,
                         RUNTIME_sequence_t *sequence, RUNTIME_request_t *request );
 void chameleon_pzgerst( cham_uplo_t uplo, CHAM_desc_t *A,
                         RUNTIME_sequence_t *sequence, RUNTIME_request_t *request );
