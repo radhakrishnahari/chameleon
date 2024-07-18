@@ -16,6 +16,7 @@
  *
  * @author Matthieu Kuhn
  * @author Alycia Lisito
+ * @author Philippe Swartvagher
  * @date 2024-01-11
  * @precisions normal z -> c d s
  *
@@ -72,9 +73,7 @@ INSERT_TASK_zgetrf_panel_offdiag_batched( const RUNTIME_option_t *options,
                                           void **clargs_ptr,
                                           CHAM_ipiv_t *ipiv )
 {
-    CHAM_tile_t *tileA      = A->get_blktile( A, Am, An );
     int          task_num   = 0;
-    int          exec       = 0;
     int          batch_size = ((struct chameleon_pzgetrf_s *)ws)->batch_size;
     void (*callback)(void*) = NULL;
     struct cl_getrf_batched_args_t *clargs = *clargs_ptr;
@@ -82,7 +81,6 @@ INSERT_TASK_zgetrf_panel_offdiag_batched( const RUNTIME_option_t *options,
     /* Handle cache */
     CHAMELEON_BEGIN_ACCESS_DECLARATION;
     CHAMELEON_ACCESS_RW(A, Am, An);
-    exec = __chameleon_need_exec;
     CHAMELEON_END_ACCESS_DECLARATION;
 
     if ( clargs == NULL ) {
@@ -221,11 +219,9 @@ INSERT_TASK_zgetrf_panel_blocked_batched( const RUNTIME_option_t *options,
                                           void **clargs_ptr,
                                           CHAM_ipiv_t *ipiv )
 {
-    CHAM_tile_t *tileA      = A->get_blktile( A, Am, An );
     int          batch_size = ((struct chameleon_pzgetrf_s *)ws)->batch_size;
     int          ib         = ((struct chameleon_pzgetrf_s *)ws)->ib;
     int          task_num   = 0;
-    int          exec       = 0;
     void (*callback)(void*) = NULL;
     int accessU, access_npiv, access_ipiv, access_ppiv;
     struct cl_getrf_batched_args_t *clargs = *clargs_ptr;
@@ -233,7 +229,6 @@ INSERT_TASK_zgetrf_panel_blocked_batched( const RUNTIME_option_t *options,
     /* Handle cache */
     CHAMELEON_BEGIN_ACCESS_DECLARATION;
     CHAMELEON_ACCESS_RW(A, Am, An);
-    exec = __chameleon_need_exec;
     CHAMELEON_END_ACCESS_DECLARATION;
 
     if ( clargs == NULL ) {
@@ -256,7 +251,7 @@ INSERT_TASK_zgetrf_panel_blocked_batched( const RUNTIME_option_t *options,
     clargs->tasks_nbr ++;
     /* Refine name */
     clargs->cl_name = chameleon_codelet_name( clargs->cl_name, 1,
-                                                A->get_blktile( A, Am, An ) );
+                                              A->get_blktile( A, Am, An ) );
 
     if ( clargs->tasks_nbr == batch_size ) {
         access_npiv = ( clargs->h == ipiv->n ) ? STARPU_R : STARPU_REDUX;

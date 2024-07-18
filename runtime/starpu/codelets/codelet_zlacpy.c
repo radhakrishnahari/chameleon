@@ -44,6 +44,7 @@ static void cl_zlacpy_starpu_func(void *descr[], void *cl_arg)
     static const struct starpu_data_interface_ops *interface_ops = &starpu_interface_cham_tile_ops;
     const struct starpu_data_copy_methods         *copy_methods  = interface_ops->copy_methods;
     struct cl_zlacpy_args_s                       *clargs        = (struct cl_zlacpy_args_s *)cl_arg;
+    (void)clargs;
 
     int      workerid    = starpu_worker_get_id_check();
     unsigned memory_node = starpu_worker_get_memory_node( workerid );
@@ -52,6 +53,7 @@ static void cl_zlacpy_starpu_func(void *descr[], void *cl_arg)
     void *dst_interface = descr[1];
 
     int rc;
+    (void)rc;
 
     assert( clargs->displA == 0 );
     assert( clargs->displB == 0 );

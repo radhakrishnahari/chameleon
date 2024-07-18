@@ -187,7 +187,7 @@ void chameleon_pzhered( cham_trans_t trans, cham_uplo_t uplo, double prec, CHAM_
     RUNTIME_option_t options;
     CHAM_desc_t Wcol;
     CHAM_desc_t Welt;
-    double gnorm, lnorm, threshold, eps;
+    double gnorm, threshold, eps;
 
     int workmt, worknt;
     int m, n;
@@ -263,17 +263,14 @@ void chameleon_pzhered( cham_trans_t trans, cham_uplo_t uplo, double prec, CHAM_
 
         for (n = nmin; n < nmax; n++)
         {
-            CHAM_tile_t *tile = A->get_blktile(A, m, n);
-
             int tempnn = (n == (A->nt - 1)) ? A->n - n * A->nb : A->nb;
 
             /*
-                * u_{high} = 1e-16 (later should be application accuracy)
-                * u_{low} = 1e-8
-                * ||A_{i,j}||_F  < u_{high} * || A ||_F / (nt * u_{low})
-                * ||A_{i,j}||_F  < threshold / u_{low}
-                */
-
+             * u_{high} = 1e-16 (later should be application accuracy)
+             * u_{low} = 1e-8
+             * ||A_{i,j}||_F  < u_{high} * || A ||_F / (nt * u_{low})
+             * ||A_{i,j}||_F  < threshold / u_{low}
+             */
             INSERT_TASK_zgered( &options, threshold,
                                 tempmm, tempnn, A( m, n ), W( &Wcol, m, n ) );
         }

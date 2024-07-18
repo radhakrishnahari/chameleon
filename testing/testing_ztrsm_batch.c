@@ -40,7 +40,6 @@ testing_ztrsm_batch_desc( run_arg_list_t *args, int check )
     int                   async = parameters_getvalue_int( "async" );
     int                   nb    = run_arg_get_int( args, "nb", 10 );
     int                   ib    = run_arg_get_int( args, "ib", 10 );
-    int                   P     = parameters_getvalue_int( "P" );
     cham_trans_t          trans = run_arg_get_trans( args, "trans", ChamNoTrans );
     cham_side_t           side  = run_arg_get_side( args, "side", ChamLeft );
     cham_uplo_t           uplo  = run_arg_get_uplo( args, "uplo", ChamUpper );
@@ -52,8 +51,8 @@ testing_ztrsm_batch_desc( run_arg_list_t *args, int check )
     int                   seedB = run_arg_get_int( args, "seedB", testing_ialea() );
 
     /* Descriptors */
-    int          Am, An, Bm, Bn;
-    CHAM_desc_t *descA, *descB, *descC;
+    int          Am, An;
+    CHAM_desc_t *descA, *descB;
 
     alpha = run_arg_get_complex64( args, "alpha", alpha );
 
