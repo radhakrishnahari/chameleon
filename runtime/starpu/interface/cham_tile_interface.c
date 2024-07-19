@@ -26,18 +26,26 @@ static inline void
 cti_hmat_destroy( starpu_cham_tile_interface_t *cham_tile_interface )
 {
     switch( cham_tile_interface->flttype ) {
+#if defined(CHAMELEON_PREC_Z)
     case ChamComplexDouble:
         hmat_zdestroy( cham_tile_interface->tile.mat );
         break;
+#endif
+#if defined(CHAMELEON_PREC_C)
     case ChamComplexFloat:
         hmat_cdestroy( cham_tile_interface->tile.mat );
         break;
+#endif
+#if defined(CHAMELEON_PREC_D)
     case ChamRealDouble:
         hmat_ddestroy( cham_tile_interface->tile.mat );
         break;
+#endif
+#if defined(CHAMELEON_PREC_S)
     case ChamRealFloat:
         hmat_sdestroy( cham_tile_interface->tile.mat );
         break;
+#endif
     default:
         STARPU_ASSERT_MSG( 0, "cti_hmat_destroy(): unknown flttype\n" );
     }
@@ -53,18 +61,26 @@ cti_get_hmat_required_size( starpu_cham_tile_interface_t *cham_tile_interface )
          (cham_tile_interface->tile.mat != NULL ) )
     {
         switch( cham_tile_interface->flttype ) {
+#if defined(CHAMELEON_PREC_Z)
         case ChamComplexDouble:
             size = hmat_zsize( cham_tile_interface->tile.mat );
             break;
+#endif
+#if defined(CHAMELEON_PREC_C)
         case ChamComplexFloat:
             size = hmat_csize( cham_tile_interface->tile.mat );
             break;
+#endif
+#if defined(CHAMELEON_PREC_D)
         case ChamRealDouble:
             size = hmat_dsize( cham_tile_interface->tile.mat );
             break;
+#endif
+#if defined(CHAMELEON_PREC_S)
         case ChamRealFloat:
             size = hmat_ssize( cham_tile_interface->tile.mat );
             break;
+#endif
         default:
             STARPU_ASSERT_MSG( 0, "cti_get_hmat_required_size(cham_tile_interface): unknown flttype\n" );
         }
@@ -327,18 +343,26 @@ cti_pack_data_hmat( starpu_cham_tile_interface_t *cham_tile_interface,
     hmat_matrix_t *mat = cham_tile_interface->tile.mat;
     STARPU_ASSERT_MSG( mat != NULL, "cti_pack_data_hmat: Try to pack a NULL pointer\n" );
     switch( cham_tile_interface->flttype ) {
+#if defined(CHAMELEON_PREC_Z)
     case ChamComplexDouble:
         hmat_zwrite( mat, ptr );
         break;
+#endif
+#if defined(CHAMELEON_PREC_C)
     case ChamComplexFloat:
         hmat_cwrite( mat, ptr );
         break;
+#endif
+#if defined(CHAMELEON_PREC_D)
     case ChamRealDouble:
         hmat_dwrite( mat, ptr );
         break;
+#endif
+#if defined(CHAMELEON_PREC_S)
     case ChamRealFloat:
         hmat_swrite( mat, ptr );
         break;
+#endif
     default:
         STARPU_ASSERT_MSG( 0, "cti_pack_data_hmat: unknown flttype\n" );
     }
@@ -427,18 +451,26 @@ cti_unpack_data_hmat( starpu_cham_tile_interface_t *cham_tile_interface,
 #else
     hmat_matrix_t *mat = NULL;
     switch( cham_tile_interface->flttype ) {
+#if defined(CHAMELEON_PREC_Z)
     case ChamComplexDouble:
         mat = hmat_zread( ptr );
         break;
+#endif
+#if defined(CHAMELEON_PREC_C)
     case ChamComplexFloat:
         mat = hmat_cread( ptr );
         break;
+#endif
+#if defined(CHAMELEON_PREC_D)
     case ChamRealDouble:
         mat = hmat_dread( ptr );
         break;
+#endif
+#if defined(CHAMELEON_PREC_S)
     case ChamRealFloat:
         mat = hmat_sread( ptr );
         break;
+#endif
     default:
         STARPU_ASSERT_MSG( 0, "cti_unpack_data_hmat: unknown flttype\n" );
     }
