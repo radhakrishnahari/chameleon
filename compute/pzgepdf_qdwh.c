@@ -108,6 +108,7 @@ chameleon_pzgepdf_qdwh_init( const CHAM_desc_t *U, const CHAM_desc_t *H,
      * generated.
      */
     chameleon_desc_init( TS1, CHAMELEON_MAT_ALLOC_TILE,
+                         CHAMELEON_TILE_FULLRANK,
                          ChamComplexDouble, ib, nb, ib * nb,
                          ib * U->mt, nb * U->nt, 0, 0,
                          ib * U->mt, nb * U->nt,
@@ -115,6 +116,7 @@ chameleon_pzgepdf_qdwh_init( const CHAM_desc_t *U, const CHAM_desc_t *H,
                          chameleon_desc_datadist_get_iparam(U, 1),
                          NULL, NULL, NULL, NULL );
     chameleon_desc_init( TT1, CHAMELEON_MAT_ALLOC_TILE,
+                         CHAMELEON_TILE_FULLRANK,
                          ChamComplexDouble, ib, nb, ib * nb,
                          ib * U->mt, nb * U->nt, 0, 0,
                          ib * U->mt, nb * U->nt,
@@ -123,6 +125,7 @@ chameleon_pzgepdf_qdwh_init( const CHAM_desc_t *U, const CHAM_desc_t *H,
                          NULL, NULL, NULL, NULL );
 
     chameleon_desc_init( TS2, CHAMELEON_MAT_ALLOC_TILE,
+                         CHAMELEON_TILE_FULLRANK,
                          ChamComplexDouble, ib, nb, ib * nb,
                          ib * H->mt, nb * H->nt, 0, 0,
                          ib * H->mt, nb * H->nt,
@@ -130,6 +133,7 @@ chameleon_pzgepdf_qdwh_init( const CHAM_desc_t *U, const CHAM_desc_t *H,
                          chameleon_desc_datadist_get_iparam(U, 1),
                          NULL, NULL, NULL, NULL );
     chameleon_desc_init( TT2, CHAMELEON_MAT_ALLOC_TILE,
+                         CHAMELEON_TILE_FULLRANK,
                          ChamComplexDouble, ib, nb, ib * nb,
                          ib * H->mt, nb * H->nt, 0, 0,
                          ib * H->mt, nb * H->nt,
@@ -176,7 +180,7 @@ chameleon_pzgepdf_qdwh_init( const CHAM_desc_t *U, const CHAM_desc_t *H,
     /*
      * Let's create a transposed version of U for the solve step in the Cholesky iteration.
      */
-    chameleon_desc_init( Ut, CHAMELEON_MAT_ALLOC_TILE,
+    chameleon_desc_init( Ut, CHAMELEON_MAT_ALLOC_TILE, CHAMELEON_TILE_FULLRANK,
                          ChamComplexDouble, U->mb, U->nb, U->mb * U->nb,
                          U->n, U->m, 0, 0,
                          U->n, U->m,

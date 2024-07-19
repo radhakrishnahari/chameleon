@@ -67,7 +67,7 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
      * stage and the second one during Flush.
      * This is the same issue for X and SX to be reused from one iteration to another.
      */
-    chameleon_desc_init( &DROW, CHAMELEON_MAT_ALLOC_GLOBAL, ChamRealDouble, 1, A->nb, A->nb,
+    chameleon_desc_init( &DROW, CHAMELEON_MAT_ALLOC_GLOBAL, CHAMELEON_TILE_FULLRANK, ChamRealDouble, 1, A->nb, A->nb,
                          chameleon_desc_datadist_get_iparam(A, 0), A->n, 0, 0, chameleon_desc_datadist_get_iparam(A, 0), A->n,
                          chameleon_desc_datadist_get_iparam(A, 0),
                          chameleon_desc_datadist_get_iparam(A, 1),
@@ -77,7 +77,7 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
      * after flushing the descriptor.
      * This is the same issue for NRMSX.
      */
-    chameleon_desc_init( &NRMX, CHAMELEON_MAT_ALLOC_GLOBAL, ChamRealDouble, 2, 1, 2,
+    chameleon_desc_init( &NRMX, CHAMELEON_MAT_ALLOC_GLOBAL, CHAMELEON_TILE_FULLRANK, ChamRealDouble, 2, 1, 2,
                          chameleon_desc_datadist_get_iparam(A, 0) * 2, chameleon_desc_datadist_get_iparam(A, 1), 0, 0
                          , chameleon_desc_datadist_get_iparam(A, 0) * 2, chameleon_desc_datadist_get_iparam(A, 1),
                          chameleon_desc_datadist_get_iparam(A, 0),
@@ -176,19 +176,19 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
 	return;
     }
 
-    chameleon_desc_init( &NRMSX, CHAMELEON_MAT_ALLOC_GLOBAL, ChamRealDouble, 2, 1, 2,
+    chameleon_desc_init( &NRMSX, CHAMELEON_MAT_ALLOC_GLOBAL, CHAMELEON_TILE_FULLRANK, ChamRealDouble, 2, 1, 2,
                          chameleon_desc_datadist_get_iparam(A, 0) * 2, chameleon_desc_datadist_get_iparam(A, 1), 0, 0,
                          chameleon_desc_datadist_get_iparam(A, 0) * 2, chameleon_desc_datadist_get_iparam(A, 1),
                          chameleon_desc_datadist_get_iparam(A, 0),
                          chameleon_desc_datadist_get_iparam(A, 1),
                          NULL, NULL, NULL, NULL );
-    chameleon_desc_init( &X,  CHAMELEON_MAT_ALLOC_GLOBAL, ChamComplexDouble, 1, A->nb, A->nb,
+    chameleon_desc_init( &X,  CHAMELEON_MAT_ALLOC_GLOBAL, CHAMELEON_TILE_FULLRANK, ChamComplexDouble, 1, A->nb, A->nb,
                          chameleon_desc_datadist_get_iparam(A, 0), A->n, 0, 0,
                          chameleon_desc_datadist_get_iparam(A, 0), A->n,
                          chameleon_desc_datadist_get_iparam(A, 0),
                          chameleon_desc_datadist_get_iparam(A, 1),
                          NULL, NULL, NULL, NULL );
-    chameleon_desc_init( &SX, CHAMELEON_MAT_ALLOC_GLOBAL, ChamComplexDouble, A->mb, 1, A->mb,
+    chameleon_desc_init( &SX, CHAMELEON_MAT_ALLOC_GLOBAL, CHAMELEON_TILE_FULLRANK, ChamComplexDouble, A->mb, 1, A->mb,
                          A->m, chameleon_desc_datadist_get_iparam(A, 1), 0, 0,
                          A->m, chameleon_desc_datadist_get_iparam(A, 1),
                          chameleon_desc_datadist_get_iparam(A, 0),

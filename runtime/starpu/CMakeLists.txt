@@ -236,7 +236,6 @@ set(RUNTIME_HDRS
   include/runtime_codelets.h
   include/runtime_profiling.h
   include/runtime_workspace.h
-  include/cham_tile_interface.h
   )
 
 # Add generated headers

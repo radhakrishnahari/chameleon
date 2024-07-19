@@ -79,6 +79,9 @@ subs = {
     'normal': [
         # pattern                single                  double                  single-complex          double-complex
         #'12345678901234567890', '12345678901234567890', '12345678901234567890', '12345678901234567890', '12345678901234567890')
+
+
+        ('int',                  'float',                'double',               'rpk_complex32_t',     r'\brpk_complex64_t'   ),
         ('int',                  'float',                'double',               'CHAMELEON_Complex32_t', r'\bCHAMELEON_Complex64_t'),
         ('ChamPattern',          'ChamRealFloat',        'ChamRealDouble',       'ChamComplexFloat',    r'\bChamComplexDouble' ),
         ('ChamPattern',          'ChamRealFloat',        'ChamRealDouble',       'ChamRealFloat',       r'\bChamRealDouble'    ),
@@ -119,7 +122,7 @@ subs = {
         ('CHAMELEON_p',          'CHAMELEON_s',          'CHAMELEON_d',          'CHAMELEON_c',          'CHAMELEON_z'         ),
         ('RUNTIME_P',            'RUNTIME_s',            'RUNTIME_d',            'RUNTIME_c',            'RUNTIME_z'           ),
         ('chameleon_p',          'chameleon_s',          'chameleon_d',          'chameleon_c',          'chameleon_z'         ),
-        ('codelet_p',            'codelet_ds',           'codelet_ds',           'codelet_zc',          r'codelet_zc\b'          ),
+        ('codelet_p',            'codelet_ds',           'codelet_ds',           'codelet_zc',          r'codelet_zc\b'        ),
         ('codelet_p',            'codelet_s',            'codelet_d',            'codelet_c',            'codelet_z'           ),
         ('runtime_p',            'runtime_s',            'runtime_d',            'runtime_c',            'runtime_z'           ),
         ('testing_p',            'testing_s',            'testing_d',            'testing_c',            'testing_z'           ),
@@ -144,7 +147,32 @@ subs = {
       # ('',                     'sbuild',               'dbuild',               'cbuild',               'zbuild'              ),
         # Hmat-OSS kernels
         ('hmat_p',               'hmat_s',               'hmat_d',               'hmat_c',               'hmat_z'              ),
+        ('HMatrix<P_t>',         'HMatrix<S_t>',         'HMatrix<D_t>',         'HMatrix<C_t>',         'HMatrix<Z_t>'        ),
+        ('RkMatrix<P_t>',        'RkMatrix<S_t>',        'RkMatrix<D_t>',        'RkMatrix<C_t>',        'RkMatrix<Z_t>'       ),
+        ('FullMatrix<P_t>',      'FullMatrix<S_t>',      'FullMatrix<D_t>',      'FullMatrix<C_t>',      'FullMatrix<Z_t>'     ),
+        ('ScalarArray<P_t>',     'ScalarArray<S_t>',     'ScalarArray<D_t>',     'ScalarArray<C_t>',     'ScalarArray<Z_t>'    ),
+        # ----- RAPACK Prefixes
+        ('RapackPattern',        'RapackFloat',          'RapackDouble',         'RapackComplex32',     r'\bRapackComplex64'   ),
+        ('RapackPattern',        'RapackFloat',          'RapackDouble',         'RapackFloat',         r'\bRapackDouble'      ),
+        ('rpk_p',                'rpk_s',                'rpk_d',                'rpk_c',                'rpk_z'               ),
+        ('rpkx_p',               'rpkx_s',               'rpkx_d',               'rpkx_c',               'rpkx_z'              ),
+        ('rpk_precgentmp_diag_t','rpk_precgentmp_diag_t','rpk_precgentmp_diag_t','rpk_precgentmp_diag_t','rpk_diag_t'          ),
+        ('rpk_p',                'rpk_s',                'rpk_d',                'rpk_s',                'rpk_d'               ),
+        ('rpkx_p',               'rpkx_s',               'rpkx_d',               'rpkx_s',               'rpkx_d'              ),
+        ('RPK_P',                'RPK_S',                'RPK_D',                'RPK_C',                'RPK_Z'               ),
+        ('RPK_P',                'RPK_S',                'RPK_D',                'RPK_S',                'RPK_D'               ),
+        ('prapack',              'srapack',              'drapack',              'crapack',              'zrapack'             ),
+        ('rpk_',                 'rpk_',                 'rpk_',                 'rpk_',                 'rpk_precgentmp_'     ),
+        ('pge2lr',               'sge2lr',               'dge2lr',               'cge2lr',               'zge2lr'              ),
+        ('CHAMELEON_plr',               'sge2lr',               'dge2lr',               'cge2lr',               'zge2lr'              ),
+        ('pge2ps',               'sge2ps',               'dge2ps',               'cge2ps',               'zge2ps'              ),
+        ('phmat2rpk',            'shmat2rpk',            'dhmat2rpk',            'chmat2rpk',            'zhmat2rpk'           ),
+        ('ptile2rpk',            'stile2rpk',            'dtile2rpk',            'ctile2rpk',            'ztile2rpk'           ),
+        ('prpk2fmt',             'srpk2fmt',             'drpk2fmt',             'rpk2fmt',              'zrpk2fmt'            ),
+        ('plrcpr',             'slrcpr',             'dlrcpr',             'lrcpr',              'zlrcpr'            ),
+        ('pfmt2fmt',             'sfmt2fmt',             'dfmt2fmt',             'fmt2fmt',              'zfmt2fmt'            ),
+        ('plrcrk',             'slrcrk',             'dlrcrk',             'lrcrk',              'zlrcrk'            ),
     ]
 }
 
-exceptfrom = []
+exceptfrom = [ r'\brpk_diag_t' ]

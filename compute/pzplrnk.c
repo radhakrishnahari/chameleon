@@ -193,12 +193,12 @@ chameleon_pzplrnk( int                         K,
          ( (chameleon_desc_datadist_get_iparam(C, 0) != 1) ||
            (chameleon_desc_datadist_get_iparam(C, 1) != 1) ) )
     {
-        chameleon_desc_init( &WA, CHAMELEON_MAT_ALLOC_TILE,
+        chameleon_desc_init( &WA, CHAMELEON_MAT_ALLOC_TILE, CHAMELEON_TILE_FULLRANK,
                              ChamComplexDouble, C->mb, C->nb, (C->mb * C->nb),
                              C->m, C->nb * q, 0, 0,
                              C->m, C->nb * q, p, q,
                              NULL, NULL, NULL, NULL );
-        chameleon_desc_init( &WB, CHAMELEON_MAT_ALLOC_TILE,
+        chameleon_desc_init( &WB, CHAMELEON_MAT_ALLOC_TILE, CHAMELEON_TILE_FULLRANK,
                              ChamComplexDouble, C->mb, C->nb, (C->mb * C->nb),
                              C->mb * p, C->n, 0, 0,
                              C->mb * p, C->n, p, q,
@@ -208,12 +208,12 @@ chameleon_pzplrnk( int                         K,
     }
     else {
         int np = p * q;
-        chameleon_desc_init( &WA, CHAMELEON_MAT_ALLOC_TILE,
+        chameleon_desc_init( &WA, CHAMELEON_MAT_ALLOC_TILE, CHAMELEON_TILE_FULLRANK,
                              ChamComplexDouble, C->mb, C->nb, (C->mb * C->nb),
                              C->m, C->nb * np, 0, 0,
                              C->m, C->nb * np, 1, np,
                              NULL, NULL, NULL, NULL );
-        chameleon_desc_init( &WB, CHAMELEON_MAT_ALLOC_TILE,
+        chameleon_desc_init( &WB, CHAMELEON_MAT_ALLOC_TILE, CHAMELEON_TILE_FULLRANK,
                              ChamComplexDouble, C->mb, C->nb, (C->mb * C->nb),
                              C->mb * np, C->n, 0,  0,
                              C->mb * np, C->n, np, 1,

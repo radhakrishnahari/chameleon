@@ -235,10 +235,10 @@ cmake_dependent_option(CHAMELEON_HMAT_EXTERNAL
                     "Use external hmat-oss library" OFF
                     "CHAMELEON_USE_HMATOSS" OFF)
 
-option(CHAMELEON_USE_LR "Enable low rank kernels" ON)
+option(CHAMELEON_USE_RAPACK "Enable low rank kernels" ON)
 cmake_dependent_option(CHAMELEON_RAPACK_EXTERNAL
                     "Use external rapack library" OFF
-                    "CHAMELEON_USE_LR" OFF)
+                    "CHAMELEON_USE_RAPACK" OFF)
 
 option(CHAMELEON_RUNTIME_SYNC "Enable synchronous task submission when available to debug the code without parallelism" OFF)
 if (CHAMELEON_RUNTIME_SYNC)
@@ -249,6 +249,8 @@ option(CHAMELEON_KERNELS_TRACE "Enable kernel traces to debug the task execution
 if (CHAMELEON_KERNELS_TRACE)
     message("-- ${BoldGreen}CHAMELEON_KERNELS_TRACE is set to ON, turn it OFF to get better perfomance${ColourReset}")
 endif()
+
+option(CHAMELEON_USE_EZTRACE "Enabled eztrace tracing" OFF)
 
 # Options to enable/disable doc, examples, and testings
 # -----------------------------------------------------
@@ -347,7 +349,7 @@ if ( CHAMELEON_USE_HMATOSS )
   endif()
 endif()
 
-if ( CHAMELEON_USE_LR )
+if ( CHAMELEON_USE_RAPACK )
     if ( CHAMELEON_RAPACK_EXTERNAL )
         find_package(RAPACK REQUIRED)
         if(RAPACK_FOUND)
@@ -722,15 +724,15 @@ set(CHAMELEON_SOURCES_TARGETS "" CACHE INTERNAL "List of targets of sources")
 ###############################################################################
 # RAPACK library (low rank kernels) #
 ###################################
-if (CHAMELEON_USE_LR AND NOT CHAMELEON_RAPACK_EXTERNAL)
+if (CHAMELEON_USE_RAPACK AND NOT CHAMELEON_RAPACK_EXTERNAL)
     add_subdirectory(rapack)
     add_library(RAPACK::rapack ALIAS rapack)
 endif()
 
 ###############################################################################
-# runtime_support library
+# runtime_rpk library
 ###############################################################################
-add_subdirectory(runtime_support)
+add_subdirectory(runtime_rpk)
 
 ###############################################################################
 # coreblas library (kernels for CPUs, interface to cblas/lapacke) #

@@ -47,7 +47,7 @@ static inline int chameleon_getrankof_tile(const CHAM_desc_t *desc, int m, int n
 }
 
 int chameleon_desc_init_internal( CHAM_desc_t *desc, const char *name, void *mat,
-                                  cham_flttype_t dtyp, int mb, int nb,
+                                  int tilefmt, cham_flttype_t dtyp, int mb, int nb,
                                   int lm, int ln, int m, int n, int p, int q,
                                   void* (*get_blkaddr)( const CHAM_desc_t*, int, int ),
                                   int   (*get_blkldd) ( const CHAM_desc_t*, int      ),
@@ -55,7 +55,7 @@ int chameleon_desc_init_internal( CHAM_desc_t *desc, const char *name, void *mat
                                   void* get_rankof_arg );
 
 
-static inline int chameleon_desc_init( CHAM_desc_t *desc, void *mat,
+static inline int chameleon_desc_init( CHAM_desc_t *desc, void *mat, int tilefmt,
                                        cham_flttype_t dtyp, int mb, int nb, int bsiz,
                                        int lm, int ln, int i, int j,
                                        int m,  int n,  int p, int q,
@@ -70,7 +70,7 @@ static inline int chameleon_desc_init( CHAM_desc_t *desc, void *mat,
     (void)bsiz;
     (void)i;
     (void)j;
-    return chameleon_desc_init_internal( desc, NULL, mat, dtyp, mb, nb, lm, ln, m, n, p, q,
+    return chameleon_desc_init_internal( desc, NULL, mat, tilefmt, dtyp, mb, nb, lm, ln, m, n, p, q,
                                          get_blkaddr, get_blkldd, get_rankof, get_rankof_arg );
 }
 

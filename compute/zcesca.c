@@ -60,7 +60,7 @@ void *CHAMELEON_zcesca_WS_Alloc( const CHAM_desc_t *A )
     worknt = chameleon_max( A->nt, chameleon_desc_datadist_get_iparam(A, 1) );
 
     chameleon_desc_init( &(options->Wgcol), CHAMELEON_MAT_ALLOC_TILE,
-                         ChamComplexDouble, 1, A->nb, A->nb,
+                         CHAMELEON_TILE_FULLRANK, ChamComplexDouble, 1, A->nb, A->nb,
                          workmt, A->n, 0, 0,
                          workmt, A->n,
                          chameleon_desc_datadist_get_iparam(A, 0),
@@ -68,7 +68,7 @@ void *CHAMELEON_zcesca_WS_Alloc( const CHAM_desc_t *A )
                          NULL, NULL, NULL, NULL );
 
     chameleon_desc_init( &(options->Wgrow), CHAMELEON_MAT_ALLOC_TILE,
-                         ChamComplexDouble, A->mb, 1, A->mb,
+                         CHAMELEON_TILE_FULLRANK, ChamComplexDouble, A->mb, 1, A->mb,
                          A->m, worknt, 0, 0,
                          A->m, worknt,
                          chameleon_desc_datadist_get_iparam(A, 0),
@@ -76,7 +76,7 @@ void *CHAMELEON_zcesca_WS_Alloc( const CHAM_desc_t *A )
                          NULL, NULL, NULL, NULL );
 
     chameleon_desc_init( &(options->Wgelt), CHAMELEON_MAT_ALLOC_TILE,
-                         ChamComplexDouble, 1, 1, 1,
+                         CHAMELEON_TILE_FULLRANK, ChamComplexDouble, 1, 1, 1,
                          1, worknt, 0, 0,
                          1, worknt,
                          chameleon_desc_datadist_get_iparam(A, 0),
@@ -84,7 +84,7 @@ void *CHAMELEON_zcesca_WS_Alloc( const CHAM_desc_t *A )
                          NULL, NULL, NULL, NULL );
 
     chameleon_desc_init( &(options->Wdcol), CHAMELEON_MAT_ALLOC_TILE,
-                         ChamRealDouble, 2, A->nb, 2*A->nb,
+                         CHAMELEON_TILE_FULLRANK, ChamRealDouble, 2, A->nb, 2*A->nb,
                          2*workmt, A->n, 0, 0,
                          2*workmt, A->n,
                          chameleon_desc_datadist_get_iparam(A, 0),
@@ -92,7 +92,7 @@ void *CHAMELEON_zcesca_WS_Alloc( const CHAM_desc_t *A )
                          NULL, NULL, NULL, NULL );
 
     chameleon_desc_init( &(options->Wdrow), CHAMELEON_MAT_ALLOC_TILE,
-                         ChamRealDouble, A->mb, 2, 2*A->mb,
+                         CHAMELEON_TILE_FULLRANK, ChamRealDouble, A->mb, 2, 2*A->mb,
                          A->m, 2*worknt, 0, 0,
                          A->m, 2*worknt,
                          chameleon_desc_datadist_get_iparam(A, 0),

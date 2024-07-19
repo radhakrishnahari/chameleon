@@ -130,6 +130,7 @@ CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A )
     /* Allocation of U for permutation of the panels */
     if ( ws->alg == ChamGetrfNoPivPerColumn ) {
         chameleon_desc_init( &(ws->U), CHAMELEON_MAT_ALLOC_TILE,
+                             CHAMELEON_TILE_FULLRANK,
                              ChamComplexDouble, 1, A->nb, A->nb,
                              A->mt, A->nt * A->nb, 0, 0,
                              A->mt, A->nt * A->nb,
@@ -141,24 +142,25 @@ CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A )
               ( ws->alg == ChamGetrfPPivPerColumn ) )
     {
         chameleon_desc_init( &(ws->U), CHAMELEON_MAT_ALLOC_TILE,
+                             CHAMELEON_TILE_FULLRANK,
                              ChamComplexDouble, A->mb, A->nb, A->mb*A->nb,
                              A->m, A->n, 0, 0,
                              A->m, A->n,
                              chameleon_desc_datadist_get_iparam(A, 0),
                              chameleon_desc_datadist_get_iparam(A, 1),
                              NULL, NULL, A->get_rankof_init, A->get_rankof_init_arg );
-        chameleon_desc_init( &(ws->Wu), CHAMELEON_MAT_ALLOC_TILE,
+        chameleon_desc_init( &(ws->Wu), CHAMELEON_MAT_ALLOC_TILE, CHAMELEON_TILE_FULLRANK,
                              ChamComplexDouble, A->mb, A->nb, A->mb*A->nb,
                              A->mb * chameleon_desc_datadist_get_iparam(A, 0) * chameleon_desc_datadist_get_iparam(A, 1), A->n, 0, 0,
                              A->mb * chameleon_desc_datadist_get_iparam(A, 0) * chameleon_desc_datadist_get_iparam(A, 1), A->n, chameleon_desc_datadist_get_iparam(A, 0) * chameleon_desc_datadist_get_iparam(A, 1), 1,
                              NULL, NULL, NULL, A->get_rankof_init_arg );
-        chameleon_desc_init( &(ws->Wc), CHAMELEON_MAT_ALLOC_TILE,
+        chameleon_desc_init( &(ws->Wc), CHAMELEON_MAT_ALLOC_TILE, CHAMELEON_TILE_FULLRANK,
                             ChamComplexDouble, A->mb, A->nb, A->mb*A->nb,
                             A->m, A->nb * chameleon_desc_datadist_get_iparam(A, 0) * chameleon_desc_datadist_get_iparam(A, 1), 0, 0,
                             A->m, A->nb * chameleon_desc_datadist_get_iparam(A, 0) * chameleon_desc_datadist_get_iparam(A, 1), 1, chameleon_desc_datadist_get_iparam(A, 0) * chameleon_desc_datadist_get_iparam(A, 1),
                             NULL, NULL, NULL, A->get_rankof_init_arg );
         lookahead = chamctxt->lookahead;
-        chameleon_desc_init( &(ws->Wl), CHAMELEON_MAT_ALLOC_TILE,
+        chameleon_desc_init( &(ws->Wl), CHAMELEON_MAT_ALLOC_TILE, CHAMELEON_TILE_FULLRANK,
                              ChamComplexDouble, A->mb, A->nb, (A->mb * A->nb),
                              A->mt * A->mb, A->nb * chameleon_desc_datadist_get_iparam(A, 1) * lookahead, 0, 0,
                              A->mt * A->mb, A->nb * chameleon_desc_datadist_get_iparam(A, 1) * lookahead, chameleon_desc_datadist_get_iparam(A, 0), chameleon_desc_datadist_get_iparam(A, 1),
@@ -178,6 +180,7 @@ CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A )
         /* TODO: Should be restricted to diagonal tiles */
         /* Possibly to a single handle with a permutation of the ownership */
         chameleon_desc_init( &(ws->Up), CHAMELEON_MAT_ALLOC_TILE,
+                             CHAMELEON_TILE_FULLRANK,
                              ChamComplexDouble, ws->ib, A->nb, ws->ib * A->nb,
                              A->mt * ws->ib, A->nt * A->nb, 0, 0,
                              A->mt * ws->ib, A->nt * A->nb,

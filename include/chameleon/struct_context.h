@@ -56,6 +56,10 @@ typedef struct chameleon_context_s {
     void              *schedopt;           /**< structure for runtimes                                */
     int                mpi_outer_init;     /**< MPI has been initialized outside our functions        */
     MPI_Comm           comm;               /**< MPI communicator                                      */
+
+    /* Compression parameters */
+    double             accuracy;           /**> accuracy for the algorithms                           */
+    cham_lrmeth_t      lrmeth;             /**> low rank compression method                           */
 } CHAM_context_t;
 
 END_C_DECLS

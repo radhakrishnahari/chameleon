@@ -403,7 +403,7 @@ void chameleon_pzlange_generic( cham_normtype_t norm, cham_uplo_t uplo, cham_dia
     case ChamOneNorm:
         RUNTIME_options_ws_alloc( &options, 1, 0 );
 
-        chameleon_desc_init( &Wcol, CHAMELEON_MAT_ALLOC_TILE, ChamRealDouble, 1, A->nb, A->nb,
+        chameleon_desc_init( &Wcol, CHAMELEON_MAT_ALLOC_TILE, CHAMELEON_TILE_FULLRANK, ChamRealDouble, 1, A->nb, A->nb,
                              workmt, worknt * A->nb, 0, 0, workmt, worknt * A->nb,
                              chameleon_desc_datadist_get_iparam(A, 0),
                              chameleon_desc_datadist_get_iparam(A, 1),
@@ -413,7 +413,7 @@ void chameleon_pzlange_generic( cham_normtype_t norm, cham_uplo_t uplo, cham_dia
         /*
          * Use the global allocator for Welt, otherwise flush may free the data before the result is read.
          */
-        chameleon_desc_init( &Welt, CHAMELEON_MAT_ALLOC_GLOBAL, ChamRealDouble, 1, 1, 1,
+        chameleon_desc_init( &Welt, CHAMELEON_MAT_ALLOC_GLOBAL, CHAMELEON_TILE_FULLRANK, ChamRealDouble, 1, 1, 1,
                              chameleon_desc_datadist_get_iparam(A, 0), worknt, 0, 0, chameleon_desc_datadist_get_iparam(A, 0), worknt,
                              chameleon_desc_datadist_get_iparam(A, 0),
                              chameleon_desc_datadist_get_iparam(A, 1),
@@ -427,14 +427,14 @@ void chameleon_pzlange_generic( cham_normtype_t norm, cham_uplo_t uplo, cham_dia
     case ChamInfNorm:
         RUNTIME_options_ws_alloc( &options, A->mb, 0 );
 
-        chameleon_desc_init( &Wcol, CHAMELEON_MAT_ALLOC_TILE, ChamRealDouble, A->mb, 1, A->mb,
+        chameleon_desc_init( &Wcol, CHAMELEON_MAT_ALLOC_TILE, CHAMELEON_TILE_FULLRANK, ChamRealDouble, A->mb, 1, A->mb,
                              workmt * A->mb, worknt, 0, 0, workmt * A->mb, worknt,
                              chameleon_desc_datadist_get_iparam(A, 0),
                              chameleon_desc_datadist_get_iparam(A, 1),
                              NULL, NULL, NULL, NULL );
         wcol_init = 1;
 
-        chameleon_desc_init( &Welt, CHAMELEON_MAT_ALLOC_GLOBAL, ChamRealDouble, 1, 1, 1,
+        chameleon_desc_init( &Welt, CHAMELEON_MAT_ALLOC_GLOBAL, CHAMELEON_TILE_FULLRANK, ChamRealDouble, 1, 1, 1,
                              workmt, chameleon_desc_datadist_get_iparam(A, 1), 0, 0, workmt, chameleon_desc_datadist_get_iparam(A, 1),
                              chameleon_desc_datadist_get_iparam(A, 0),
                              chameleon_desc_datadist_get_iparam(A, 1),
@@ -448,7 +448,7 @@ void chameleon_pzlange_generic( cham_normtype_t norm, cham_uplo_t uplo, cham_dia
         RUNTIME_options_ws_alloc( &options, 1, 0 );
 
         alpha = 1.;
-        chameleon_desc_init( &Welt, CHAMELEON_MAT_ALLOC_GLOBAL, ChamRealDouble, 2, 1, 2,
+        chameleon_desc_init( &Welt, CHAMELEON_MAT_ALLOC_GLOBAL, CHAMELEON_TILE_FULLRANK, ChamRealDouble, 2, 1, 2,
                              workmt*2, worknt, 0, 0, workmt*2, worknt,
                              chameleon_desc_datadist_get_iparam(A, 0),
                              chameleon_desc_datadist_get_iparam(A, 1),
@@ -462,7 +462,7 @@ void chameleon_pzlange_generic( cham_normtype_t norm, cham_uplo_t uplo, cham_dia
     default:
         RUNTIME_options_ws_alloc( &options, 1, 0 );
 
-        chameleon_desc_init( &Welt, CHAMELEON_MAT_ALLOC_GLOBAL, ChamRealDouble, 1, 1, 1,
+        chameleon_desc_init( &Welt, CHAMELEON_MAT_ALLOC_GLOBAL, CHAMELEON_TILE_FULLRANK, ChamRealDouble, 1, 1, 1,
                              workmt, worknt, 0, 0, workmt, worknt,
                              chameleon_desc_datadist_get_iparam(A, 0),
                              chameleon_desc_datadist_get_iparam(A, 1),

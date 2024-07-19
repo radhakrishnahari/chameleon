@@ -35,6 +35,7 @@ BEGIN_C_DECLS
 #define CHAMELEON_TILE_FULLRANK (1 << 0)
 #define CHAMELEON_TILE_DESC     (1 << 1)
 #define CHAMELEON_TILE_HMAT     (1 << 2)
+#define CHAMELEON_TILE_LOWRANK  (1 << 3)
 
 #define CHAMELEON_MAX_DIMENSION 10
 
@@ -118,6 +119,7 @@ void chameleon_desc_set_datadist( CHAM_desc_t *to, cham_data_dist_t *from );
 
 struct chameleon_desc_s {
     const char *name;
+    cham_mtxfmt_t   format;
     blktile_fct_t   get_blktile;     /**> function to get chameleon tiles address                     */
     blkaddr_fct_t   get_blkaddr;     /**> function to get chameleon tiles address                     */
     blkldd_fct_t    get_blkldd;      /**> function to get chameleon tiles leading dimension           */
@@ -215,6 +217,10 @@ CHAM_tile_get_typestr( const CHAM_tile_t *tile )
 
     if ( tile->format & CHAMELEON_TILE_HMAT ) {
         return "HMat";
+    }
+
+    if ( tile->format & CHAMELEON_TILE_LOWRANK ) {
+        return "LowRank";
     }
 
     return "Full";

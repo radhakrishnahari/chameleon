@@ -168,6 +168,7 @@ void *CHAMELEON_zsymm_WS_Alloc( cham_side_t        side __attribute__((unused)),
         int lookahead = chamctxt->lookahead;
 
         chameleon_desc_init( &(options->WA), CHAMELEON_MAT_ALLOC_TILE,
+                             CHAMELEON_TILE_FULLRANK,
                              ChamComplexDouble, C->mb, C->nb, (C->mb * C->nb),
                              C->mt * C->mb, C->nb * chameleon_desc_datadist_get_iparam(C, 1) * lookahead, 0, 0,
                              C->mt * C->mb, C->nb * chameleon_desc_datadist_get_iparam(C, 1) * lookahead,
@@ -175,6 +176,7 @@ void *CHAMELEON_zsymm_WS_Alloc( cham_side_t        side __attribute__((unused)),
                              chameleon_desc_datadist_get_iparam(C, 1),
                              NULL, NULL, NULL, NULL );
         chameleon_desc_init( &(options->WB), CHAMELEON_MAT_ALLOC_TILE,
+                             CHAMELEON_TILE_FULLRANK,
                              ChamComplexDouble, C->mb, C->nb, (C->mb * C->nb),
                              C->mb * chameleon_desc_datadist_get_iparam(C, 0) * lookahead, C->nt * C->nb, 0, 0,
                              C->mb * chameleon_desc_datadist_get_iparam(C, 0) * lookahead, C->nt * C->nb,

@@ -19,6 +19,8 @@
  *
  */
 #include "chameleon_starpu_internal.h"
+#include "chameleon_starpu.h"
+#include "runtime_rpk.h"
 #if defined(CHAMELEON_USE_HMATOSS)
 #include "coreblas/hmat.h"
 
@@ -95,7 +97,52 @@ cti_get_hmat_required_size( starpu_cham_tile_interface_t *cham_tile_interface  _
 }
 #endif
 
+static inline size_t
+cti_get_rapack_required_size( starpu_cham_tile_interface_t *cham_tile_interface )
+{
+    size_t size = 0;
+
+    assert(cham_tile_interface->tile.format & CHAMELEON_TILE_LOWRANK);
+       
+    CHAM_tile_t *tile = &cham_tile_interface->tile;
+    rpk_matrix_t * Ara = (rpk_matrix_t*)CHAM_tile_get_ptr( tile );
+
+    size = rpk_zlrgetsize( tile->m, tile->n, Ara )
+        * CHAMELEON_Element_Size( cham_tile_interface->flttype );
+
+    return size;
+}
+
+CHAM_tile_t *
+cti_handle_get( starpu_data_handle_t handle )
+{
+    starpu_cham_tile_interface_t *cham_tile_interface = (starpu_cham_tile_interface_t *)
+        starpu_data_get_interface_on_node( handle, STARPU_MAIN_RAM );
+
+#ifdef STARPU_DEBUG
+    STARPU_ASSERT_MSG( cham_tile_interface->id == STARPU_CHAM_TILE_INTERFACE_ID,
+                       "Error. The given data is not a cham_tile." );
+#endif
+    
+        return &(cham_tile_interface->tile);
+}
+ 
+starpu_cham_tile_interface_t *
+cti_handle_get_interface( starpu_data_handle_t handle )
+{
+    starpu_cham_tile_interface_t *cham_tile_interface = (starpu_cham_tile_interface_t *)
+        starpu_data_get_interface_on_node( handle, STARPU_MAIN_RAM );
+
+#ifdef STARPU_DEBUG
+    STARPU_ASSERT_MSG( cham_tile_interface->id == STARPU_CHAM_TILE_INTERFACE_ID,
+                       "Error. The given data is not a cham_tile." );
+#endif
+
+    return cham_tile_interface;
+}
+
 int
+
 cti_handle_get_m( starpu_data_handle_t handle )
 {
     CHAM_tile_t *tile = cti_handle_get( handle );
@@ -172,6 +219,14 @@ cti_allocate_data_on_node( void *data_interface, unsigned node )
     cham_tile_interface->tile.ld    = ld;
     cham_tile_interface->dev_handle = handle;
 
+    if ( cham_tile_interface->tile.format == CHAMELEON_TILE_LOWRANK ) {
+        rpk_matrix_t *Ara = (rpk_matrix_t*)CHAM_tile_get_ptr( &cham_tile_interface->tile );
+        Ara->rk = 0;
+        Ara->rkmax = 0;
+        Ara->u = NULL;
+        Ara->v = NULL; 
+    }
+
     return allocated_memory;
 }
 
@@ -180,6 +235,13 @@ cti_free_data_on_node( void *data_interface, unsigned node )
 {
     starpu_cham_tile_interface_t *cham_tile_interface =
         (starpu_cham_tile_interface_t *) data_interface;
+	CHAM_tile_t *tile = &cham_tile_interface->tile;
+
+	if ( (cham_tile_interface->tile.format & CHAMELEON_TILE_FULLRANK) &&
+		 (cham_tile_interface->tile.mat != NULL ) )
+	{
+		assert( (uintptr_t)(cham_tile_interface->tile.mat) == cham_tile_interface->dev_handle );
+	}
 
 #if defined(CHAMELEON_USE_HMATOSS)
     if ( (cham_tile_interface->tile.format & CHAMELEON_TILE_HMAT) &&
@@ -187,14 +249,38 @@ cti_free_data_on_node( void *data_interface, unsigned node )
     {
         cti_hmat_destroy( cham_tile_interface );
     }
-    else
 #endif
+#if defined(CHAMELEON_USE_RAPACK)
+    if ( (tile->format & CHAMELEON_TILE_LOWRANK) && (tile->mat != NULL) )
     {
-        assert( (uintptr_t)(cham_tile_interface->tile.mat) == cham_tile_interface->dev_handle );
+		const rpk_ctx_t *ctx = runtime_rpk_ctx_get( tile->flttype );
+        rpk_matrix_t *Ara = (rpk_matrix_t*)CHAM_tile_get_ptr( tile );
+		if (tile->flttype == ChamComplexDouble) {
+			rpkx_zlrfree( ctx, tile->m, tile->n, Ara );
+		}
+		else if (tile->flttype == ChamComplexFloat) {
+			rpkx_clrfree( ctx, tile->m, tile->n, Ara );
+		}
+		else if (tile->flttype == ChamRealDouble) {
+			rpkx_dlrfree( ctx, tile->m, tile->n, Ara );
+		}
+		else if (tile->flttype == ChamRealFloat) {
+			rpkx_slrfree( ctx, tile->m, tile->n, Ara );
+		}
+		else {
+			fprintf(stderr, "error: Undefined lrfree routine for floating point type %d\n", tile->flttype);
+			exit(1);
+		}
+    }
+#endif
+    
+    if ( (tile->format & (CHAMELEON_TILE_FULLRANK | CHAMELEON_TILE_LOWRANK ) ) )
+    {
+        assert( (uintptr_t)(tile->mat) == cham_tile_interface->dev_handle );
     }
 
     starpu_free_on_node( node, cham_tile_interface->dev_handle, cham_tile_interface->allocsize );
-    cham_tile_interface->tile.mat = NULL;
+    tile->mat = NULL;
     cham_tile_interface->dev_handle = 0;
 }
 
@@ -332,6 +418,41 @@ cti_pack_data_fullrank( starpu_cham_tile_interface_t *cham_tile_interface,
 }
 
 static int
+cti_pack_data_lowrank( starpu_cham_tile_interface_t *cham_tile_interface,
+                        void *ptr )
+{
+    CHAM_tile_t *tile = (CHAM_tile_t*) &cham_tile_interface->tile;
+    rpk_matrix_t *mat = CHAM_tile_get_ptr( tile );
+
+    switch (tile->flttype) {
+#if defined(CHAMELEON_PREC_Z)
+    case ChamComplexDouble:
+        ptr = rpk_zlrpack( tile->m, tile->n, mat, ptr );  
+        break;
+#endif
+#if defined(CHAMELEON_PREC_C)
+    case ChamComplexFloat:
+        ptr = rpk_clrpack( tile->m, tile->n, mat, ptr );  
+        break;
+#endif
+#if defined(CHAMELEON_PREC_D)
+    case ChamRealDouble:
+        ptr = rpk_dlrpack( tile->m, tile->n, mat, ptr );  
+        break;
+#endif
+#if defined(CHAMELEON_PREC_S)
+    case ChamRealFloat:
+        ptr = rpk_slrpack( tile->m, tile->n, mat, ptr );  
+        break;
+#endif
+    default:
+        STARPU_ASSERT_MSG( 0, "cti_pack_data_lowrank: unknown flttype %d\n", tile->flttype );
+    }
+
+    return 0;
+}
+
+static int
 cti_pack_data_hmat( starpu_cham_tile_interface_t *cham_tile_interface,
                     void *ptr )
 {
@@ -380,7 +501,14 @@ cti_pack_data( starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ss
     size_t size;
 
     size   = (starpu_ssize_t)(cham_tile_interface->allocsize);
-    size  += cti_get_hmat_required_size( cham_tile_interface );
+
+    if ( cham_tile_interface->tile.format & CHAMELEON_TILE_HMAT ) {
+        size += cti_get_hmat_required_size( cham_tile_interface );
+    }
+    else if ( cham_tile_interface->tile.format & CHAMELEON_TILE_LOWRANK ) {
+        size += cti_get_rapack_required_size( cham_tile_interface );
+    }
+    
     *count = size + sizeof(size_t) + sizeof(CHAM_tile_t);
 
     if ( ptr != NULL )
@@ -400,6 +528,9 @@ cti_pack_data( starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ss
         /* Pack the real data */
         if ( cham_tile_interface->tile.format & CHAMELEON_TILE_FULLRANK ) {
             cti_pack_data_fullrank( cham_tile_interface, tmp );
+        }
+        else if ( cham_tile_interface->tile.format & CHAMELEON_TILE_LOWRANK) {
+            cti_pack_data_lowrank( cham_tile_interface, tmp );
         }
         else if ( cham_tile_interface->tile.format & CHAMELEON_TILE_HMAT ) {
             cti_pack_data_hmat( cham_tile_interface, tmp );
@@ -436,6 +567,41 @@ cti_unpack_data_fullrank( starpu_cham_tile_interface_t *cham_tile_interface,
             matrix += cham_tile_interface->tile.ld * elemsize;
         }
     }
+    return 0;
+}
+
+static int
+cti_unpack_data_lowrank( starpu_cham_tile_interface_t *cham_tile_interface,
+                          void *ptr )
+{
+    CHAM_tile_t *tile = (CHAM_tile_t*) &cham_tile_interface->tile;
+    rpk_matrix_t *Ara = (rpk_matrix_t*)CHAM_tile_get_ptr( tile );
+
+    switch (tile->flttype) {
+#if defined(CHAMELEON_PREC_Z)
+    case ChamComplexDouble:
+        ptr = rpk_zlrunpack( tile->m, tile->n, Ara, ptr );  
+        break;
+#endif
+#if defined(CHAMELEON_PREC_C)
+    case ChamComplexFloat:
+        ptr = rpk_clrunpack( tile->m, tile->n, Ara, ptr );  
+        break;
+#endif
+#if defined(CHAMELEON_PREC_D)
+    case ChamRealDouble:
+        ptr = rpk_dlrunpack( tile->m, tile->n, Ara, ptr );  
+        break;
+#endif
+#if defined(CHAMELEON_PREC_S)
+    case ChamRealFloat:
+        ptr = rpk_slrunpack( tile->m, tile->n, Ara, ptr );  
+        break;
+#endif
+    default:
+        STARPU_ASSERT_MSG( 0, "cti_pack_data_hmat: unknown flttype\n" );
+    }
+
     return 0;
 }
 
@@ -511,24 +677,27 @@ cti_peek_data( starpu_data_handle_t handle, unsigned node, void *ptr, size_t cou
         tmp += sizeof(CHAM_tile_t);
 
         assert( ( (dsttile.format & CHAMELEON_TILE_HMAT) && (cham_tile_interface->allocsize == 0   )) ||
-                (!(dsttile.format & CHAMELEON_TILE_HMAT) && (cham_tile_interface->allocsize == size)) );
+                ((dsttile.format == CHAMELEON_TILE_FULLRANK) && (cham_tile_interface->allocsize == size)) || (dsttile.format == CHAMELEON_TILE_LOWRANK) );
+
 
         /*
          * Update with the local information. Data is packed now, and do not
          * need leading dimension anymore
          */
-        cham_tile_interface->tile.format = dsttile.format;
+        assert( cham_tile_interface->tile.format == dsttile.format );
         cham_tile_interface->tile.ld = cham_tile_interface->tile.m;
 
         STARPU_ASSERT( cham_tile_interface->tile.m == dsttile.m );
         STARPU_ASSERT( cham_tile_interface->tile.n == dsttile.n );
-        STARPU_ASSERT( count == cham_tile_interface->allocsize + sizeof(size_t) + sizeof(CHAM_tile_t) );
     }
 #endif
 
     /* Unpack the real data */
     if ( cham_tile_interface->tile.format & CHAMELEON_TILE_FULLRANK ) {
         cti_unpack_data_fullrank( cham_tile_interface, tmp );
+    }
+    else if ( cham_tile_interface->tile.format & CHAMELEON_TILE_LOWRANK ) {
+        cti_unpack_data_lowrank( cham_tile_interface, tmp );
     }
     else if ( cham_tile_interface->tile.format & CHAMELEON_TILE_HMAT ) {
         cti_unpack_data_hmat( cham_tile_interface, tmp );
@@ -617,7 +786,7 @@ static int cti_copy_any_to_any( void *src_interface, unsigned src_node,
                                     m * n, async_data ) )
         {
             ret = -EAGAIN;
-	}
+        }
     }
     else
     {
@@ -705,6 +874,14 @@ starpu_cham_tile_register( starpu_data_handle_t *handleptr,
         /* For hmat, allocated data will be handled by hmat library. StarPU cannot allocate it for the library */
         cham_tile_interface.allocsize = 0;
     }
+    else if ( tile->format & CHAMELEON_TILE_LOWRANK ) {
+        /* For rapack, the rapack parent structure is managed by StarPU, but internal buffer are managed by the library */
+        cham_tile_interface.allocsize = sizeof(rpk_matrix_t);
+    }
+    else {
+        fprintf(stderr, "Error: Unknown tile format: %d\n", tile->format);
+        exit(1);
+    }
 
     starpu_data_register( handleptr, home_node, &cham_tile_interface, &starpu_interface_cham_tile_ops );
 }
@@ -721,6 +898,21 @@ cti_handle_get_allocsize( starpu_data_handle_t handle )
 #endif
 
     return cham_tile_interface->allocsize;
+}
+
+size_t
+cti_handle_get_elemsize ( starpu_data_handle_t handle ) {
+    starpu_cham_tile_interface_t *cham_tile_interface = (starpu_cham_tile_interface_t *)
+        starpu_data_get_interface_on_node( handle, STARPU_MAIN_RAM );
+
+#ifdef STARPU_DEBUG
+    STARPU_ASSERT_MSG( cham_tile_interface->id == STARPU_CHAM_TILE_INTERFACE_ID,
+                       "Error. The given data is not a cham_tile." );
+#endif
+
+    cham_flttype_t flttype = cham_tile_interface->flttype;
+
+    return CHAMELEON_Element_Size( flttype );
 }
 
 #if defined(CHAMELEON_USE_MPI_DATATYPES)

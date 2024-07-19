@@ -49,6 +49,7 @@ set(CHAMELEON_CONTROL
     ../control/workspace.c
     ../control/chameleon_f77.c
     ../control/chameleon_mf77.c
+    ../control/drawing.c
     map.c
     mapv.c
     pmap.c
@@ -194,6 +195,15 @@ set(ZSRC
     zunmlq_param.c
     zunmqr.c
     zunmqr_param.c
+    ##################
+    # RAPACK
+    ##################
+    zge2lr.c
+    #zlrcpr.c
+    zge2ps.c
+    # ztile2rpk.c
+    # zrpk2fmt.c
+    zfmt2fmt.c
     ##################
     # MIXED PRECISION
     ##################
