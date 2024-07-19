@@ -314,7 +314,7 @@ int CHAMELEON_zgelqs_param_Tile_Async(const libhqr_tree_t *qrtree, CHAM_desc_t *
 int CHAMELEON_zgeqrf_param_Tile_Async(const libhqr_tree_t *qrtree, CHAM_desc_t *A, CHAM_desc_t *TS, CHAM_desc_t *TT, CHAM_desc_t *D, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 int CHAMELEON_zgeqrs_param_Tile_Async(const libhqr_tree_t *qrtree, CHAM_desc_t *A, CHAM_desc_t *TS, CHAM_desc_t *TT, CHAM_desc_t *B, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 int CHAMELEON_zunglq_param_Tile_Async(const libhqr_tree_t *qrtree, CHAM_desc_t *A, CHAM_desc_t *TS, CHAM_desc_t *TT, CHAM_desc_t *B, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
-int CHAMELEON_zungqr_param_Tile_Async(const libhqr_tree_t *qrtree, CHAM_desc_t *A, CHAM_desc_t *TS, CHAM_desc_t *TT, CHAM_desc_t *B, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
+int CHAMELEON_zungqr_param_Tile_Async(const libhqr_tree_t *qrtree, CHAM_desc_t *A, CHAM_desc_t *TS, CHAM_desc_t *TT, CHAM_desc_t *D, CHAM_desc_t *B, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 int CHAMELEON_zunmlq_param_Tile_Async(const libhqr_tree_t *qrtree, cham_side_t side, cham_trans_t trans, CHAM_desc_t *A, CHAM_desc_t *TS, CHAM_desc_t *TT, CHAM_desc_t *B, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 int CHAMELEON_zunmqr_param_Tile_Async(const libhqr_tree_t *qrtree, cham_side_t side, cham_trans_t trans, CHAM_desc_t *A, CHAM_desc_t *TS, CHAM_desc_t *TT, CHAM_desc_t *B, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 
