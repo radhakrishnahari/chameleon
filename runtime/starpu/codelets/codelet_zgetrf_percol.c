@@ -85,6 +85,16 @@ void INSERT_TASK_zgetrf_percol_diag( const RUNTIME_option_t *options,
     struct starpu_codelet *codelet = &cl_zgetrf_percol_diag;
     void (*callback)(void*) = options->profiling ? cl_zgetrf_percol_diag_callback : NULL;
     const char *cl_name = "zgetrf_percol_diag";
+    int rankA           = A->get_rankof(A, Am, An);
+#if !defined ( HAVE_STARPU_NONE_NONZERO )
+    /* STARPU_NONE can't be equal to 0 */
+    fprintf( stderr, "INSERT_TASK_zgetrf_percol_diag: STARPU_NONE can not be equal to 0\n" );
+    assert( 0 );
+#endif
+
+    if ( rankA != A->myrank ) {
+        return;
+    }
 
     int access_ipiv = ( h == 0 )       ? STARPU_W    : STARPU_RW;
     int access_npiv = ( h == ipiv->n ) ? STARPU_R    : STARPU_REDUX;
@@ -162,6 +172,15 @@ void INSERT_TASK_zgetrf_percol_offdiag( const RUNTIME_option_t *options,
     int access_npiv = ( h == ipiv->n ) ? STARPU_R    : STARPU_REDUX;
     int access_ppiv = ( h == 0 )       ? STARPU_NONE : STARPU_R;
     int rankA       = A->get_rankof(A, Am, An);
+#if !defined ( HAVE_STARPU_NONE_NONZERO )
+    /* STARPU_NONE can't be equal to 0 */
+    fprintf( stderr, "INSERT_TASK_zgetrf_percol_diag: STARPU_NONE can not be equal to 0\n" );
+    assert( 0 );
+#endif
+
+    if ( rankA != A->myrank ) {
+        return;
+    }
 
     /* Handle cache */
     CHAMELEON_BEGIN_ACCESS_DECLARATION;

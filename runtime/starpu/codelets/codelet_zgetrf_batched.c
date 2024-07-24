@@ -79,6 +79,14 @@ INSERT_TASK_zgetrf_panel_offdiag_batched( const RUNTIME_option_t *options,
     void (*callback)(void*) = NULL;
     struct cl_getrf_batched_args_t *clargs = *clargs_ptr;
     int rankA = A->get_rankof( A, Am, An );
+    if ( rankA != A->myrank ) {
+        return;
+    }
+#if !defined ( HAVE_STARPU_NONE_NONZERO )
+    /* STARPU_NONE can't be equal to 0 */
+    fprintf( stderr, "INSERT_TASK_zgetrf_percol_diag: STARPU_NONE can not be equal to 0\n" );
+    assert( 0 );
+#endif
 
     /* Handle cache */
     CHAMELEON_BEGIN_ACCESS_DECLARATION;
@@ -138,6 +146,11 @@ INSERT_TASK_zgetrf_panel_offdiag_batched_flush( const RUNTIME_option_t *options,
     void (*callback)(void*) = NULL;
     struct cl_getrf_batched_args_t *clargs = *clargs_ptr;
     int rankA = A->myrank;
+#if !defined ( HAVE_STARPU_NONE_NONZERO )
+    /* STARPU_NONE can't be equal to 0 */
+    fprintf( stderr, "INSERT_TASK_zgetrf_percol_diag: STARPU_NONE can not be equal to 0\n" );
+    assert( 0 );
+#endif
 
     if ( clargs == NULL ) {
         return;
@@ -241,6 +254,27 @@ INSERT_TASK_zgetrf_panel_blocked_batched( const RUNTIME_option_t *options,
     int accessU, access_npiv, access_ipiv, access_ppiv;
     struct cl_getrf_batched_args_t *clargs = *clargs_ptr;
     int rankA = A->get_rankof(A, Am, An);
+#if !defined ( HAVE_STARPU_NONE_NONZERO )
+    /* STARPU_NONE can't be equal to 0 */
+    fprintf( stderr, "INSERT_TASK_zgetrf_percol_diag: STARPU_NONE can not be equal to 0\n" );
+    assert( 0 );
+#endif
+
+#if defined ( CHAMELEON_USE_MPI )
+    if ( ( Am == An ) && ( h % ib == 0 ) && ( h > 0 ) ) {
+        starpu_mpi_cache_flush( options->sequence->comm,
+                                RTBLKADDR(U, CHAMELEON_Complex64_t, Um, Un) );
+    }
+
+    if ( rankA != A->myrank ) {
+        if ( ( h % ib == 0 ) && ( h > 0 ) && ( A->myrank == A->get_rankof( A, An, An ) ) ) {
+            starpu_mpi_get_data_on_node_detached( options->sequence->comm,
+                                                  RTBLKADDR(U, CHAMELEON_Complex64_t, Um, Un),
+                                                  rankA, NULL, NULL );
+        }
+        return;
+    }
+#endif
 
     /* Handle cache */
     CHAMELEON_BEGIN_ACCESS_DECLARATION;
@@ -325,6 +359,11 @@ INSERT_TASK_zgetrf_panel_blocked_batched_flush( const RUNTIME_option_t *options,
     void (*callback)(void*) = NULL;
     struct cl_getrf_batched_args_t *clargs = *clargs_ptr;
     int rankA = A->myrank;
+#if !defined ( HAVE_STARPU_NONE_NONZERO )
+    /* STARPU_NONE can't be equal to 0 */
+    fprintf( stderr, "INSERT_TASK_zgetrf_percol_diag: STARPU_NONE can not be equal to 0\n" );
+    assert( 0 );
+#endif
 
     if ( clargs == NULL ) {
         return;

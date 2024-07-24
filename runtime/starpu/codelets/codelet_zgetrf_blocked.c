@@ -98,6 +98,21 @@ void INSERT_TASK_zgetrf_blocked_diag( const RUNTIME_option_t *options,
     void (*callback)(void*) = options->profiling ? cl_zgetrf_blocked_diag_callback : NULL;
     const char *cl_name = "zgetrf_blocked_diag";
     int rankA           = A->get_rankof(A, Am, An);
+#if !defined ( HAVE_STARPU_NONE_NONZERO )
+    /* STARPU_NONE can't be equal to 0 */
+    fprintf( stderr, "INSERT_TASK_zgetrf_percol_diag: STARPU_NONE can not be equal to 0\n" );
+    assert( 0 );
+#endif
+
+#if defined ( CHAMELEON_USE_MPI )
+    if ( ( h % ib == 0 ) && ( h > 0 ) ) {
+        starpu_mpi_cache_flush( options->sequence->comm, RTBLKADDR(U, CHAMELEON_Complex64_t, Um, Un) );
+    }
+
+    if ( rankA != A->myrank ) {
+        return;
+    }
+#endif
 
     int access_ipiv = ( h == 0 )       ? STARPU_W    : STARPU_RW;
     int access_npiv = ( h == ipiv->n ) ? STARPU_R    : STARPU_REDUX;
@@ -111,7 +126,7 @@ void INSERT_TASK_zgetrf_blocked_diag( const RUNTIME_option_t *options,
     else if ( h%ib == 0 ) {
         accessU = STARPU_R;
     }
-    else if ( h%ib == 1 ) {
+    else if ( ( h%ib == 1 ) || ( ib == 1 ) ) {
         accessU = STARPU_W;
     }
 
@@ -213,6 +228,24 @@ void INSERT_TASK_zgetrf_blocked_offdiag( const RUNTIME_option_t *options,
     int access_ppiv = ( h == 0 )       ? STARPU_NONE : STARPU_R;
     int accessU     = ((h%ib == 0) && (h > 0)) ? STARPU_R : STARPU_NONE;
     int rankA       = A->get_rankof(A, Am, An);
+#if !defined ( HAVE_STARPU_NONE_NONZERO )
+    /* STARPU_NONE can't be equal to 0 */
+    fprintf( stderr, "INSERT_TASK_zgetrf_percol_diag: STARPU_NONE can not be equal to 0\n" );
+    assert( 0 );
+#endif
+
+#if defined ( CHAMELEON_USE_MPI )
+    if ( rankA != A->myrank ) {
+        if ( ( accessU != STARPU_NONE ) &&
+             ( A->myrank == A->get_rankof( A, An, An ) ) )
+        {
+            starpu_mpi_get_data_on_node_detached( options->sequence->comm,
+                                                  RTBLKADDR(U, CHAMELEON_Complex64_t, Um, Un),
+                                                  rankA, NULL, NULL );
+        }
+        return;
+    }
+#endif
 
     void (*callback)(void*) = options->profiling ? cl_zgetrf_blocked_offdiag_callback : NULL;
     const char *cl_name = "zgetrf_blocked_offdiag";
@@ -311,6 +344,10 @@ void INSERT_TASK_zgetrf_blocked_trsm( const RUNTIME_option_t *options,
     /* Refine name */
     cl_name = chameleon_codelet_name( cl_name, 1,
                                       U->get_blktile( U, Um, Un ) );
+
+    if ( U->myrank != U->get_rankof(U, Um, Un) ) {
+        return;
+    }
 
     rt_starpu_insert_task(
         codelet,

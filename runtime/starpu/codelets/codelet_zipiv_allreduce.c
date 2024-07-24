@@ -19,7 +19,7 @@
 #include "runtime_codelet_z.h"
 #include <coreblas/cblas_wrapper.h>
 
-#if defined ( CHAMELEON_USE_MPI )
+#if defined(CHAMELEON_USE_MPI)
 struct cl_redux_args_t {
     int h;
     int n;
