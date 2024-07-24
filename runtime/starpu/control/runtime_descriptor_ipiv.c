@@ -12,6 +12,8 @@
  * @version 1.3.0
  * @author Mathieu Faverge
  * @author Matthieu Kuhn
+ * @author Alycia Lisito
+ * @author Florent Pruvost
  * @date 2024-03-16
  *
  */
@@ -20,16 +22,18 @@
 /**
  *  Create ws_pivot runtime structures
  */
-void RUNTIME_ipiv_create( CHAM_ipiv_t *ipiv )
+void RUNTIME_ipiv_create( CHAM_ipiv_t       *ipiv,
+                          const CHAM_desc_t *desc )
 {
     assert( ipiv );
-    starpu_data_handle_t *handles = calloc( 5 * ipiv->mt, sizeof(starpu_data_handle_t) );
+    size_t                nbhandles = 3 * ipiv->mt + 2 * desc->p;
+    starpu_data_handle_t *handles   = calloc( nbhandles, sizeof(starpu_data_handle_t) );
     ipiv->ipiv    = handles;
     handles += ipiv->mt;
     ipiv->nextpiv = handles;
-    handles += ipiv->mt;
+    handles += desc->p;
     ipiv->prevpiv = handles;
-    handles += ipiv->mt;
+    handles += desc->p;
     ipiv->perm    = handles;
     handles += ipiv->mt;
     ipiv->invp    = handles;
@@ -40,14 +44,14 @@ void RUNTIME_ipiv_create( CHAM_ipiv_t *ipiv )
      */
     {
         chameleon_starpu_tag_init();
-        ipiv->mpitag_ipiv = chameleon_starpu_tag_book( (int64_t)(ipiv->mt) * 5 );
+        ipiv->mpitag_ipiv = chameleon_starpu_tag_book( nbhandles );
         if ( ipiv->mpitag_ipiv == -1 ) {
             chameleon_fatal_error("RUNTIME_ipiv_create", "Can't pursue computation since no more tags are available for ipiv structure");
             return;
         }
         ipiv->mpitag_nextpiv = ipiv->mpitag_ipiv    + ipiv->mt;
-        ipiv->mpitag_prevpiv = ipiv->mpitag_nextpiv + ipiv->mt;
-        ipiv->mpitag_perm    = ipiv->mpitag_prevpiv + ipiv->mt;
+        ipiv->mpitag_prevpiv = ipiv->mpitag_nextpiv + desc->p;
+        ipiv->mpitag_perm    = ipiv->mpitag_prevpiv + desc->p;
         ipiv->mpitag_invp    = ipiv->mpitag_perm    + ipiv->mt;
     }
 #endif
@@ -56,12 +60,14 @@ void RUNTIME_ipiv_create( CHAM_ipiv_t *ipiv )
 /**
  *  Destroy ws_pivot runtime structures
  */
-void RUNTIME_ipiv_destroy( CHAM_ipiv_t *ipiv )
+void RUNTIME_ipiv_destroy( CHAM_ipiv_t       *ipiv,
+                           const CHAM_desc_t *desc )
 {
     int                   i;
     starpu_data_handle_t *handle = (starpu_data_handle_t*)(ipiv->ipiv);
+    size_t                nbhandles = 3 * ipiv->mt + 2 * desc->p;
 
-    for(i=0; i<(5 * ipiv->mt); i++) {
+    for(i=0; i<nbhandles; i++) {
         if ( *handle != NULL ) {
             starpu_data_unregister( *handle );
             *handle = NULL;
@@ -107,49 +113,51 @@ void *RUNTIME_ipiv_getaddr( const CHAM_ipiv_t *ipiv, int m )
     return (void*)(*handle);
 }
 
-void *RUNTIME_nextpiv_getaddr( const CHAM_ipiv_t *ipiv, int m, int h )
+void *RUNTIME_nextpiv_getaddr( const CHAM_ipiv_t *ipiv, int rank, int k, int h )
 {
     starpu_data_handle_t *nextpiv = (starpu_data_handle_t*)(ipiv->nextpiv);
-    int64_t mm = m + (ipiv->i / ipiv->mb);
+    const CHAM_desc_t *A = ipiv->desc;
 
-    nextpiv += mm;
+    nextpiv += rank/A->q;
     assert( nextpiv );
 
     if ( *nextpiv != NULL ) {
         return (void*)(*nextpiv);
     }
 
-    const CHAM_desc_t *A = ipiv->desc;
-    int     owner = A->get_rankof( A, m, m );
-    int     ncols = (mm == (A->nt-1)) ? A->n - mm * A->nb : A->nb;
-    int64_t tag   = ipiv->mpitag_nextpiv + mm;
+    int64_t kk    = k + (ipiv->i / ipiv->mb);
+    int     owner = rank;
+    int     ncols = (kk == (A->nt-1)) ? A->n - kk * A->nb : A->nb;
+    int64_t tag   = ipiv->mpitag_nextpiv + owner/A->q;
 
     cppi_register( nextpiv, A->dtyp, ncols, tag, owner );
 
     assert( *nextpiv );
+    (void)h;
     return (void*)(*nextpiv);
 }
 
-void *RUNTIME_prevpiv_getaddr( const CHAM_ipiv_t *ipiv, int m, int h )
+void *RUNTIME_prevpiv_getaddr( const CHAM_ipiv_t *ipiv, int rank, int k, int h )
 {
     starpu_data_handle_t *prevpiv = (starpu_data_handle_t*)(ipiv->prevpiv);
-    int64_t mm = m + (ipiv->i / ipiv->mb);
+    const CHAM_desc_t *A = ipiv->desc;
 
-    prevpiv += mm;
+    prevpiv += rank/A->q;
     assert( prevpiv );
 
     if ( *prevpiv != NULL ) {
         return (void*)(*prevpiv);
     }
 
-    const CHAM_desc_t *A = ipiv->desc;
-    int     owner = A->get_rankof( A, m, m );
-    int     ncols = (mm == (A->nt-1)) ? A->n - mm * A->nb : A->nb;
-    int64_t tag   = ipiv->mpitag_prevpiv + mm;
+    int64_t kk    = k + (ipiv->i / ipiv->mb);
+    int     owner = rank;
+    int     ncols = (kk == (A->nt-1)) ? A->n - kk * A->nb : A->nb;
+    int64_t tag   = ipiv->mpitag_prevpiv + owner/A->q;
 
     cppi_register( prevpiv, A->dtyp, ncols, tag, owner );
 
     assert( *prevpiv );
+    (void)h;
     return (void*)(*prevpiv);
 }
 
@@ -212,19 +220,18 @@ void *RUNTIME_invp_getaddr( const CHAM_ipiv_t *ipiv, int m )
 }
 
 void RUNTIME_ipiv_flushk( const RUNTIME_sequence_t *sequence,
-                          const CHAM_ipiv_t *ipiv, int m )
+                          const CHAM_ipiv_t *ipiv, int rank )
 {
     starpu_data_handle_t *handle;
     const CHAM_desc_t *A = ipiv->desc;
-    int64_t mm = m + ( ipiv->i / ipiv->mb );
 
     handle = (starpu_data_handle_t*)(ipiv->nextpiv);
-    handle += mm;
+    handle += rank/A->q;
 
     if ( *handle != NULL ) {
 #if defined(CHAMELEON_USE_MPI)
         starpu_mpi_cache_flush( sequence->comm, *handle );
-        if ( starpu_mpi_data_get_rank( *handle ) == A->myrank )
+        if ( starpu_mpi_data_get_rank( *handle ) == rank )
 #endif
         {
             chameleon_starpu_data_wont_use( *handle );
@@ -232,12 +239,12 @@ void RUNTIME_ipiv_flushk( const RUNTIME_sequence_t *sequence,
     }
 
     handle = (starpu_data_handle_t*)(ipiv->prevpiv);
-    handle += mm;
+    handle += rank/A->q;
 
     if ( *handle != NULL ) {
 #if defined(CHAMELEON_USE_MPI)
         starpu_mpi_cache_flush( sequence->comm, *handle );
-        if ( starpu_mpi_data_get_rank( *handle ) == A->myrank )
+        if ( starpu_mpi_data_get_rank( *handle ) == rank )
 #endif
         {
             chameleon_starpu_data_wont_use( *handle );
@@ -246,7 +253,7 @@ void RUNTIME_ipiv_flushk( const RUNTIME_sequence_t *sequence,
 
     (void)sequence;
     (void)ipiv;
-    (void)m;
+    (void)rank;
 }
 
 void RUNTIME_ipiv_flush( const RUNTIME_sequence_t *sequence,

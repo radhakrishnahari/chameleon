@@ -12,6 +12,7 @@
  * @version 1.3.0
  * @author Mathieu Faverge
  * @author Matthieu Kuhn
+ * @author Alycia Lisito
  * @date 2024-03-16
  *
  */
@@ -62,13 +63,13 @@ void INSERT_TASK_ipiv_init( const RUNTIME_option_t *options,
 }
 
 void INSERT_TASK_ipiv_reducek( const RUNTIME_option_t *options,
-                               CHAM_ipiv_t *ipiv, int k, int h )
+                               CHAM_ipiv_t *ipiv, int k, int h, int rank )
 {
-    starpu_data_handle_t prevpiv = RUNTIME_pivot_getaddr( ipiv, k, h-1 );
+    starpu_data_handle_t prevpiv = RUNTIME_pivot_getaddr( ipiv, rank, k, h-1 );
 
 #if defined(HAVE_STARPU_MPI_REDUX) && defined(CHAMELEON_USE_MPI)
 #if !defined(HAVE_STARPU_MPI_REDUX_WRAPUP)
-    starpu_data_handle_t nextpiv = RUNTIME_pivot_getaddr( ipiv, k, h   );
+    starpu_data_handle_t nextpiv = RUNTIME_pivot_getaddr( ipiv, rank, k, h   );
     if ( h < ipiv->n ) {
         starpu_mpi_redux_data_prio_tree( options->sequence->comm, nextpiv,
                                          options->priority, 2 /* Binary tree */ );

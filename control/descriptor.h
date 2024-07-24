@@ -20,6 +20,7 @@
  * @author Raphael Boucherie
  * @author Samuel Thibault
  * @author Lionel Eyraud-Dubois
+ * @author Alycia Lisito
  * @date 2023-08-22
  *
  */
@@ -77,7 +78,7 @@ void         chameleon_desc_destroy  ( CHAM_desc_t *desc );
 int          chameleon_desc_check    ( const CHAM_desc_t *desc );
 
 int chameleon_ipiv_init( CHAM_ipiv_t *ipiv, const CHAM_desc_t *desc, void *data );
-void chameleon_ipiv_destroy( CHAM_ipiv_t *ipiv );
+void chameleon_ipiv_destroy( CHAM_ipiv_t *ipiv, const CHAM_desc_t *desc );
 
 /**
  *  Internal function to return address of block (m,n) with m,n = block indices

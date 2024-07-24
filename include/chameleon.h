@@ -18,6 +18,8 @@
  * @author Florent Pruvost
  * @author Philippe Virouleau
  * @author Lionel Eyraud-Dubois
+ * @author Alycia Lisito
+ * @author Loris Lucido
  * @date 2024-03-16
  *
  */
@@ -214,11 +216,16 @@ int  CHAMELEON_Recursive_Desc_Create( CHAM_desc_t **descptr, void *mat, cham_flt
                                       blkaddr_fct_t get_blkaddr, blkldd_fct_t get_blkldd,
                                       blkrankof_fct_t get_rankof, void* get_rankof_arg );
 
-int CHAMELEON_Ipiv_Create ( CHAM_ipiv_t **ipivptr, const CHAM_desc_t *desc, void *data );
-int CHAMELEON_Ipiv_Destroy( CHAM_ipiv_t **ipivptr );
+int CHAMELEON_Ipiv_Create ( CHAM_ipiv_t       **ipivptr,
+                            const CHAM_desc_t  *desc,
+                            void               *data );
+int CHAMELEON_Ipiv_Destroy( CHAM_ipiv_t       **ipivptr,
+                            const CHAM_desc_t  *desc );
 int CHAMELEON_Ipiv_Flush  ( const CHAM_ipiv_t        *ipiv,
                             const RUNTIME_sequence_t *sequence );
-int CHAMELEON_Ipiv_Gather( CHAM_ipiv_t *ipivdesc, int *ipiv, int root );
+int CHAMELEON_Ipiv_Gather( CHAM_ipiv_t *ipivdesc,
+                           int         *ipiv,
+                           int          root );
 void CHAMELEON_Ipiv_Print ( const CHAM_ipiv_t *ipiv );
 
 /**

@@ -149,13 +149,13 @@ chameleon_pzgetrf_panel_facto_percol( struct chameleon_pzgetrf_s *ws,
 
         if ( h < minmn ) {
             /* Reduce globally (between MPI processes) */
-            INSERT_TASK_ipiv_reducek( options, ipiv, k, h );
+            INSERT_TASK_ipiv_reducek( options, ipiv, k, h, A->myrank );
         }
     }
 
     /* Flush temporary data used for the pivoting */
     INSERT_TASK_ipiv_to_perm( options, k * A->mb, tempkm, minmn, ipiv, k );
-    RUNTIME_ipiv_flushk( options->sequence, ipiv, k );
+    RUNTIME_ipiv_flushk( options->sequence, ipiv, A->myrank );
 }
 
 /*
@@ -198,7 +198,7 @@ chameleon_pzgetrf_panel_facto_percol_batched( struct chameleon_pzgetrf_s *ws,
 
         if ( h < minmn ) {
             /* Reduce globally (between MPI processes) */
-            INSERT_TASK_ipiv_reducek( options, ipiv, k, h );
+            INSERT_TASK_ipiv_reducek( options, ipiv, k, h, A->myrank );
         }
     }
 
@@ -206,7 +206,7 @@ chameleon_pzgetrf_panel_facto_percol_batched( struct chameleon_pzgetrf_s *ws,
 
     /* Flush temporary data used for the pivoting */
     INSERT_TASK_ipiv_to_perm( options, k * A->mb, tempkm, minmn, ipiv, k );
-    RUNTIME_ipiv_flushk( options->sequence, ipiv, k );
+    RUNTIME_ipiv_flushk( options->sequence, ipiv, A->myrank );
 }
 
 static inline void
@@ -266,7 +266,7 @@ chameleon_pzgetrf_panel_facto_blocked( struct chameleon_pzgetrf_s *ws,
             assert( j<= minmn );
             if ( j < minmn ) {
                 /* Reduce globally (between MPI processes) */
-                INSERT_TASK_ipiv_reducek( options, ipiv, k, j );
+                INSERT_TASK_ipiv_reducek( options, ipiv, k, j, A->myrank );
             }
         }
     }
@@ -274,7 +274,7 @@ chameleon_pzgetrf_panel_facto_blocked( struct chameleon_pzgetrf_s *ws,
 
     /* Flush temporary data used for the pivoting */
     INSERT_TASK_ipiv_to_perm( options, k * A->mb, tempkm, minmn, ipiv, k );
-    RUNTIME_ipiv_flushk( options->sequence, ipiv, k );
+    RUNTIME_ipiv_flushk( options->sequence, ipiv, A->myrank );
 }
 
 /*
@@ -330,7 +330,7 @@ chameleon_pzgetrf_panel_facto_blocked_batched( struct chameleon_pzgetrf_s *ws,
             assert( j <= minmn );
             if ( j < minmn ) {
                 /* Reduce globally (between MPI processes) */
-                INSERT_TASK_ipiv_reducek( options, ipiv, k, j );
+                INSERT_TASK_ipiv_reducek( options, ipiv, k, j, A->myrank );
             }
         }
     }
@@ -339,7 +339,7 @@ chameleon_pzgetrf_panel_facto_blocked_batched( struct chameleon_pzgetrf_s *ws,
 
     /* Flush temporary data used for the pivoting */
     INSERT_TASK_ipiv_to_perm( options, k * A->mb, tempkm, minmn, ipiv, k );
-    RUNTIME_ipiv_flushk( options->sequence, ipiv, k );
+    RUNTIME_ipiv_flushk( options->sequence, ipiv, A->myrank );
 }
 
 static inline void

@@ -43,15 +43,16 @@ cl_zgetrf_panel_offdiag_batched_cpu_func( void *descr[],
                                           void *cl_arg )
 {
     struct cl_getrf_batched_args_t *clargs  = (struct cl_getrf_batched_args_t *) cl_arg;
-    cppi_interface_t               *nextpiv = (cppi_interface_t*) descr[0];
-    cppi_interface_t               *prevpiv = (cppi_interface_t*) descr[1];
+    cppi_interface_t               *nextpiv = (cppi_interface_t*) descr[ clargs->tasks_nbr ];
+    cppi_interface_t               *prevpiv = (cppi_interface_t*) descr[ clargs->tasks_nbr + 1 ];
     int                             i, m, n, h, m0, lda;
     CHAM_tile_t                    *tileA;
 
     nextpiv->h = clargs->h;
+    nextpiv->has_diag = chameleon_max( -1, nextpiv->has_diag );
 
     for ( i = 0; i < clargs->tasks_nbr; i++ ) {
-        tileA = cti_interface_get( descr[ i + 2 ] );
+        tileA = cti_interface_get( descr[ i ] );
         lda   = tileA->ld;
         m     = clargs->m[ i ];
         n     = clargs->n[ i ];
@@ -77,6 +78,7 @@ INSERT_TASK_zgetrf_panel_offdiag_batched( const RUNTIME_option_t *options,
     int          batch_size = ((struct chameleon_pzgetrf_s *)ws)->batch_size;
     void (*callback)(void*) = NULL;
     struct cl_getrf_batched_args_t *clargs = *clargs_ptr;
+    int rankA = A->get_rankof( A, Am, An );
 
     /* Handle cache */
     CHAMELEON_BEGIN_ACCESS_DECLARATION;
@@ -85,6 +87,7 @@ INSERT_TASK_zgetrf_panel_offdiag_batched( const RUNTIME_option_t *options,
 
     if ( clargs == NULL ) {
         clargs = malloc( sizeof( struct cl_getrf_batched_args_t ) ) ;
+        memset( clargs, 0, sizeof( struct cl_getrf_batched_args_t ) );
         clargs->tasks_nbr   = 0;
         clargs->h           = h;
         clargs->cl_name     = "zgetrf_panel_offdiag_batched";
@@ -104,13 +107,15 @@ INSERT_TASK_zgetrf_panel_offdiag_batched( const RUNTIME_option_t *options,
                                               A->get_blktile( A, Am, An ) );
 
     if ( clargs->tasks_nbr == batch_size ) {
+        int access_npiv = ( h == ipiv->n ) ? STARPU_R    : STARPU_REDUX;
+        int access_ppiv = ( h == 0 )       ? STARPU_NONE : STARPU_R;
         rt_starpu_insert_task(
             &cl_zgetrf_panel_offdiag_batched,
             /* Task codelet arguments */
             STARPU_CL_ARGS,           clargs, sizeof(struct cl_getrf_batched_args_t),
-            STARPU_REDUX,             RUNTIME_pivot_getaddr( ipiv, An, h   ),
-            STARPU_R,                 RUNTIME_pivot_getaddr( ipiv, An, h-1 ),
             STARPU_DATA_MODE_ARRAY,   clargs->handle_mode, clargs->tasks_nbr,
+            access_npiv,              RUNTIME_pivot_getaddr( ipiv, rankA, An, h   ),
+            access_ppiv,              RUNTIME_pivot_getaddr( ipiv, rankA, An, h-1 ),
             STARPU_PRIORITY,          options->priority,
             STARPU_CALLBACK,          callback,
             STARPU_EXECUTE_ON_WORKER, options->workerid,
@@ -132,18 +137,21 @@ INSERT_TASK_zgetrf_panel_offdiag_batched_flush( const RUNTIME_option_t *options,
 {
     void (*callback)(void*) = NULL;
     struct cl_getrf_batched_args_t *clargs = *clargs_ptr;
+    int rankA = A->myrank;
 
     if ( clargs == NULL ) {
         return;
     }
+    int access_npiv = ( clargs->h == ipiv->n ) ? STARPU_R    : STARPU_REDUX;
+    int access_ppiv = ( clargs->h == 0 )       ? STARPU_NONE : STARPU_R;
 
     rt_starpu_insert_task(
         &cl_zgetrf_panel_offdiag_batched,
         /* Task codelet arguments */
         STARPU_CL_ARGS,           clargs, sizeof(struct cl_getrf_batched_args_t),
-        STARPU_REDUX,             RUNTIME_pivot_getaddr( ipiv, An, clargs->h   ),
-        STARPU_R,                 RUNTIME_pivot_getaddr( ipiv, An, clargs->h-1 ),
         STARPU_DATA_MODE_ARRAY,   clargs->handle_mode, clargs->tasks_nbr,
+        access_npiv,              RUNTIME_pivot_getaddr( ipiv, rankA, An, clargs->h   ),
+        access_ppiv,              RUNTIME_pivot_getaddr( ipiv, rankA, An, clargs->h-1 ),
         STARPU_PRIORITY,          options->priority,
         STARPU_CALLBACK,          callback,
         STARPU_EXECUTE_ON_WORKER, options->workerid,
@@ -162,20 +170,27 @@ cl_zgetrf_panel_blocked_batched_cpu_func( void *descr[],
                                           void *cl_arg )
 {
     struct cl_getrf_batched_args_t *clargs  = ( struct cl_getrf_batched_args_t * ) cl_arg;
-    int                            *ipiv    = (int *)STARPU_VECTOR_GET_PTR(descr[clargs->tasks_nbr]);
-    cppi_interface_t               *nextpiv = (cppi_interface_t*) descr[clargs->tasks_nbr + 1];
-    cppi_interface_t               *prevpiv = (cppi_interface_t*) descr[clargs->tasks_nbr + 2];
+    int                            *ipiv;
+    cppi_interface_t               *nextpiv = (cppi_interface_t*) descr[clargs->tasks_nbr ];
+    cppi_interface_t               *prevpiv = (cppi_interface_t*) descr[clargs->tasks_nbr + 1];
     int                             i, h, ib;
     CHAM_tile_t                    *tileA, *tileU;
     CHAMELEON_Complex64_t          *U   = NULL;
     int                             ldu = -1;
 
     nextpiv->h = clargs->h;
+    nextpiv->has_diag = chameleon_max( -1, nextpiv->has_diag);
 
     h  = clargs->h;
     ib = clargs->ib;
     i  = 0;
     if ( clargs->diag ) {
+        if ( h == 0 ) {
+            ipiv = (int *)STARPU_VECTOR_GET_PTR(descr[clargs->tasks_nbr + 1]);
+        }
+        else {
+            ipiv = (int *)STARPU_VECTOR_GET_PTR(descr[clargs->tasks_nbr + 2]);
+        }
         if ( h != 0 ) {
             tileU = cti_interface_get( descr[ clargs->tasks_nbr + 3 ] );
             U     = CHAM_tile_get_ptr( tileU );
@@ -190,7 +205,7 @@ cl_zgetrf_panel_blocked_batched_cpu_func( void *descr[],
         i++;
     }
     if ( ( h%ib == 0 ) && ( h > 0 ) ) {
-        tileU = cti_interface_get( descr[ clargs->tasks_nbr + 3 ] );
+        tileU = cti_interface_get( descr[ clargs->tasks_nbr + 2 + clargs->diag ] );
         U     = CHAM_tile_get_ptr( tileU );
         ldu   = tileU->ld;
     }
@@ -225,6 +240,7 @@ INSERT_TASK_zgetrf_panel_blocked_batched( const RUNTIME_option_t *options,
     void (*callback)(void*) = NULL;
     int accessU, access_npiv, access_ipiv, access_ppiv;
     struct cl_getrf_batched_args_t *clargs = *clargs_ptr;
+    int rankA = A->get_rankof(A, Am, An);
 
     /* Handle cache */
     CHAMELEON_BEGIN_ACCESS_DECLARATION;
@@ -232,7 +248,8 @@ INSERT_TASK_zgetrf_panel_blocked_batched( const RUNTIME_option_t *options,
     CHAMELEON_END_ACCESS_DECLARATION;
 
     if ( clargs == NULL ) {
-        clargs = malloc( sizeof( struct cl_getrf_batched_args_t ) ) ;
+        clargs = malloc( sizeof( struct cl_getrf_batched_args_t ) );
+        memset( clargs, 0, sizeof( struct cl_getrf_batched_args_t ) );
         clargs->tasks_nbr         = 0;
         clargs->diag              = ( Am == An );
         clargs->ib                = ib;
@@ -271,24 +288,25 @@ INSERT_TASK_zgetrf_panel_blocked_batched( const RUNTIME_option_t *options,
         }
         /* If there isn't a diag task then use offdiag access */
         if ( clargs->diag == 0 ) {
-            accessU = ((h%ib == 0) && (h > 0)) ? STARPU_R : STARPU_NONE;
+            accessU     = ((h%ib == 0) && (h > 0)) ? STARPU_R : STARPU_NONE;
+            access_ipiv = STARPU_NONE;
         }
 
         rt_starpu_insert_task(
             &cl_zgetrf_panel_blocked_batched,
             /* Task codelet arguments */
             STARPU_CL_ARGS,           clargs, sizeof(struct cl_getrf_batched_args_t),
+            STARPU_DATA_MODE_ARRAY,   clargs->handle_mode, clargs->tasks_nbr,
+            access_npiv,              RUNTIME_pivot_getaddr( ipiv, rankA, An, h ),
+            access_ppiv,              RUNTIME_pivot_getaddr( ipiv, rankA, An, h-1 ),
+            access_ipiv,              RUNTIME_ipiv_getaddr( ipiv, An ),
+            accessU,                  RTBLKADDR(U, CHAMELEON_Complex64_t, Um, Un ),
             STARPU_PRIORITY,          options->priority,
             STARPU_CALLBACK,          callback,
             STARPU_EXECUTE_ON_WORKER, options->workerid,
 #if defined(CHAMELEON_CODELETS_HAVE_NAME)
             STARPU_NAME,              clargs->cl_name,
 #endif
-            STARPU_DATA_MODE_ARRAY,   clargs->handle_mode, clargs->tasks_nbr,
-            access_ipiv,              RUNTIME_ipiv_getaddr( ipiv, An ),
-            access_npiv,              RUNTIME_pivot_getaddr( ipiv, An, h ),
-            access_ppiv,              RUNTIME_pivot_getaddr( ipiv, An, h-1 ),
-            accessU,                  RTBLKADDR(U, CHAMELEON_Complex64_t, Um, Un ),
             0);
 
         /* clargs is freed by starpu. */
@@ -306,6 +324,7 @@ INSERT_TASK_zgetrf_panel_blocked_batched_flush( const RUNTIME_option_t *options,
     int accessU, access_npiv, access_ipiv, access_ppiv;
     void (*callback)(void*) = NULL;
     struct cl_getrf_batched_args_t *clargs = *clargs_ptr;
+    int rankA = A->myrank;
 
     if ( clargs == NULL ) {
         return;
@@ -328,24 +347,25 @@ INSERT_TASK_zgetrf_panel_blocked_batched_flush( const RUNTIME_option_t *options,
     }
     /* If there isn't a diag task then use offdiag access */
     if ( clargs->diag == 0 ) {
-        accessU = ((clargs->h%clargs->ib == 0) && (clargs->h > 0)) ? STARPU_R : STARPU_NONE;
+        accessU     = ((clargs->h%clargs->ib == 0) && (clargs->h > 0)) ? STARPU_R : STARPU_NONE;
+        access_ipiv = STARPU_NONE;
     }
 
     rt_starpu_insert_task(
         &cl_zgetrf_panel_blocked_batched,
         /* Task codelet arguments */
         STARPU_CL_ARGS,           clargs, sizeof(struct cl_getrf_batched_args_t),
+        STARPU_DATA_MODE_ARRAY,   clargs->handle_mode, clargs->tasks_nbr,
+        access_npiv,              RUNTIME_pivot_getaddr( ipiv, rankA, An, clargs->h ),
+        access_ppiv,              RUNTIME_pivot_getaddr( ipiv, rankA, An, clargs->h - 1 ),
+        access_ipiv,              RUNTIME_ipiv_getaddr( ipiv, An ),
+        accessU,                  RTBLKADDR(U, CHAMELEON_Complex64_t, Um, Un ),
         STARPU_PRIORITY,          options->priority,
         STARPU_CALLBACK,          callback,
         STARPU_EXECUTE_ON_WORKER, options->workerid,
 #if defined(CHAMELEON_CODELETS_HAVE_NAME)
         STARPU_NAME,              clargs->cl_name,
 #endif
-        STARPU_DATA_MODE_ARRAY,   clargs->handle_mode, clargs->tasks_nbr,
-        access_ipiv,              RUNTIME_ipiv_getaddr( ipiv, An ),
-        access_npiv,              RUNTIME_pivot_getaddr( ipiv, An, clargs->h ),
-        access_ppiv,              RUNTIME_pivot_getaddr( ipiv, An, clargs->h - 1 ),
-        accessU,                  RTBLKADDR(U, CHAMELEON_Complex64_t, Um, Un ),
         0);
 
     /* clargs is freed by starpu. */

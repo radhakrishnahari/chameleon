@@ -12,6 +12,8 @@
  * @version 1.3.0
  * @author Mathieu Faverge
  * @author Matthieu Kuhn
+ * @author Alycia Lisito
+ * @author Florent Pruvost
  * @date 2024-03-16
  *
  ***
@@ -73,7 +75,7 @@ int chameleon_ipiv_init( CHAM_ipiv_t *ipiv, const CHAM_desc_t *desc, void *data 
     ipiv->mt   = chameleon_ceil( ipiv->m, ipiv->mb );
 
     /* Create runtime specific structure like registering data */
-    RUNTIME_ipiv_create( ipiv );
+    RUNTIME_ipiv_create( ipiv, desc );
 
     return rc;
 }
@@ -91,9 +93,10 @@ int chameleon_ipiv_init( CHAM_ipiv_t *ipiv, const CHAM_desc_t *desc, void *data 
  *          The pointer to the ipiv descriptor to destroy.
  *
  */
-void chameleon_ipiv_destroy( CHAM_ipiv_t *ipiv )
+void chameleon_ipiv_destroy( CHAM_ipiv_t       *ipiv,
+                             const CHAM_desc_t *desc )
 {
-    RUNTIME_ipiv_destroy( ipiv );
+    RUNTIME_ipiv_destroy( ipiv, desc );
 }
 
 /**
@@ -162,7 +165,8 @@ int CHAMELEON_Ipiv_Create( CHAM_ipiv_t **ipivptr, const CHAM_desc_t *desc, void 
  * @retval CHAMELEON_SUCCESS successful exit
  *
  */
-int CHAMELEON_Ipiv_Destroy(CHAM_ipiv_t **ipivptr)
+int CHAMELEON_Ipiv_Destroy( CHAM_ipiv_t **ipivptr,
+                            const CHAM_desc_t *desc )
 {
     CHAM_context_t *chamctxt;
     CHAM_ipiv_t *ipiv;
@@ -179,7 +183,7 @@ int CHAMELEON_Ipiv_Destroy(CHAM_ipiv_t **ipivptr)
     }
 
     ipiv = *ipivptr;
-    chameleon_ipiv_destroy( ipiv );
+    chameleon_ipiv_destroy( ipiv, desc );
     free(ipiv);
     *ipivptr = NULL;
     return CHAMELEON_SUCCESS;

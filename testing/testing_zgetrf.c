@@ -151,8 +151,8 @@ testing_zgetrf_desc( run_arg_list_t *args, int check )
         CHAMELEON_zgetrf_WS_Free( ws );
     }
 
+    CHAMELEON_Ipiv_Destroy( &descIPIV, descA );
     parameters_desc_destroy( &descA );
-    CHAMELEON_Ipiv_Destroy( &descIPIV );
 
     return hres;
 }
