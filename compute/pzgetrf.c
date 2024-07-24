@@ -147,10 +147,8 @@ chameleon_pzgetrf_panel_facto_percol( struct chameleon_pzgetrf_s *ws,
                 ipiv );
         }
 
-        if ( h < minmn ) {
-            /* Reduce globally (between MPI processes) */
-            INSERT_TASK_ipiv_reducek( options, ipiv, k, h, A->myrank );
-        }
+        /* Reduce globally (between MPI processes) */
+        INSERT_TASK_zipiv_redux( A, options, ipiv, ws->proc_involved, k, h, tempkn );
     }
 
     /* Flush temporary data used for the pivoting */
@@ -196,10 +194,7 @@ chameleon_pzgetrf_panel_facto_percol_batched( struct chameleon_pzgetrf_s *ws,
         }
         INSERT_TASK_zgetrf_panel_offdiag_batched_flush( options, A, k, clargs, ipiv );
 
-        if ( h < minmn ) {
-            /* Reduce globally (between MPI processes) */
-            INSERT_TASK_ipiv_reducek( options, ipiv, k, h, A->myrank );
-        }
+        INSERT_TASK_zipiv_redux( A, options, ipiv, ws->proc_involved, k, h, tempkn );
     }
 
     free( clargs );
@@ -255,18 +250,16 @@ chameleon_pzgetrf_panel_facto_blocked( struct chameleon_pzgetrf_s *ws,
                     ipiv );
             }
 
-            if ( (b < (nbblock-1)) && (h == hmax-1) ) {
+            assert( j <= minmn );
+            /* Reduce globally (between MPI processes) */
+            INSERT_TASK_zipiv_redux( A, options, ipiv, ws->proc_involved, k, j, tempkn );
+
+            if ( ( b < (nbblock-1) ) && ( h == hmax-1 ) ) {
                 INSERT_TASK_zgetrf_blocked_trsm(
                     options,
-                    ws->ib, tempkn, b * ws->ib + hmax, ws->ib,
+                    ws->ib, tempkn, j+1, ws->ib,
                     Up(k, k),
                     ipiv );
-            }
-
-            assert( j<= minmn );
-            if ( j < minmn ) {
-                /* Reduce globally (between MPI processes) */
-                INSERT_TASK_ipiv_reducek( options, ipiv, k, j, A->myrank );
             }
         }
     }
@@ -319,18 +312,16 @@ chameleon_pzgetrf_panel_facto_blocked_batched( struct chameleon_pzgetrf_s *ws,
             INSERT_TASK_zgetrf_panel_blocked_batched_flush( options, A, k,
                                                             Up(k, k), clargs, ipiv );
 
+            assert( j <= minmn );
+            /* Reduce globally (between MPI processes) */
+            INSERT_TASK_zipiv_redux( A, options, ipiv, ws->proc_involved, k, j, tempkn );
+
             if ( (b < (nbblock-1)) && (h == hmax-1) ) {
                 INSERT_TASK_zgetrf_blocked_trsm(
                     options,
                     ws->ib, tempkn, b * ws->ib + hmax, ws->ib,
                     Up(k, k),
                     ipiv );
-            }
-
-            assert( j <= minmn );
-            if ( j < minmn ) {
-                /* Reduce globally (between MPI processes) */
-                INSERT_TASK_ipiv_reducek( options, ipiv, k, j, A->myrank );
             }
         }
     }
