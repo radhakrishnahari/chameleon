@@ -24,6 +24,7 @@
 #  @author Florent Pruvost
 #  @author Philippe Virouleau
 #  @author Matthieu Kuhn
+#  @author Alycia Lisito
 #  @date 2024-03-16
 #
 ###
@@ -73,6 +74,7 @@ set(CODELETS_ZSRC
     codelets/codelet_zhe2ge.c
     codelets/codelet_zherfb.c
     codelets/codelet_zhessq.c
+    codelets/codelet_zipiv_allreduce.c
     codelets/codelet_zlacpy.c
     codelets/codelet_zlange.c
     codelets/codelet_zlanhe.c

@@ -12,6 +12,7 @@
  * @version 1.3.0
  * @author Mathieu Faverge
  * @author Matthieu Kuhn
+ * @author Alycia Lisito
  * @date 2023-08-22
  *
  */
@@ -44,6 +45,7 @@ struct cppi_interface_s
 void cppi_interface_init();
 void cppi_interface_fini();
 
+CHAM_pivot_t *cppi_handle_get( starpu_data_handle_t handle );
 void cppi_register( starpu_data_handle_t *handleptr,
                     cham_flttype_t        flttype,
                     int                   n,
@@ -61,13 +63,14 @@ cppi_display_dbg( cppi_interface_t *cppi_interface, FILE *f, const char *title )
     diagrow = cppi_interface->pivot.diagrow;
     pivrow  = cppi_interface->pivot.pivrow;
 
-    fprintf( f, "%sn=%2d, h=%2d, has_diag=%2d, m0=%2d, idx=%2d\n",
+    fprintf( f, "%sn=%2d, h=%2d, has_diag=%2d, m0=%2d, idx=%2d, interf = %p\n",
              title,
              cppi_interface->n,
              cppi_interface->h,
              cppi_interface->has_diag,
              cppi_interface->pivot.blkm0,
-             cppi_interface->pivot.blkidx );
+             cppi_interface->pivot.blkidx,
+             cppi_interface );
 
     fprintf(stderr, "Diagonal row: " );
     for( i=0; i<cppi_interface->n; i++) {

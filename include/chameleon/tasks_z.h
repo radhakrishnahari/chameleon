@@ -562,4 +562,12 @@ void INSERT_TASK_zgetrf_blocked_trsm( const RUNTIME_option_t *options,
                                       CHAM_desc_t *U, int Um, int Un,
                                       CHAM_ipiv_t *ws );
 
+void INSERT_TASK_zipiv_allreduce( CHAM_desc_t            *A,
+                                  const RUNTIME_option_t *options,
+                                  CHAM_ipiv_t            *ipiv,
+                                  int                    *proc_involved,
+                                  int                     k,
+                                  int                     h,
+                                  int                     n );
+
 #endif /* _chameleon_tasks_z_h_ */
