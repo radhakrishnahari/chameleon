@@ -48,6 +48,8 @@ struct chameleon_pzgetrf_s {
     int          batch_size; /**< Batch size for the panel    */
     CHAM_desc_t  U;
     CHAM_desc_t  Up;
+    int         *proc_involved;
+    int          involved:1;
 };
 
 /**
