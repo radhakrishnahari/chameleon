@@ -33,6 +33,7 @@ cmake_minimum_required(VERSION 3.5)
 
 include(CheckSymbolExists)
 include(CheckStructHasMember)
+include(CheckCSourceRuns)
 
 set(CHAMELEON_STARPU_VERSION "1.3" CACHE STRING "necessary STARPU API version")
 
@@ -88,6 +89,25 @@ if ( STARPU_FOUND )
   check_struct_has_member( "struct starpu_data_interface_ops" reuse_data_on_node "starpu_data_interfaces.h" HAVE_STARPU_REUSE_DATA_ON_NODE LANGUAGE "C" )
   if ( HAVE_STARPU_REUSE_DATA_ON_NODE )
     message("-- ${Blue}Add definition HAVE_STARPU_REUSE_DATA_ON_NODE${ColourReset}")
+  endif()
+
+  # Check if STARPU_NONE equals 0 or not
+  set(C_STARPU_NONE_NONZERO "
+#include <stdio.h>
+#include <stdint.h>
+#include <starpu.h>
+int main() {
+  if (STARPU_NONE == 0)
+    return 1;
+  else
+    return 0;
+}
+")
+
+  unset(HAVE_STARPU_NONE_NONZERO CACHE)
+  check_c_source_runs("${C_STARPU_NONE_NONZERO}" HAVE_STARPU_NONE_NONZERO)
+  if ( HAVE_STARPU_NONE_NONZERO )
+    message("-- ${Blue}Add definition HAVE_STARPU_NONE_NONZERO${ColourReset}")
   endif()
 
   if (CHAMELEON_USE_MPI)

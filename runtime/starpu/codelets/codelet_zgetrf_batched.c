@@ -82,7 +82,7 @@ INSERT_TASK_zgetrf_panel_offdiag_batched( const RUNTIME_option_t *options,
     if ( rankA != A->myrank ) {
         return;
     }
-#if !defined ( HAVE_STARPU_NONE_NONZERO )
+#if !defined(HAVE_STARPU_NONE_NONZERO)
     /* STARPU_NONE can't be equal to 0 */
     fprintf( stderr, "INSERT_TASK_zgetrf_percol_diag: STARPU_NONE can not be equal to 0\n" );
     assert( 0 );
@@ -146,7 +146,7 @@ INSERT_TASK_zgetrf_panel_offdiag_batched_flush( const RUNTIME_option_t *options,
     void (*callback)(void*) = NULL;
     struct cl_getrf_batched_args_t *clargs = *clargs_ptr;
     int rankA = A->myrank;
-#if !defined ( HAVE_STARPU_NONE_NONZERO )
+#if !defined(HAVE_STARPU_NONE_NONZERO)
     /* STARPU_NONE can't be equal to 0 */
     fprintf( stderr, "INSERT_TASK_zgetrf_percol_diag: STARPU_NONE can not be equal to 0\n" );
     assert( 0 );
@@ -254,7 +254,7 @@ INSERT_TASK_zgetrf_panel_blocked_batched( const RUNTIME_option_t *options,
     int accessU, access_npiv, access_ipiv, access_ppiv;
     struct cl_getrf_batched_args_t *clargs = *clargs_ptr;
     int rankA = A->get_rankof(A, Am, An);
-#if !defined ( HAVE_STARPU_NONE_NONZERO )
+#if !defined(HAVE_STARPU_NONE_NONZERO)
     /* STARPU_NONE can't be equal to 0 */
     fprintf( stderr, "INSERT_TASK_zgetrf_percol_diag: STARPU_NONE can not be equal to 0\n" );
     assert( 0 );
@@ -359,7 +359,7 @@ INSERT_TASK_zgetrf_panel_blocked_batched_flush( const RUNTIME_option_t *options,
     void (*callback)(void*) = NULL;
     struct cl_getrf_batched_args_t *clargs = *clargs_ptr;
     int rankA = A->myrank;
-#if !defined ( HAVE_STARPU_NONE_NONZERO )
+#if !defined(HAVE_STARPU_NONE_NONZERO)
     /* STARPU_NONE can't be equal to 0 */
     fprintf( stderr, "INSERT_TASK_zgetrf_percol_diag: STARPU_NONE can not be equal to 0\n" );
     assert( 0 );

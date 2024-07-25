@@ -98,7 +98,7 @@ void INSERT_TASK_zgetrf_blocked_diag( const RUNTIME_option_t *options,
     void (*callback)(void*) = options->profiling ? cl_zgetrf_blocked_diag_callback : NULL;
     const char *cl_name = "zgetrf_blocked_diag";
     int rankA           = A->get_rankof(A, Am, An);
-#if !defined ( HAVE_STARPU_NONE_NONZERO )
+#if !defined(HAVE_STARPU_NONE_NONZERO)
     /* STARPU_NONE can't be equal to 0 */
     fprintf( stderr, "INSERT_TASK_zgetrf_percol_diag: STARPU_NONE can not be equal to 0\n" );
     assert( 0 );
@@ -228,7 +228,7 @@ void INSERT_TASK_zgetrf_blocked_offdiag( const RUNTIME_option_t *options,
     int access_ppiv = ( h == 0 )       ? STARPU_NONE : STARPU_R;
     int accessU     = ((h%ib == 0) && (h > 0)) ? STARPU_R : STARPU_NONE;
     int rankA       = A->get_rankof(A, Am, An);
-#if !defined ( HAVE_STARPU_NONE_NONZERO )
+#if !defined(HAVE_STARPU_NONE_NONZERO)
     /* STARPU_NONE can't be equal to 0 */
     fprintf( stderr, "INSERT_TASK_zgetrf_percol_diag: STARPU_NONE can not be equal to 0\n" );
     assert( 0 );
