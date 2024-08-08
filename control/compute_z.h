@@ -57,6 +57,10 @@ struct chameleon_pzgetrf_s {
     int                    *proc_involved;
     unsigned int            involved;
     int                     np_involved;
+#if defined(CHAMELEON_USE_MPI)
+    MPI_Comm                comm_panel;
+    int64_t                 tag;
+#endif
 };
 
 /**

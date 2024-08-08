@@ -116,6 +116,15 @@ CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A )
         chameleon_cleanenv( allreduce );
     }
 
+#if defined ( CHAMELEON_USE_MPI )
+    if ( ws->alg_allreduce == ChamStarPUMPITasks ) {
+        MPI_Comm comm_panel;
+        MPI_Comm_split( MPI_COMM_WORLD, A->myrank % chameleon_desc_datadist_get_iparam(A, 1), A->myrank, &comm_panel );
+        ws->comm_panel = comm_panel;
+    }
+    ws->tag = -1;
+#endif
+
     ws->batch_size_blas2 = chameleon_getenv_get_value_int( "CHAMELEON_GETRF_BATCH_SIZE_BLAS2", 0 );
     if ( ws->batch_size_blas2 > CHAMELEON_BATCH_SIZE ) {
         chameleon_warning( "CHAMELEON_BATCH_SIZE", "CHAMELEON_GETRF_BATCH_SIZE_BLAS2 must be smaller than CHAMELEON_BATCH_SIZE, please recompile with the right CHAMELEON_BATCH_SIZE, or reduce the CHAMELEON_GETRF_BATCH_SIZE_BLAS2 value\n" );
@@ -217,6 +226,9 @@ CHAMELEON_zgetrf_WS_Free( void *user_ws )
 
 #if defined (CHAMELEON_USE_MPI)
     free( ws->proc_involved );
+    if ( ws->alg_allreduce == ChamStarPUMPITasks ) {
+        MPI_Comm_free( &ws->comm_panel );
+    }
 #endif
 
     if ( ( ws->alg == ChamGetrfNoPivPerColumn ) ||
