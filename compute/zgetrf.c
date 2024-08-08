@@ -98,6 +98,21 @@ CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A )
         chameleon_cleanenv( algostr );
     }
 
+    {
+        char *allreduce = chameleon_getenv( "CHAMELEON_GETRF_ALL_REDUCE" );
+
+        if ( allreduce != NULL ) {
+            if ( strcasecmp( allreduce, "cham_spu_tasks" ) == 0 ) {
+                ws->alg_allreduce = ChamStarPUTasks;
+            }
+            else {
+                chameleon_error( "CHAMELEON_zgetrf_WS_Alloc", "CHAMELEON_GETRF_ALL_REDUCE is not one of chameleon_starpu_tasks, chameleon_starpu, chameleon_starpu_mpi, chameleon_mpi => Switch back to chameleon_starpu_tasks\n" );
+                ws->alg_allreduce = ChamStarPUTasks;
+            }
+        }
+        chameleon_cleanenv( allreduce );
+    }
+
     ws->batch_size = chameleon_getenv_get_value_int( "CHAMELEON_GETRF_BATCH_SIZE", 0 );
     if ( ws->batch_size > CHAMELEON_BATCH_SIZE ) {
         chameleon_warning( "CHAMELEON_BATCH_SIZE", "CHAMELEON_GETRF_BATCH_SIZE must be smaller than CHAMELEON_BATCH_SIZE, please recompile with the right CHAMELEON_BATCH_SIZE, or reduce the CHAMELEON_GETRF_BATCH_SIZE value\n" );

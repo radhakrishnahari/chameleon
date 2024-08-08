@@ -290,6 +290,13 @@ typedef enum chameleon_getrf_e {
     ChamGetrfPPivPerColumn  = 3,
 } cham_getrf_t;
 
+/**
+ * @brief Chameleon GETRF all reduce algorithm variants
+ */
+typedef enum chameleon_getrf_allreduce_e {
+    ChamStarPUTasks,
+} cham_getrf_allreduce_t;
+
 #define ChameleonTrd            1001
 #define ChameleonBrd            1002
 
