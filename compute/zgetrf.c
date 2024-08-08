@@ -105,6 +105,9 @@ CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A )
             if ( strcasecmp( allreduce, "cham_spu_tasks" ) == 0 ) {
                 ws->alg_allreduce = ChamStarPUTasks;
             }
+            else if ( strcasecmp( allreduce, "cham_spu_mpi_tasks" ) == 0  ) {
+                ws->alg_allreduce = ChamStarPUMPITasks;
+            }
             else {
                 chameleon_error( "CHAMELEON_zgetrf_WS_Alloc", "CHAMELEON_GETRF_ALL_REDUCE is not one of chameleon_starpu_tasks, chameleon_starpu, chameleon_starpu_mpi, chameleon_mpi => Switch back to chameleon_starpu_tasks\n" );
                 ws->alg_allreduce = ChamStarPUTasks;

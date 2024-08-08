@@ -295,6 +295,7 @@ typedef enum chameleon_getrf_e {
  */
 typedef enum chameleon_getrf_allreduce_e {
     ChamStarPUTasks,
+    ChamStarPUMPITasks,
 } cham_getrf_allreduce_t;
 
 #define ChameleonTrd            1001
