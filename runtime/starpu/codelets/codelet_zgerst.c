@@ -39,7 +39,8 @@ void INSERT_TASK_zgerst( const RUNTIME_option_t *options,
     handleAin = A->schedopt;
     handleAin += ((int64_t)A->lmt) * nn + mm;
 
-    if ( tileA->flttype == ChamComplexDouble ) {
+    if ( tileA->flttype == ChamComplexDouble )
+    {
         starpu_data_handle_t *copy = handleAin;
 
         /* Remove first copy */
@@ -59,12 +60,12 @@ void INSERT_TASK_zgerst( const RUNTIME_option_t *options,
         return;
     }
 
-    if (A->myrank != tileA->rank)
+    if ( A->myrank != tileA->rank )
     {
         tileA->flttype = ChamComplexDouble;
-        if (*handleAin != NULL)
+        if ( *handleAin != NULL )
         {
-            starpu_data_unregister_no_coherency(*handleAin);
+            starpu_data_unregister_no_coherency( *handleAin );
             *handleAin = NULL;
         }
         return;
@@ -79,9 +80,9 @@ void INSERT_TASK_zgerst( const RUNTIME_option_t *options,
     switch( tileA->flttype ) {
 #if defined(CHAMELEON_USE_CUDA) && (CUDA_VERSION >= 7500)
 #if defined(PRECISION_d)
-    /*
-     * Restore from half precision
-     */
+        /*
+         * Restore from half precision
+         */
     case ChamComplexHalf:
         assert( options->withcuda );
 #if defined(CHAMELEON_DEBUG_GERED)
@@ -91,14 +92,14 @@ void INSERT_TASK_zgerst( const RUNTIME_option_t *options,
 #endif
         rt_shm_starpu_insert_task(
             &cl_hlag2d,
-            STARPU_VALUE,    &m,                 sizeof(int),
-            STARPU_VALUE,    &n,                 sizeof(int),
-            STARPU_R,        *handleAin,
-            STARPU_W,         handleAout,
-            STARPU_PRIORITY,  options->priority,
+            STARPU_VALUE,            &m,                 sizeof(int),
+            STARPU_VALUE,            &n,                 sizeof(int),
+            STARPU_R,                *handleAin,
+            STARPU_W,                 handleAout,
+            STARPU_PRIORITY,          options->priority,
             STARPU_EXECUTE_ON_WORKER, options->workerid,
 #if defined(CHAMELEON_CODELETS_HAVE_NAME)
-            STARPU_NAME, "hlag2d",
+            STARPU_NAME,              "hlag2d",
 #endif
             0);
         break;
@@ -108,19 +109,20 @@ void INSERT_TASK_zgerst( const RUNTIME_option_t *options,
     case ChamComplexFloat:
 #if defined(CHAMELEON_DEBUG_GERED)
         fprintf( stderr,
-                 "[%2d] Convert back the tile ( %d, %d ) from half precision\n",
+                 "[%2d] Convert back the tile ( %d, %d ) from single precision\n",
                  A->myrank, Am, An );
 #endif
+
         rt_shm_starpu_insert_task(
             &cl_clag2z,
-            STARPU_VALUE,    &m,                 sizeof(int),
-            STARPU_VALUE,    &n,                 sizeof(int),
-            STARPU_R,        *handleAin,
-            STARPU_W,         handleAout,
-            STARPU_PRIORITY,  options->priority,
+            STARPU_VALUE,            &m,                 sizeof(int),
+            STARPU_VALUE,            &n,                 sizeof(int),
+            STARPU_R,                *handleAin,
+            STARPU_W,                 handleAout,
+            STARPU_PRIORITY,          options->priority,
             STARPU_EXECUTE_ON_WORKER, options->workerid,
 #if defined(CHAMELEON_CODELETS_HAVE_NAME)
-            STARPU_NAME, "clag2z",
+            STARPU_NAME,              "clag2z",
 #endif
             0);
         break;
@@ -130,7 +132,7 @@ void INSERT_TASK_zgerst( const RUNTIME_option_t *options,
     }
 
     starpu_data_unregister_no_coherency( *handleAin );
-    *handleAin = handleAout;
+    *handleAin     = handleAout;
     tileA->flttype = ChamComplexDouble;
     starpu_mpi_data_register( handleAout, tag, tileA->rank );
 }
