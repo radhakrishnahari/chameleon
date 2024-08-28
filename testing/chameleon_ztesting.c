@@ -167,7 +167,7 @@ int main (int argc, char **argv) {
 
     testing_options_init( &options );
 
-#if !defined(CHAMELEON_SIMULATION)
+#if !defined(CHAMELEON_SIMULATION) && (defined(PRECISION_z) || defined(PRECISION_d))
     /* Let's initialize the accuracy for the checks */
     {
         cham_fixdbl_t accuracy = parameters_getvalue_fixdbl( "appaccuracy" );
