@@ -122,6 +122,7 @@ val_t pread_trans( const char *str )
     val_t val;
     val.trans = ChamNoTrans;
 
+    /* Keep in sync with help documentation in testing/{chameleon,vendor}_ztesting.c */
     if ( ( strcasecmp( "ChamConjTrans", str ) == 0 ) ||
          ( strcasecmp( "ConjTrans", str ) == 0 ) )
     {
@@ -163,6 +164,7 @@ val_t pread_uplo( const char *str )
     val_t val;
     val.uplo = ChamUpperLower;
 
+    /* Keep in sync with help documentation in testing/{chameleon,vendor}_ztesting.c */
     if ( ( strcasecmp( "ChamUpper", str ) == 0 ) ||
          ( strcasecmp( "Upper",     str ) == 0 ) )
     {
@@ -205,6 +207,7 @@ val_t pread_diag( const char *str )
     val_t val;
     val.diag = ChamNonUnit;
 
+    /* Keep in sync with help documentation in testing/{chameleon,vendor}_ztesting.c */
     if ( ( strcasecmp( "ChamNonUnit", str ) == 0 ) ||
          ( strcasecmp( "NonUnit",     str ) == 0 ) )
     {
@@ -238,6 +241,7 @@ val_t pread_side( const char *str )
     val_t val;
     val.side = ChamLeft;
 
+    /* Keep in sync with help documentation in testing/{chameleon,vendor}_ztesting.c */
     if ( ( strcasecmp( "ChamLeft", str ) == 0 ) ||
          ( strcasecmp( "Left",     str ) == 0 ) )
     {
@@ -271,6 +275,7 @@ val_t pread_job( const char *str )
     val_t val;
     val.job = ChamNoVec;
 
+    /* Keep in sync with help documentation in testing/chameleon_ztesting.c */
     if ( ( strcasecmp( "ChamNoVec", str ) == 0 ) ||
          ( strcasecmp( "NoVec",     str ) == 0 ) ||
          ( strcasecmp( "N",         str ) == 0 ) )
@@ -341,23 +346,29 @@ val_t pread_norm( const char *str )
     val_t val;
     val.ntype = ChamOneNorm;
 
+    /* Keep in sync with help documentation in testing/{chameleon,vendor}_ztesting.c */
     if ( ( strcasecmp( "ChamOneNorm", str ) == 0 ) ||
-         ( strcasecmp( "OneNorm",     str ) == 0 ) )
+         ( strcasecmp( "OneNorm",     str ) == 0 ) ||
+         ( strcasecmp( "One",         str ) == 0 ) )
     {
         val.ntype = ChamOneNorm;
     }
     else if ( ( strcasecmp( "ChamFrobeniusNorm", str ) == 0 ) ||
-              ( strcasecmp( "FrobeniusNorm",     str ) == 0 ) )
+              ( strcasecmp( "FrobeniusNorm",     str ) == 0 ) ||
+              ( strcasecmp( "Frobenius",         str ) == 0 ) ||
+              ( strcasecmp( "Fro",               str ) == 0 ) )
     {
         val.ntype = ChamFrobeniusNorm;
     }
     else if ( ( strcasecmp( "ChamInfNorm", str ) == 0 ) ||
-              ( strcasecmp( "InfNorm",     str ) == 0 ) )
+              ( strcasecmp( "InfNorm",     str ) == 0 ) ||
+              ( strcasecmp( "Inf",         str ) == 0 ) )
     {
         val.ntype = ChamInfNorm;
     }
     else if ( ( strcasecmp( "ChamMaxNorm", str ) == 0 ) ||
-              ( strcasecmp( "MaxNorm",     str ) == 0 ) )
+              ( strcasecmp( "MaxNorm",     str ) == 0 ) ||
+              ( strcasecmp( "Max",         str ) == 0 ) )
     {
         val.ntype = ChamMaxNorm;
     }
