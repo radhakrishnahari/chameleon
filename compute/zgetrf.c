@@ -19,6 +19,8 @@
  * @author Florent Pruvost
  * @author Matthieu Kuhn
  * @author Lionel Eyraud-Dubois
+ * @author Alycia Lisito
+ * @author Xavier Lacoste
  * @date 2024-03-16
  *
  * @precisions normal z -> s d c
@@ -88,14 +90,10 @@ CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A )
         chameleon_cleanenv( algostr );
     }
 
-    ws->batch_size = chameleon_getenv_get_value_int( "CHAMELEON_GETRF_BATCH_SIZE", 1 );
+    ws->batch_size = chameleon_getenv_get_value_int( "CHAMELEON_GETRF_BATCH_SIZE", 0 );
     if ( ws->batch_size > CHAMELEON_BATCH_SIZE ) {
         chameleon_warning( "CHAMELEON_BATCH_SIZE", "CHAMELEON_GETRF_BATCH_SIZE must be smaller than CHAMELEON_BATCH_SIZE, please recompile with the right CHAMELEON_BATCH_SIZE, or reduce the CHAMELEON_GETRF_BATCH_SIZE value\n" );
         ws->batch_size = CHAMELEON_BATCH_SIZE;
-    }
-    if ( (ws->batch_size > 1) && (CHAMELEON_Comm_rank() > 1) ) {
-        chameleon_warning( "CHAMELEON_BATCH_SIZE", "CHAMELEON_GETRF_BATCH_SIZE is unavailable in distributed, value forced to 1\n" );
-        ws->batch_size = 1;
     }
 
     /* Allocation of U for permutation of the panels */
@@ -300,7 +298,7 @@ CHAMELEON_zgetrf( int M, int N, CHAMELEON_Complex64_t *A, int LDA, int *IPIV )
     if ( ( ws->alg == ChamGetrfPPivPerColumn ) ||
          ( ws->alg == ChamGetrfPPiv ) )
     {
-        chameleon_ipiv_destroy( &descIPIV );
+        chameleon_ipiv_destroy( &descIPIV, &descAt );
     }
     CHAMELEON_zgetrf_WS_Free( ws );
     chameleon_ztile2lap_cleanup( chamctxt, &descAl, &descAt );

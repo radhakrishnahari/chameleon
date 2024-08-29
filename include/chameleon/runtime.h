@@ -18,6 +18,7 @@
  * @author Samuel Thibault
  * @author Philippe Swartvagher
  * @author Matthieu Kuhn
+ * @author Alycia Lisito
  * @date 2024-03-16
  *
  */
@@ -717,8 +718,10 @@ void RUNTIME_ddisplay_oneprofile (cham_tasktype_t task);
 void RUNTIME_sdisplay_allprofile ();
 void RUNTIME_sdisplay_oneprofile (cham_tasktype_t task);
 
-void RUNTIME_ipiv_create ( CHAM_ipiv_t *ipiv );
-void RUNTIME_ipiv_destroy( CHAM_ipiv_t *ipiv );
+void RUNTIME_ipiv_create ( CHAM_ipiv_t *ipiv,
+                          const CHAM_desc_t *desc );
+void RUNTIME_ipiv_destroy( CHAM_ipiv_t *ipiv,
+                           const CHAM_desc_t *desc );
 void RUNTIME_ipiv_gather ( const RUNTIME_sequence_t *sequence,
                            CHAM_ipiv_t *desc, int *ipiv, int node );
 
@@ -730,18 +733,18 @@ void RUNTIME_perm_flushk( const RUNTIME_sequence_t *sequence,
                           const CHAM_ipiv_t *ipiv, int m );
 
 void *RUNTIME_ipiv_getaddr   ( const CHAM_ipiv_t *ipiv, int m );
-void *RUNTIME_nextpiv_getaddr( const CHAM_ipiv_t *ipiv, int m, int h );
-void *RUNTIME_prevpiv_getaddr( const CHAM_ipiv_t *ipiv, int m, int h );
+void *RUNTIME_nextpiv_getaddr( const CHAM_ipiv_t *ipiv, int rank, int k, int h );
+void *RUNTIME_prevpiv_getaddr( const CHAM_ipiv_t *ipiv, int rank, int k, int h );
 void *RUNTIME_perm_getaddr   ( const CHAM_ipiv_t *ipiv, int m );
 void *RUNTIME_invp_getaddr   ( const CHAM_ipiv_t *ipiv, int m );
 
 static inline void *
-RUNTIME_pivot_getaddr( CHAM_ipiv_t *ipiv, int m, int h ) {
+RUNTIME_pivot_getaddr( CHAM_ipiv_t *ipiv, int rank, int k, int h ) {
     if ( h%2 == 0 ) {
-        return RUNTIME_nextpiv_getaddr( ipiv, m, -1 );
+        return RUNTIME_nextpiv_getaddr( ipiv, rank, k, h );
     }
     else {
-        return RUNTIME_prevpiv_getaddr( ipiv, m, -1 );
+        return RUNTIME_prevpiv_getaddr( ipiv, rank, k, h );
     }
 }
 

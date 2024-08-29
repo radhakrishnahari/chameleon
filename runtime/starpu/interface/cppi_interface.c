@@ -12,13 +12,14 @@
  * @version 1.3.0
  * @author Mathieu Faverge
  * @author Matthieu Kuhn
+ * @author Alycia Lisito
  * @date 2023-08-22
  *
  */
 #include "chameleon_starpu.h"
 #undef HAVE_STARPU_REUSE_DATA_ON_NODE
 
-static inline CHAM_pivot_t *
+CHAM_pivot_t *
 cppi_handle_get( starpu_data_handle_t handle )
 {
     cppi_interface_t *cppi_interface = (cppi_interface_t *)
@@ -38,7 +39,7 @@ cppi_init( void *data_interface )
     cppi_interface_t *cppi_interface = (cppi_interface_t *)data_interface;
     cppi_interface->id = CPPI_INTERFACE_ID;
     cppi_interface->h  = -1;
-    cppi_interface->has_diag = 0;
+    cppi_interface->has_diag = -1;
 }
 
 static void
@@ -83,7 +84,7 @@ cppi_allocate_data_on_node( void *data_interface, unsigned node )
 
     /* update the data properly in consequence */
     cppi_interface->h = -1;
-    cppi_interface->has_diag = 0;
+    cppi_interface->has_diag = -1;
     cppi_interface->pivot.pivrow  = dataptr;
     cppi_interface->pivot.diagrow = ((char*)dataptr) + cppi_interface->arraysize;
 
@@ -279,8 +280,10 @@ cppi_describe( void *data_interface, char *buf, size_t size )
 {
     cppi_interface_t *cppi_interface = (cppi_interface_t *) data_interface;
 
-    return snprintf( buf, size, "Pivot structure, n %d, blkm0 %d, blkidx %d",
+    return snprintf( buf, size, "Pivot structure, n %d, h %d, has_diag = %d, blkm0 %d, blkidx %d",
                      cppi_interface->n,
+                     cppi_interface->h,
+                     cppi_interface->has_diag,
                      cppi_interface->pivot.blkm0,
                      cppi_interface->pivot.blkidx );
 }
@@ -298,6 +301,7 @@ cppi_copy_any_to_any( void *src_interface, unsigned src_node,
     STARPU_ASSERT( cppi_interface_src->flttype == cppi_interface_dst->flttype );
 
     cppi_interface_dst->h            = cppi_interface_src->h;
+    cppi_interface_dst->has_diag     = cppi_interface_src->has_diag;
     cppi_interface_dst->pivot.blkm0  = cppi_interface_src->pivot.blkm0;
     cppi_interface_dst->pivot.blkidx = cppi_interface_src->pivot.blkidx;
 
@@ -402,8 +406,8 @@ cl_cppi_redux_cpu_func(void *descr[], void *cl_arg)
     assert( cppi_redux->h == cppi_input->h );
 
     /* Let's copy the diagonal row if needed */
-    if ( cppi_input->has_diag ) {
-        assert( cppi_redux->has_diag == 0 );
+    if ( cppi_input->has_diag == 1 ) {
+        assert( cppi_redux->has_diag == -1 );
 
         memcpy( cppi_redux->pivot.diagrow,
                 cppi_input->pivot.diagrow,
@@ -449,7 +453,7 @@ cl_cppi_init_redux_cpu_func( void *descr[], void *cl_arg )
     cppi_interface_t *cppi_redux = ((cppi_interface_t *) descr[0]);
 
     /* Redux pivot never has diagonal at initialization */
-    cppi_redux->has_diag = 0;
+    cppi_redux->has_diag = -1;
     cppi_redux->h        = -1;
 
     size_t size = cppi_redux->arraysize;
@@ -497,7 +501,7 @@ cppi_register( starpu_data_handle_t *handleptr,
             .id = CPPI_INTERFACE_ID,
             .arraysize = n * CHAMELEON_Element_Size( flttype ),
             .flttype = flttype,
-            .has_diag = 0,
+            .has_diag = -1,
             .h  = -1,
             .n  = n,
         };

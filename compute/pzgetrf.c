@@ -16,6 +16,7 @@
  * @author Mathieu Faverge
  * @author Emmanuel Agullo
  * @author Matthieu Kuhn
+ * @author Alycia Lisito
  * @date 2024-03-16
  * @precisions normal z -> s d c
  *
@@ -146,15 +147,13 @@ chameleon_pzgetrf_panel_facto_percol( struct chameleon_pzgetrf_s *ws,
                 ipiv );
         }
 
-        if ( h < minmn ) {
-            /* Reduce globally (between MPI processes) */
-            INSERT_TASK_ipiv_reducek( options, ipiv, k, h );
-        }
+        /* Reduce globally (between MPI processes) */
+        INSERT_TASK_zipiv_allreduce( A, options, ipiv, ws->proc_involved, k, h, tempkn );
     }
 
     /* Flush temporary data used for the pivoting */
     INSERT_TASK_ipiv_to_perm( options, k * A->mb, tempkm, minmn, ipiv, k );
-    RUNTIME_ipiv_flushk( options->sequence, ipiv, k );
+    RUNTIME_ipiv_flushk( options->sequence, ipiv, A->myrank );
 }
 
 /*
@@ -195,17 +194,14 @@ chameleon_pzgetrf_panel_facto_percol_batched( struct chameleon_pzgetrf_s *ws,
         }
         INSERT_TASK_zgetrf_panel_offdiag_batched_flush( options, A, k, clargs, ipiv );
 
-        if ( h < minmn ) {
-            /* Reduce globally (between MPI processes) */
-            INSERT_TASK_ipiv_reducek( options, ipiv, k, h );
-        }
+        INSERT_TASK_zipiv_allreduce( A, options, ipiv, ws->proc_involved, k, h, tempkn );
     }
 
     free( clargs );
 
     /* Flush temporary data used for the pivoting */
     INSERT_TASK_ipiv_to_perm( options, k * A->mb, tempkm, minmn, ipiv, k );
-    RUNTIME_ipiv_flushk( options->sequence, ipiv, k );
+    RUNTIME_ipiv_flushk( options->sequence, ipiv, A->myrank );
 }
 
 static inline void
@@ -217,6 +213,10 @@ chameleon_pzgetrf_panel_facto_blocked( struct chameleon_pzgetrf_s *ws,
 {
     int m, h, b, nbblock;
     int tempkm, tempkn, tempmm, minmn;
+
+    if ( ! ws->involved ) {
+        return;
+    }
 
     tempkm = k == A->mt-1 ? A->m-k*A->mb : A->mb;
     tempkn = k == A->nt-1 ? A->n-k*A->nb : A->nb;
@@ -233,7 +233,7 @@ chameleon_pzgetrf_panel_facto_blocked( struct chameleon_pzgetrf_s *ws,
         int hmax = b == nbblock-1 ? minmn + 1 - b * ws->ib : ws->ib;
 
         for (h=0; h<hmax; h++){
-            int j =  h + b * ws->ib;
+            int j = h + b * ws->ib;
 
             INSERT_TASK_zgetrf_blocked_diag(
                 options,
@@ -250,18 +250,16 @@ chameleon_pzgetrf_panel_facto_blocked( struct chameleon_pzgetrf_s *ws,
                     ipiv );
             }
 
-            if ( (b < (nbblock-1)) && (h == hmax-1) ) {
+            assert( j <= minmn );
+            /* Reduce globally (between MPI processes) */
+            INSERT_TASK_zipiv_allreduce( A, options, ipiv, ws->proc_involved, k, j, tempkn );
+
+            if ( ( b < (nbblock-1) ) && ( h == hmax-1 ) ) {
                 INSERT_TASK_zgetrf_blocked_trsm(
                     options,
-                    ws->ib, tempkn, b * ws->ib + hmax, ws->ib,
+                    ws->ib, tempkn, j+1, ws->ib,
                     Up(k, k),
                     ipiv );
-            }
-
-            assert( j<= minmn );
-            if ( j < minmn ) {
-                /* Reduce globally (between MPI processes) */
-                INSERT_TASK_ipiv_reducek( options, ipiv, k, j );
             }
         }
     }
@@ -269,7 +267,7 @@ chameleon_pzgetrf_panel_facto_blocked( struct chameleon_pzgetrf_s *ws,
 
     /* Flush temporary data used for the pivoting */
     INSERT_TASK_ipiv_to_perm( options, k * A->mb, tempkm, minmn, ipiv, k );
-    RUNTIME_ipiv_flushk( options->sequence, ipiv, k );
+    RUNTIME_ipiv_flushk( options->sequence, ipiv, A->myrank );
 }
 
 /*
@@ -284,8 +282,8 @@ chameleon_pzgetrf_panel_facto_blocked_batched( struct chameleon_pzgetrf_s *ws,
 {
     int m, h, b, nbblock, hmax, j;
     int tempkm, tempkn, tempmm, minmn;
-    void **clargs = malloc( sizeof(char *) * A->p );
-    memset( clargs, 0, sizeof(char *) * A->p );
+    void **clargs = malloc( sizeof(char *) );
+    memset( clargs, 0, sizeof(char *) );
 
     tempkm = k == A->mt-1 ? A->m-k*A->mb : A->mb;
     tempkn = k == A->nt-1 ? A->n-k*A->nb : A->nb;
@@ -306,16 +304,17 @@ chameleon_pzgetrf_panel_facto_blocked_batched( struct chameleon_pzgetrf_s *ws,
         for ( h = 0; h < hmax; h++ ) {
             j =  h + b * ws->ib;
 
-            INSERT_TASK_zgetrf_panel_blocked_batched( options, tempkm, tempkn, j, k * A->mb, (void *)ws,
-                                                      A(k, k), Up(k, k), clargs, ipiv );
-
-            for ( m = k + 1; m < A->mt; m++ ) {
+            for ( m = k; m < A->mt; m++ ) {
                 tempmm = (m == (A->mt - 1)) ? A->m - m * A->mb : A->mb;
                 INSERT_TASK_zgetrf_panel_blocked_batched( options, tempmm, tempkn, j, m * A->mb,
                                                           (void *)ws, A(m, k), Up(k, k), clargs, ipiv );
             }
             INSERT_TASK_zgetrf_panel_blocked_batched_flush( options, A, k,
                                                             Up(k, k), clargs, ipiv );
+
+            assert( j <= minmn );
+            /* Reduce globally (between MPI processes) */
+            INSERT_TASK_zipiv_allreduce( A, options, ipiv, ws->proc_involved, k, j, tempkn );
 
             if ( (b < (nbblock-1)) && (h == hmax-1) ) {
                 INSERT_TASK_zgetrf_blocked_trsm(
@@ -324,12 +323,6 @@ chameleon_pzgetrf_panel_facto_blocked_batched( struct chameleon_pzgetrf_s *ws,
                     Up(k, k),
                     ipiv );
             }
-
-            assert( j <= minmn );
-            if ( j < minmn ) {
-                /* Reduce globally (between MPI processes) */
-                INSERT_TASK_ipiv_reducek( options, ipiv, k, j );
-            }
         }
     }
 
@@ -337,7 +330,7 @@ chameleon_pzgetrf_panel_facto_blocked_batched( struct chameleon_pzgetrf_s *ws,
 
     /* Flush temporary data used for the pivoting */
     INSERT_TASK_ipiv_to_perm( options, k * A->mb, tempkm, minmn, ipiv, k );
-    RUNTIME_ipiv_flushk( options->sequence, ipiv, k );
+    RUNTIME_ipiv_flushk( options->sequence, ipiv, A->myrank );
 }
 
 static inline void
@@ -347,6 +340,26 @@ chameleon_pzgetrf_panel_facto( struct chameleon_pzgetrf_s *ws,
                                int                         k,
                                RUNTIME_option_t           *options )
 {
+#if defined ( CHAMELEON_USE_MPI )
+    int *proc_involved = malloc( sizeof( int ) * chameleon_min( A->p, A->mt - k) );
+    int  b;
+
+    /* 2DBC only */
+    ws->involved = 0;
+    for ( b = k; (b < A->mt) && ((b-k) < A->p); b ++ ) {
+        int rank = chameleon_getrankof_2d( A, b, k );
+        proc_involved[ b-k ] = rank;
+        if ( rank == A->myrank ) {
+            ws->involved = 1;
+        }
+    }
+    ws->proc_involved = proc_involved;
+    if ( ws->involved == 0 ) {
+	free( proc_involved );
+        return;
+    }
+#endif
+
     /* TODO: Should be replaced by a function pointer */
     switch( ws->alg ) {
     case ChamGetrfNoPivPerColumn:
@@ -354,7 +367,7 @@ chameleon_pzgetrf_panel_facto( struct chameleon_pzgetrf_s *ws,
         break;
 
     case ChamGetrfPPivPerColumn:
-        if ( ws->batch_size > 1 ) {
+        if ( ws->batch_size > 0 ) {
             chameleon_pzgetrf_panel_facto_percol_batched( ws, A, ipiv, k, options );
         }
         else {
@@ -363,7 +376,7 @@ chameleon_pzgetrf_panel_facto( struct chameleon_pzgetrf_s *ws,
         break;
 
     case ChamGetrfPPiv:
-        if ( ws->batch_size > 1 ) {
+        if ( ws->batch_size > 0 ) {
             chameleon_pzgetrf_panel_facto_blocked_batched( ws, A, ipiv, k, options );
         }
         else {
@@ -376,6 +389,9 @@ chameleon_pzgetrf_panel_facto( struct chameleon_pzgetrf_s *ws,
     default:
         chameleon_pzgetrf_panel_facto_nopiv( ws, A, ipiv, k, options );
     }
+#if defined ( CHAMELEON_USE_MPI )
+    free( proc_involved );
+#endif
 }
 
 /**
@@ -503,7 +519,9 @@ void chameleon_pzgetrf( struct chameleon_pzgetrf_s *ws,
          * block column k.
          */
         options.forcesub = chameleon_involved_in_panelk_2dbc( A, k );
-        chameleon_pzgetrf_panel_facto( ws, A, IPIV, k, &options );
+        if ( chameleon_involved_in_panelk_2dbc( A, k ) ) {
+            chameleon_pzgetrf_panel_facto( ws, A, IPIV, k, &options );
+        }
         options.forcesub = 0;
 
         for (n = k+1; n < A->nt; n++) {

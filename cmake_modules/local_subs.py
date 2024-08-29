@@ -51,6 +51,7 @@ _extra_blas = [
     ('',                     'sprint',               'dprint',               'cprint',               'zprint'              ),
     ('',                     'sgered',               'dgered',               'cgered',               'zgered'              ),
     ('',                     'sgerst',               'dgerst',               'cgerst',               'zgerst'              ),
+    ('',                     'sipiv_allreduce',      'dipiv_allreduce',      'cipiv_allreduce',      'zipiv_allreduce'     ),
 ]
 
 _extra_BLAS = [ [ x.upper() for x in row ] for row in _extra_blas ]

@@ -14,6 +14,7 @@
  *
  * @author Mathieu Faverge
  * @author Matthieu Kuhn
+ * @author Alycia Lisito
  * @date 2024-03-11
  * @precisions normal z -> c d s
  *
@@ -67,6 +68,7 @@ static void cl_zgetrf_blocked_diag_cpu_func(void *descr[], void *cl_arg)
     nextpiv->h        = h;
     nextpiv->has_diag = 1;
 
+    coreblas_kernel_trace( tileA );
     CORE_zgetrf_panel_diag( m, n, h, m0, ib,
                             CHAM_tile_get_ptr( tileA ), tileA->ld,
                             U, ldu,
@@ -95,6 +97,22 @@ void INSERT_TASK_zgetrf_blocked_diag( const RUNTIME_option_t *options,
     struct starpu_codelet *codelet = &cl_zgetrf_blocked_diag;
     void (*callback)(void*) = options->profiling ? cl_zgetrf_blocked_diag_callback : NULL;
     const char *cl_name = "zgetrf_blocked_diag";
+    int rankA           = A->get_rankof(A, Am, An);
+#if !defined(HAVE_STARPU_NONE_NONZERO)
+    /* STARPU_NONE can't be equal to 0 */
+    fprintf( stderr, "INSERT_TASK_zgetrf_percol_diag: STARPU_NONE can not be equal to 0\n" );
+    assert( 0 );
+#endif
+
+#if defined ( CHAMELEON_USE_MPI )
+    if ( ( h % ib == 0 ) && ( h > 0 ) ) {
+        starpu_mpi_cache_flush( options->sequence->comm, RTBLKADDR(U, CHAMELEON_Complex64_t, Um, Un) );
+    }
+
+    if ( rankA != A->myrank ) {
+        return;
+    }
+#endif
 
     int access_ipiv = ( h == 0 )       ? STARPU_W    : STARPU_RW;
     int access_npiv = ( h == ipiv->n ) ? STARPU_R    : STARPU_REDUX;
@@ -108,7 +126,7 @@ void INSERT_TASK_zgetrf_blocked_diag( const RUNTIME_option_t *options,
     else if ( h%ib == 0 ) {
         accessU = STARPU_R;
     }
-    else if ( h%ib == 1 ) {
+    else if ( ( h%ib == 1 ) || ( ib == 1 ) ) {
         accessU = STARPU_W;
     }
 
@@ -130,25 +148,24 @@ void INSERT_TASK_zgetrf_blocked_diag( const RUNTIME_option_t *options,
         STARPU_VALUE,             &ib,                  sizeof(int),
         STARPU_VALUE,             &(options->sequence), sizeof(RUNTIME_sequence_t*),
         STARPU_VALUE,             &(options->request),  sizeof(RUNTIME_request_t*),
+        STARPU_RW,                RTBLKADDR(A, CHAMELEON_Complex64_t, Am, An),
+        access_ipiv,              RUNTIME_ipiv_getaddr( ipiv, An ),
+        access_npiv,              RUNTIME_pivot_getaddr( ipiv, rankA, An, h ),
+        access_ppiv,              RUNTIME_pivot_getaddr( ipiv, rankA, An, h-1 ),
+        accessU,                  RTBLKADDR(U, CHAMELEON_Complex64_t, Um, Un),
         STARPU_PRIORITY,          options->priority,
         STARPU_CALLBACK,          callback,
         STARPU_EXECUTE_ON_WORKER, options->workerid,
 #if defined(CHAMELEON_CODELETS_HAVE_NAME)
         STARPU_NAME,              cl_name,
 #endif
-        /* STARPU_NONE must be the last argument for older version of StarPU where STARPU_NONE = 0 */
-        STARPU_RW,                RTBLKADDR(A, CHAMELEON_Complex64_t, Am, An),
-        access_ipiv,              RUNTIME_ipiv_getaddr( ipiv, An ),
-        access_npiv,              RUNTIME_pivot_getaddr( ipiv, An, h   ),
-        access_ppiv,              RUNTIME_pivot_getaddr( ipiv, An, h-1 ),
-        accessU,                  RTBLKADDR(U, CHAMELEON_Complex64_t, Um, Un),
         0);
 }
 
 #if !defined(CHAMELEON_SIMULATION)
 static void cl_zgetrf_blocked_offdiag_cpu_func(void *descr[], void *cl_arg)
 {
-    int                    m, n, h, m0, ib;
+    int                    m, n, h, k, m0, ib;
     RUNTIME_sequence_t    *sequence;
     RUNTIME_request_t     *request;
     CHAM_tile_t           *tileA;
@@ -156,9 +173,9 @@ static void cl_zgetrf_blocked_offdiag_cpu_func(void *descr[], void *cl_arg)
     cppi_interface_t      *nextpiv;
     cppi_interface_t      *prevpiv;
     CHAMELEON_Complex64_t *U   = NULL;
-    int                    ldu = -1;;
+    int                    ldu = -1;
 
-    starpu_codelet_unpack_args( cl_arg, &m, &n, &h, &m0, &ib, &sequence, &request );
+    starpu_codelet_unpack_args( cl_arg, &m, &n, &h, &k, &m0, &ib, &sequence, &request );
 
     tileA   = cti_interface_get(descr[0]);
     nextpiv = (cppi_interface_t*) descr[1];
@@ -169,12 +186,28 @@ static void cl_zgetrf_blocked_offdiag_cpu_func(void *descr[], void *cl_arg)
         ldu   = tileU->ld;
     }
 
-    nextpiv->h = h; /* Initialize in case it uses a copy */
+    if ( h > 0 ) {
+        cppi_display_dbg( prevpiv, stderr, "Prevpiv offdiag before call: " );
+    }
+    if ( h < tileA->n ) {
+        cppi_display_dbg( nextpiv, stderr, "Nextpiv offdiag before call: " );
+    }
 
+    nextpiv->h = h; /* Initialize in case it uses a copy */
+    nextpiv->has_diag = chameleon_max( -1, nextpiv->has_diag);
+
+    coreblas_kernel_trace( tileA );
     CORE_zgetrf_panel_offdiag( m, n, h, m0, ib,
                                CHAM_tile_get_ptr(tileA), tileA->ld,
                                U, ldu,
                                &(nextpiv->pivot), &(prevpiv->pivot) );
+
+    if ( h > 0 ) {
+        cppi_display_dbg( prevpiv, stderr, "Prevpiv offdiag after call: " );
+    }
+    if ( h < tileA->n ) {
+        cppi_display_dbg( nextpiv, stderr, "Nextpiv offdiag after call: " );
+    }
 }
 #endif /* !defined(CHAMELEON_SIMULATION) */
 
@@ -190,9 +223,29 @@ void INSERT_TASK_zgetrf_blocked_offdiag( const RUNTIME_option_t *options,
                                          CHAM_ipiv_t *ipiv )
 {
     struct starpu_codelet *codelet = &cl_zgetrf_blocked_offdiag;
+
     int access_npiv = ( h == ipiv->n ) ? STARPU_R    : STARPU_REDUX;
     int access_ppiv = ( h == 0 )       ? STARPU_NONE : STARPU_R;
     int accessU     = ((h%ib == 0) && (h > 0)) ? STARPU_R : STARPU_NONE;
+    int rankA       = A->get_rankof(A, Am, An);
+#if !defined(HAVE_STARPU_NONE_NONZERO)
+    /* STARPU_NONE can't be equal to 0 */
+    fprintf( stderr, "INSERT_TASK_zgetrf_percol_diag: STARPU_NONE can not be equal to 0\n" );
+    assert( 0 );
+#endif
+
+#if defined ( CHAMELEON_USE_MPI )
+    if ( rankA != A->myrank ) {
+        if ( ( accessU != STARPU_NONE ) &&
+             ( A->myrank == A->get_rankof( A, An, An ) ) )
+        {
+            starpu_mpi_get_data_on_node_detached( options->sequence->comm,
+                                                  RTBLKADDR(U, CHAMELEON_Complex64_t, Um, Un),
+                                                  rankA, NULL, NULL );
+        }
+        return;
+    }
+#endif
 
     void (*callback)(void*) = options->profiling ? cl_zgetrf_blocked_offdiag_callback : NULL;
     const char *cl_name = "zgetrf_blocked_offdiag";
@@ -200,6 +253,9 @@ void INSERT_TASK_zgetrf_blocked_offdiag( const RUNTIME_option_t *options,
     /* Handle cache */
     CHAMELEON_BEGIN_ACCESS_DECLARATION;
     CHAMELEON_ACCESS_RW( A, Am, An );
+    if ((h%ib == 0) && (h > 0)) {
+        CHAMELEON_ACCESS_R( U, Um, Un );
+    }
     CHAMELEON_END_ACCESS_DECLARATION;
 
     /* Refine name */
@@ -211,21 +267,21 @@ void INSERT_TASK_zgetrf_blocked_offdiag( const RUNTIME_option_t *options,
         STARPU_VALUE,             &m,                   sizeof(int),
         STARPU_VALUE,             &n,                   sizeof(int),
         STARPU_VALUE,             &h,                   sizeof(int),
+        STARPU_VALUE,             &An,                  sizeof(int),
         STARPU_VALUE,             &m0,                  sizeof(int),
         STARPU_VALUE,             &ib,                  sizeof(int),
         STARPU_VALUE,             &(options->sequence), sizeof(RUNTIME_sequence_t *),
         STARPU_VALUE,             &(options->request),  sizeof(RUNTIME_request_t *),
+        STARPU_RW,                RTBLKADDR(A, CHAMELEON_Complex64_t, Am, An),
+        access_npiv,              RUNTIME_pivot_getaddr( ipiv, rankA, An, h ),
+        access_ppiv,              RUNTIME_pivot_getaddr( ipiv, rankA, An, h-1 ),
+        accessU,                  RTBLKADDR(U, CHAMELEON_Complex64_t, Um, Un),
         STARPU_PRIORITY,          options->priority,
         STARPU_CALLBACK,          callback,
         STARPU_EXECUTE_ON_WORKER, options->workerid,
 #if defined(CHAMELEON_CODELETS_HAVE_NAME)
         STARPU_NAME,              cl_name,
 #endif
-        /* STARPU_NONE must be the last argument for older version of StarPU where STARPU_NONE = 0 */
-        STARPU_RW,                RTBLKADDR(A, CHAMELEON_Complex64_t, Am, An),
-        access_npiv,              RUNTIME_pivot_getaddr( ipiv, An, h   ),
-        access_ppiv,              RUNTIME_pivot_getaddr( ipiv, An, h-1 ),
-        accessU,                  RTBLKADDR(U, CHAMELEON_Complex64_t, Um, Un),
         0);
 }
 
@@ -246,6 +302,8 @@ static void cl_zgetrf_blocked_trsm_cpu_func(void *descr[], void *cl_arg)
     prevpiv = (cppi_interface_t*) descr[1];
     U       = CHAM_tile_get_ptr( tileU );
     ldu     = tileU->ld;
+
+    coreblas_kernel_trace( tileU );
 
     /* Copy the final max line of the block and solve */
     cblas_zcopy( n, prevpiv->pivot.pivrow, 1,
@@ -276,6 +334,7 @@ void INSERT_TASK_zgetrf_blocked_trsm( const RUNTIME_option_t *options,
 
     void (*callback)(void*) = options->profiling ? cl_zgetrf_blocked_trsm_callback : NULL;
     const char *cl_name = "zgetrf_blocked_trsm";
+    int rankU = U->get_rankof(U, Um, Un);
 
     /* Handle cache */
     CHAMELEON_BEGIN_ACCESS_DECLARATION;
@@ -286,6 +345,10 @@ void INSERT_TASK_zgetrf_blocked_trsm( const RUNTIME_option_t *options,
     cl_name = chameleon_codelet_name( cl_name, 1,
                                       U->get_blktile( U, Um, Un ) );
 
+    if ( U->myrank != U->get_rankof(U, Um, Un) ) {
+        return;
+    }
+
     rt_starpu_insert_task(
         codelet,
         STARPU_VALUE,             &m,                   sizeof(int),
@@ -293,7 +356,7 @@ void INSERT_TASK_zgetrf_blocked_trsm( const RUNTIME_option_t *options,
         STARPU_VALUE,             &h,                   sizeof(int),
         STARPU_VALUE,             &ib,                  sizeof(int),
         STARPU_RW,                RTBLKADDR(U, CHAMELEON_Complex64_t, Um, Un),
-        STARPU_R,                 RUNTIME_pivot_getaddr( ipiv, Un, h-1 ),
+        STARPU_R,                 RUNTIME_pivot_getaddr( ipiv, rankU, Un, h-1 ),
         STARPU_PRIORITY,          options->priority,
         STARPU_CALLBACK,          callback,
         STARPU_EXECUTE_ON_WORKER, options->workerid,
