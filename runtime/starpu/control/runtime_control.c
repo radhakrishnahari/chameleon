@@ -354,6 +354,41 @@ void RUNTIME_progress( CHAM_context_t *chamctxt )
 }
 
 /**
+ * Lookahead based on the first iterations
+ * Counts how many tasks are sumbitted at the first n iterations (with n the lookahead)
+ * and sets the sum of that as the limit.
+ * Pauses the task submission if the number of tasks submitted if greater than the
+ * limit.
+ */
+int RUNTIME_lookahead( CHAM_context_t *chamctxt,
+                       int             k,
+                       int             nb_tasks )
+{
+    int tasks_submit, lookahead;
+    int max = 0;
+
+    /* Get how many tasks are currently submitted */
+    tasks_submit = starpu_task_nsubmitted();
+    if ( tasks_submit == 0 ) {
+        return chameleon_max( nb_tasks, chamctxt->nworkers * 20 );
+    }
+
+    lookahead = chamctxt->lookahead;
+
+    /* Add the number of tasks currently submitted to the previous task count */
+    if ( k < lookahead ) {
+        return nb_tasks + chameleon_max( tasks_submit, chamctxt->nworkers * 20 );
+    }
+
+    /* Wait until the number of tasks submitted is smaller than the limit */
+    while ( starpu_task_nsubmitted() > nb_tasks ) {
+        usleep(10000);
+    }
+
+    return nb_tasks;
+}
+
+/**
  * Thread rank.
  */
 int RUNTIME_thread_rank( CHAM_context_t *chamctxt )
