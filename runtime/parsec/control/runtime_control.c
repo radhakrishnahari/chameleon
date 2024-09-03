@@ -108,6 +108,19 @@ void RUNTIME_progress( CHAM_context_t *chamctxt )
 }
 
 /**
+ *  Lookahead
+ */
+int RUNTIME_lookahead( CHAM_context_t *chamctxt,
+                       int             k,
+                       int             nb_tasks )
+{
+    (void)chamctxt;
+    (void)k;
+    (void)nb_tasks;
+    return;
+}
+
+/**
  * Thread rank.
  */
 int RUNTIME_thread_rank( CHAM_context_t *chamctxt )

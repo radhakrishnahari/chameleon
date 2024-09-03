@@ -183,6 +183,29 @@ int
 RUNTIME_thread_rank( CHAM_context_t *ctxt );
 
 /**
+ * @brief Lookahead based on the first iterations.
+ * Counts how many tasks are sumbitted at the first n iterations (with n the lookahead)
+ * and sets the sum of that as the limit.
+ * Pauses the task submission if the number of tasks submitted if greater than the
+ * limit.
+ *
+ * @param[in] chamctxt
+ *            The runtime context for which the thread rank is asked.
+ *
+ * @param[in] k
+ *            The iteration.
+ *
+ * @param[in] nb_tasks
+ *            The limit number of tasks.
+ *
+ * @retval The limit number of tasks.
+ */
+int
+RUNTIME_lookahead( CHAM_context_t *chamctxt,
+                   int             k,
+                   int             nb_tasks );
+
+/**
  * @brief Get the number of CPU workers of the runtime.
  *
  * @param[in] ctxt
