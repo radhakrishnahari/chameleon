@@ -64,6 +64,10 @@ int chameleon_getrankof_custom        ( const CHAM_desc_t *A, int m, int n );
  */
 
 int chameleon_involved_in_panelk_2dbc( const CHAM_desc_t *A, int An );
+void chameleon_get_proc_involved_in_panelk_2dbc( const CHAM_desc_t *A,
+                                                 int                k,
+                                                 int                n,
+                                                 void              *ws_getrf );
 
 /**
  * @}

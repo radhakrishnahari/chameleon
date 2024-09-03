@@ -214,10 +214,6 @@ chameleon_pzgetrf_panel_facto_blocked( struct chameleon_pzgetrf_s *ws,
     int m, h, b, nbblock;
     int tempkm, tempkn, tempmm, minmn;
 
-    if ( ! ws->involved ) {
-        return;
-    }
-
     tempkm = k == A->mt-1 ? A->m-k*A->mb : A->mb;
     tempkn = k == A->nt-1 ? A->n-k*A->nb : A->nb;
     minmn  = chameleon_min( tempkm, tempkn );
@@ -340,25 +336,10 @@ chameleon_pzgetrf_panel_facto( struct chameleon_pzgetrf_s *ws,
                                int                         k,
                                RUNTIME_option_t           *options )
 {
-#if defined ( CHAMELEON_USE_MPI )
-    int *proc_involved = malloc( sizeof( int ) * chameleon_min( A->p, A->mt - k) );
-    int  b;
-
-    /* 2DBC only */
-    ws->involved = 0;
-    for ( b = k; (b < A->mt) && ((b-k) < A->p); b ++ ) {
-        int rank = chameleon_getrankof_2d( A, b, k );
-        proc_involved[ b-k ] = rank;
-        if ( rank == A->myrank ) {
-            ws->involved = 1;
-        }
-    }
-    ws->proc_involved = proc_involved;
-    if ( ws->involved == 0 ) {
-	free( proc_involved );
+    chameleon_get_proc_involved_in_panelk_2dbc( A, k, k, ws );
+    if ( !ws->involved ) {
         return;
     }
-#endif
 
     /* TODO: Should be replaced by a function pointer */
     switch( ws->alg ) {
@@ -388,9 +369,6 @@ chameleon_pzgetrf_panel_facto( struct chameleon_pzgetrf_s *ws,
     default:
         chameleon_pzgetrf_panel_facto_nopiv( ws, A, ipiv, k, options );
     }
-#if defined ( CHAMELEON_USE_MPI )
-    free( proc_involved );
-#endif
 }
 
 /**

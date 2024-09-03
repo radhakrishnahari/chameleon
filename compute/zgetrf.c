@@ -67,6 +67,12 @@ CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A )
     ws->alg = ChamGetrfPPiv;
     ws->ib  = CHAMELEON_IB;
 
+#if defined (CHAMELEON_USE_MPI)
+    ws->proc_involved = malloc( sizeof( int ) * A->p );
+    ws->involved      = 0;
+    ws->np_involved   = 0;
+#endif
+
     {
         char *algostr = chameleon_getenv( "CHAMELEON_GETRF_ALGO" );
 
@@ -159,6 +165,10 @@ void
 CHAMELEON_zgetrf_WS_Free( void *user_ws )
 {
     struct chameleon_pzgetrf_s *ws = (struct chameleon_pzgetrf_s *)user_ws;
+
+#if defined (CHAMELEON_USE_MPI)
+    free( ws->proc_involved );
+#endif
 
     if ( ( ws->alg == ChamGetrfNoPivPerColumn ) ||
          ( ws->alg == ChamGetrfPPiv           ) ||
