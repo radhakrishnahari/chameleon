@@ -583,4 +583,181 @@ void INSERT_TASK_zipiv_allreduce( CHAM_desc_t            *A,
                                   int                     h,
                                   int                     n );
 
+/**
+ ********************************************************************************
+ *
+ * @ingroup CHAMELEON_Complex64_t
+ *
+ *  INSERT_TASK_zperm_allreduce - Perfoms an allreduce operation on the tile
+ * U(Um, Un) according to the permutation ipiv. This task is used in the LU
+ * factorization with partial pivoting.
+ *
+ *******************************************************************************
+ *
+ * @param[in] options
+ *          The runtime options data structure to pass through all insert_task calls.
+ *
+ * @param[in] A
+ *          The descriptor of the matrix A.
+ *
+ * @param[in] ipiv
+ *          The pivot structure that contains the informations for the LU
+ *          factorization with partial pivoting.
+ *
+ * @param[in] ipivk
+ *          The index of the permutation.
+ *
+ * @param[in] k
+ *          The number of rows in the tile U(Um, Un).
+ *
+ * @param[in] n
+ *          The number of columns in the tile U(Um, Un).
+ *
+ * @param[inout] U
+ *          The descriptor of the worskpace used for the permutation in the LU
+ *          factorization with partial pivoting.
+ *
+ * @param[in] Um
+ *          The row index of the tile used in U.
+ *
+ * @param[in] Un
+ *          The column index of the tile used in U.
+ *
+ * @param[in] ws
+ *          The workspace to handle the data in the LU factorization with
+ *          partial pivoting.
+ *
+ *******************************************************************************
+ */
+void INSERT_TASK_zperm_allreduce( const RUNTIME_option_t *options,
+                                  const CHAM_desc_t      *A,
+                                  CHAM_ipiv_t            *ipiv,
+                                  int                     ipivk,
+                                  int                     k,
+                                  int                     n,
+                                  CHAM_desc_t            *U,
+                                  int                     Um,
+                                  int                     Un,
+                                  void                   *ws );
+
+/**
+ ********************************************************************************
+ *
+ * @ingroup CHAMELEON_Complex64_t
+ *
+ *  INSERT_TASK_zperm_allreduce_send_A - Sends the tile A(Am, An) to the processus
+ * involved in the permutation. This task is used in the LU factorization with
+ * partial pivoting.
+ *
+ *******************************************************************************
+ *
+ * @param[in] options
+ *          The runtime options data structure to pass through all insert_task calls.
+ *
+ * @param[in] A
+ *          The descriptor of the matrix A.
+ *
+ * @param[in] Am
+ *          The row index of the tile used in A.
+ *
+ * @param[in] An
+ *          The column index of the tile used in A.
+ *
+ * @param[in] myrank
+ *          The rank of the current process.
+ *
+ * @param[in] np
+ *          The number of processus involved in the permutation.
+ *
+ * @param[in] proc_involved
+ *          The list of the processus involved in the permutation.
+ *
+ *******************************************************************************
+ */
+void INSERT_TASK_zperm_allreduce_send_A( const RUNTIME_option_t *options,
+                                         CHAM_desc_t            *A,
+                                         int                     Am,
+                                         int                     An,
+                                         int                     myrank,
+                                         int                     np,
+                                         int                    *proc_involved );
+
+/**
+ ********************************************************************************
+ *
+ * @ingroup CHAMELEON_Complex64_t
+ *
+ *  INSERT_TASK_zperm_allreduce_send_perm - Sends the permutation ipivk to the
+ * processus involved in the permutation. This task is used in the LU
+ * factorization with partial pivoting.
+ *
+ *******************************************************************************
+ *
+ * @param[in] options
+ *          The runtime options data structure to pass through all insert_task calls.
+ *
+ * @param[in] ipiv
+ *          The pivot structure that contains the informations for the LU
+ *          factorization with partial pivoting.
+ *
+ * @param[in] ipivk
+ *          The index of the permutation.
+ *
+ * @param[in] myrank
+ *          The rank of the current process.
+ *
+ * @param[in] np
+ *          The number of processus involved in the permutation.
+ *
+ * @param[in] proc_involved
+ *          The list of the processus involved in the permutation.
+ *
+ *******************************************************************************
+ */
+void INSERT_TASK_zperm_allreduce_send_perm( const RUNTIME_option_t *options,
+                                            CHAM_ipiv_t            *ipiv,
+                                            int                     ipivk,
+                                            int                     myrank,
+                                            int                     np,
+                                            int                    *proc_involved );
+
+/**
+ ********************************************************************************
+ *
+ * @ingroup CHAMELEON_Complex64_t
+ *
+ *  INSERT_TASK_zperm_allreduce_send_invp - Sends the inverse permutation ipivk
+ * to the processus involved in the permutation. This task is used in the LU
+ * factorization with partial pivoting.
+ *
+ *******************************************************************************
+ *
+ * @param[in] options
+ *          The runtime options data structure to pass through all insert_task calls.
+ *
+ * @param[in] ipiv
+ *          The pivot structure that contains the informations for the LU
+ *          factorization with partial pivoting.
+ *
+ * @param[in] ipivk
+ *          The index of the permutation.
+ *
+ * @param[in] A
+ *          The descriptor of the matrix A.
+ *
+ * @param[in] k
+ *          The index of the panel factorized.
+ *
+ * @param[in] n
+ *          The index of the panel to permute.
+ *
+ *******************************************************************************
+ */
+void INSERT_TASK_zperm_allreduce_send_invp( const RUNTIME_option_t *options,
+                                            CHAM_ipiv_t            *ipiv,
+                                            int                     ipivk,
+                                            const CHAM_desc_t      *A,
+                                            int                     k,
+                                            int                     n );
+
 #endif /* _chameleon_tasks_z_h_ */
