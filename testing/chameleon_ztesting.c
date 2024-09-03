@@ -167,14 +167,16 @@ int main (int argc, char **argv) {
 
     testing_options_init( &options );
 
-#if !defined(CHAMELEON_SIMULATION) && (defined(PRECISION_z) || defined(PRECISION_d))
+#if !defined(CHAMELEON_SIMULATION)
     /* Let's initialize the accuracy for the checks */
     {
+#if (defined(PRECISION_z) || defined(PRECISION_d))
         cham_fixdbl_t accuracy = parameters_getvalue_fixdbl( "appaccuracy" );
         if ( accuracy > 0 ) {
             testing_setaccuracy( accuracy );
         }
         else
+#endif
         {
             testing_setaccuracy( LAPACKE_dlamch_work('e') );
         }
