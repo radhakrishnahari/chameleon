@@ -47,6 +47,9 @@ void INSERT_TASK_zlaswp_get( const RUNTIME_option_t *options,
                              const CHAM_desc_t *U, int Um, int Un )
 {
     struct starpu_codelet *codelet = &cl_zlaswp_get;
+    if ( A->get_rankof( A, Am, An) != A->myrank ) {
+        return;
+    }
 
     //void (*callback)(void*) = options->profiling ? cl_zlaswp_get_callback : NULL;
 
@@ -91,6 +94,9 @@ void INSERT_TASK_zlaswp_set( const RUNTIME_option_t *options,
                              const CHAM_desc_t *B, int Bm, int Bn )
 {
     struct starpu_codelet *codelet = &cl_zlaswp_set;
+    if ( A->get_rankof( B, Bm, Bn) != A->myrank ) {
+        return;
+    }
 
     //void (*callback)(void*) = options->profiling ? cl_zlaswp_set_callback : NULL;
 

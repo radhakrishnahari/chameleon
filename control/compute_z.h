@@ -43,13 +43,15 @@ struct chameleon_pzgemm_s {
  * @brief Data structure to handle the GETRF workspaces with partial pivoting
  */
 struct chameleon_pzgetrf_s {
-    cham_getrf_t alg;
-    int          ib;         /**< Internal blocking parameter */
-    int          batch_size; /**< Batch size for the panel    */
-    CHAM_desc_t  U;
-    CHAM_desc_t  Up;
-    int         *proc_involved;
-    unsigned int involved:1;
+    cham_getrf_t   alg;
+    int            ib;         /**< Internal blocking parameter */
+    int            batch_size; /**< Batch size for the panel    */
+    CHAM_desc_t    U;
+    CHAM_desc_t    Up; /**< Workspace used for the panel factorization    */
+    CHAM_desc_t    Wu; /**< Workspace used for the permutation and update */
+    int           *proc_involved;
+    unsigned int   involved;
+    int            np_involved;
 };
 
 /**

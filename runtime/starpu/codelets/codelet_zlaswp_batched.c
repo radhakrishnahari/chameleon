@@ -57,21 +57,25 @@ CODELETS_CPU( zlaswp_batched, cl_zlaswp_batched_cpu_func )
 void INSERT_TASK_zlaswp_batched( const RUNTIME_option_t *options,
                                  int                     m0,
                                  int                     minmn,
-                                 int                     k,
-                                 int                     m,
-                                 int                     n,
                                  void                   *ws,
                                  const CHAM_ipiv_t      *ipiv,
                                  int                     ipivk,
-                                 const CHAM_desc_t      *A,
-                                 const CHAM_desc_t      *Wu,
+                                 const CHAM_desc_t      *Am,
+                                 int                     Amm,
+                                 int                     Amn,
+                                 const CHAM_desc_t      *Ak,
+                                 int                     Akm,
+                                 int                     Akn,
+                                 const CHAM_desc_t      *U,
+                                 int                     Um,
+                                 int                     Un,
                                  void                  **clargs_ptr )
 {
     int task_num   = 0;
     int batch_size = ((struct chameleon_pzgetrf_s *)ws)->batch_size;
     int nhandles;
     struct cl_laswp_batched_args_t *clargs = *clargs_ptr;
-    if ( A->get_rankof( A, m, n) != A->myrank ) {
+    if ( Am->get_rankof( Am, Amm, Amn) != Am->myrank ) {
         return;
     }
 
@@ -84,7 +88,7 @@ void INSERT_TASK_zlaswp_batched( const RUNTIME_option_t *options,
 
     task_num               = clargs->tasks_nbr;
     clargs->m0[ task_num ] = m0;
-    clargs->handle_mode[ task_num ].handle = RTBLKADDR(A, CHAMELEON_Complex64_t, m, n);
+    clargs->handle_mode[ task_num ].handle = RTBLKADDR(Am, CHAMELEON_Complex64_t, Amm, Amn);
     clargs->handle_mode[ task_num ].mode   = STARPU_RW;
     clargs->tasks_nbr ++;
 
@@ -95,8 +99,8 @@ void INSERT_TASK_zlaswp_batched( const RUNTIME_option_t *options,
             STARPU_CL_ARGS,             clargs, sizeof(struct cl_laswp_batched_args_t),
             STARPU_R,                   RUNTIME_perm_getaddr( ipiv, ipivk ),
             STARPU_R,                   RUNTIME_invp_getaddr( ipiv, ipivk ),
-            STARPU_RW | STARPU_COMMUTE, RTBLKADDR(Wu, ChamComplexDouble, A->myrank, n),
-            STARPU_R,                   RTBLKADDR(A, ChamComplexDouble, k, n),
+            STARPU_RW | STARPU_COMMUTE, RTBLKADDR(U, ChamComplexDouble, Um, Un),
+            STARPU_R,                   RTBLKADDR(Ak, ChamComplexDouble, Akm, Akn),
             STARPU_DATA_MODE_ARRAY,     clargs->handle_mode, nhandles,
             STARPU_PRIORITY,            options->priority,
             STARPU_EXECUTE_ON_WORKER,   options->workerid,
@@ -108,12 +112,14 @@ void INSERT_TASK_zlaswp_batched( const RUNTIME_option_t *options,
 }
 
 void INSERT_TASK_zlaswp_batched_flush( const RUNTIME_option_t *options,
-                                       int                     k,
-                                       int                     n,
                                        const CHAM_ipiv_t      *ipiv,
                                        int                     ipivk,
-                                       const CHAM_desc_t      *A,
+                                       const CHAM_desc_t      *Ak,
+                                       int                     Akm,
+                                       int                     Akn,
                                        const CHAM_desc_t      *U,
+                                       int                     Um,
+                                       int                     Un,
                                        void                  **clargs_ptr )
 {
     struct cl_laswp_batched_args_t *clargs   = *clargs_ptr;
@@ -129,8 +135,8 @@ void INSERT_TASK_zlaswp_batched_flush( const RUNTIME_option_t *options,
         STARPU_CL_ARGS,             clargs, sizeof(struct cl_laswp_batched_args_t),
         STARPU_R,                   RUNTIME_perm_getaddr( ipiv, ipivk ),
         STARPU_R,                   RUNTIME_invp_getaddr( ipiv, ipivk ),
-        STARPU_RW | STARPU_COMMUTE, RTBLKADDR(U, ChamComplexDouble, k, n),
-        STARPU_R,                   RTBLKADDR(A, ChamComplexDouble, k, n),
+        STARPU_RW | STARPU_COMMUTE, RTBLKADDR(U, ChamComplexDouble, Um, Un),
+        STARPU_R,                   RTBLKADDR(Ak, ChamComplexDouble, Akm, Akn),
         STARPU_DATA_MODE_ARRAY,     clargs->handle_mode, nhandles,
         STARPU_PRIORITY,            options->priority,
         STARPU_EXECUTE_ON_WORKER,   options->workerid,
