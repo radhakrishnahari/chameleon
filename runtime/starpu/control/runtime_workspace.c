@@ -131,7 +131,7 @@ int RUNTIME_starpu_ws_alloc(CHAMELEON_starpu_ws_t **workspace,
     descr->memory_location = memory_location;
     descr->which_workers = which_workers;
 
-    starpu_execute_on_each_worker(RUNTIME_allocate_workspace_on_workers, descr, which_workers);
+    starpu_execute_on_each_worker_ex(RUNTIME_allocate_workspace_on_workers, descr, which_workers, "chameleon_ws_alloc");
 
     return 0;
 }
@@ -141,7 +141,7 @@ int RUNTIME_starpu_ws_free(CHAMELEON_starpu_ws_t *workspace)
     if (!workspace)
         return -EINVAL;
 
-    starpu_execute_on_each_worker(RUNTIME_free_workspace_on_workers, workspace, workspace->which_workers);
+    starpu_execute_on_each_worker_ex(RUNTIME_free_workspace_on_workers, workspace, workspace->which_workers, "chameleon_ws_free");
 
     free(workspace);
 
