@@ -133,7 +133,7 @@ void INSERT_TASK_gemmex_Astat( const RUNTIME_option_t *options,
     void (*callback)(void*);
     int                      accessC;
     int                      exec    = 0;
-    char                    *cl_name = "gemmex_Astat";
+    const char              *cl_name = "gemmex_Astat";
 
     /* Handle cache */
     CHAMELEON_BEGIN_ACCESS_DECLARATION;
@@ -216,7 +216,7 @@ void INSERT_TASK_gemmex( const RUNTIME_option_t *options,
     void (*callback)(void*);
     int                      accessC;
     int                      exec = 0;
-    char                    *cl_name = "gemmex";
+    const char              *cl_name = "gemmex";
 
     if ( !(options->withcuda) ) {
         /* Fallback to cpu version */
