@@ -118,10 +118,8 @@ int main (int argc, char **argv) {
 
     testing_options_init( &options );
 
-#if !defined(CHAMELEON_SIMULATION)
     /* Let's initialize the accuracy for the checks */
-    testing_setaccuracy( LAPACKE_dlamch_work('e') );
-#endif
+    testing_setaccuracy( CHAMELEON_dlamch() );
 
     rc = CHAMELEON_Init( options.threads, 0 );
     if ( rc != CHAMELEON_SUCCESS ) {

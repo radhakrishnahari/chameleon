@@ -167,7 +167,6 @@ int main (int argc, char **argv) {
 
     testing_options_init( &options );
 
-#if !defined(CHAMELEON_SIMULATION)
     /* Let's initialize the accuracy for the checks */
     {
 #if (defined(PRECISION_z) || defined(PRECISION_d))
@@ -178,10 +177,9 @@ int main (int argc, char **argv) {
         else
 #endif
         {
-            testing_setaccuracy( LAPACKE_dlamch_work('e') );
+            testing_setaccuracy( CHAMELEON_dlamch() );
         }
     }
-#endif
 
     rc = CHAMELEON_Init( options.threads, options.gpus );
     if ( rc != CHAMELEON_SUCCESS ) {
