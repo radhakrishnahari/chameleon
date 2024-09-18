@@ -16,7 +16,7 @@
  * @date 2024-03-16
  *
  */
-#include "chameleon_starpu.h"
+#include "chameleon_starpu_internal.h"
 #include "runtime_codelets.h"
 
 static void cl_ipiv_init_cpu_func(void *descr[], void *cl_arg)

@@ -19,7 +19,7 @@
  * @precisions mixed zc -> ds
  *
  */
-#include "chameleon_starpu.h"
+#include "chameleon_starpu_internal.h"
 #include "runtime_codelet_zc.h"
 
 CHAMELEON_CL_CB(zlag2c,        cti_handle_get_m(task->handles[1]), cti_handle_get_n(task->handles[1]), 0,                                      M*N)

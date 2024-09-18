@@ -24,7 +24,7 @@
  * @precisions normal z -> c
  *
  */
-#include "chameleon_starpu.h"
+#include "chameleon_starpu_internal.h"
 #include "runtime_codelet_z.h"
 
 #if !defined(CHAMELEON_SIMULATION)

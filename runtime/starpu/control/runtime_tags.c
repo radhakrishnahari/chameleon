@@ -17,7 +17,7 @@
  * @{
  *
  **/
-#include "chameleon_starpu.h"
+#include "chameleon_starpu_internal.h"
 
 #if defined(CHAMELEON_USE_MPI)
 

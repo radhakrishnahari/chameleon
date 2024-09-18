@@ -16,7 +16,7 @@
  * @date 2023-08-22
  *
  */
-#include "chameleon_starpu.h"
+#include "chameleon_starpu_internal.h"
 #undef HAVE_STARPU_REUSE_DATA_ON_NODE
 
 CHAM_pivot_t *

@@ -186,6 +186,7 @@ files=$( git ls-files                     |
              grep -v CTest                |
              grep -v cblas.h              |
              grep -v "lapacke.*\.h"       |
+             grep -v "coreblas/lapack\.h"       |
              grep -v ".*eztrace_module$"  |
              grep -v "simucore/perfmodels/\.starpu" |
              grep -v "\.xml"              |

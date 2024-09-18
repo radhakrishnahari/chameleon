@@ -21,9 +21,8 @@
  * @precisions normal z -> c d s
  *
  */
-#include "chameleon_starpu.h"
+#include "chameleon_starpu_internal.h"
 #include "runtime_codelet_z.h"
-#include <coreblas/cblas_wrapper.h>
 
 struct cl_getrf_batched_args_t {
     const char              *cl_name;

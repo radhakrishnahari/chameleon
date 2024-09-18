@@ -20,7 +20,7 @@
  * @precisions normal z -> c
  *
  */
-#include "chameleon_starpu.h"
+#include "chameleon_starpu_internal.h"
 #include "runtime_codelet_z.h"
 
 void INSERT_TASK_zhessq( const RUNTIME_option_t *options,

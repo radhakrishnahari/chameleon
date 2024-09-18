@@ -20,7 +20,7 @@
  * @date 2022-02-22
  *
  */
-#include "chameleon_starpu.h"
+#include "chameleon_starpu_internal.h"
 #include <math.h>
 #if defined(STARPU_USE_FXT)
 #include <starpu_fxt.h>

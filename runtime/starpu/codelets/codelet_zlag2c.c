@@ -22,7 +22,7 @@
  * @precisions mixed zc -> ds
  *
  */
-#include "chameleon_starpu.h"
+#include "chameleon_starpu_internal.h"
 #include "runtime_codelet_zc.h"
 
 #if !defined(CHAMELEON_SIMULATION)

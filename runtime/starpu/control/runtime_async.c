@@ -19,7 +19,7 @@
  * @date 2024-03-16
  *
  */
-#include "chameleon_starpu.h"
+#include "chameleon_starpu_internal.h"
 
 /**
  *  Create a sequence
@@ -93,9 +93,9 @@ int RUNTIME_request_create( CHAM_context_t    *chamctxt,
 {
     (void)chamctxt;
     /* allocate schedopt */
-    request->schedopt = (starpu_option_request_t*)malloc(sizeof(starpu_option_request_t));
+    request->schedopt = (RUNTIME_request_starpu_t*)malloc(sizeof(RUNTIME_request_starpu_t));
     /* initialize schedopt */
-    starpu_option_request_t* schedopt = (starpu_option_request_t *)(request->schedopt);
+    RUNTIME_request_starpu_t* schedopt = (RUNTIME_request_starpu_t *)(request->schedopt);
     /* default is to not use "execute_on_a_specific_worker" i.e. -1 */
     schedopt->workerid = -1;
     request->status = CHAMELEON_SUCCESS;
@@ -124,7 +124,7 @@ int RUNTIME_request_set( CHAM_context_t  *chamctxt,
         chameleon_error("RUNTIME_request_set", "request not initialized");
         return CHAMELEON_ERR_NOT_INITIALIZED;
     }
-    starpu_option_request_t* schedopt = (starpu_option_request_t *)(request->schedopt);
+    RUNTIME_request_starpu_t* schedopt = (RUNTIME_request_starpu_t *)(request->schedopt);
 
     switch ( param ) {
         case CHAMELEON_REQUEST_WORKERID:

@@ -19,12 +19,12 @@
  * @date 2023-07-04
  *
  */
-#include "chameleon_starpu.h"
+#include "chameleon_starpu_internal.h"
 
 void RUNTIME_options_init( RUNTIME_option_t *options, CHAM_context_t *chamctxt,
                            RUNTIME_sequence_t *sequence, RUNTIME_request_t *request )
 {
-    starpu_option_request_t* schedopt = (starpu_option_request_t *)(request->schedopt);
+    RUNTIME_request_starpu_t* schedopt = (RUNTIME_request_starpu_t *)(request->schedopt);
     options->sequence  = sequence;
     options->request   = request;
     options->profiling = CHAMELEON_STATISTICS == CHAMELEON_TRUE;

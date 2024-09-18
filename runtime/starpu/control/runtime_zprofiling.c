@@ -20,7 +20,7 @@
  * @precisions normal z -> s d c
  *
  */
-#include "chameleon_starpu.h"
+#include "chameleon_starpu_internal.h"
 #include "runtime_codelet_z.h"
 
 void RUNTIME_zdisplay_allprofile()
