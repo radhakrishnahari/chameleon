@@ -40,11 +40,12 @@ set(CHAMELEON_CONTROL
     ../control/context.c
     ../control/control.c
     ../control/descriptor.c
-    ../control/descriptor_rec.c
     ../control/descriptor_helpers.c
     ../control/descriptor_ipiv.c
-    ../control/workspace.c
+    ../control/descriptor_rec.c
+    ../control/lamch.c
     ../control/tile.c
+    ../control/workspace.c
     ../control/chameleon_f77.c
     ../control/chameleon_mf77.c
     map.c

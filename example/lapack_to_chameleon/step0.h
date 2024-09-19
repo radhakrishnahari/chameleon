@@ -96,11 +96,7 @@ static void read_args(int argc, char *argv[], int *iparam){
  * Print a header message to summarize main parameters
  */
 static void print_header(char *prog_name, int * iparam) {
-#if defined(CHAMELEON_SIMULATION)
-    double    eps = 0.;
-#else
-    double    eps = LAPACKE_dlamch_work( 'e' );
-#endif
+    double eps = LAPACKE_dlamch_work( 'e' );
 
     printf( "#\n"
             "# CHAMELEON %s\n"

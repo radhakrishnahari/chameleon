@@ -227,6 +227,10 @@ int CHAMELEON_Ipiv_Gather( CHAM_ipiv_t *ipivdesc,
                            int          root );
 void CHAMELEON_Ipiv_Print ( const CHAM_ipiv_t *ipiv );
 
+/* Numerical helpers */
+float CHAMELEON_slamch( void );
+double CHAMELEON_dlamch( void );
+
 /**
  *
  * @ingroup Control

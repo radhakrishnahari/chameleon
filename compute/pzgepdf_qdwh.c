@@ -604,15 +604,7 @@ chameleon_pzgepdf_qdwh( cham_mtxtype_t mtxtype, CHAM_desc_t *descU, CHAM_desc_t 
     double normest, Unorm;
     int it, itconv, facto = -1;
 
-#if !defined(CHAMELEON_SIMULATION)
-    double eps  = LAPACKE_dlamch_work('e');
-#else
-#if defined(PRECISION_z) || defined(PRECISION_d)
-    double eps  = 1.e-15;
-#else
-    double eps  = 1.e-7;
-#endif
-#endif
+    double eps  = CHAMELEON_dlamch();
     double tol1 = 5. * eps;
     double tol3 = pow( tol1, 1./3. );
     double id_flops_ratio = ( _zgepdf_qdwh_opt_id == 1 ) ? .5 : 1.5;

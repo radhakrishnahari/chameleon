@@ -13,6 +13,7 @@
  * @author Mathieu Faverge
  * @author Alycia Lisito
  * @author Lionel Eyraud-Dubois
+ * @author Lucas Barros De Assis
  * @date 2023-07-05
  *
  */
@@ -488,6 +489,12 @@ parameters_desc_create( const char *id, CHAM_desc_t **descptr, cham_flttype_t dt
     int            rc;
 
     mtxfmt = -mtxfmt; /* Inverse sign to get the defined values */
+
+    if ( cham_is_mixed( dtyp )  && ( (void*)mtxfmt != CHAMELEON_MAT_ALLOC_TILE ) )
+    {
+        fprintf( stderr, "parameters_desc_create: Mixed precision descriptors can only be used with tiled allocation. Please enforce '--mtxfmt=1' \n" );
+        return CHAMELEON_ERR_ILLEGAL_VALUE;
+    }
 
     if ( !custom ) {
         int P = parameters_getvalue_int( "P" );

@@ -28,8 +28,10 @@
 #define W( desc, m, n ) (desc), (m), (n)
 
 static inline void
-chameleon_pzgered_frb( cham_uplo_t uplo,
-                       CHAM_desc_t *A, CHAM_desc_t *Wnorm, CHAM_desc_t *Welt,
+chameleon_pzgered_frb( cham_uplo_t       uplo,
+                       CHAM_desc_t      *A,
+                       CHAM_desc_t      *Wnorm,
+                       CHAM_desc_t      *Welt,
                        RUNTIME_option_t *options )
 {
     double alpha = 1.0;
@@ -155,14 +157,17 @@ chameleon_pzgered_frb( cham_uplo_t uplo,
 /**
  *
  */
-void chameleon_pzgered( cham_uplo_t uplo, double prec, CHAM_desc_t *A,
-                         RUNTIME_sequence_t *sequence, RUNTIME_request_t *request )
+void chameleon_pzgered( cham_uplo_t         uplo,
+                        double              prec,
+                        CHAM_desc_t        *A,
+                        RUNTIME_sequence_t *sequence,
+                        RUNTIME_request_t  *request )
 {
     CHAM_context_t *chamctxt;
     RUNTIME_option_t options;
     CHAM_desc_t Wcol;
     CHAM_desc_t Welt;
-    double gnorm, threshold, eps;
+    double gnorm, threshold, eps, eps_diag, threshold_diag;
 
     int workmt, worknt;
     int m, n;
@@ -202,37 +207,36 @@ void chameleon_pzgered( cham_uplo_t uplo, double prec, CHAM_desc_t *A,
     /**
      * Reduce the precision of the tiles if possible
      */
+    eps_diag = CHAMELEON_slamch();
     if ( prec < 0. ) {
-#if !defined(CHAMELEON_SIMULATION)
-        eps = LAPACKE_dlamch_work('e');
-#else
-#if defined(PRECISION_z) || defined(PRECISION_d)
-        eps = 1.e-15;
-#else
-        eps = 1.e-7;
-#endif
-#endif
+        eps = CHAMELEON_dlamch();
     }
     else {
         eps = prec;
     }
     threshold = (eps * gnorm) / (double)(chameleon_min(A->mt, A->nt));
+    threshold_diag = ( eps < eps_diag ) ? threshold : (eps_diag * gnorm) / (double)(chameleon_min(A->mt, A->nt));
 
 #if defined(CHAMELEON_DEBUG_GERED)
     fprintf( stderr,
              "[%2d] The norm of A is:           %e\n"
              "[%2d] The requested precision is: %e\n"
-             "[%2d] The computed threshold is:  %e\n",
+             "[%2d] The computed threshold is:  %e\n"
+             "[%2d] The threshold diag is :     %e\n",
              A->myrank, gnorm,
              A->myrank, eps,
-             A->myrank, threshold );
+             A->myrank, threshold,
+             A->myrank, threshold_diag );
 #endif
-    for(m = 0; m < A->mt; m++) {
+
+    for(m = 0; m < A->mt; m++)
+    {
         int tempmm = ( m == (A->mt-1) ) ? A->m - m * A->mb : A->mb;
         int nmin   = ( uplo == ChamUpper ) ? m                         : 0;
         int nmax   = ( uplo == ChamLower ) ? chameleon_min(m+1, A->nt) : A->nt;
 
-        for(n = nmin; n < nmax; n++) {
+        for(n = nmin; n < nmax; n++)
+        {
             int tempnn = ( n == (A->nt-1) ) ? A->n - n * A->nb : A->nb;
 
             /*
@@ -241,8 +245,14 @@ void chameleon_pzgered( cham_uplo_t uplo, double prec, CHAM_desc_t *A,
              * ||A_{i,j}||_F  < u_{high} * || A ||_F / (nt * u_{low})
              * ||A_{i,j}||_F  < threshold / u_{low}
              */
-            INSERT_TASK_zgered( &options, threshold,
-                                tempmm, tempnn, A( m, n ), W( &Wcol, m, n ) );
+            if ( m == n ) {
+                INSERT_TASK_zgered( &options, threshold_diag,
+                                    tempmm, tempnn, A( m, n ), W( &Wcol, m, n ) );
+            }
+            else {
+                INSERT_TASK_zgered( &options, threshold,
+                                    tempmm, tempnn, A( m, n ), W( &Wcol, m, n ) );
+            }
         }
     }
 
@@ -250,6 +260,6 @@ void chameleon_pzgered( cham_uplo_t uplo, double prec, CHAM_desc_t *A,
     RUNTIME_sequence_wait( chamctxt, sequence );
 
     chameleon_desc_destroy( &Wcol );
-    RUNTIME_options_ws_free(&options);
-    RUNTIME_options_finalize(&options, chamctxt);
+    RUNTIME_options_ws_free( &options );
+    RUNTIME_options_finalize( &options, chamctxt );
 }

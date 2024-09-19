@@ -71,8 +71,7 @@ void INSERT_TASK_zgered( const RUNTIME_option_t *options,
 
 #if defined(CHAMELEON_USE_MPI)
     /* Backup the MPI tag */
-    if (A->myrank == tileA->rank)
-    {
+    if ( A->myrank == tileA->rank ) {
         tag = starpu_mpi_data_get_tag( *handleAin );
     }
 #endif /* defined(CHAMELEON_USE_MPI) */
@@ -89,39 +88,41 @@ void INSERT_TASK_zgered( const RUNTIME_option_t *options,
 #if defined(CHAMELEON_DEBUG_GERED)
             fprintf( stderr,
                      "[%2d] Convert the tile ( %d, %d ) to half precision\n",
-                    A->myrank, Am, An);
+                     A->myrank, Am, An);
 #endif
-            starpu_cham_tile_register( &handleAout, -1, tileA, ChamComplexHalf );
-
-            rt_shm_starpu_insert_task(
-                &cl_dlag2h,
-                STARPU_VALUE,    &m,                 sizeof(int),
-                STARPU_VALUE,    &n,                 sizeof(int),
-                STARPU_R,        *handleAin,
-                STARPU_W,         handleAout,
-                STARPU_PRIORITY,  options->priority,
-                STARPU_EXECUTE_ON_WORKER, options->workerid,
-#if defined(CHAMELEON_CODELETS_HAVE_NAME)
-                STARPU_NAME, "dlag2h",
-#endif
-                0);
-
-            starpu_data_unregister_no_coherency( *handleAin );
-            *handleAin = handleAout;
-            tileA->flttype = ChamComplexHalf;
-            starpu_mpi_data_register( handleAout, tag, tileA->rank );
-        }
-        else
-        {
-            tileA->flttype = ChamComplexHalf;
-            if (*handleAin != NULL)
+            if ( A->myrank == tileA->rank )
             {
-                starpu_data_unregister_no_coherency(*handleAin);
-                *handleAin = NULL;
-            }
-        }
-        return;
+                starpu_cham_tile_register( &handleAout, -1, tileA, ChamComplexHalf );
 
+                rt_shm_starpu_insert_task(
+                    &cl_dlag2h,
+                    STARPU_VALUE,            &m, sizeof(int),
+                    STARPU_VALUE,            &n, sizeof(int),
+                    STARPU_R,                *handleAin,
+                    STARPU_W,                 handleAout,
+                    STARPU_PRIORITY,          options->priority,
+                    STARPU_EXECUTE_ON_WORKER, options->workerid,
+#if defined(CHAMELEON_CODELETS_HAVE_NAME)
+                    STARPU_NAME,              "dlag2h",
+#endif
+                    0);
+
+                starpu_data_unregister_no_coherency( *handleAin );
+                *handleAin     = handleAout;
+                tileA->flttype = ChamComplexHalf;
+                starpu_mpi_data_register( handleAout, tag, tileA->rank );
+            }
+            else
+            {
+                tileA->flttype = ChamComplexHalf;
+                if ( *handleAin != NULL )
+                {
+                    starpu_data_unregister_no_coherency( *handleAin );
+                    *handleAin = NULL;
+                }
+            }
+            return;
+        }
     }
 #endif
 #endif
@@ -129,11 +130,7 @@ void INSERT_TASK_zgered( const RUNTIME_option_t *options,
     /*
      * Check for single precision
      */
-#if !defined(CHAMELEON_SIMULATION)
-    u_low = LAPACKE_slamch_work('e');
-#else
-    u_low = 1e-8;
-#endif
+    u_low = CHAMELEON_slamch();
     if ( lnorm < (threshold / u_low) )
     {
 #if defined(CHAMELEON_DEBUG_GERED)
@@ -141,34 +138,34 @@ void INSERT_TASK_zgered( const RUNTIME_option_t *options,
                  "[%2d] Convert the tile ( %d, %d ) to single precision\n",
                  A->myrank, Am, An );
 #endif
-        if (A->myrank == tileA->rank)
+        if ( A->myrank == tileA->rank )
         {
             starpu_cham_tile_register( &handleAout, -1, tileA, ChamComplexFloat );
 
             rt_shm_starpu_insert_task(
                 &cl_zlag2c,
-                STARPU_VALUE,    &m,                 sizeof(int),
-                STARPU_VALUE,    &n,                 sizeof(int),
-                STARPU_R,        *handleAin,
-                STARPU_W,         handleAout,
-                STARPU_PRIORITY,  options->priority,
+                STARPU_VALUE,            &m, sizeof(int),
+                STARPU_VALUE,            &n, sizeof(int),
+                STARPU_R,                *handleAin,
+                STARPU_W,                 handleAout,
+                STARPU_PRIORITY,          options->priority,
                 STARPU_EXECUTE_ON_WORKER, options->workerid,
 #if defined(CHAMELEON_CODELETS_HAVE_NAME)
-                STARPU_NAME, "zlag2c",
+                STARPU_NAME,              "zlag2c",
 #endif
                 0);
 
             starpu_data_unregister_no_coherency( *handleAin );
-            *handleAin = handleAout;
+            *handleAin     = handleAout;
             tileA->flttype = ChamComplexFloat;
             starpu_mpi_data_register( *handleAin, tag, tileA->rank );
         }
         else
         {
             tileA->flttype = ChamComplexFloat;
-            if (*handleAin != NULL)
+            if ( *handleAin != NULL )
             {
-                starpu_data_unregister_no_coherency(*handleAin);
+                starpu_data_unregister_no_coherency( *handleAin );
                 *handleAin = NULL;
             }
         }
