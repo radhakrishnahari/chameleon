@@ -49,6 +49,7 @@ struct chameleon_pzgetrf_s {
     CHAM_desc_t    U;
     CHAM_desc_t    Up; /**< Workspace used for the panel factorization    */
     CHAM_desc_t    Wu; /**< Workspace used for the permutation and update */
+    CHAM_desc_t    Wl; /**< Workspace used the update                     */
     int           *proc_involved;
     unsigned int   involved;
     int            np_involved;
