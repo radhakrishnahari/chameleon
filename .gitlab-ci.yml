@@ -5,7 +5,6 @@ stages:
   - test
   - coverage
   - analyze
-  - validate
   - deploy
 
 # git config --global ahev been added to get around the issue related in
@@ -32,7 +31,6 @@ include:
   - .gitlab/coverage.yml
   - .gitlab/coverity.yml
   - .gitlab/sonarqube.yml
-  - .gitlab/validate.yml
   - .gitlab/bench_plafrim.yml
   - .gitlab/pages.yml
   - .gitlab/release.yml
