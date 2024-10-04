@@ -3,6 +3,7 @@
   stage: analyze
   tags: ["docker", "large"]
   variables:
+    GIT_DEPTH: "0"
     VERSION: sonarqube
   script:
     - ls -l build*/*.json

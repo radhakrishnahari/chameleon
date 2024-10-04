@@ -50,14 +50,15 @@ jq -s 'map(.[])' $PWD/build-*/compile_commands.json > compile_commands.json
 # create the sonarqube config file
 cat > sonar-project.properties << EOF
 sonar.host.url=https://sonarqube.inria.fr/sonarqube
-sonar.login=$SONARQUBE_LOGIN
+
+sonar.projectKey=solverstack_chameleon_AZJTCfl1sbMNg1jXgm3k
+sonar.qualitygate.wait=true
 
 sonar.links.homepage=$CI_PROJECT_URL
 sonar.links.scm=$CI_REPOSITORY_URL
 sonar.links.ci=$CI_PROJECT_URL/pipelines
 sonar.links.issue=$CI_PROJECT_URL/issues
 
-sonar.projectKey=${CI_PROJECT_NAMESPACE}:${CI_PROJECT_NAME}
 sonar.projectDescription=Dense linear algebra subroutines for heterogeneous and distributed architectures
 sonar.projectVersion=1.3.0
 
