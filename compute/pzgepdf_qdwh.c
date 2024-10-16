@@ -36,7 +36,7 @@ static int _zgepdf_qdwh_opt_genD = 0;
 #endif
 
 static int _zgepdf_qdwh_opt_qr = 1;
-static int _zgepdf_qdwh_opt_id = 1;
+static int _zgepdf_qdwh_opt_id = 1; // There is a numerical issue when combining this optimization and the StarPU lacpy
 static int _zgepdf_qdwh_verbose = 0;
 
 /**
@@ -719,13 +719,13 @@ chameleon_pzgepdf_qdwh( cham_mtxtype_t mtxtype, CHAM_desc_t *descU, CHAM_desc_t 
         it++;
         last = ( it >= itconv );
 
+        chameleon_sequence_wait( chamctxt, sequence_it );
         if ( params[2] > 100 ) {
             int do_qr = (!_zgepdf_qdwh_opt_qr) || (it > 1);
 
             if ( (chamctxt->scheduler == RUNTIME_SCHED_PARSEC) &&
                  ( sequence_it != sequence_qr ) )
             {
-                chameleon_sequence_wait( chamctxt, sequence_it );
                 sequence_it = sequence_qr;
                 request_it = &request_qr;
             }
@@ -753,7 +753,6 @@ chameleon_pzgepdf_qdwh( cham_mtxtype_t mtxtype, CHAM_desc_t *descU, CHAM_desc_t 
             if ( (chamctxt->scheduler == RUNTIME_SCHED_PARSEC) &&
                  ( sequence_it != sequence_po ) )
             {
-                chameleon_sequence_wait( chamctxt, sequence_it );
                 sequence_it = sequence_po;
                 request_it = &request_po;
             }
@@ -796,10 +795,10 @@ chameleon_pzgepdf_qdwh( cham_mtxtype_t mtxtype, CHAM_desc_t *descU, CHAM_desc_t 
         }
     }
 
+    chameleon_sequence_wait( chamctxt, sequence_it );
     if ( (chamctxt->scheduler == RUNTIME_SCHED_PARSEC) &&
          ( sequence_it != sequence ) )
     {
-        chameleon_sequence_wait( chamctxt, sequence_it );
         chameleon_sequence_destroy( chamctxt, sequence_qr );
         chameleon_sequence_destroy( chamctxt, sequence_po );
     }
