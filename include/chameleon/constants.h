@@ -354,6 +354,13 @@ typedef enum chameleon_translation_e {
 #define CHAMELEON_MAT_OOC          ((void*)-2)
 
 /**
+ * @brief Integer constant matching the previous ones for case values
+ */
+#define CHAMELEON_MAT_CASE_ALLOC_GLOBAL  0
+#define CHAMELEON_MAT_CASE_ALLOC_TILE   -1
+#define CHAMELEON_MAT_CASE_OOC          -2
+
+/**
  *  CHAMELEON constants - success & error codes
  */
 #define CHAMELEON_SUCCESS                 0
