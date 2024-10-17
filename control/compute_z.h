@@ -23,7 +23,7 @@
  * @author Matthieu Kuhn
  * @author Lionel Eyraud-Dubois
  * @author Ana Hourcau
- * @date 2024-10-17
+ * @date 2024-10-18
  * @precisions normal z -> c d s
  *
  */
@@ -49,7 +49,7 @@ struct chameleon_pzgetrf_s {
     CHAM_desc_t  U;
     CHAM_desc_t  Up;
     int         *proc_involved;
-    int          involved:1;
+    unsigned int involved:1;
 };
 
 /**
