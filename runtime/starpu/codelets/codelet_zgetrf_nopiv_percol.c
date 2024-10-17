@@ -20,8 +20,8 @@
 #include "chameleon_starpu_internal.h"
 #include "runtime_codelet_z.h"
 
-CHAMELEON_CL_CB( zgetrf_nopiv_percol_diag, cti_handle_get_m(task->handles[0]), 0, 0, M );
-CHAMELEON_CL_CB( zgetrf_nopiv_percol_trsm, cti_handle_get_m(task->handles[0]), 0, 0, M );
+CHAMELEON_CL_CB( zgetrf_nopiv_percol_diag, cti_handle_get_m(task->handles[0]), 0, 0, M )
+CHAMELEON_CL_CB( zgetrf_nopiv_percol_trsm, cti_handle_get_m(task->handles[0]), 0, 0, M )
 
 static const CHAMELEON_Complex64_t zone  = (CHAMELEON_Complex64_t) 1.0;
 static const CHAMELEON_Complex64_t mzone = (CHAMELEON_Complex64_t)-1.0;
@@ -72,7 +72,7 @@ static void cl_zgetrf_nopiv_percol_diag_cpu_func( void *descr[], void *cl_arg )
 /*
  * Codelet definition
  */
-CODELETS_CPU( zgetrf_nopiv_percol_diag, cl_zgetrf_nopiv_percol_diag_cpu_func );
+CODELETS_CPU( zgetrf_nopiv_percol_diag, cl_zgetrf_nopiv_percol_diag_cpu_func )
 
 void INSERT_TASK_zgetrf_nopiv_percol_diag( const RUNTIME_option_t *options,
                                                  int m, int n, int k,
@@ -141,7 +141,7 @@ static void cl_zgetrf_nopiv_percol_trsm_cpu_func( void *descr[], void *cl_arg )
 /*
  * Codelet definition
  */
-CODELETS_CPU( zgetrf_nopiv_percol_trsm, cl_zgetrf_nopiv_percol_trsm_cpu_func );
+CODELETS_CPU( zgetrf_nopiv_percol_trsm, cl_zgetrf_nopiv_percol_trsm_cpu_func )
 
 void INSERT_TASK_zgetrf_nopiv_percol_trsm( const RUNTIME_option_t *options,
                                                  int m, int n, int k,

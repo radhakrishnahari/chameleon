@@ -76,7 +76,7 @@ cl_zgeadd_cuda_func( void *descr[], void *cl_arg )
 /*
  * Codelet definition
  */
-CODELETS( zgeadd, cl_zgeadd_cpu_func, cl_zgeadd_cuda_func, STARPU_CUDA_ASYNC );
+CODELETS( zgeadd, cl_zgeadd_cpu_func, cl_zgeadd_cuda_func, STARPU_CUDA_ASYNC )
 
 void INSERT_TASK_zgeadd( const RUNTIME_option_t *options,
                          cham_trans_t trans, int m, int n, int nb,

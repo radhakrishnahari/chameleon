@@ -22,9 +22,9 @@
 #include "chameleon_starpu_internal.h"
 #include "runtime_codelet_z.h"
 
-CHAMELEON_CL_CB( zgetrf_blocked_diag,    cti_handle_get_m(task->handles[0]), 0, 0, M );
-CHAMELEON_CL_CB( zgetrf_blocked_offdiag, cti_handle_get_m(task->handles[0]), 0, 0, M );
-CHAMELEON_CL_CB( zgetrf_blocked_trsm,    cti_handle_get_m(task->handles[0]), 0, 0, M );
+CHAMELEON_CL_CB( zgetrf_blocked_diag,    cti_handle_get_m(task->handles[0]), 0, 0, M )
+CHAMELEON_CL_CB( zgetrf_blocked_offdiag, cti_handle_get_m(task->handles[0]), 0, 0, M )
+CHAMELEON_CL_CB( zgetrf_blocked_trsm,    cti_handle_get_m(task->handles[0]), 0, 0, M )
 
 #if !defined(CHAMELEON_SIMULATION)
 static void cl_zgetrf_blocked_diag_cpu_func(void *descr[], void *cl_arg)
@@ -85,7 +85,7 @@ static void cl_zgetrf_blocked_diag_cpu_func(void *descr[], void *cl_arg)
 /*
  * Codelet definition
  */
-CODELETS_CPU( zgetrf_blocked_diag, cl_zgetrf_blocked_diag_cpu_func );
+CODELETS_CPU( zgetrf_blocked_diag, cl_zgetrf_blocked_diag_cpu_func )
 
 void INSERT_TASK_zgetrf_blocked_diag( const RUNTIME_option_t *options,
                                       int m, int n, int h, int m0, int ib,
