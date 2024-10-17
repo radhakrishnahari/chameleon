@@ -16,7 +16,7 @@
  * @author Florent Pruvost
  * @author Lucas Barros de Assis
  * @author Samuel Thibault
- * @date 2023-07-06
+ * @date 2024-10-18
  * @precisions normal z -> s d c
  *
  */
@@ -84,10 +84,7 @@ void INSERT_TASK_ztpqrt( const RUNTIME_option_t *options,
 #if defined(CHAMELEON_USE_MPI)
         STARPU_EXECUTE_ON_NODE, B->get_rankof(B, Bm, Bn),
 #endif
-#if defined(CHAMELEON_CODELETS_HAVE_NAME)
-        STARPU_NAME, "ztpqrt",
-#endif
-        0);
+        0 );
 
     (void)ib; (void)nb;
 }

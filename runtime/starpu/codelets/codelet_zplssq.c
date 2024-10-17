@@ -17,7 +17,7 @@
  * @author Mathieu Faverge
  * @author Florent Pruvost
  * @author Samuel Thibault
- * @date 2023-07-06
+ * @date 2024-10-18
  * @precisions normal z -> c d s
  *
  */
@@ -74,10 +74,7 @@ void INSERT_TASK_zplssq( const RUNTIME_option_t *options,
         STARPU_PRIORITY,    options->priority,
         STARPU_CALLBACK,    callback,
         STARPU_EXECUTE_ON_WORKER, options->workerid,
-#if defined(CHAMELEON_CODELETS_HAVE_NAME)
-        STARPU_NAME, "zplssq",
-#endif
-        0);
+        0 );
 }
 
 #if !defined(CHAMELEON_SIMULATION)
@@ -119,8 +116,5 @@ void INSERT_TASK_zplssq2( const RUNTIME_option_t *options, int N,
         STARPU_PRIORITY,    options->priority,
         STARPU_CALLBACK,    callback,
         STARPU_EXECUTE_ON_WORKER, options->workerid,
-#if defined(CHAMELEON_CODELETS_HAVE_NAME)
-        STARPU_NAME, "zplssq2",
-#endif
-        0);
+        0 );
 }

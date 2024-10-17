@@ -13,7 +13,7 @@
  *
  * @author Mathieu Faverge
  * @author Matthieu Kuhn
- * @date 2023-08-22
+ * @date 2024-10-18
  * @precisions normal z -> c d s
  *
  */
@@ -101,10 +101,7 @@ void INSERT_TASK_zgetrf_nopiv_percol_diag( const RUNTIME_option_t *options,
         STARPU_PRIORITY,          options->priority,
         STARPU_CALLBACK,          callback,
         STARPU_EXECUTE_ON_WORKER, options->workerid,
-#if defined(CHAMELEON_CODELETS_HAVE_NAME)
-        STARPU_NAME,              "zgetrf_nopiv_percol_diag",
-#endif
-        0);
+        0 );
 }
 
 /*
@@ -169,8 +166,5 @@ void INSERT_TASK_zgetrf_nopiv_percol_trsm( const RUNTIME_option_t *options,
         STARPU_PRIORITY,          options->priority,
         STARPU_CALLBACK,          callback,
         STARPU_EXECUTE_ON_WORKER, options->workerid,
-#if defined(CHAMELEON_CODELETS_HAVE_NAME)
-        STARPU_NAME, "zgetrf_nopiv_percol_trsm",
-#endif
-        0);
+        0 );
 }
