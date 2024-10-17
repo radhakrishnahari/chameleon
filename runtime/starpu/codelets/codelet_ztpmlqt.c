@@ -13,7 +13,7 @@
  * @author Mathieu Faverge
  * @author Lucas Barros de Assis
  * @author Florent Pruvost
- * @date 2023-07-06
+ * @date 2024-10-18
  * @precisions normal z -> s d c
  *
  */
@@ -99,7 +99,8 @@ void INSERT_TASK_ztpmlqt( const RUNTIME_option_t *options,
                           const CHAM_desc_t *B, int Bm, int Bn )
 {
     struct starpu_codelet *codelet = &cl_ztpmlqt;
-    void (*callback)(void*) = options->profiling ? cl_ztpmlqt_callback : NULL;
+    const char            *cl_name;
+    void (*callback)(void*);
 
     CHAMELEON_BEGIN_ACCESS_DECLARATION;
     CHAMELEON_ACCESS_R(V, Vm, Vn);
@@ -108,8 +109,15 @@ void INSERT_TASK_ztpmlqt( const RUNTIME_option_t *options,
     CHAMELEON_ACCESS_RW(B, Bm, Bn);
     CHAMELEON_END_ACCESS_DECLARATION;
 
+    /* Callback for profiling information */
+    callback = options->profiling ? cl_ztpmlqt_callback : NULL;
+
+    /* Refine name */
+    cl_name = (L == 0) ? "ztsmlqt" : "zttmlqt";
+
     rt_starpu_insert_task(
         codelet,
+        /* Task codelet arguments */
         STARPU_VALUE, &side,  sizeof(int),
         STARPU_VALUE, &trans, sizeof(int),
         STARPU_VALUE, &M,     sizeof(int),
@@ -118,22 +126,21 @@ void INSERT_TASK_ztpmlqt( const RUNTIME_option_t *options,
         STARPU_VALUE, &L,     sizeof(int),
         STARPU_VALUE, &ib,     sizeof(int),
         STARPU_VALUE, &(options->ws_wsize), sizeof(size_t),
+
+        /* Task handles */
         STARPU_R,      RTBLKADDR(V, ChamComplexDouble, Vm, Vn),
         STARPU_R,      RTBLKADDR(T, ChamComplexDouble, Tm, Tn),
         STARPU_RW,     RTBLKADDR(A, ChamComplexDouble, Am, An),
         STARPU_RW,     RTBLKADDR(B, ChamComplexDouble, Bm, Bn),
-        /* Other options */
         STARPU_SCRATCH,   options->ws_worker,
-        STARPU_PRIORITY,  options->priority,
-        STARPU_CALLBACK,  callback,
-        STARPU_EXECUTE_ON_WORKER, options->workerid,
-#if defined(CHAMELEON_USE_MPI)
-        STARPU_EXECUTE_ON_NODE, B->get_rankof(B, Bm, Bn),
-#endif
-#if defined(CHAMELEON_CODELETS_HAVE_NAME)
-        STARPU_NAME, (( L == 0 ) ? "ztsmlq" : "ztpmlqt"),
-#endif
-        0);
 
-    (void)ib; (void)nb;
+        /* Common task arguments */
+        STARPU_PRIORITY,          options->priority,
+        STARPU_CALLBACK,          callback,
+        STARPU_EXECUTE_ON_WORKER, options->workerid,
+        STARPU_EXECUTE_ON_NODE,   B->get_rankof(B, Bm, Bn),
+        STARPU_NAME,              cl_name,
+        0 );
+
+    (void)nb;
 }
