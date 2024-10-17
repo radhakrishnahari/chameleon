@@ -17,7 +17,7 @@
  * @author Cedric Castagnede
  * @author Florent Pruvost
  * @author Philippe Virouleau
- * @date 2024-03-16
+ * @date 2024-10-17
  *
  */
 #ifndef _chameleon_runtime_struct_h_
@@ -103,6 +103,7 @@ typedef struct runtime_option_s {
     int                 priority;  /**< Define the submitted task priority                       */
     int                 workerid;  /**< Define the prefered worker id to perform the tasks       */
     int                 forcesub;  /**< Force task submission if true                            */
+    int                 withlacpy; /**< Flag to force the use of lacpy copies                    */
     int                 withcuda;  /**< Flag to know if cuda is enabled/disabled                 */
     size_t              ws_wsize;  /**< Define the worker workspace size                         */
     size_t              ws_hsize;  /**< Define the host workspace size for hybrid CPU/GPU kernel */

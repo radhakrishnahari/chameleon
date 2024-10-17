@@ -16,7 +16,7 @@
  * @author Mathieu Faverge
  * @author Cedric Castagnede
  * @author Florent Pruvost
- * @date 2023-07-04
+ * @date 2024-10-17
  *
  */
 #include "chameleon_starpu_internal.h"
@@ -32,6 +32,7 @@ void RUNTIME_options_init( RUNTIME_option_t *options, CHAM_context_t *chamctxt,
     options->priority  = RUNTIME_PRIORITY_MIN;
     options->workerid  = (schedopt == NULL) ? -1 : schedopt->workerid;
     options->forcesub  = 0;
+    options->withlacpy = 0;
     options->withcuda  = (chamctxt->ncudas > 0);
     options->ws_wsize  = 0;
     options->ws_hsize  = 0;
