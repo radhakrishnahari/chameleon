@@ -32,7 +32,7 @@ void RUNTIME_options_init( RUNTIME_option_t *options, CHAM_context_t *chamctxt,
     options->priority  = RUNTIME_PRIORITY_MIN;
     options->workerid  = (schedopt == NULL) ? -1 : schedopt->workerid;
     options->forcesub  = 0;
-    options->withlacpy = 0;
+    options->withlacpy = !(chamctxt->optlacpy_enabled);
     options->withcuda  = (chamctxt->ncudas > 0);
     options->ws_wsize  = 0;
     options->ws_hsize  = 0;

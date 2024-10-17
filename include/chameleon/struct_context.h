@@ -14,7 +14,7 @@
  * @version 1.3.0
  * @author Mathieu Faverge
  * @author Florent Pruvost
- * @date 2024-03-16
+ * @date 2024-10-17
  *
  */
 #ifndef _struct_context_h_
@@ -43,18 +43,19 @@ typedef struct chameleon_context_s {
     cham_bool_t        progress_enabled;
     cham_bool_t        generic_enabled;
     cham_bool_t        autominmax_enabled;
+    cham_bool_t        optlacpy_enabled;   /**< Enable runtime cpy instead of lacpy kernel            */
     cham_bool_t        runtime_paused;
 
-    cham_householder_t householder;        /**> "domino" (flat) or tree-based (reduction) Householder */
-    cham_translation_t translation;        /**> In place or Out of place layout conversion            */
+    cham_householder_t householder;        /**< "domino" (flat) or tree-based (reduction) Householder */
+    cham_translation_t translation;        /**< In place or Out of place layout conversion            */
 
     int                nb;
     int                ib;
-    int                rhblock;            /**> block size for tree-based (reduction) Householder     */
-    int                lookahead;          /**> depth of the look ahead in algorithms                 */
-    void              *schedopt;           /**> structure for runtimes                                */
-    int                mpi_outer_init;     /**> MPI has been initialized outside our functions        */
-    MPI_Comm           comm;               /**> MPI communicator                                      */
+    int                rhblock;            /**< block size for tree-based (reduction) Householder     */
+    int                lookahead;          /**< depth of the look ahead in algorithms                 */
+    void              *schedopt;           /**< structure for runtimes                                */
+    int                mpi_outer_init;     /**< MPI has been initialized outside our functions        */
+    MPI_Comm           comm;               /**< MPI communicator                                      */
 } CHAM_context_t;
 
 END_C_DECLS
