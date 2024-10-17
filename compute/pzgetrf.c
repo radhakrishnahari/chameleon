@@ -17,7 +17,7 @@
  * @author Emmanuel Agullo
  * @author Matthieu Kuhn
  * @author Alycia Lisito
- * @date 2024-03-16
+ * @date 2024-10-18
  * @precisions normal z -> s d c
  *
  */
@@ -385,7 +385,6 @@ chameleon_pzgetrf_panel_facto( struct chameleon_pzgetrf_s *ws,
         break;
 
     case ChamGetrfNoPiv:
-        chameleon_attr_fallthrough;
     default:
         chameleon_pzgetrf_panel_facto_nopiv( ws, A, ipiv, k, options );
     }
@@ -407,7 +406,6 @@ chameleon_pzgetrf_panel_permute( struct chameleon_pzgetrf_s *ws,
 {
     switch( ws->alg ) {
     case ChamGetrfPPiv:
-        chameleon_attr_fallthrough;
     case ChamGetrfPPivPerColumn:
     {
         int m;
