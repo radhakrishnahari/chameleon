@@ -21,7 +21,7 @@
  * @author Florent Pruvost
  * @author Samuel Thibault
  * @author Alycia Lisito
- * @date 2024-03-16
+ * @date 2024-10-17
  * @precisions normal z -> c d s
  *
  */
@@ -148,7 +148,8 @@ void INSERT_TASK_zlacpyx( const RUNTIME_option_t *options,
 
 #if !defined(CHAMELEON_USE_MPI) || defined(HAVE_STARPU_MPI_DATA_CPY_PRIORITY)
     /* Insert the task */
-    if ( (uplo == ChamUpperLower) &&
+    if ( (!options->withlacpy) &&
+         (uplo == ChamUpperLower) &&
          (tileA->m == m) && (tileA->n == n) &&
          (tileB->m == m) && (tileB->n == n) &&
          (displA == 0) && (displB == 0) )
@@ -225,7 +226,8 @@ void INSERT_TASK_zlacpy( const RUNTIME_option_t *options,
 
 #if !defined(CHAMELEON_USE_MPI) || defined(HAVE_STARPU_MPI_DATA_CPY_PRIORITY)
     /* Insert the task */
-    if ( (uplo == ChamUpperLower) &&
+    if ( (!options->withlacpy) &&
+         (uplo == ChamUpperLower) &&
          (tileA->m == m) && (tileA->n == n) &&
          (tileB->m == m) && (tileB->n == n) )
     {
