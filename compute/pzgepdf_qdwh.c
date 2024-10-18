@@ -15,7 +15,7 @@
  * @author Mathieu Faverge
  * @author Hatem Ltaief
  * @author Lionel Eyraud-Dubois
- * @date 2023-07-05
+ * @date 2024-10-17
  * @precisions normal z -> s d c
  *
  */
@@ -35,8 +35,8 @@ static int _zgepdf_qdwh_opt_genD = 1;
 static int _zgepdf_qdwh_opt_genD = 0;
 #endif
 
-static int _zgepdf_qdwh_opt_qr = 1;
-static int _zgepdf_qdwh_opt_id = 1; // There is a numerical issue when combining this optimization and the StarPU lacpy
+static int _zgepdf_qdwh_opt_qr  = 1;
+static int _zgepdf_qdwh_opt_id  = 1;
 static int _zgepdf_qdwh_verbose = 0;
 
 /**
@@ -603,6 +603,7 @@ chameleon_pzgepdf_qdwh( cham_mtxtype_t mtxtype, CHAM_desc_t *descU, CHAM_desc_t 
     double conv = 100.;
     double normest, Unorm;
     int it, itconv, facto = -1;
+    cham_bool_t optlacpy_backup;
 
     double eps  = CHAMELEON_dlamch();
     double tol1 = 5. * eps;
@@ -614,6 +615,10 @@ chameleon_pzgepdf_qdwh( cham_mtxtype_t mtxtype, CHAM_desc_t *descU, CHAM_desc_t 
         return;
     }
     assert( chamctxt->scheduler != RUNTIME_SCHED_PARSEC );
+
+    /* Force unoptimized lacpy */
+    optlacpy_backup = chamctxt->optlacpy_enabled;
+    chamctxt->optlacpy_enabled = CHAMELEON_FALSE;
 
     if ( info ) {
         info->itQR = 0;
@@ -847,6 +852,9 @@ chameleon_pzgepdf_qdwh( cham_mtxtype_t mtxtype, CHAM_desc_t *descU, CHAM_desc_t 
                                  &descB1, &descTS1, &descTT1, &descQ1, &descD1,
                                  &descB2, &descTS2, &descTT2, &descQ2, &descD2 );
     CHAMELEON_zgemm_WS_Free( gemm_ws );
+
+    /* Restore optimized lacpy value */
+    chamctxt->optlacpy_enabled = optlacpy_backup;
 
     return;
 }

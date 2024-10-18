@@ -11,7 +11,7 @@
  *
  * @brief Chameleon zgesv_nopiv wrappers
  *
- * @version 1.2.0
+ * @version 1.3.0
  * @comment This file has been automatically generated
  *          from Plasma 2.5.0 for CHAMELEON 0.9.2
  * @author Jakub Kurzak
@@ -19,7 +19,8 @@
  * @author Emmanuel Agullo
  * @author Cedric Castagnede
  * @author Florent Pruvost
- * @date 2022-02-22
+ * @author Matthieu Kuhn
+ * @date 2024-10-17
  * @precisions normal z -> s d c
  *
  */
@@ -82,8 +83,8 @@
  *
  */
 int CHAMELEON_zgesv_nopiv( int N, int NRHS,
-                       CHAMELEON_Complex64_t *A, int LDA,
-                       CHAMELEON_Complex64_t *B, int LDB )
+                           CHAMELEON_Complex64_t *A, int LDA,
+                           CHAMELEON_Complex64_t *B, int LDB )
 {
     int NB;
     int status;
@@ -92,6 +93,7 @@ int CHAMELEON_zgesv_nopiv( int N, int NRHS,
     RUNTIME_request_t request = RUNTIME_REQUEST_INITIALIZER;
     CHAM_desc_t descAl, descAt;
     CHAM_desc_t descBl, descBt;
+    void *ws = NULL;
 
     chamctxt = chameleon_context_self();
     if (chamctxt == NULL) {
@@ -138,7 +140,8 @@ int CHAMELEON_zgesv_nopiv( int N, int NRHS,
                      B, NB, NB, LDB, NRHS, N, NRHS, sequence, &request );
 
     /* Call the tile interface */
-    CHAMELEON_zgesv_nopiv_Tile_Async( &descAt, &descBt, sequence, &request );
+    ws = CHAMELEON_zgetrf_nopiv_WS_Alloc( &descAt );
+    CHAMELEON_zgesv_nopiv_Tile_Async( &descAt, &descBt, ws, sequence, &request );
 
     /* Submit the matrix conversion back */
     chameleon_ztile2lap( chamctxt, &descAl, &descAt,
@@ -149,6 +152,7 @@ int CHAMELEON_zgesv_nopiv( int N, int NRHS,
     chameleon_sequence_wait( chamctxt, sequence );
 
     /* Cleanup the temporary data */
+    CHAMELEON_zgetrf_nopiv_WS_Free( ws );
     chameleon_ztile2lap_cleanup( chamctxt, &descAl, &descAt );
     chameleon_ztile2lap_cleanup( chamctxt, &descBl, &descBt );
 
@@ -195,10 +199,11 @@ int CHAMELEON_zgesv_nopiv( int N, int NRHS,
  */
 int CHAMELEON_zgesv_nopiv_Tile( CHAM_desc_t *A, CHAM_desc_t *B )
 {
-    CHAM_context_t *chamctxt;
+    CHAM_context_t     *chamctxt;
     RUNTIME_sequence_t *sequence = NULL;
-    RUNTIME_request_t request = RUNTIME_REQUEST_INITIALIZER;
-    int status;
+    RUNTIME_request_t   request = RUNTIME_REQUEST_INITIALIZER;
+    int                 status;
+    void               *ws;
 
     chamctxt = chameleon_context_self();
     if (chamctxt == NULL) {
@@ -207,12 +212,15 @@ int CHAMELEON_zgesv_nopiv_Tile( CHAM_desc_t *A, CHAM_desc_t *B )
     }
     chameleon_sequence_create( chamctxt, &sequence );
 
-    CHAMELEON_zgesv_nopiv_Tile_Async( A, B, sequence, &request );
+    ws = CHAMELEON_zgetrf_nopiv_WS_Alloc( A );
+    CHAMELEON_zgesv_nopiv_Tile_Async( A, B, ws, sequence, &request );
 
     CHAMELEON_Desc_Flush( A, sequence );
     CHAMELEON_Desc_Flush( B, sequence );
 
     chameleon_sequence_wait( chamctxt, sequence );
+    CHAMELEON_zgetrf_nopiv_WS_Free( ws );
+
     status = sequence->status;
     chameleon_sequence_destroy( chamctxt, sequence );
     return status;
@@ -248,10 +256,14 @@ int CHAMELEON_zgesv_nopiv_Tile( CHAM_desc_t *A, CHAM_desc_t *B )
  * @sa CHAMELEON_zcgesv_Tile_Async
  *
  */
-int CHAMELEON_zgesv_nopiv_Tile_Async( CHAM_desc_t *A, CHAM_desc_t *B,
-                                  RUNTIME_sequence_t *sequence, RUNTIME_request_t *request )
+int CHAMELEON_zgesv_nopiv_Tile_Async( CHAM_desc_t        *A,
+                                      CHAM_desc_t        *B,
+                                      void               *user_ws,
+                                      RUNTIME_sequence_t *sequence,
+                                      RUNTIME_request_t *request )
 {
-    CHAM_context_t *chamctxt;
+    CHAM_context_t                   *chamctxt;
+    struct chameleon_pzgetrf_nopiv_s *ws;
 
     chamctxt = chameleon_context_self();
     if (chamctxt == NULL) {
@@ -294,11 +306,23 @@ int CHAMELEON_zgesv_nopiv_Tile_Async( CHAM_desc_t *A, CHAM_desc_t *B,
      return CHAMELEON_SUCCESS;
      */
 
-    chameleon_pzgetrf_nopiv( A, sequence, request );
+   if ( user_ws == NULL ) {
+        ws = CHAMELEON_zgetrf_nopiv_WS_Alloc( A );
+    }
+    else {
+        ws = user_ws;
+    }
+    chameleon_pzgetrf_nopiv( ws, A, sequence, request );
 
     chameleon_pztrsm( ChamLeft, ChamLower, ChamNoTrans, ChamUnit, (CHAMELEON_Complex64_t)1.0, A, B, sequence, request );
 
     chameleon_pztrsm( ChamLeft, ChamUpper, ChamNoTrans, ChamNonUnit, (CHAMELEON_Complex64_t)1.0, A, B, sequence, request );
 
+    if ( user_ws == NULL ) {
+        CHAMELEON_Desc_Flush( A, sequence );
+        CHAMELEON_Desc_Flush( B, sequence );
+        chameleon_sequence_wait( chamctxt, sequence );
+        CHAMELEON_zgetrf_nopiv_WS_Free( ws );
+    }
     return CHAMELEON_SUCCESS;
 }

@@ -11,19 +11,109 @@
  *
  * @brief Chameleon zgetrf_nopiv wrappers
  *
- * @version 1.2.0
+ * @version 1.3.0
  * @author Omar Zenati
  * @author Mathieu Faverge
  * @author Emmanuel Agullo
  * @author Cedric Castagnede
  * @author Florent Pruvost
  * @author Alycia Lisito
- * @date 2022-02-22
+ * @author Matthieu Kuhn
+ * @date 2024-10-17
  *
  * @precisions normal z -> s d c
  *
  */
 #include "control/common.h"
+/**
+ ********************************************************************************
+ *
+ * @ingroup CHAMELEON_Complex64_t
+ *
+ *  @brief Allocate the required workspaces for asynchronous getrf
+ *
+ *******************************************************************************
+ *
+ * @param[in] A
+ *          The descriptor of the matrix A.
+ *
+ *******************************************************************************
+ *
+ * @retval An allocated opaque pointer to use in CHAMELEON_zgetrf_nopiv_Tile_Async()
+ * and to free with CHAMELEON_zgetrf_nopiv_WS_Free().
+ *
+ *******************************************************************************
+ *
+ * @sa CHAMELEON_zgetrf_nopiv_Tile_Async
+ * @sa CHAMELEON_zgetrf_nopiv_WS_Free
+ *
+ */
+void *CHAMELEON_zgetrf_nopiv_WS_Alloc( const CHAM_desc_t *A )
+{
+    CHAM_context_t *chamctxt;
+    struct chameleon_pzgetrf_nopiv_s *options;
+
+    chamctxt = chameleon_context_self();
+    if ( chamctxt == NULL ) {
+        return NULL;
+    }
+
+    options = calloc( 1, sizeof(struct chameleon_pzgetrf_nopiv_s) );
+    options->use_workspace = 0;
+
+    if ( ( ( A->p > 1 ) || ( A->q > 1 ) ) &&
+         ( A->get_rankof_init == chameleon_getrankof_2d ) &&
+         ( chamctxt->generic_enabled != CHAMELEON_TRUE ) )
+    {
+        int lookahead = chamctxt->lookahead;
+        options->use_workspace = 1;
+
+        chameleon_desc_init( &(options->WL), CHAMELEON_MAT_ALLOC_TILE,
+                             ChamComplexDouble, A->mb, A->nb, (A->mb * A->nb),
+                             A->mt * A->mb, A->nb * A->q * lookahead, 0, 0,
+                             A->mt * A->mb, A->nb * A->q * lookahead, A->p, A->q,
+                             NULL, NULL, A->get_rankof_init, A->get_rankof_init_arg );
+
+        chameleon_desc_init( &(options->WU), CHAMELEON_MAT_ALLOC_TILE,
+                             ChamComplexDouble,
+                             A->mb, A->nb, (A->mb * A->nb),
+                             A->mb * A->p * lookahead, A->nt * A->nb, 0, 0,
+                             A->mb * A->p * lookahead, A->nt * A->nb, A->p, A->q,
+                             NULL, NULL, A->get_rankof_init, A->get_rankof_init_arg );
+    }
+
+    return (void*)options;
+}
+
+/**
+ ********************************************************************************
+ *
+ * @ingroup CHAMELEON_Complex64_t
+ *
+ * @brief Free the allocated workspaces for asynchronous getrf
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] user_ws
+ *          On entry, the opaque pointer allocated by CHAMELEON_zgetrf_nopiv_WS_Alloc()
+ *          On exit, all data are freed.
+ *
+ *******************************************************************************
+ *
+ * @sa CHAMELEON_zgetrf_nopiv_Tile_Async
+ * @sa CHAMELEON_zgetrf_nopiv_WS_Alloc
+ *
+ */
+void CHAMELEON_zgetrf_nopiv_WS_Free( void *user_ws )
+{
+    struct chameleon_pzgetrf_nopiv_s *ws = (struct chameleon_pzgetrf_nopiv_s*)user_ws;
+
+    if ( ws->use_workspace ) {
+        chameleon_desc_destroy( &(ws->WL) );
+        chameleon_desc_destroy( &(ws->WU) );
+    }
+    free( ws );
+}
 
 /**
  ********************************************************************************
@@ -69,7 +159,7 @@
  *
  */
 int CHAMELEON_zgetrf_nopiv( int M, int N,
-                        CHAMELEON_Complex64_t *A, int LDA )
+                            CHAMELEON_Complex64_t *A, int LDA )
 {
     int NB;
     int status;
@@ -77,6 +167,7 @@ int CHAMELEON_zgetrf_nopiv( int M, int N,
     CHAM_context_t *chamctxt;
     RUNTIME_sequence_t *sequence = NULL;
     RUNTIME_request_t request = RUNTIME_REQUEST_INITIALIZER;
+    void *ws = NULL;
 
     chamctxt = chameleon_context_self();
     if (chamctxt == NULL) {
@@ -117,7 +208,8 @@ int CHAMELEON_zgetrf_nopiv( int M, int N,
                      A, NB, NB, LDA, N, M, N, sequence, &request );
 
     /* Call the tile interface */
-    CHAMELEON_zgetrf_nopiv_Tile_Async( &descAt, sequence, &request );
+    ws = CHAMELEON_zgetrf_nopiv_WS_Alloc( &descAt );
+    CHAMELEON_zgetrf_nopiv_Tile_Async( &descAt, ws, sequence, &request );
 
     /* Submit the matrix conversion back */
     chameleon_ztile2lap( chamctxt, &descAl, &descAt,
@@ -126,6 +218,7 @@ int CHAMELEON_zgetrf_nopiv( int M, int N,
     chameleon_sequence_wait( chamctxt, sequence );
 
     /* Cleanup the temporary data */
+    CHAMELEON_zgetrf_nopiv_WS_Free( ws );
     chameleon_ztile2lap_cleanup( chamctxt, &descAl, &descAt );
 
     status = sequence->status;
@@ -169,10 +262,11 @@ int CHAMELEON_zgetrf_nopiv( int M, int N,
  */
 int CHAMELEON_zgetrf_nopiv_Tile( CHAM_desc_t *A )
 {
-    CHAM_context_t *chamctxt;
+    CHAM_context_t     *chamctxt;
     RUNTIME_sequence_t *sequence = NULL;
-    RUNTIME_request_t request = RUNTIME_REQUEST_INITIALIZER;
-    int status;
+    RUNTIME_request_t   request = RUNTIME_REQUEST_INITIALIZER;
+    int                 status;
+    void               *ws;
 
     chamctxt = chameleon_context_self();
     if (chamctxt == NULL) {
@@ -181,11 +275,14 @@ int CHAMELEON_zgetrf_nopiv_Tile( CHAM_desc_t *A )
     }
     chameleon_sequence_create( chamctxt, &sequence );
 
-    CHAMELEON_zgetrf_nopiv_Tile_Async( A, sequence, &request );
+    ws = CHAMELEON_zgetrf_nopiv_WS_Alloc( A );
+    CHAMELEON_zgetrf_nopiv_Tile_Async( A, ws, sequence, &request );
 
     CHAMELEON_Desc_Flush( A, sequence );
 
     chameleon_sequence_wait( chamctxt, sequence );
+    CHAMELEON_zgetrf_nopiv_WS_Free( ws );
+
     status = sequence->status;
     chameleon_sequence_destroy( chamctxt, sequence );
     return status;
@@ -224,11 +321,13 @@ int CHAMELEON_zgetrf_nopiv_Tile( CHAM_desc_t *A )
  * @sa CHAMELEON_zgetrs_Tile_Async
  *
  */
-int CHAMELEON_zgetrf_nopiv_Tile_Async( CHAM_desc_t *A,
-                                   RUNTIME_sequence_t *sequence,
-                                   RUNTIME_request_t *request )
+int CHAMELEON_zgetrf_nopiv_Tile_Async( CHAM_desc_t        *A,
+                                       void               *user_ws,
+                                       RUNTIME_sequence_t *sequence,
+                                       RUNTIME_request_t  *request )
 {
-    CHAM_context_t *chamctxt;
+    CHAM_context_t                   *chamctxt;
+    struct chameleon_pzgetrf_nopiv_s *ws;
 
     chamctxt = chameleon_context_self();
     if (chamctxt == NULL) {
@@ -263,7 +362,19 @@ int CHAMELEON_zgetrf_nopiv_Tile_Async( CHAM_desc_t *A,
         return chameleon_request_fail(sequence, request, CHAMELEON_ERR_ILLEGAL_VALUE);
     }
 
-    chameleon_pzgetrf_nopiv( A, sequence, request );
+   if ( user_ws == NULL ) {
+        ws = CHAMELEON_zgetrf_nopiv_WS_Alloc( A );
+    }
+    else {
+        ws = user_ws;
+    }
 
+    chameleon_pzgetrf_nopiv( ws, A, sequence, request );
+
+    if ( user_ws == NULL ) {
+        CHAMELEON_Desc_Flush( A, sequence );
+        chameleon_sequence_wait( chamctxt, sequence );
+        CHAMELEON_zgetrf_nopiv_WS_Free( ws );
+    }
     return CHAMELEON_SUCCESS;
 }

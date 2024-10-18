@@ -23,7 +23,7 @@
  * @author Matthieu Kuhn
  * @author Lionel Eyraud-Dubois
  * @author Ana Hourcau
- * @date 2024-07-17
+ * @date 2024-10-17
  * @precisions normal z -> c d s
  *
  */
@@ -50,6 +50,49 @@ struct chameleon_pzgetrf_s {
     CHAM_desc_t  Up;
     int         *proc_involved;
     int          involved:1;
+};
+
+/**
+ * @brief   Data structure to handle the GETRF temporary workspaces
+ *          for MPI transfers.
+ *
+ * @comment The idea is to manage explicitely temporary
+ *          blocks arising from MPI transfers automatically
+ *          inferred by StarPU, hence limiting the total number
+ *          of temporary data allocated for these blocks.
+ *
+ *          The blocks to be sent/received on the network are
+ *          copied into those buffers. These copies are
+ *          then used by the algorithm in place of the regular
+ *          blocks of the problem matrix.
+ *
+ *          For WL (resp. WU), the number of allocated blocks
+ *          corresponds to the number of blocks on the column
+ *          (resp. on the line) multiplied by lookahead number
+ *          from the current chameleon context.
+ *
+ *          Then, depending on the block panel index, we access
+ *          one of the temporary column blocks of WL and row blocks
+ *          of WU int a circular way.
+ *
+ *          For instance, for the block panel index k, the block
+ *          A(m,k) produced by the TRSM(A(k,k),A(m,k)) is stored
+ *          into temporary buffer WL(m,k%chamctxt->lookahead).
+ *          Similarly, the block A(k,n) is stored into the temporary
+ *          block WU(k%chamctxt->lookahead, n).
+ *
+ *          Notice that, by doing so, the notion of look ahead is
+ *          reintroduced : artificial dependencies are implied by
+ *          the circular usage of WL and WU temporary workspaces.
+ *
+ */
+struct chameleon_pzgetrf_nopiv_s {
+    int use_workspace;
+
+    CHAM_desc_t WL; /* Workspace to store temporary blocks of the */
+                    /* diagonal and the lower part of the problem matrix */
+    CHAM_desc_t WU; /* Workspace to store temporary blocks of the */
+                    /* upper part of the problem matrix */
 };
 
 /**
@@ -103,7 +146,7 @@ void chameleon_pzgeqrf( int genD, CHAM_desc_t *A, CHAM_desc_t *T, CHAM_desc_t *D
 void chameleon_pzgeqrfrh( int genD, int BS, CHAM_desc_t *A, CHAM_desc_t *T, CHAM_desc_t *D, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 void chameleon_pzgetrf( struct chameleon_pzgetrf_s *ws, CHAM_desc_t *A, CHAM_ipiv_t *IPIV, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request );
 void chameleon_pzgetrf_incpiv(CHAM_desc_t *A, CHAM_desc_t *L, CHAM_desc_t *D, int *IPIV, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
-void chameleon_pzgetrf_nopiv(CHAM_desc_t *A, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
+void chameleon_pzgetrf_nopiv(struct chameleon_pzgetrf_nopiv_s *ws, CHAM_desc_t *A, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 void chameleon_pzgetrf_reclap(CHAM_desc_t *A, int *IPIV, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 void chameleon_pzgetrf_rectil(CHAM_desc_t *A, int *IPIV, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 void chameleon_pzhegst(int itype, cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);

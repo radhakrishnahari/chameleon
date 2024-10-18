@@ -13,7 +13,7 @@
  * @author Lucas Barros de Assis
  * @author Mathieu Faverge
  * @author Alycia Lisito
- * @date 2023-07-05
+ * @date 2024-10-17
  * @precisions normal z -> c d s
  *
  */
@@ -64,7 +64,7 @@ testing_zgesv_nopiv_desc( run_arg_list_t *args, int check )
     /* Calculates the solution */
     testing_start( &test_data );
     if ( async ) {
-        hres = CHAMELEON_zgesv_nopiv_Tile_Async( descA, descX,
+        hres = CHAMELEON_zgesv_nopiv_Tile_Async( descA, descX, NULL,
                                                  test_data.sequence, &test_data.request );
         CHAMELEON_Desc_Flush( descA, test_data.sequence );
         CHAMELEON_Desc_Flush( descX, test_data.sequence );

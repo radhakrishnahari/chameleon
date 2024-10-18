@@ -1,6 +1,6 @@
 chameleon-1.3.0
 ------------------------------------------------------------------------
- - mixed-precision: introduce descripto with precision adapted to local norms
+ - mixed-precision: introduce descriptor with precision adapted to local norms
         - Add CHAMELEON_[dz]gered... functions to reduce the precision of the tiles based on a requested accuracy
         - Add CHAMELEON_[dz]gerst... functions to restore the original numerical precision of the tiles in a descriptor
  - types: add support for half precision arithmetic into the data descriptors
@@ -11,6 +11,8 @@ chameleon-1.3.0
    CHAMELEON_Desc_Create_User that requires aan additional `, NULL`
    parameters in the general case.
  - compute/poinv: Add the possibility to use an intermediate distribution for the TRTRI operation
+ - compute/getrf_nopiv: Add lookahead through temporary buffers to better regulate the communication allocations
+ - runtime/starpu: Whenever possible replace the lacpy codelet by a direct memory copy from the input handler to the output one
 
 chameleon-1.2.0
 ------------------------------------------------------------------------

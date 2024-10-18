@@ -24,7 +24,7 @@
  * @author Alycia Lisito
  * @author Matthieu Kuhn
  * @author Ana Hourcau
- * @date 2024-07-17
+ * @date 2024-10-17
  * @precisions normal z -> c d s
  *
  */
@@ -211,11 +211,11 @@ int CHAMELEON_zgeqrf_Tile_Async(CHAM_desc_t *A, CHAM_desc_t *T, RUNTIME_sequence
 int CHAMELEON_zgeqrs_Tile_Async(CHAM_desc_t *A, CHAM_desc_t *T, CHAM_desc_t *B, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 //int CHAMELEON_zgesv_Tile_Async(CHAM_desc_t *A, int *IPIV, CHAM_desc_t *B, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 int CHAMELEON_zgesv_incpiv_Tile_Async(CHAM_desc_t *A, CHAM_desc_t *L, int *IPIV, CHAM_desc_t *B, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
-int CHAMELEON_zgesv_nopiv_Tile_Async(CHAM_desc_t *A, CHAM_desc_t *B, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
+int CHAMELEON_zgesv_nopiv_Tile_Async(CHAM_desc_t *A, CHAM_desc_t *B, void * ws, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 int CHAMELEON_zgesvd_Tile_Async(cham_job_t jobu, cham_job_t jobvt, CHAM_desc_t *A, double *S, CHAM_desc_t *T, CHAMELEON_Complex64_t *U, int LDU, CHAMELEON_Complex64_t *VT, int LDVT, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 //int CHAMELEON_zgetrf_Tile_Async(CHAM_desc_t *A, int *IPIV, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 int CHAMELEON_zgetrf_incpiv_Tile_Async(CHAM_desc_t *A, CHAM_desc_t *L, int *IPIV, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
-int CHAMELEON_zgetrf_nopiv_Tile_Async(CHAM_desc_t *A, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
+int CHAMELEON_zgetrf_nopiv_Tile_Async(CHAM_desc_t *A, void * ws, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 int CHAMELEON_zgetrf_Tile_Async( CHAM_desc_t *A, CHAM_ipiv_t *IPIV, void *ws, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request );
 //int CHAMELEON_zgetri_Tile_Async(CHAM_desc_t *A, int *IPIV, CHAM_desc_t *W, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 //int CHAMELEON_zgetrs_Tile_Async(cham_trans_t trans, CHAM_desc_t *A, int *IPIV, CHAM_desc_t *B, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
@@ -333,6 +333,8 @@ void *CHAMELEON_zgram_WS_Alloc( const CHAM_desc_t *A );
 void  CHAMELEON_zgram_WS_Free( void *ws );
 void *CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A );
 void  CHAMELEON_zgetrf_WS_Free( void *ws );
+void *CHAMELEON_zgetrf_nopiv_WS_Alloc( const CHAM_desc_t *A );
+void  CHAMELEON_zgetrf_nopiv_WS_Free( void *ws );
 
 int CHAMELEON_Alloc_Workspace_zgesv_incpiv(        int N, CHAM_desc_t **descL, int **IPIV, int p, int q);
 int CHAMELEON_Alloc_Workspace_zgetrf_incpiv(int M, int N, CHAM_desc_t **descL, int **IPIV, int p, int q);

@@ -21,7 +21,7 @@
  * @author Matthieu Kuhn
  * @author Loris Lucido
  * @author Terry Cojean
- * @date 2023-09-11
+ * @date 2024-10-17
  *
  ***
  *
@@ -140,6 +140,7 @@ CHAM_context_t *chameleon_context_create()
     chamctxt->progress_enabled   = chameleon_env_on_off( "CHAMELEON_PROGRESS",        CHAMELEON_FALSE );
     chamctxt->generic_enabled    = chameleon_env_on_off( "CHAMELEON_GENERIC",         CHAMELEON_FALSE );
     chamctxt->autominmax_enabled = chameleon_env_on_off( "CHAMELEON_AUTOMINMAX",      CHAMELEON_TRUE  );
+    chamctxt->optlacpy_enabled   = chameleon_env_on_off( "CHAMELEON_OPTIMIZED_LACPY", CHAMELEON_TRUE  );
 
     chamctxt->runtime_paused     = CHAMELEON_FALSE;
 

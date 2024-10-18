@@ -11,10 +11,10 @@
  *
  * @brief Chameleon PaRSEC options routines
  *
- * @version 1.2.0
+ * @version 1.3.0
  * @author Reazul Hoque
  * @author Mathieu Faverge
- * @date 2022-02-22
+ * @date 2024-10-17
  *
  */
 #include "chameleon_parsec.h"
@@ -22,17 +22,18 @@
 void RUNTIME_options_init( RUNTIME_option_t *options, CHAM_context_t *chamctxt,
                            RUNTIME_sequence_t *sequence, RUNTIME_request_t *request )
 {
-    options->sequence   = sequence;
-    options->request    = request;
-    options->profiling  = CHAMELEON_STATISTICS == CHAMELEON_TRUE;
-    options->parallel   = CHAMELEON_PARALLEL == CHAMELEON_TRUE;
-    options->priority   = RUNTIME_PRIORITY_MIN;
-    options->workerid   = -1;
-    options->forcesub   = 0;
-    options->ws_wsize   = 0;
-    options->ws_hsize   = 0;
-    options->ws_worker  = NULL;
-    options->ws_host    = NULL;
+    options->sequence  = sequence;
+    options->request   = request;
+    options->profiling = CHAMELEON_STATISTICS == CHAMELEON_TRUE;
+    options->parallel  = CHAMELEON_PARALLEL == CHAMELEON_TRUE;
+    options->priority  = RUNTIME_PRIORITY_MIN;
+    options->workerid  = -1;
+    options->forcesub  = 0;
+    options->withlacpy = 0;
+    options->ws_wsize  = 0;
+    options->ws_hsize  = 0;
+    options->ws_worker = NULL;
+    options->ws_host   = NULL;
     return;
 }
 
