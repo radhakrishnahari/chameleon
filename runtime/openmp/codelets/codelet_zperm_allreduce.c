@@ -91,3 +91,7 @@ INSERT_TASK_zperm_allreduce( const RUNTIME_option_t *options,
     (void)n;
     (void)ws;
 }
+
+void
+INSERT_TASK_zperm_allreduce_tag_free( )
+{ }

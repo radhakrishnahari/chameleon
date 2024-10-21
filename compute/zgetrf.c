@@ -448,6 +448,13 @@ CHAMELEON_zgetrf_Tile( CHAM_desc_t *A, CHAM_ipiv_t *IPIV )
     CHAMELEON_Ipiv_Flush( IPIV, sequence );
 
     chameleon_sequence_wait( chamctxt, sequence );
+
+#if defined ( CHAMELEON_USE_MPI )
+    if ( ((struct chameleon_pzgetrf_s *)ws)->alg_allreduce == ChamStarPUMPITasks ) {
+        INSERT_TASK_zperm_allreduce_tag_free( );
+    }
+#endif
+
     CHAMELEON_zgetrf_WS_Free( ws );
 
     status = sequence->status;

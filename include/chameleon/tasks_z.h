@@ -760,4 +760,6 @@ void INSERT_TASK_zperm_allreduce_send_invp( const RUNTIME_option_t *options,
                                             int                     k,
                                             int                     n );
 
+void INSERT_TASK_zperm_allreduce_tag_free( );
+
 #endif /* _chameleon_tasks_z_h_ */
