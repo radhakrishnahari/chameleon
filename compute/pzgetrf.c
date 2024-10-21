@@ -433,8 +433,7 @@ chameleon_pzgetrf_panel_permute( struct chameleon_pzgetrf_s *ws,
                                     ipiv, k, A(k, n), A(m, n) );
         }
 
-        INSERT_TASK_zperm_allreduce( options, A, ipiv, k, k, n,
-                                     Wu(A->myrank, n), ws );
+        INSERT_TASK_zperm_allreduce( options, A, Wu(A->myrank, n), ipiv, k, k, n, ws );
     }
     break;
     default:
@@ -499,7 +498,7 @@ chameleon_pzgetrf_panel_permute_batched( struct chameleon_pzgetrf_s *ws,
         }
         INSERT_TASK_zlaswp_batched_flush( options, ipiv, k, A(k, n), Wu(A->myrank, n), clargs );
 
-        INSERT_TASK_zperm_allreduce( options, A, ipiv, k, k, n, Wu(A->myrank, n), ws );
+        INSERT_TASK_zperm_allreduce( options, A, Wu(A->myrank, n), ipiv, k, k, n, ws );
 
         free( clargs );
     }

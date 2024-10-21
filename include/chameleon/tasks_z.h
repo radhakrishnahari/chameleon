@@ -600,6 +600,16 @@ void INSERT_TASK_zipiv_allreduce( const RUNTIME_option_t *options,
  * @param[in] A
  *          The descriptor of the matrix A.
  *
+ * @param[inout] U
+ *          The descriptor of the worskpace used for the permutation in the LU
+ *          factorization with partial pivoting.
+ *
+ * @param[in] Um
+ *          The row index of the tile used in U.
+ *
+ * @param[in] Un
+ *          The column index of the tile used in U.
+ *
  * @param[in] ipiv
  *          The pivot structure that contains the informations for the LU
  *          factorization with partial pivoting.
@@ -613,16 +623,6 @@ void INSERT_TASK_zipiv_allreduce( const RUNTIME_option_t *options,
  * @param[in] n
  *          The number of columns in the tile U(Um, Un).
  *
- * @param[inout] U
- *          The descriptor of the worskpace used for the permutation in the LU
- *          factorization with partial pivoting.
- *
- * @param[in] Um
- *          The row index of the tile used in U.
- *
- * @param[in] Un
- *          The column index of the tile used in U.
- *
  * @param[in] ws
  *          The workspace to handle the data in the LU factorization with
  *          partial pivoting.
@@ -631,13 +631,13 @@ void INSERT_TASK_zipiv_allreduce( const RUNTIME_option_t *options,
  */
 void INSERT_TASK_zperm_allreduce( const RUNTIME_option_t *options,
                                   const CHAM_desc_t      *A,
+                                  CHAM_desc_t            *U,
+                                  int                     Um,
+                                  int                     Un,
                                   CHAM_ipiv_t            *ipiv,
                                   int                     ipivk,
                                   int                     k,
                                   int                     n,
-                                  CHAM_desc_t            *U,
-                                  int                     Um,
-                                  int                     Un,
                                   void                   *ws );
 
 /**
