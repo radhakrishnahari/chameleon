@@ -14,7 +14,7 @@
  * @version 1.3.0
  * @author Mathieu Faverge
  * @author Ana Hourcau
- * @date 2024-07-17
+ * @date 2024-10-18
  * @precisions normal z -> d
  *
  */
@@ -102,10 +102,7 @@ void INSERT_TASK_zgered( const RUNTIME_option_t *options,
                     STARPU_W,                 handleAout,
                     STARPU_PRIORITY,          options->priority,
                     STARPU_EXECUTE_ON_WORKER, options->workerid,
-#if defined(CHAMELEON_CODELETS_HAVE_NAME)
-                    STARPU_NAME,              "dlag2h",
-#endif
-                    0);
+                    0 );
 
                 starpu_data_unregister_no_coherency( *handleAin );
                 *handleAin     = handleAout;
@@ -150,10 +147,7 @@ void INSERT_TASK_zgered( const RUNTIME_option_t *options,
                 STARPU_W,                 handleAout,
                 STARPU_PRIORITY,          options->priority,
                 STARPU_EXECUTE_ON_WORKER, options->workerid,
-#if defined(CHAMELEON_CODELETS_HAVE_NAME)
-                STARPU_NAME,              "zlag2c",
-#endif
-                0);
+                0 );
 
             starpu_data_unregister_no_coherency( *handleAin );
             *handleAin     = handleAout;

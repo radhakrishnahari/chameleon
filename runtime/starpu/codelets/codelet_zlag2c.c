@@ -18,7 +18,7 @@
  * @author Lucas Barros de Assis
  * @author Florent Pruvost
  * @author Samuel Thibault
- * @date 2023-07-06
+ * @date 2024-10-18
  * @precisions mixed zc -> ds
  *
  */
@@ -105,9 +105,6 @@ void INSERT_TASK_zlag2c(const RUNTIME_option_t *options,
         STARPU_PRIORITY,  options->priority,
         STARPU_CALLBACK,  callback,
         STARPU_EXECUTE_ON_WORKER, options->workerid,
-#if defined(CHAMELEON_CODELETS_HAVE_NAME)
-        STARPU_NAME, "zlag2c",
-#endif
         0);
 }
 
@@ -183,8 +180,5 @@ void INSERT_TASK_clag2z( const RUNTIME_option_t *options,
         STARPU_PRIORITY,  options->priority,
         STARPU_CALLBACK,  callback,
         STARPU_EXECUTE_ON_WORKER, options->workerid,
-#if defined(CHAMELEON_CODELETS_HAVE_NAME)
-        STARPU_NAME, "clag2z",
-#endif
         0);
 }

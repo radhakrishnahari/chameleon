@@ -18,7 +18,7 @@
  * @author Lucas Barros de Assis
  * @author Florent Pruvost
  * @author Samuel Thibault
- * @date 2023-07-06
+ * @date 2024-10-18
  * @precisions normal z -> c d s
  *
  */
@@ -76,7 +76,7 @@ cl_zgeadd_cuda_func( void *descr[], void *cl_arg )
 /*
  * Codelet definition
  */
-CODELETS( zgeadd, cl_zgeadd_cpu_func, cl_zgeadd_cuda_func, STARPU_CUDA_ASYNC );
+CODELETS( zgeadd, cl_zgeadd_cpu_func, cl_zgeadd_cuda_func, STARPU_CUDA_ASYNC )
 
 void INSERT_TASK_zgeadd( const RUNTIME_option_t *options,
                          cham_trans_t trans, int m, int n, int nb,
@@ -110,10 +110,7 @@ void INSERT_TASK_zgeadd( const RUNTIME_option_t *options,
         STARPU_PRIORITY,  options->priority,
         STARPU_CALLBACK,  callback,
         STARPU_EXECUTE_ON_WORKER, options->workerid,
-#if defined(CHAMELEON_CODELETS_HAVE_NAME)
-        STARPU_NAME, "zgeadd",
-#endif
-        0);
+        0 );
 
     (void)nb;
 }

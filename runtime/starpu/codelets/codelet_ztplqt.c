@@ -15,7 +15,7 @@
  * @author Mathieu Faverge
  * @author Lucas Barros de Assis
  * @author Florent Pruvost
- * @date 2023-07-06
+ * @date 2024-10-18
  * @precisions normal z -> s d c
  *
  */
@@ -42,7 +42,7 @@ static void cl_ztplqt_cpu_func(void *descr[], void *cl_arg)
 
     TCORE_zlaset( ChamUpperLower, ib, M, 0., 0., tileT );
     TCORE_ztplqt( M, N, L, ib,
-                 tileA, tileB, tileT, tileWORK->mat );
+                  tileA, tileB, tileT, tileWORK->mat );
 }
 #endif /* !defined(CHAMELEON_SIMULATION) */
 
@@ -58,7 +58,8 @@ void INSERT_TASK_ztplqt( const RUNTIME_option_t *options,
                          const CHAM_desc_t *T, int Tm, int Tn )
 {
     struct starpu_codelet *codelet = &cl_ztplqt;
-    void (*callback)(void*) = options->profiling ? cl_ztplqt_callback : NULL;
+    const char            *cl_name;
+    void (*callback)(void*);
 
     CHAMELEON_BEGIN_ACCESS_DECLARATION;
     CHAMELEON_ACCESS_RW(A, Am, An);
@@ -66,27 +67,33 @@ void INSERT_TASK_ztplqt( const RUNTIME_option_t *options,
     CHAMELEON_ACCESS_W(T, Tm, Tn);
     CHAMELEON_END_ACCESS_DECLARATION;
 
+    /* Callback for profiling information */
+    callback = options->profiling ? cl_ztplqt_callback : NULL;
+
+    /* Refine name */
+    cl_name = (L == 0) ? "ztslqt" : "zttlqt";
+
     rt_starpu_insert_task(
         codelet,
+        /* Task codelet arguments */
         STARPU_VALUE, &M,     sizeof(int),
         STARPU_VALUE, &N,     sizeof(int),
         STARPU_VALUE, &L,     sizeof(int),
         STARPU_VALUE, &ib,    sizeof(int),
-        STARPU_RW,     RTBLKADDR(A, ChamComplexDouble, Am, An),
-        STARPU_RW,     RTBLKADDR(B, ChamComplexDouble, Bm, Bn),
-        STARPU_W,      RTBLKADDR(T, ChamComplexDouble, Tm, Tn),
-        /* Other options */
-        STARPU_SCRATCH,   options->ws_worker,
-        STARPU_PRIORITY,  options->priority,
-        STARPU_CALLBACK,  callback,
-        STARPU_EXECUTE_ON_WORKER, options->workerid,
-#if defined(CHAMELEON_USE_MPI)
-        STARPU_EXECUTE_ON_NODE, B->get_rankof(B, Bm, Bn),
-#endif
-#if defined(CHAMELEON_CODELETS_HAVE_NAME)
-        STARPU_NAME, (L == 0) ? "ztplqs" : "ztplqt",
-#endif
-        0);
 
-    (void)ib; (void)nb;
+        /* Task handles */
+        STARPU_RW,      RTBLKADDR(A, ChamComplexDouble, Am, An),
+        STARPU_RW,      RTBLKADDR(B, ChamComplexDouble, Bm, Bn),
+        STARPU_W,       RTBLKADDR(T, ChamComplexDouble, Tm, Tn),
+        STARPU_SCRATCH, options->ws_worker,
+
+        /* Common task arguments */
+        STARPU_PRIORITY,          options->priority,
+        STARPU_CALLBACK,          callback,
+        STARPU_EXECUTE_ON_WORKER, options->workerid,
+        STARPU_EXECUTE_ON_NODE,   B->get_rankof(B, Bm, Bn),
+        STARPU_NAME,              cl_name,
+        0 );
+
+    (void)nb;
 }

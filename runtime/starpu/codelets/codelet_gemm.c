@@ -13,7 +13,7 @@
  *
  * @version 1.3.0
  * @author Mathieu Faverge
- * @date 2024-03-11
+ * @date 2024-10-18
  *
  */
 #include "chameleon_starpu_internal.h"
@@ -198,9 +198,7 @@ INSERT_TASK_gemm( const RUNTIME_option_t *options,
         STARPU_CALLBACK,          callback,
         STARPU_EXECUTE_ON_WORKER, options->workerid,
         STARPU_POSSIBLY_PARALLEL, options->parallel,
-#if defined(CHAMELEON_CODELETS_HAVE_NAME)
         STARPU_NAME,              cl_name,
-#endif
         0 );
 
     return;

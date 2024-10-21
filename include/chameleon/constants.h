@@ -19,7 +19,7 @@
  * @author Alycia Lisito
  * @author Terry Cojean
  * @author Matthieu Kuhn
- * @date 2023-08-22
+ * @date 2024-10-18
  *
  */
 #ifndef _chameleon_constants_h_
@@ -44,16 +44,24 @@ typedef enum chameleon_arithmetic_e {
     ChamDouble = 3,
 } cham_arithmetic_t;
 
-#define CHAM_ARITHMETIC_MASK 0b11
-
 typedef enum chameleon_ftype_e {
     ChamInt     = 0,
     ChamReal    = 1,
     ChamComplex = 2,
 } cham_ftype_t;
 
-#define CHAM_FTYPE_MASK 0b1100
-#define CHAM_MIXED_MASK 0b10000
+/**
+ * Defines the arithmetic type mask using the 1st and 2nd bits
+ */
+#define CHAM_ARITHMETIC_MASK ( 0x3 )
+/**
+ * Defines the floating type mask using the 3rd and 4th bits
+ */
+#define CHAM_FTYPE_MASK ( 0x3 << 2 )
+/**
+ * Defines the mixed precision flag mask on the 5th bit
+ */
+#define CHAM_MIXED_MASK ( 0x1 << 4 )
 
 #define cham_get_arith( _ftype_ )   ( (_ftype_) & CHAM_ARITHMETIC_MASK )
 #define cham_get_ftype( _ftype_ )   (( (_ftype_) & CHAM_FTYPE_MASK ) >> 2 )
@@ -344,6 +352,13 @@ typedef enum chameleon_translation_e {
 #define CHAMELEON_MAT_ALLOC_GLOBAL NULL
 #define CHAMELEON_MAT_ALLOC_TILE   ((void*)-1)
 #define CHAMELEON_MAT_OOC          ((void*)-2)
+
+/**
+ * @brief Integer constant matching the previous ones for case values
+ */
+#define CHAMELEON_MAT_CASE_ALLOC_GLOBAL  0
+#define CHAMELEON_MAT_CASE_ALLOC_TILE   -1
+#define CHAMELEON_MAT_CASE_OOC          -2
 
 /**
  *  CHAMELEON constants - success & error codes

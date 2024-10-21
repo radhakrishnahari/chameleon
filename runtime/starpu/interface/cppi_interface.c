@@ -13,7 +13,7 @@
  * @author Mathieu Faverge
  * @author Matthieu Kuhn
  * @author Alycia Lisito
- * @date 2023-08-22
+ * @date 2024-10-18
  *
  */
 #include "chameleon_starpu_internal.h"
@@ -464,7 +464,7 @@ cl_cppi_init_redux_cpu_func( void *descr[], void *cl_arg )
 /*
  * Codelet definition
  */
-CODELETS_CPU( cppi_init_redux, cl_cppi_init_redux_cpu_func );
+CODELETS_CPU( cppi_init_redux, cl_cppi_init_redux_cpu_func )
 
 static void cppi_redux_init( void ) __attribute__( ( constructor ) );
 static void cppi_redux_init( void )

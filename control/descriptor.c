@@ -19,7 +19,7 @@
  * @author Raphael Boucherie
  * @author Samuel Thibault
  * @author Lionel Eyraud-Dubois
- * @date 2023-07-06
+ * @date 2024-10-18
  *
  ***
  *
@@ -295,7 +295,7 @@ int chameleon_desc_init_internal( CHAM_desc_t *desc, const char *name, void *mat
     desc->ooc = 0;
 
     switch ( (intptr_t)mat ) {
-    case (intptr_t)CHAMELEON_MAT_ALLOC_TILE:
+    case CHAMELEON_MAT_CASE_ALLOC_TILE:
         if ( chamctxt->scheduler == RUNTIME_SCHED_STARPU ) {
             /* Let's use the allocation on the fly as in OOC */
             desc->get_blkaddr = chameleon_getaddr_null;
@@ -305,13 +305,13 @@ int chameleon_desc_init_internal( CHAM_desc_t *desc, const char *name, void *mat
         /* Otherwise we switch back to the full allocation */
         chameleon_attr_fallthrough;
 
-    case (intptr_t)CHAMELEON_MAT_ALLOC_GLOBAL:
+    case CHAMELEON_MAT_CASE_ALLOC_GLOBAL:
         rc = chameleon_desc_mat_alloc( desc );
         desc->alloc_mat = 1;
         desc->use_mat   = 1;
         break;
 
-    case (intptr_t)CHAMELEON_MAT_OOC:
+    case CHAMELEON_MAT_CASE_OOC:
         if ( chamctxt->scheduler != RUNTIME_SCHED_STARPU ) {
             chameleon_error("CHAMELEON_Desc_Create", "CHAMELEON Out-of-Core descriptors are supported only with StarPU");
             return CHAMELEON_ERR_NOT_SUPPORTED;

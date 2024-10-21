@@ -11,13 +11,13 @@
  *
  * @brief Chameleon zpanel batched StarPU codelets
  *
- * @version 1.2.0
+ * @version 1.3.0
  * @comment Codelets to perform batched panel factorization with partial pivoting
  *
  * @author Matthieu Kuhn
  * @author Alycia Lisito
  * @author Philippe Swartvagher
- * @date 2024-01-11
+ * @date 2024-10-18
  * @precisions normal z -> c d s
  *
  */
@@ -126,10 +126,7 @@ INSERT_TASK_zgetrf_panel_offdiag_batched( const RUNTIME_option_t *options,
             STARPU_PRIORITY,          options->priority,
             STARPU_CALLBACK,          callback,
             STARPU_EXECUTE_ON_WORKER, options->workerid,
-#if defined(CHAMELEON_CODELETS_HAVE_NAME)
-            STARPU_NAME,              clargs->cl_name,
-#endif
-            0);
+            0 );
 
         /* clargs is freed by starpu. */
         *clargs_ptr = NULL;
@@ -167,10 +164,8 @@ INSERT_TASK_zgetrf_panel_offdiag_batched_flush( const RUNTIME_option_t *options,
         STARPU_PRIORITY,          options->priority,
         STARPU_CALLBACK,          callback,
         STARPU_EXECUTE_ON_WORKER, options->workerid,
-#if defined(CHAMELEON_CODELETS_HAVE_NAME)
         STARPU_NAME,              clargs->cl_name,
-#endif
-        0);
+        0 );
 
     /* clargs is freed by starpu. */
     *clargs_ptr = NULL;
@@ -337,10 +332,8 @@ INSERT_TASK_zgetrf_panel_blocked_batched( const RUNTIME_option_t *options,
             STARPU_PRIORITY,          options->priority,
             STARPU_CALLBACK,          callback,
             STARPU_EXECUTE_ON_WORKER, options->workerid,
-#if defined(CHAMELEON_CODELETS_HAVE_NAME)
             STARPU_NAME,              clargs->cl_name,
-#endif
-            0);
+            0 );
 
         /* clargs is freed by starpu. */
         *clargs_ptr = NULL;
@@ -401,10 +394,8 @@ INSERT_TASK_zgetrf_panel_blocked_batched_flush( const RUNTIME_option_t *options,
         STARPU_PRIORITY,          options->priority,
         STARPU_CALLBACK,          callback,
         STARPU_EXECUTE_ON_WORKER, options->workerid,
-#if defined(CHAMELEON_CODELETS_HAVE_NAME)
         STARPU_NAME,              clargs->cl_name,
-#endif
-        0);
+        0 );
 
     /* clargs is freed by starpu. */
     *clargs_ptr = NULL;

@@ -22,7 +22,7 @@
  * @author Lucas Barros de Assis
  * @author Florent Pruvost
  * @author Samuel Thibault
- * @date 2023-07-06
+ * @date 2024-10-18
  * @precisions normal z -> c d s
  *
  */
@@ -126,8 +126,5 @@ void INSERT_TASK_zunmqr( const RUNTIME_option_t *options,
         STARPU_PRIORITY,  options->priority,
         STARPU_CALLBACK,  callback,
         STARPU_EXECUTE_ON_WORKER, options->workerid,
-#if defined(CHAMELEON_CODELETS_HAVE_NAME)
-        STARPU_NAME, "zunmqr",
-#endif
-        0);
+        0 );
 }

@@ -23,7 +23,7 @@
  * @author Lucas Barros de Assis
  * @author Florent Pruvost
  * @author Samuel Thibault
- * @date 2023-07-06
+ * @date 2024-10-18
  * @precisions normal z -> c d s
  *
  */
@@ -56,9 +56,9 @@ static void cl_zbuild_cpu_func(void *descr[], void *cl_arg)
  */
 CODELETS_CPU(zbuild, cl_zbuild_cpu_func)
 
-    void INSERT_TASK_zbuild( const RUNTIME_option_t *options,
-                             const CHAM_desc_t *A, int Am, int An,
-                             void *user_data, void* user_build_callback )
+void INSERT_TASK_zbuild( const RUNTIME_option_t *options,
+                         const CHAM_desc_t *A, int Am, int An,
+                         void *user_data, void* user_build_callback )
 {
 
     struct starpu_codelet *codelet = &cl_zbuild;
@@ -85,8 +85,5 @@ CODELETS_CPU(zbuild, cl_zbuild_cpu_func)
         STARPU_PRIORITY,  options->priority,
         STARPU_CALLBACK,  callback,
         STARPU_EXECUTE_ON_WORKER, options->workerid,
-#if defined(CHAMELEON_CODELETS_HAVE_NAME)
-        STARPU_NAME, "zbuild",
-#endif
         0);
 }

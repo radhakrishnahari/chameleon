@@ -22,7 +22,7 @@
  * @author Gwenole Lucas
  * @author Loris Lucido
  * @author Terry Cojean
- * @date 2024-03-11
+ * @date 2024-10-18
  * @precisions normal z -> c d s
  *
  */
@@ -163,10 +163,7 @@ void INSERT_TASK_ztrsm( const RUNTIME_option_t *options,
         STARPU_CALLBACK,          callback,
         STARPU_EXECUTE_ON_WORKER, options->workerid,
         STARPU_POSSIBLY_PARALLEL, options->parallel,
-#if defined(CHAMELEON_CODELETS_HAVE_NAME)
         STARPU_NAME,              cl_name,
-#endif
-
         0 );
 
     (void)nb;

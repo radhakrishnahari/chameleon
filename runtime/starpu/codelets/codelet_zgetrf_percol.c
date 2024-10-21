@@ -15,15 +15,15 @@
  * @author Mathieu Faverge
  * @author Matthieu Kuhn
  * @author Alycia Lisito
- * @date 2024-03-11
+ * @date 2024-10-18
  * @precisions normal z -> c d s
  *
  */
 #include "chameleon_starpu_internal.h"
 #include "runtime_codelet_z.h"
 
-CHAMELEON_CL_CB( zgetrf_percol_diag,    cti_handle_get_m(task->handles[0]), 0, 0, M );
-CHAMELEON_CL_CB( zgetrf_percol_offdiag, cti_handle_get_m(task->handles[0]), 0, 0, M );
+CHAMELEON_CL_CB( zgetrf_percol_diag,    cti_handle_get_m(task->handles[0]), 0, 0, M )
+CHAMELEON_CL_CB( zgetrf_percol_offdiag, cti_handle_get_m(task->handles[0]), 0, 0, M )
 
 #if !defined(CHAMELEON_SIMULATION)
 static void cl_zgetrf_percol_diag_cpu_func(void *descr[], void *cl_arg)
@@ -74,7 +74,7 @@ static void cl_zgetrf_percol_diag_cpu_func(void *descr[], void *cl_arg)
 /*
  * Codelet definition
  */
-CODELETS_CPU( zgetrf_percol_diag, cl_zgetrf_percol_diag_cpu_func );
+CODELETS_CPU( zgetrf_percol_diag, cl_zgetrf_percol_diag_cpu_func )
 
 void INSERT_TASK_zgetrf_percol_diag( const RUNTIME_option_t *options,
                                      int m, int n, int h, int m0,
@@ -123,10 +123,8 @@ void INSERT_TASK_zgetrf_percol_diag( const RUNTIME_option_t *options,
         STARPU_PRIORITY,          options->priority,
         STARPU_CALLBACK,          callback,
         STARPU_EXECUTE_ON_WORKER, options->workerid,
-#if defined(CHAMELEON_CODELETS_HAVE_NAME)
         STARPU_NAME,              cl_name,
-#endif
-        0);
+        0 );
 }
 
 #if !defined(CHAMELEON_SIMULATION)
@@ -204,8 +202,6 @@ void INSERT_TASK_zgetrf_percol_offdiag( const RUNTIME_option_t *options,
         STARPU_PRIORITY,          options->priority,
         STARPU_CALLBACK,          callback,
         STARPU_EXECUTE_ON_WORKER, options->workerid,
-#if defined(CHAMELEON_CODELETS_HAVE_NAME)
         STARPU_NAME,              cl_name,
-#endif
-        0);
+        0 );
 }
