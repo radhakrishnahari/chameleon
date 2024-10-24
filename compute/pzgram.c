@@ -33,8 +33,8 @@ chameleon_pzgram_internal( cham_uplo_t uplo,
     int NT = A->nt;
     int M  = A->m;
     int N  = A->n;
-    int P  = Welt->p;
-    int Q  = Welt->q;
+    int P  = chameleon_desc_datadist_get_iparam(Welt, 0);
+    int Q  = chameleon_desc_datadist_get_iparam(Welt, 1);
 
     /**
      *  1) compute (scl,ssq) over columns in each tile

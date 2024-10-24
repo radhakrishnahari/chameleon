@@ -86,6 +86,7 @@ int chameleon_desc_mat_free( CHAM_desc_t *desc )
 #endif
         free( desc->tiles );
     }
+    free( desc->data_dist );
     return CHAMELEON_SUCCESS;
 }
 
@@ -113,6 +114,26 @@ void chameleon_desc_init_tiles( CHAM_desc_t *desc, blkrankof_fct_t rankof )
             chameleon_asprintf( &(tile->name), "%s(%d,%d)", desc->name, ii, jj );
 #endif
         }
+    }
+}
+
+/* Get access to data dist */
+int chameleon_desc_datadist_get_iparam( const CHAM_desc_t *desc, int i )
+{
+    return desc->data_dist->distrib[desc->data_dist->get_distrib(desc, i)];
+}
+
+int chameleon_get_2d_block_cyclic( const CHAM_desc_t *desc, int i ) { return i; }
+
+void chameleon_desc_set_datadist( CHAM_desc_t *to, cham_data_dist_t *from )
+{
+    int i;
+    to->data_dist = malloc(sizeof(cham_data_dist_t));
+    to->data_dist->get_distrib = from->get_distrib;
+    to->data_dist->distrib_array_size = from->distrib_array_size;
+
+    for (i = 0; i < to->data_dist->distrib_array_size; i++) {
+      to->data_dist->distrib[i] = from->distrib[i];
     }
 }
 
@@ -238,8 +259,11 @@ int chameleon_desc_init_internal( CHAM_desc_t *desc, const char *name, void *mat
     desc->myrank = RUNTIME_comm_rank( chamctxt );
 
     /* Grid size */
-    desc->p = p;
-    desc->q = q;
+    cham_data_dist_t dist = {
+        .get_distrib = (datadist_access_fct_t)chameleon_get_2d_block_cyclic,
+        .distrib_array_size = 2,
+        .distrib = {p, q} };
+    chameleon_desc_set_datadist( desc, &dist );
 
     /* Local dimensions in tiles */
     if ( desc->myrank < (p*q) ) {
@@ -808,7 +832,8 @@ CHAM_desc_t *CHAMELEON_Desc_Copy( const CHAM_desc_t *descin, void *mat )
     CHAM_desc_t *descout = NULL;
     CHAMELEON_Desc_Create_User( &descout, mat,
                                 descin->dtyp, descin->mb, descin->nb, descin->bsiz,
-                                descin->lm, descin->ln, descin->i, descin->j, descin->m, descin->n, descin->p, descin->q,
+                                descin->lm, descin->ln, descin->i, descin->j, descin->m, descin->n,
+                                chameleon_desc_datadist_get_iparam(descin, 0), chameleon_desc_datadist_get_iparam(descin, 1),
                                 NULL, NULL, descin->get_rankof_init, descin->get_rankof_init_arg );
     return descout;
 }

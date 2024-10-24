@@ -110,7 +110,7 @@ void *CHAMELEON_zgemm_WS_Alloc( cham_trans_t       transA __attribute__((unused)
      * If only one process, or if generic has been globally enforced, we switch
      * to generic immediately.
      */
-    if ( ((C->p == 1) && (C->q == 1)) ||
+    if ( ((chameleon_desc_datadist_get_iparam(C, 0) == 1) && (chameleon_desc_datadist_get_iparam(C, 1) == 1)) ||
          (chamctxt->generic_enabled == CHAMELEON_TRUE) )
     {
         options->alg = ChamGemmAlgGeneric;
@@ -151,9 +151,9 @@ void *CHAMELEON_zgemm_WS_Alloc( cham_trans_t       transA __attribute__((unused)
         double ratio = 1.5; /* Arbitrary ratio to give more weight to writes wrt reads. */
 
         /* Compute the average array per node for each matrix */
-        sizeA = ((double)A->m * (double)A->n) / (double)(A->p * A->q);
-        sizeB = ((double)B->m * (double)B->n) / (double)(B->p * B->q);
-        sizeC = ((double)C->m * (double)C->n) / (double)(C->p * C->q) * ratio;
+        sizeA = ((double)A->m * (double)A->n) / (double)(chameleon_desc_datadist_get_iparam(A, 0) * chameleon_desc_datadist_get_iparam(A, 1));
+        sizeB = ((double)B->m * (double)B->n) / (double)(chameleon_desc_datadist_get_iparam(B, 0) * chameleon_desc_datadist_get_iparam(B, 1));
+        sizeC = ((double)C->m * (double)C->n) / (double)(chameleon_desc_datadist_get_iparam(C, 0) * chameleon_desc_datadist_get_iparam(C, 1)) * ratio;
 
         options->alg = ChamGemmAlgGeneric;
         if ( (sizeC > sizeA) && (sizeC > sizeB) )
@@ -192,13 +192,17 @@ void *CHAMELEON_zgemm_WS_Alloc( cham_trans_t       transA __attribute__((unused)
 
         chameleon_desc_init( &(options->WA), CHAMELEON_MAT_ALLOC_TILE,
                              ChamComplexDouble, C->mb, C->nb, (C->mb * C->nb),
-                             C->mt * C->mb, C->nb * C->q * lookahead, 0, 0,
-                             C->mt * C->mb, C->nb * C->q * lookahead, C->p, C->q,
+                             C->mt * C->mb, C->nb * chameleon_desc_datadist_get_iparam(C, 1) * lookahead, 0, 0,
+                             C->mt * C->mb, C->nb * chameleon_desc_datadist_get_iparam(C, 1) * lookahead,
+                             chameleon_desc_datadist_get_iparam(C, 0),
+                             chameleon_desc_datadist_get_iparam(C, 1),
                              NULL, NULL, NULL, NULL );
         chameleon_desc_init( &(options->WB), CHAMELEON_MAT_ALLOC_TILE,
                              ChamComplexDouble, C->mb, C->nb, (C->mb * C->nb),
-                             C->mb * C->p * lookahead, C->nt * C->nb, 0, 0,
-                             C->mb * C->p * lookahead, C->nt * C->nb, C->p, C->q,
+                             C->mb * chameleon_desc_datadist_get_iparam(C, 0) * lookahead, C->nt * C->nb, 0, 0,
+                             C->mb * chameleon_desc_datadist_get_iparam(C, 0) * lookahead, C->nt * C->nb,
+                             chameleon_desc_datadist_get_iparam(C, 0),
+                             chameleon_desc_datadist_get_iparam(C, 1),
                              NULL, NULL, NULL, NULL );
     }
 

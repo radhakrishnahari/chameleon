@@ -109,23 +109,31 @@ chameleon_pzgepdf_qdwh_init( const CHAM_desc_t *U, const CHAM_desc_t *H,
     chameleon_desc_init( TS1, CHAMELEON_MAT_ALLOC_TILE,
                          ChamComplexDouble, ib, nb, ib * nb,
                          ib * U->mt, nb * U->nt, 0, 0,
-                         ib * U->mt, nb * U->nt, U->p, U->q,
+                         ib * U->mt, nb * U->nt,
+                         chameleon_desc_datadist_get_iparam(U, 0),
+                         chameleon_desc_datadist_get_iparam(U, 1),
                          NULL, NULL, NULL, NULL );
     chameleon_desc_init( TT1, CHAMELEON_MAT_ALLOC_TILE,
                          ChamComplexDouble, ib, nb, ib * nb,
                          ib * U->mt, nb * U->nt, 0, 0,
-                         ib * U->mt, nb * U->nt, H->p, H->q,
+                         ib * U->mt, nb * U->nt,
+                         chameleon_desc_datadist_get_iparam(H, 0),
+                         chameleon_desc_datadist_get_iparam(H, 1),
                          NULL, NULL, NULL, NULL );
 
     chameleon_desc_init( TS2, CHAMELEON_MAT_ALLOC_TILE,
                          ChamComplexDouble, ib, nb, ib * nb,
                          ib * H->mt, nb * H->nt, 0, 0,
-                         ib * H->mt, nb * H->nt, U->p, U->q,
+                         ib * H->mt, nb * H->nt,
+                         chameleon_desc_datadist_get_iparam(U, 0),
+                         chameleon_desc_datadist_get_iparam(U, 1),
                          NULL, NULL, NULL, NULL );
     chameleon_desc_init( TT2, CHAMELEON_MAT_ALLOC_TILE,
                          ChamComplexDouble, ib, nb, ib * nb,
                          ib * H->mt, nb * H->nt, 0, 0,
-                         ib * H->mt, nb * H->nt, H->p, H->q,
+                         ib * H->mt, nb * H->nt,
+                         chameleon_desc_datadist_get_iparam(H, 0),
+                         chameleon_desc_datadist_get_iparam(H, 1),
                          NULL, NULL, NULL, NULL );
 
     /*
@@ -135,8 +143,8 @@ chameleon_pzgepdf_qdwh_init( const CHAM_desc_t *U, const CHAM_desc_t *H,
         libhqr_matrix_t mat = {
             .mt    = B1->mt,
             .nt    = B1->nt,
-            .nodes = B1->p * B1-> q,
-            .p     = B1->p,
+            .nodes = chameleon_desc_datadist_get_iparam(B1, 0) * chameleon_desc_datadist_get_iparam(B1,1),
+            .p     = chameleon_desc_datadist_get_iparam(B1, 0),
         };
 
         /* Tree for the top matrix */
@@ -144,7 +152,7 @@ chameleon_pzgepdf_qdwh_init( const CHAM_desc_t *U, const CHAM_desc_t *H,
                          -1,    /*low level tree   */
                          -1,    /* high level tree */
                          -1,    /* TS tree size    */
-                         B1->p, /* High level size */
+                         chameleon_desc_datadist_get_iparam(B1, 0), /* High level size */
                          -1,    /* Domino */
                          0      /* TSRR (unstable) */ );
 
@@ -156,7 +164,7 @@ chameleon_pzgepdf_qdwh_init( const CHAM_desc_t *U, const CHAM_desc_t *H,
                            /* high level tree (Could be greedy, but flat should reduce the volume of comm) */
                            LIBHQR_FLAT_TREE,
                            -1,   /* TS tree size    */
-                           B2->p /* High level size */ );
+                           chameleon_desc_datadist_get_iparam(B2, 0) /* High level size */ );
     }
 
     /*
@@ -170,7 +178,9 @@ chameleon_pzgepdf_qdwh_init( const CHAM_desc_t *U, const CHAM_desc_t *H,
     chameleon_desc_init( Ut, CHAMELEON_MAT_ALLOC_TILE,
                          ChamComplexDouble, U->mb, U->nb, U->mb * U->nb,
                          U->n, U->m, 0, 0,
-                         U->n, U->m, U->p, U->q,
+                         U->n, U->m,
+                         chameleon_desc_datadist_get_iparam(U, 0),
+                         chameleon_desc_datadist_get_iparam(U, 1),
                          NULL, NULL, NULL, NULL );
 
     /*

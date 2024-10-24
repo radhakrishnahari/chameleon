@@ -58,19 +58,23 @@ void *CHAMELEON_zgram_WS_Alloc( const CHAM_desc_t *A )
 
     options = calloc( 1, sizeof(struct chameleon_pzgram_s) );
 
-    workmt = chameleon_max( A->mt, A->p );
-    worknt = chameleon_max( A->nt, A->q );
+    workmt = chameleon_max( A->mt, chameleon_desc_datadist_get_iparam(A, 0) );
+    worknt = chameleon_max( A->nt, chameleon_desc_datadist_get_iparam(A, 1) );
 
     chameleon_desc_init( &(options->Wcol), CHAMELEON_MAT_ALLOC_TILE,
                          ChamRealDouble, 2, A->nb, 2*A->nb,
                          2*workmt, A->n, 0, 0,
-                         2*workmt, A->n, A->p, A->q,
+                         2*workmt, A->n,
+                         chameleon_desc_datadist_get_iparam(A, 0),
+                         chameleon_desc_datadist_get_iparam(A, 1),
                          NULL, NULL, NULL, NULL );
 
     chameleon_desc_init( &(options->Welt), CHAMELEON_MAT_ALLOC_TILE,
                          ChamRealDouble, 2, 1, 2,
                          2, worknt, 0, 0,
-                         2, worknt, A->p, A->q,
+                         2, worknt,
+                         chameleon_desc_datadist_get_iparam(A, 0),
+                         chameleon_desc_datadist_get_iparam(A, 1),
                          NULL, NULL, NULL, NULL );
 
     return (void*)options;

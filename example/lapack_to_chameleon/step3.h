@@ -168,8 +168,8 @@ inline static void* user_getaddr_arrayofpointers(const CHAM_desc_t *A, int m, in
 
 #if defined(CHAMELEON_USE_MPI)
     assert( A->myrank == A->get_rankof( A, mm, nn) );
-    mm = mm / A->p;
-    nn = nn / A->q;
+    mm = mm / chameleon_desc_datadist_get_iparam(A, 0);
+    nn = nn / chameleon_desc_datadist_get_iparam(A, 1);
 #endif
 
     offset = A->mt*nn + mm;

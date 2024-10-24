@@ -138,7 +138,7 @@ INSERT_TASK_zperm_allreduce( const RUNTIME_option_t *options,
 {
     struct chameleon_pzgetrf_s *tmp = (struct chameleon_pzgetrf_s *)ws;
     int *proc_involved = tmp->proc_involved;
-    int  np_involved   = chameleon_min( A->p, A->mt - k);
+    int  np_involved   = chameleon_min( chameleon_desc_datadist_get_iparam(A, 0), A->mt - k);
     int  np_iter       = np_involved;
     int  p_recv, p_send, me, p_first;
     int  shift = 1;
@@ -161,7 +161,7 @@ INSERT_TASK_zperm_allreduce( const RUNTIME_option_t *options,
             INSERT_TASK_zperm_allreduce_send( options, U, A->myrank, p_send, n );
             INSERT_TASK_zperm_allreduce_recv( options, U, ipiv, ipivk, A->myrank, p_recv,
                                               n, k == (A->mt-1) ? A->m - k * A->mb : A->mb,
-                                              A->p, A->q, shift, np_involved, p_first );
+                                              chameleon_desc_datadist_get_iparam(A, 0), chameleon_desc_datadist_get_iparam(A, 1), shift, np_involved, p_first );
 
             shift   = shift << 1;
             np_iter = chameleon_ceil( np_iter, 2 );
@@ -220,7 +220,7 @@ INSERT_TASK_zperm_allreduce_send_invp( const RUNTIME_option_t *options,
 {
     int b, rank;
 
-    for ( b = k+1; (b < A->mt) && ((b-(k+1)) < A->p); b ++ ) {
+    for ( b = k+1; (b < A->mt) && ((b-(k+1)) < chameleon_desc_datadist_get_iparam(A, 0)); b ++ ) {
         rank = A->get_rankof( A, b, n );
         if ( rank == A->myrank ) {
             continue;

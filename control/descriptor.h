@@ -106,8 +106,8 @@ inline static void* chameleon_geteltaddr(const CHAM_desc_t *A, int m, int n, int
 
 #if defined(CHAMELEON_USE_MPI)
     assert( A->myrank == A->get_rankof( A, mm, nn) );
-    mm = mm / A->p;
-    nn = nn / A->q;
+    mm = mm / chameleon_desc_datadist_get_iparam(A, 0);
+    nn = nn / chameleon_desc_datadist_get_iparam(A, 1);
 #endif
 
     if (mm < (size_t)(A->llm1)) {

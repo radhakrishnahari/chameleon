@@ -57,7 +57,7 @@ void chameleon_pzgetrf_nopiv_generic( CHAM_desc_t        *A,
 
     if ( chamctxt->autominmax_enabled && (chamctxt->scheduler == RUNTIME_SCHED_STARPU) ) {
         int lookahead = chamctxt->lookahead;
-        int nbtasks_per_step = (A->mt * A->nt) / (A->p * A->q);
+        int nbtasks_per_step = (A->mt * A->nt) / (chameleon_desc_datadist_get_iparam(A, 0) * chameleon_desc_datadist_get_iparam(A, 1));
         int mintasks = nbtasks_per_step *  lookahead;
         int maxtasks = nbtasks_per_step * (lookahead+1);
 
@@ -149,13 +149,13 @@ void chameleon_pzgetrf_nopiv_ws( CHAM_desc_t        *A,
 
     ib = CHAMELEON_IB;
     lookahead = chamctxt->lookahead;
-    myp = A->myrank / A->q;
-    myq = A->myrank % A->q;
+    myp = A->myrank / chameleon_desc_datadist_get_iparam(A, 1);
+    myq = A->myrank % chameleon_desc_datadist_get_iparam(A, 1);
 
     for (k = 0; k < chameleon_min(A->mt, A->nt); k++) {
         RUNTIME_iteration_push(chamctxt, k);
-        lp = (k % lookahead) * A->p;
-        lq = (k % lookahead) * A->q;
+        lp = (k % lookahead) * chameleon_desc_datadist_get_iparam(A, 0);
+        lq = (k % lookahead) * chameleon_desc_datadist_get_iparam(A, 1);
 
         tempkm = k == A->mt-1 ? A->m-k*A->mb : A->mb;
         tempkn = k == A->nt-1 ? A->n-k*A->nb : A->nb;
@@ -174,27 +174,27 @@ void chameleon_pzgetrf_nopiv_ws( CHAM_desc_t        *A,
                 &options,
                 ChamUpperLower, tempkm, tempkn,
                 A(  k, k ),
-                WL( k, (k % A->q) + lq ) );
+                WL( k, (k % chameleon_desc_datadist_get_iparam(A, 1)) + lq ) );
             INSERT_TASK_zlacpy(
                 &options,
                 ChamUpperLower, tempkm, tempkn,
                 A(  k, k ),
-                WU( (k % A->p) + lp, k ) );
+                WU( (k % chameleon_desc_datadist_get_iparam(A, 0)) + lp, k ) );
 
-            for ( q=1; q < A->q; q++ ) {
+            for ( q=1; q < chameleon_desc_datadist_get_iparam(A, 1); q++ ) {
                 INSERT_TASK_zlacpy(
                     &options,
                     ChamUpperLower, tempkm, tempkn,
-                    WL( k, ((k+q-1) % A->q) + lq ),
-                    WL( k, ((k+q)   % A->q) + lq ) );
+                    WL( k, ((k+q-1) % chameleon_desc_datadist_get_iparam(A, 1)) + lq ),
+                    WL( k, ((k+q)   % chameleon_desc_datadist_get_iparam(A, 1)) + lq ) );
             }
 
-            for ( p=1; p < A->p; p++ ) {
+            for ( p=1; p < chameleon_desc_datadist_get_iparam(A, 0); p++ ) {
                 INSERT_TASK_zlacpy(
                     &options,
                     ChamUpperLower, tempkm, tempkn,
-                    WU( ((k+p-1) % A->p) + lp, k ),
-                    WU( ((k+p)   % A->p) + lp, k ) );
+                    WU( ((k+p-1) % chameleon_desc_datadist_get_iparam(A, 0)) + lp, k ),
+                    WU( ((k+p)   % chameleon_desc_datadist_get_iparam(A, 0)) + lp, k ) );
             }
         }
         RUNTIME_data_flush( sequence, A( k, k ) );
@@ -202,7 +202,7 @@ void chameleon_pzgetrf_nopiv_ws( CHAM_desc_t        *A,
         for (m = k+1; m < A->mt; m++) {
 
             /* Skip the row if you are not involved with */
-            if ( m%A->p != myp ) {
+            if ( m%chameleon_desc_datadist_get_iparam(A, 0) != myp ) {
                 continue;
             }
 
@@ -219,19 +219,19 @@ void chameleon_pzgetrf_nopiv_ws( CHAM_desc_t        *A,
 
             /* Broadcast A(m,k) into temp buffers through a ring */
             {
-                assert( A->get_rankof( A, m, k ) == WL->get_rankof( WL,  m, (k % A->q) + lq) );
+                assert( A->get_rankof( A, m, k ) == WL->get_rankof( WL,  m, (k % chameleon_desc_datadist_get_iparam(A, 1)) + lq) );
                 INSERT_TASK_zlacpy(
                     &options,
                     ChamUpperLower, tempmm, tempkn,
                     A(  m, k ),
-                    WL( m, (k % A->q) + lq) );
+                    WL( m, (k % chameleon_desc_datadist_get_iparam(A, 1)) + lq) );
 
-                for ( q=1; q < A->q; q++ ) {
+                for ( q=1; q < chameleon_desc_datadist_get_iparam(A, 1); q++ ) {
                     INSERT_TASK_zlacpy(
                         &options,
                         ChamUpperLower, tempmm, tempkn,
-                        WL( m, ((k+q-1) % A->q) + lq ),
-                        WL( m, ((k+q)   % A->q) + lq ) );
+                        WL( m, ((k+q-1) % chameleon_desc_datadist_get_iparam(A, 1)) + lq ),
+                        WL( m, ((k+q)   % chameleon_desc_datadist_get_iparam(A, 1)) + lq ) );
                 }
             }
             RUNTIME_data_flush( sequence, A( m, k ) );
@@ -240,7 +240,7 @@ void chameleon_pzgetrf_nopiv_ws( CHAM_desc_t        *A,
         for (n = k+1; n < A->nt; n++) {
 
             /* Skip the column if you are not involved with */
-            if ( n%A->q != myq ) {
+            if ( n%chameleon_desc_datadist_get_iparam(A, 1) != myq ) {
                 continue;
             }
 
@@ -257,19 +257,19 @@ void chameleon_pzgetrf_nopiv_ws( CHAM_desc_t        *A,
 
             /* Broadcast A(k,n) into temp buffers through a ring */
             {
-                assert( A->get_rankof( A, k, n ) == WU->get_rankof( WU, (k%A->p) + lp, n) );
+                assert( A->get_rankof( A, k, n ) == WU->get_rankof( WU, (k%chameleon_desc_datadist_get_iparam(A, 0)) + lp, n) );
                 INSERT_TASK_zlacpy(
                     &options,
                     ChamUpperLower, tempkm, tempnn,
                     A(  k, n ),
-                    WU( (k % A->p) + lp, n ) );
+                    WU( (k % chameleon_desc_datadist_get_iparam(A, 0)) + lp, n ) );
 
-                for ( p=1; p < A->p; p++ ) {
+                for ( p=1; p < chameleon_desc_datadist_get_iparam(A, 0); p++ ) {
                     INSERT_TASK_zlacpy(
                         &options,
                         ChamUpperLower, tempkm, tempnn,
-                        WU( ((k+p-1) % A->p) + lp, n ),
-                        WU( ((k+p)   % A->p) + lp, n ) );
+                        WU( ((k+p-1) % chameleon_desc_datadist_get_iparam(A, 0)) + lp, n ),
+                        WU( ((k+p)   % chameleon_desc_datadist_get_iparam(A, 0)) + lp, n ) );
                 }
             }
             RUNTIME_data_flush( sequence, A( k, n ) );
@@ -277,7 +277,7 @@ void chameleon_pzgetrf_nopiv_ws( CHAM_desc_t        *A,
             for (m = k+1; m < A->mt; m++) {
 
                 /* Skip the row if you are not involved with */
-                if ( m%A->p != myp ) {
+                if ( m%chameleon_desc_datadist_get_iparam(A, 0) != myp ) {
                     continue;
                 }
 
