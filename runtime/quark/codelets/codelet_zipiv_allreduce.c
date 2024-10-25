@@ -17,19 +17,19 @@
  */
 #include "chameleon_quark.h"
 
-void INSERT_TASK_zipiv_allreduce( CHAM_desc_t            *A,
-                                  const RUNTIME_option_t *options,
+void INSERT_TASK_zipiv_allreduce( const RUNTIME_option_t *options,
+                                  CHAM_desc_t            *A,
                                   CHAM_ipiv_t            *ipiv,
-                                  int                    *proc_involved,
                                   int                     k,
                                   int                     h,
-                                  int                     n )
+                                  int                     n,
+                                  void                   *ws )
 {
-    (void)A;
     (void)options;
+    (void)A;
     (void)ipiv;
-    (void)proc_involved;
     (void)k;
     (void)h;
     (void)n;
+    (void)ws;
 }
