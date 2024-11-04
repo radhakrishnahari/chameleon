@@ -129,15 +129,16 @@ typedef enum chameleon_storage_e {
  * @brief Transpostion
  */
 typedef enum chameleon_trans_e {
-    ChamNoTrans   = 111, /**< Use A         */
-    ChamTrans     = 112, /**< Use A^t       */
-    ChamConjTrans = 113  /**< Use conj(A^t) */
+    ChamNoTrans     = 111, /**< Use A         */
+    ChamTrans       = 112, /**< Use A^t       */
+    ChamConjTrans   = 113, /**< Use conj(A^t) */
+    ChamConjNoTrans = 114, /**< Use conj(A)   */
 } cham_trans_t;
 
 static inline int
 isValidTrans( cham_trans_t trans )
 {
-    if ( (trans >= ChamNoTrans) && (trans <= ChamConjTrans) ) {
+    if ( (trans >= ChamNoTrans) && (trans <= ChamConjNoTrans) ) {
         return 1;
     }
     else {
@@ -264,21 +265,21 @@ typedef enum chameleon_access_e {
  * @brief Chameleon GEMM-like algorithms
  */
 typedef enum chameleon_gemm_e {
-    ChamGemmAlgAuto = -1,
-    ChamGemmAlgGeneric,
-    ChamGemmAlgSummaA,
-    ChamGemmAlgSummaB,
-    ChamGemmAlgSummaC
+    ChamGemmAlgAuto    = -1,
+    ChamGemmAlgGeneric =  0,
+    ChamGemmAlgSummaA  =  1,
+    ChamGemmAlgSummaB  =  2,
+    ChamGemmAlgSummaC  =  3,
 } cham_gemm_t;
 
 /**
  * @brief Chameleon GETRF algorithm variants
  */
 typedef enum chameleon_getrf_e {
-    ChamGetrfNoPiv,
-    ChamGetrfNoPivPerColumn,
-    ChamGetrfPPiv,
-    ChamGetrfPPivPerColumn,
+    ChamGetrfNoPiv          = 0,
+    ChamGetrfNoPivPerColumn = 1,
+    ChamGetrfPPiv           = 2,
+    ChamGetrfPPivPerColumn  = 3,
 } cham_getrf_t;
 
 #define ChameleonTrd            1001
