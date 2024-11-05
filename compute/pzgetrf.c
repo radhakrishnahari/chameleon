@@ -448,6 +448,58 @@ chameleon_pzgetrf_panel_permute( struct chameleon_pzgetrf_s *ws,
 }
 
 static inline void
+chameleon_pzgetrf_panel_permute_batched( struct chameleon_pzgetrf_s *ws,
+                                         CHAM_desc_t                *A,
+                                         CHAM_ipiv_t                *ipiv,
+                                         int                         k,
+                                         int                         n,
+                                         RUNTIME_option_t           *options )
+{
+    switch( ws->alg ) {
+    case ChamGetrfPPiv:
+        chameleon_attr_fallthrough;
+    case ChamGetrfPPivPerColumn:
+    {
+        int m;
+        int tempkm, tempkn, tempnn, minmn;
+        void **clargs = malloc( sizeof(char *) );
+        *clargs = NULL;
+
+        tempkm = k == A->mt-1 ? A->m-k*A->mb : A->mb;
+        tempkn = k == A->nt-1 ? A->n-k*A->nb : A->nb;
+        tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
+        minmn  = chameleon_min( tempkm, tempkn );
+
+        /* Extract selected rows into U */
+        INSERT_TASK_zlacpy( options, ChamUpperLower, tempkm, tempnn,
+                            A(k, n), U(k, n) );
+
+        /*
+         * perm array is made of size tempkm for the first row especially.
+         * Otherwise, the final copy back to the tile may copy only a partial tile
+         */
+        INSERT_TASK_zlaswp_get( options, k*A->mb, tempkm,
+                                ipiv, k, A(k, n), U(k, n) );
+
+        for(m=k+1; m<A->mt; m++){
+            INSERT_TASK_zlaswp_batched( options, m*A->mb, minmn, k, m, n, (void *)ws,
+                                        ipiv, k, A, &(ws->U), clargs );
+        }
+        INSERT_TASK_zlaswp_batched_flush( options, k, n, ipiv, k, A, &(ws->U), clargs );
+
+        INSERT_TASK_zlacpy( options, ChamUpperLower, tempkm, tempnn,
+                            U(k, n), A(k, n) );
+
+        RUNTIME_data_flush( options->sequence, U(k, n) );
+        free( clargs );
+    }
+    break;
+    default:
+        ;
+    }
+}
+
+static inline void
 chameleon_pzgetrf_panel_update( struct chameleon_pzgetrf_s *ws,
                                 CHAM_desc_t                *A,
                                 CHAM_ipiv_t                *ipiv,
@@ -463,7 +515,12 @@ chameleon_pzgetrf_panel_update( struct chameleon_pzgetrf_s *ws,
     tempkm = k == A->mt-1 ? A->m-k*A->mb : A->mb;
     tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
 
-    chameleon_pzgetrf_panel_permute( ws, A, ipiv, k, n, options );
+    if ( ws->batch_size > 0 ) {
+        chameleon_pzgetrf_panel_permute_batched( ws, A, ipiv, k, n, options );
+    }
+    else {
+        chameleon_pzgetrf_panel_permute( ws, A, ipiv, k, n, options );
+    }
 
     INSERT_TASK_ztrsm(
         options,
@@ -536,11 +593,21 @@ void chameleon_pzgetrf( struct chameleon_pzgetrf_s *ws,
     }
 
     /* Backward pivoting */
-    for (k = 1; k < min_mnt; k++) {
-        for (n = 0; n < k; n++) {
-            chameleon_pzgetrf_panel_permute( ws, A, IPIV, k, n, &options );
+    if ( ws->batch_size > 0 ) {
+        for (k = 1; k < min_mnt; k++) {
+            for (n = 0; n < k; n++) {
+                chameleon_pzgetrf_panel_permute_batched( ws, A, IPIV, k, n, &options );
+            }
+            RUNTIME_perm_flushk( sequence, IPIV, k );
         }
-        RUNTIME_perm_flushk( sequence, IPIV, k );
+    }
+    else {
+        for (k = 1; k < min_mnt; k++) {
+            for (n = 0; n < k; n++) {
+                chameleon_pzgetrf_panel_permute( ws, A, IPIV, k, n, &options );
+            }
+            RUNTIME_perm_flushk( sequence, IPIV, k );
+        }
     }
 
     /* Initialize IPIV with default values if needed */
