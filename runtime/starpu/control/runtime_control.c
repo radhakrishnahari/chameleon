@@ -353,6 +353,20 @@ void RUNTIME_progress( CHAM_context_t *chamctxt )
     return;
 }
 
+/*
+ * Dedicated task to print timings and memory consumption by steps
+ */
+static void cl_zgetrf_stats_bystep_cpu_func( int Ak )
+{
+    char hostname[256];
+    gethostname(hostname, 256);
+
+    double timing = starpu_timing_now()*1e-6;
+    size_t mem_used = ((size_t) starpu_memory_get_used_all_nodes()*0.95367431640625e-6);
+
+    fprintf( stderr, "Host %s, step k = %d, time = %es, memory = %ldMB\n", hostname, Ak, timing, mem_used );
+}
+
 /**
  * Lookahead based on the first iterations
  * Counts how many tasks are sumbitted at the first n iterations (with n the lookahead)
@@ -366,6 +380,8 @@ int RUNTIME_lookahead( CHAM_context_t *chamctxt,
 {
     int tasks_submit, lookahead;
     int max = 0;
+
+    // cl_zgetrf_stats_bystep_cpu_func( k );
 
     /* Get how many tasks are currently submitted */
     tasks_submit = starpu_task_nsubmitted();
