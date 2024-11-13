@@ -133,7 +133,7 @@ void chameleon_desc_set_datadist( CHAM_desc_t *to, cham_data_dist_t *from )
     to->data_dist->distrib_array_size = from->distrib_array_size;
 
     for (i = 0; i < to->data_dist->distrib_array_size; i++) {
-      to->data_dist->distrib[i] = from->distrib[i];
+        to->data_dist->distrib[i] = from->distrib[i];
     }
 }
 
