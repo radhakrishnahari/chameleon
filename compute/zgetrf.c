@@ -67,6 +67,12 @@ CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A )
     ws->alg = ChamGetrfPPiv;
     ws->ib  = CHAMELEON_IB;
 
+#if defined (CHAMELEON_USE_MPI)
+    ws->proc_involved = malloc( sizeof( int ) * A->p );
+    ws->involved      = 0;
+    ws->np_involved   = 0;
+#endif
+
     {
         char *algostr = chameleon_getenv( "CHAMELEON_GETRF_ALGO" );
 
@@ -112,6 +118,11 @@ CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A )
                              A->m, A->n, 0, 0,
                              A->m, A->n, A->p, A->q,
                              NULL, NULL, A->get_rankof_init, A->get_rankof_init_arg );
+        chameleon_desc_init( &(ws->Wu), CHAMELEON_MAT_ALLOC_TILE,
+                             ChamComplexDouble, A->mb, A->nb, A->mb*A->nb,
+                             A->mb * A->p * A->q, A->n, 0, 0,
+                             A->mb * A->p * A->q, A->n, A->p * A->q, 1,
+                             NULL, NULL, NULL, A->get_rankof_init_arg );
     }
 
     /* Set ib to 1 if per column algorithm */
@@ -160,6 +171,10 @@ CHAMELEON_zgetrf_WS_Free( void *user_ws )
 {
     struct chameleon_pzgetrf_s *ws = (struct chameleon_pzgetrf_s *)user_ws;
 
+#if defined (CHAMELEON_USE_MPI)
+    free( ws->proc_involved );
+#endif
+
     if ( ( ws->alg == ChamGetrfNoPivPerColumn ) ||
          ( ws->alg == ChamGetrfPPiv           ) ||
          ( ws->alg == ChamGetrfPPivPerColumn  ) )
@@ -169,6 +184,11 @@ CHAMELEON_zgetrf_WS_Free( void *user_ws )
     if ( ws->alg == ChamGetrfPPiv )
     {
         chameleon_desc_destroy( &(ws->Up) );
+    }
+    if ( ( ws->alg == ChamGetrfPPiv           ) ||
+         ( ws->alg == ChamGetrfPPivPerColumn  ) )
+    {
+        chameleon_desc_destroy( &(ws->Wu) );
     }
     free( ws );
 }

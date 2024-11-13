@@ -86,6 +86,7 @@ set(CODELETS_ZSRC
     codelets/codelet_zlaswp_batched.c
     codelets/codelet_zlatro.c
     codelets/codelet_zlauum.c
+    codelets/codelet_zperm_allreduce.c
     codelets/codelet_zplghe.c
     codelets/codelet_zplgsy.c
     codelets/codelet_zplrnt.c
