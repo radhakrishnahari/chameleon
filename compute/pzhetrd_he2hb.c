@@ -90,7 +90,9 @@ void chameleon_pzhetrd_he2hb(cham_uplo_t uplo,
     RUNTIME_options_ws_alloc( &options, ws_worker, ws_host );
 
     /* Copy of the diagonal tiles to keep the general version of the tile all along the computation */
-    chameleon_zdesc_alloc_diag( &D, A->mb, A->m, A->n, A->p, A->q );
+    chameleon_zdesc_alloc_diag( &D, A->mb, A->m, A->n,
+                                chameleon_desc_datadist_get_iparam(A, 0),
+                                chameleon_desc_datadist_get_iparam(A, 1) );
 
     chameleon_desc_init( &AT, CHAMELEON_MAT_ALLOC_GLOBAL, ChamComplexDouble, A->mb, A->nb, (A->mb*A->nb),
                          chameleon_min(A->mt, A->nt) * A->mb, A->nb, 0, 0,

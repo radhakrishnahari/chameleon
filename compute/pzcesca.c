@@ -37,8 +37,8 @@ chameleon_pzcesca_internal( int center,
     int NT = A->nt;
     int M  = A->m;
     int N  = A->n;
-    int P  = A->p;
-    int Q  = A->q;
+    int P  = chameleon_desc_datadist_get_iparam(A, 0);
+    int Q  = chameleon_desc_datadist_get_iparam(A, 1);
 
     /**
      *  1) compute sums and sum-square (scl,ssq) in each tile

@@ -391,7 +391,9 @@ int CHAMELEON_zhetrd_Tile_Async( cham_job_t jobz,
     NB = descA.mb;
 #if defined(CHAMELEON_COPY_DIAG)
     {
-        chameleon_zdesc_alloc_diag( &D, A->mb, A->m, A->n, A->p, A->q );
+        chameleon_zdesc_alloc_diag( &D, A->mb, A->m, A->n,
+                                    chameleon_desc_datadist_get_iparam(A, 0),
+                                    chameleon_desc_datadist_get_iparam(A, 1) );
         Dptr = &D;
     }
 #endif

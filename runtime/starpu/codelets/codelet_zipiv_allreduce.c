@@ -114,7 +114,7 @@ void INSERT_TASK_zipiv_allreduce( CHAM_desc_t            *A,
                                   int                     h,
                                   int                     n )
 {
-    int np_involved   = chameleon_min( A->p, A->mt - k);
+    int np_involved   = chameleon_min( chameleon_desc_datadist_get_iparam(A, 0), A->mt - k);
     int np_iter       = np_involved;
     int p_recv, p_send, me;
     int shift = 1;

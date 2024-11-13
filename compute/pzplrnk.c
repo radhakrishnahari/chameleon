@@ -47,24 +47,28 @@ void chameleon_pzplrnk( int K, CHAM_desc_t *C,
 
     chameleon_desc_init( &WA, CHAMELEON_MAT_ALLOC_TILE,
                          ChamComplexDouble, C->mb, C->nb, (C->mb * C->nb),
-                         C->mt * C->mb, C->nb * C->q, 0, 0,
-                         C->mt * C->mb, C->nb * C->q, C->p, C->q,
+                         C->mt * C->mb, C->nb * chameleon_desc_datadist_get_iparam(C, 1), 0, 0,
+                         C->mt * C->mb, C->nb * chameleon_desc_datadist_get_iparam(C, 1),
+                         chameleon_desc_datadist_get_iparam(C, 0),
+                         chameleon_desc_datadist_get_iparam(C, 1),
                          NULL, NULL, NULL, NULL );
     chameleon_desc_init( &WB, CHAMELEON_MAT_ALLOC_TILE,
                          ChamComplexDouble, C->mb, C->nb, (C->mb * C->nb),
-                         C->mb * C->p, C->nt * C->nb, 0, 0,
-                         C->mb * C->p, C->nt * C->nb, C->p, C->q,
+                         C->mb * chameleon_desc_datadist_get_iparam(C, 0), C->nt * C->nb, 0, 0,
+                         C->mb * chameleon_desc_datadist_get_iparam(C, 0), C->nt * C->nb,
+                         chameleon_desc_datadist_get_iparam(C, 0),
+                         chameleon_desc_datadist_get_iparam(C, 1),
                          NULL, NULL, NULL, NULL );
 
     KT = (K + C->mb - 1) / C->mb;
-    myp = C->myrank / C->q;
-    myq = C->myrank % C->q;
+    myp = C->myrank / chameleon_desc_datadist_get_iparam(C, 1);
+    myq = C->myrank % chameleon_desc_datadist_get_iparam(C, 1);
 
     for (k = 0; k < KT; k++) {
         tempkk = k == KT-1 ? K - k * WA.nb : WA.nb;
         zbeta  = k == 0 ? 0. : 1.;
 
-        for (n = myq; n < C->nt; n+=C->q) {
+        for (n = myq; n < C->nt; n+=chameleon_desc_datadist_get_iparam(C, 1)) {
             tempnn = n == C->nt-1 ? C->n-n*C->nb : C->nb;
 
             INSERT_TASK_zplrnt(
@@ -73,7 +77,7 @@ void chameleon_pzplrnk( int K, CHAM_desc_t *C,
                 WB.m, k * WB.mb, n * WB.nb, seedB );
         }
 
-        for (m = myp; m < C->mt; m+=C->p) {
+        for (m = myp; m < C->mt; m+=chameleon_desc_datadist_get_iparam(C, 0)) {
             tempmm = m == C->mt-1 ? C->m-m*C->mb : C->mb;
 
             INSERT_TASK_zplrnt(
@@ -81,7 +85,7 @@ void chameleon_pzplrnk( int K, CHAM_desc_t *C,
                 tempmm, tempkk, WA(m, myq),
                 WA.m, m * WA.mb, k * WA.nb, seedA );
 
-            for (n = myq; n < C->nt; n+=C->q) {
+            for (n = myq; n < C->nt; n+=chameleon_desc_datadist_get_iparam(C, 1)) {
                 tempnn = n == C->nt-1 ? C->n-n*C->nb : C->nb;
 
                 INSERT_TASK_zgemm(
@@ -94,7 +98,7 @@ void chameleon_pzplrnk( int K, CHAM_desc_t *C,
             }
             RUNTIME_data_flush( sequence, WA(m, 0) );
         }
-        for (n = myq; n < C->nt; n+=C->q) {
+        for (n = myq; n < C->nt; n+=chameleon_desc_datadist_get_iparam(C, 1)) {
             RUNTIME_data_flush( sequence, WB(0, n) );
         }
     }

@@ -35,6 +35,8 @@ BEGIN_C_DECLS
 #define CHAMELEON_TILE_DESC     (1 << 1)
 #define CHAMELEON_TILE_HMAT     (1 << 2)
 
+#define CHAMELEON_MAX_DIMENSION 10
+
 /**
  * @brief CHAMELEON structure to hold pivot informations for the LU factorization with partial pivoting
  */
@@ -76,10 +78,41 @@ typedef struct chameleon_tile_s {
 struct chameleon_desc_s;
 typedef struct chameleon_desc_s CHAM_desc_t;
 
-typedef void*        (*blkaddr_fct_t)  ( const CHAM_desc_t*, int, int );
-typedef int          (*blkldd_fct_t)   ( const CHAM_desc_t*, int );
-typedef int          (*blkrankof_fct_t)( const CHAM_desc_t*, int, int );
-typedef CHAM_tile_t* (*blktile_fct_t)  ( const CHAM_desc_t*, int, int );
+typedef void*        (*blkaddr_fct_t)        ( const CHAM_desc_t*, int, int );
+typedef int          (*blkldd_fct_t)         ( const CHAM_desc_t*, int );
+typedef int          (*blkrankof_fct_t)      ( const CHAM_desc_t*, int, int );
+typedef int          (*datadist_access_fct_t)( const CHAM_desc_t*, int, ... );
+typedef CHAM_tile_t* (*blktile_fct_t)        ( const CHAM_desc_t*, int, int );
+
+/**
+ * Data distribution type and acces functions
+ */
+/**
+ * @brief Function discribing the indexed access to a 2D block cyclic data
+ *        distribution holding the the grid size in the data distribution
+ *        array [p,q] :
+ *        0 returns p, 1 returns q.
+ */
+int chameleon_get_2d_block_cyclic(const CHAM_desc_t *desc, int i );
+
+/**
+ * @brief Function call which forward the index i to the access function
+ */
+int chameleon_desc_datadist_get_iparam( const CHAM_desc_t *desc, int i );
+
+/**
+ * @brief Data distribution type
+ */
+typedef struct cham_data_dist_s {
+    datadist_access_fct_t get_distrib;    /**> function describing how to index the distribution array */
+    int distrib_array_size;               /**> number of parameters stored in the distribution array   */
+    int distrib[CHAMELEON_MAX_DIMENSION]; /**> array holding the parameters                            */
+} cham_data_dist_t;
+
+/**
+ * @brief Function for initialising the data distribution
+ */
+void chameleon_desc_set_datadist( CHAM_desc_t *to, cham_data_dist_t *from );
 
 struct chameleon_desc_s {
     const char *name;
@@ -116,14 +149,13 @@ struct chameleon_desc_s {
     int lnt;          /**> number of tile columns of the entire matrix - derived parameter */
 
     /* Distributed case */
-    int p;            /**> number of rows of the 2D distribution grid                          */
-    int q;            /**> number of columns of the 2D distribution grid                       */
-    int llm;          /**> local number of rows         of the full matrix - derived parameter */
-    int lln;          /**> local number of columns      of the full matrix - derived parameter */
-    int llm1;         /**> local number of tile rows    of the A11  matrix - derived parameter */
-    int lln1;         /**> local number of tile columns of the A11  matrix - derived parameter */
-    int llmt;         /**> local number of tile rows    of the full matrix - derived parameter */
-    int llnt;         /**> local number of tile columns of the full matrix - derived parameter */
+    cham_data_dist_t *data_dist; /**> data distribution type used to retrieve the distributed layout      */
+    int llm;                     /**> local number of rows         of the full matrix - derived parameter */
+    int lln;                     /**> local number of columns      of the full matrix - derived parameter */
+    int llm1;                    /**> local number of tile rows    of the A11  matrix - derived parameter */
+    int lln1;                    /**> local number of tile columns of the A11  matrix - derived parameter */
+    int llmt;                    /**> local number of tile rows    of the full matrix - derived parameter */
+    int llnt;                    /**> local number of tile columns of the full matrix - derived parameter */
 
     int id;           /**> identification number of the descriptor                            */
     int occurences;   /**> identify main matrix desc (occurances=1) or                        */

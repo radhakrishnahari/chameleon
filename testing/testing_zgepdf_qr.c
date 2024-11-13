@@ -108,8 +108,8 @@ testing_zgepdf_qr_desc( run_arg_list_t *args, int check )
         libhqr_matrix_t mat = {
             .mt    = descA1->mt,
             .nt    = descA1->nt,
-            .nodes = descA1->p * descA1->q,
-            .p     = descA1->p,
+            .nodes = chameleon_desc_datadist_get_iparam(descA1, 0) * chameleon_desc_datadist_get_iparam(descA1, 1),
+            .p     = chameleon_desc_datadist_get_iparam(descA1, 0),
         };
 
         /* Tree for the top matrix */
@@ -117,7 +117,7 @@ testing_zgepdf_qr_desc( run_arg_list_t *args, int check )
                          -1,        /*low level tree   */
                          -1,        /* high level tree */
                          -1,        /* TS tree size    */
-                         descA1->p, /* High level size */
+                         chameleon_desc_datadist_get_iparam(descA1, 0), /* High level size */
                          -1,        /* Domino */
                          0          /* TSRR (unstable) */ );
 
@@ -129,7 +129,7 @@ testing_zgepdf_qr_desc( run_arg_list_t *args, int check )
             /* high level tree (Could be greedy, but flat should reduce the volume of comm) */
             LIBHQR_FLAT_TREE,
             -1,       /* TS tree size    */
-            descA2->p /* High level size */ );
+            chameleon_desc_datadist_get_iparam(descA2, 0) /* High level size */ );
     }
 
     /* Calculates the solution */

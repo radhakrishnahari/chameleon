@@ -198,8 +198,8 @@ void chameleon_pzlatms( cham_dist_t idist, unsigned long long int seed, cham_sym
         /* Apply a QR factorization */
         mat.mt    = descU.mt;
         mat.nt    = descU.nt;
-        mat.nodes = descU.p * descU.q;
-        mat.p     = descU.p;
+        mat.nodes = chameleon_desc_datadist_get_iparam(&descU, 0) * chameleon_desc_datadist_get_iparam(&descU, 1);
+        mat.p     = chameleon_desc_datadist_get_iparam(&descU, 0);
 
         libhqr_init_hqr( &qrtree, LIBHQR_QR, &mat,
                          -1, /*low level tree   */
@@ -217,12 +217,16 @@ void chameleon_pzlatms( cham_dist_t idist, unsigned long long int seed, cham_sym
         chameleon_desc_init( &descTS, CHAMELEON_MAT_ALLOC_TILE,
                              ChamComplexDouble, ib, descU.nb, ib * descU.nb,
                              ib * descU.mt, descU.nb * descU.nt, 0, 0,
-                             ib * descU.mt, descU.nb * descU.nt, descU.p, descU.q,
+                             ib * descU.mt, descU.nb * descU.nt,
+                             chameleon_desc_datadist_get_iparam(&descU, 0),
+                             chameleon_desc_datadist_get_iparam(&descU, 1),
                              NULL, NULL, NULL, NULL );
         chameleon_desc_init( &descTT, CHAMELEON_MAT_ALLOC_TILE,
                              ChamComplexDouble, ib, descU.nb, ib * descU.nb,
                              ib * descU.mt, descU.nb * descU.nt, 0, 0,
-                             ib * descU.mt, descU.nb * descU.nt, descU.p, descU.q,
+                             ib * descU.mt, descU.nb * descU.nt,
+                             chameleon_desc_datadist_get_iparam(&descU, 0),
+                             chameleon_desc_datadist_get_iparam(&descU, 1),
                              NULL, NULL, NULL, NULL );
 
         /* U <= qr(U) */
@@ -269,8 +273,8 @@ void chameleon_pzlatms( cham_dist_t idist, unsigned long long int seed, cham_sym
         /* Apply a QR factorization */
         mat.mt    = descV.mt;
         mat.nt    = descV.nt;
-        mat.nodes = descV.p * descV.q;
-        mat.p     = descV.q;
+        mat.nodes = chameleon_desc_datadist_get_iparam(&descV, 0) * chameleon_desc_datadist_get_iparam(&descV, 1);
+        mat.p     = chameleon_desc_datadist_get_iparam(&descV, 1);
 
         libhqr_init_hqr( &qrtree, LIBHQR_LQ, &mat,
                          -1, /*low level tree   */
@@ -288,12 +292,16 @@ void chameleon_pzlatms( cham_dist_t idist, unsigned long long int seed, cham_sym
         chameleon_desc_init( &descTS, CHAMELEON_MAT_ALLOC_TILE,
                              ChamComplexDouble, ib, descV.nb, ib * descV.nb,
                              ib * descV.mt, descV.nb * descV.nt, 0, 0,
-                             ib * descV.mt, descV.nb * descV.nt, descV.p, descV.q,
+                             ib * descV.mt, descV.nb * descV.nt,
+                             chameleon_desc_datadist_get_iparam(&descV, 0),
+                             chameleon_desc_datadist_get_iparam(&descV, 1),
                              NULL, NULL, NULL, NULL );
         chameleon_desc_init( &descTT, CHAMELEON_MAT_ALLOC_TILE,
                              ChamComplexDouble, ib, descV.nb, ib * descV.nb,
                              ib * descV.mt, descV.nb * descV.nt, 0, 0,
-                             ib * descV.mt, descV.nb * descV.nt, descV.p, descV.q,
+                             ib * descV.mt, descV.nb * descV.nt,
+                             chameleon_desc_datadist_get_iparam(&descV, 0),
+                             chameleon_desc_datadist_get_iparam(&descV, 1),
                              NULL, NULL, NULL, NULL );
 
         /* V <= qr(V) */

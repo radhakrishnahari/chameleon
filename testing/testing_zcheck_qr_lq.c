@@ -683,7 +683,7 @@ int check_zgeqrs( run_arg_list_t *args, cham_trans_t trans, CHAM_desc_t *descA, 
          *
          */
         CHAMELEON_Desc_Create( &descRR, NULL, ChamComplexDouble, nb, nb, nb*nb,
-                               NRHS, N, 0, 0, NRHS, N, descA->p, descA->q );
+                               NRHS, N, 0, 0, NRHS, N, chameleon_desc_datadist_get_iparam(descA, 0), chameleon_desc_datadist_get_iparam(descA, 1) );
 
         CHAMELEON_zgemm_Tile( ChamConjTrans, trans, 1., descR, descA, 0., descRR );
 
@@ -776,7 +776,8 @@ int check_zgelqs( run_arg_list_t *args, cham_trans_t trans, CHAM_desc_t *descA, 
          * where R = op(A)*X - B, op(A) is A or A', and alpha = ||B||
          *
          */
-        CHAMELEON_Desc_Create( &descRR, NULL, ChamComplexDouble, nb, nb, nb*nb, NRHS, M, 0, 0, NRHS, M, descA->p, descA->q );
+        CHAMELEON_Desc_Create( &descRR, NULL, ChamComplexDouble, nb, nb, nb*nb, NRHS, M, 0, 0, NRHS, M,
+                               chameleon_desc_datadist_get_iparam(descA, 0), chameleon_desc_datadist_get_iparam(descA, 1) );
 
         CHAMELEON_zgemm_Tile( ChamConjTrans, trans, 1., descR, descA, 0., descRR );
 

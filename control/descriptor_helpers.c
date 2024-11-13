@@ -56,7 +56,7 @@ int chameleon_getrankof_2d( const CHAM_desc_t *A, int m, int n )
 {
     int mm = m + A->i / A->mb;
     int nn = n + A->j / A->nb;
-    return (mm % A->p) * A->q + (nn % A->q);
+    return (mm % chameleon_desc_datadist_get_iparam(A,0)) * chameleon_desc_datadist_get_iparam(A,1) + (nn % chameleon_desc_datadist_get_iparam(A,1));
 }
 
 /**
@@ -79,7 +79,7 @@ int chameleon_getrankof_2d_diag( const CHAM_desc_t *A, int m, int n )
 {
     int mm = m + A->i / A->mb;
     (void)n;
-    return (mm % A->p) * A->q + (mm % A->q);
+    return (mm % chameleon_desc_datadist_get_iparam(A,0)) * chameleon_desc_datadist_get_iparam(A,1) + (mm % chameleon_desc_datadist_get_iparam(A,1));
 }
 
 /**
@@ -97,7 +97,7 @@ int chameleon_getrankof_2d_diag( const CHAM_desc_t *A, int m, int n )
  */
 int chameleon_involved_in_panelk_2dbc( const CHAM_desc_t *A, int k ) {
     int myrank = A->myrank;
-    return ( myrank % A->q == k % A->q );
+    return ( myrank % chameleon_desc_datadist_get_iparam(A,1) == k % chameleon_desc_datadist_get_iparam(A,1) );
 }
 
 /**
@@ -128,7 +128,7 @@ void chameleon_get_proc_involved_in_panelk_2dbc( const CHAM_desc_t *A,
 
     np = 0;
     ws->involved = 0;
-    for ( b = k; (b < A->mt) && ((b-k) < A->p); b ++ ) {
+    for ( b = k; (b < A->mt) && ((b-k) < chameleon_desc_datadist_get_iparam(A, 0)); b ++ ) {
         rank = chameleon_getrankof_2d( A, b, n );
         proc_involved[ b-k ] = rank;
         np ++;
@@ -325,8 +325,8 @@ void* chameleon_getaddr_ccrb( const CHAM_desc_t *A, int m, int n )
 
 #if defined(CHAMELEON_USE_MPI)
     assert( A->myrank == A->get_rankof( A, mm, nn ) );
-    mm = mm / A->p;
-    nn = nn / A->q;
+    mm = mm / chameleon_desc_datadist_get_iparam(A, 0);
+    nn = nn / chameleon_desc_datadist_get_iparam(A, 1);
 #endif
 
     if (mm < (size_t)(A->llm1)) {
@@ -372,8 +372,8 @@ void *chameleon_getaddr_cm( const CHAM_desc_t *A, int m, int n )
 
 #if defined(CHAMELEON_USE_MPI)
     assert( A->myrank == A->get_rankof( A, mm, nn ) );
-    mm = mm / A->p;
-    nn = nn / A->q;
+    mm = mm / chameleon_desc_datadist_get_iparam(A, 0);
+    nn = nn / chameleon_desc_datadist_get_iparam(A, 1);
 #endif
 
     offset = (size_t)(A->llm * A->nb) * nn + (size_t)(A->mb) * mm;

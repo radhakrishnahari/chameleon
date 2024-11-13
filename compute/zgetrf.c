@@ -68,7 +68,7 @@ CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A )
     ws->ib  = CHAMELEON_IB;
 
 #if defined (CHAMELEON_USE_MPI)
-    ws->proc_involved = malloc( sizeof( int ) * A->p );
+    ws->proc_involved = malloc( sizeof( int ) * chameleon_desc_datadist_get_iparam(A, 0) );
     ws->involved      = 0;
     ws->np_involved   = 0;
 #endif
@@ -107,7 +107,9 @@ CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A )
         chameleon_desc_init( &(ws->U), CHAMELEON_MAT_ALLOC_TILE,
                              ChamComplexDouble, 1, A->nb, A->nb,
                              A->mt, A->nt * A->nb, 0, 0,
-                             A->mt, A->nt * A->nb, A->p, A->q,
+                             A->mt, A->nt * A->nb,
+                             chameleon_desc_datadist_get_iparam(A, 0),
+                             chameleon_desc_datadist_get_iparam(A, 1),
                              NULL, NULL, A->get_rankof_init, A->get_rankof_init_arg );
     }
     else if ( ( ws->alg == ChamGetrfPPiv )          ||
@@ -116,12 +118,14 @@ CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A )
         chameleon_desc_init( &(ws->U), CHAMELEON_MAT_ALLOC_TILE,
                              ChamComplexDouble, A->mb, A->nb, A->mb*A->nb,
                              A->m, A->n, 0, 0,
-                             A->m, A->n, A->p, A->q,
+                             A->m, A->n,
+                             chameleon_desc_datadist_get_iparam(A, 0),
+                             chameleon_desc_datadist_get_iparam(A, 1),
                              NULL, NULL, A->get_rankof_init, A->get_rankof_init_arg );
         chameleon_desc_init( &(ws->Wu), CHAMELEON_MAT_ALLOC_TILE,
                              ChamComplexDouble, A->mb, A->nb, A->mb*A->nb,
-                             A->mb * A->p * A->q, A->n, 0, 0,
-                             A->mb * A->p * A->q, A->n, A->p * A->q, 1,
+                             A->mb * chameleon_desc_datadist_get_iparam(A, 0) * chameleon_desc_datadist_get_iparam(A, 1), A->n, 0, 0,
+                             A->mb * chameleon_desc_datadist_get_iparam(A, 0) * chameleon_desc_datadist_get_iparam(A, 1), A->n, chameleon_desc_datadist_get_iparam(A, 0) * chameleon_desc_datadist_get_iparam(A, 1), 1,
                              NULL, NULL, NULL, A->get_rankof_init_arg );
     }
 
@@ -140,7 +144,9 @@ CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A )
         chameleon_desc_init( &(ws->Up), CHAMELEON_MAT_ALLOC_TILE,
                              ChamComplexDouble, ws->ib, A->nb, ws->ib * A->nb,
                              A->mt * ws->ib, A->nt * A->nb, 0, 0,
-                             A->mt * ws->ib, A->nt * A->nb, A->p, A->q,
+                             A->mt * ws->ib, A->nt * A->nb,
+                             chameleon_desc_datadist_get_iparam(A, 0),
+                             chameleon_desc_datadist_get_iparam(A, 1),
                              NULL, NULL, A->get_rankof_init, A->get_rankof_init_arg );
     }
 

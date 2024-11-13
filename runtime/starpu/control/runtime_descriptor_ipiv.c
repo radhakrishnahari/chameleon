@@ -26,14 +26,14 @@ void RUNTIME_ipiv_create( CHAM_ipiv_t       *ipiv,
                           const CHAM_desc_t *desc )
 {
     assert( ipiv );
-    size_t                nbhandles = 3 * ipiv->mt + 2 * desc->p;
+    size_t                nbhandles = 3 * ipiv->mt + 2 * chameleon_desc_datadist_get_iparam(desc, 0);
     starpu_data_handle_t *handles   = calloc( nbhandles, sizeof(starpu_data_handle_t) );
     ipiv->ipiv    = handles;
     handles += ipiv->mt;
     ipiv->nextpiv = handles;
-    handles += desc->p;
+    handles += chameleon_desc_datadist_get_iparam(desc, 0);
     ipiv->prevpiv = handles;
-    handles += desc->p;
+    handles += chameleon_desc_datadist_get_iparam(desc, 0);
     ipiv->perm    = handles;
     handles += ipiv->mt;
     ipiv->invp    = handles;
@@ -50,8 +50,8 @@ void RUNTIME_ipiv_create( CHAM_ipiv_t       *ipiv,
             return;
         }
         ipiv->mpitag_nextpiv = ipiv->mpitag_ipiv    + ipiv->mt;
-        ipiv->mpitag_prevpiv = ipiv->mpitag_nextpiv + desc->p;
-        ipiv->mpitag_perm    = ipiv->mpitag_prevpiv + desc->p;
+        ipiv->mpitag_prevpiv = ipiv->mpitag_nextpiv + chameleon_desc_datadist_get_iparam(desc, 0);
+        ipiv->mpitag_perm    = ipiv->mpitag_prevpiv + chameleon_desc_datadist_get_iparam(desc, 0);
         ipiv->mpitag_invp    = ipiv->mpitag_perm    + ipiv->mt;
     }
 #endif
@@ -65,7 +65,7 @@ void RUNTIME_ipiv_destroy( CHAM_ipiv_t       *ipiv,
 {
     int                   i;
     starpu_data_handle_t *handle = (starpu_data_handle_t*)(ipiv->ipiv);
-    size_t                nbhandles = 3 * ipiv->mt + 2 * desc->p;
+    size_t                nbhandles = 3 * ipiv->mt + 2 * chameleon_desc_datadist_get_iparam(desc, 0);
 
     for(i=0; i<nbhandles; i++) {
         if ( *handle != NULL ) {
@@ -118,7 +118,7 @@ void *RUNTIME_nextpiv_getaddr( const CHAM_ipiv_t *ipiv, int rank, int k, int h )
     starpu_data_handle_t *nextpiv = (starpu_data_handle_t*)(ipiv->nextpiv);
     const CHAM_desc_t *A = ipiv->desc;
 
-    nextpiv += rank/A->q;
+    nextpiv += rank/chameleon_desc_datadist_get_iparam(A, 1);
     assert( nextpiv );
 
     if ( *nextpiv != NULL ) {
@@ -128,7 +128,7 @@ void *RUNTIME_nextpiv_getaddr( const CHAM_ipiv_t *ipiv, int rank, int k, int h )
     int64_t kk    = k + (ipiv->i / ipiv->mb);
     int     owner = rank;
     int     ncols = (kk == (A->nt-1)) ? A->n - kk * A->nb : A->nb;
-    int64_t tag   = ipiv->mpitag_nextpiv + owner/A->q;
+    int64_t tag   = ipiv->mpitag_nextpiv + owner/chameleon_desc_datadist_get_iparam(A, 1);
 
     cppi_register( nextpiv, A->dtyp, ncols, tag, owner );
 
@@ -142,7 +142,7 @@ void *RUNTIME_prevpiv_getaddr( const CHAM_ipiv_t *ipiv, int rank, int k, int h )
     starpu_data_handle_t *prevpiv = (starpu_data_handle_t*)(ipiv->prevpiv);
     const CHAM_desc_t *A = ipiv->desc;
 
-    prevpiv += rank/A->q;
+    prevpiv += rank/chameleon_desc_datadist_get_iparam(A, 1);
     assert( prevpiv );
 
     if ( *prevpiv != NULL ) {
@@ -152,7 +152,7 @@ void *RUNTIME_prevpiv_getaddr( const CHAM_ipiv_t *ipiv, int rank, int k, int h )
     int64_t kk    = k + (ipiv->i / ipiv->mb);
     int     owner = rank;
     int     ncols = (kk == (A->nt-1)) ? A->n - kk * A->nb : A->nb;
-    int64_t tag   = ipiv->mpitag_prevpiv + owner/A->q;
+    int64_t tag   = ipiv->mpitag_prevpiv + owner/chameleon_desc_datadist_get_iparam(A, 1);
 
     cppi_register( prevpiv, A->dtyp, ncols, tag, owner );
 
@@ -226,7 +226,7 @@ void RUNTIME_ipiv_flushk( const RUNTIME_sequence_t *sequence,
     const CHAM_desc_t *A = ipiv->desc;
 
     handle = (starpu_data_handle_t*)(ipiv->nextpiv);
-    handle += rank/A->q;
+    handle += rank/chameleon_desc_datadist_get_iparam(A, 1);
 
     if ( *handle != NULL ) {
 #if defined(CHAMELEON_USE_MPI)
@@ -239,7 +239,7 @@ void RUNTIME_ipiv_flushk( const RUNTIME_sequence_t *sequence,
     }
 
     handle = (starpu_data_handle_t*)(ipiv->prevpiv);
-    handle += rank/A->q;
+    handle += rank/chameleon_desc_datadist_get_iparam(A, 1);
 
     if ( *handle != NULL ) {
 #if defined(CHAMELEON_USE_MPI)

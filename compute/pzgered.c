@@ -44,8 +44,8 @@ chameleon_pzgered_frb( cham_uplo_t       uplo,
     int NT = (uplo == ChamLower) ? minMNT : A->nt;
     int M  = (uplo == ChamUpper) ? minMN  : A->m;
     int N  = (uplo == ChamLower) ? minMN  : A->n;
-    int P  = Welt->p;
-    int Q  = Welt->q;
+    int P  = chameleon_desc_datadist_get_iparam(Welt, 0);
+    int Q  = chameleon_desc_datadist_get_iparam(Welt, 1);
 
     /* Initialize workspaces for tile norms */
     for(m = 0; m < Wnorm->mt; m++) {
@@ -142,8 +142,8 @@ chameleon_pzgered_frb( cham_uplo_t       uplo,
     /**
      * Broadcast the result
      */
-    for(m = 0; m < A->p; m++) {
-        for(n = 0; n < A->q; n++) {
+    for(m = 0; m < chameleon_desc_datadist_get_iparam(A, 0); m++) {
+        for(n = 0; n < chameleon_desc_datadist_get_iparam(A, 1); n++) {
             if ( (m != 0) || (n != 0) ) {
                 INSERT_TASK_dlacpy(
                     options,
@@ -178,19 +178,23 @@ void chameleon_pzgered( cham_uplo_t         uplo,
     }
     RUNTIME_options_init(&options, chamctxt, sequence, request);
 
-    workmt = chameleon_max( A->mt, A->p );
-    worknt = chameleon_max( A->nt, A->q );
+    workmt = chameleon_max( A->mt, chameleon_desc_datadist_get_iparam(A, 0) );
+    worknt = chameleon_max( A->nt, chameleon_desc_datadist_get_iparam(A, 1) );
 
     RUNTIME_options_ws_alloc( &options, 1, 0 );
 
     /* Matrix to store the norm of each element */
     chameleon_desc_init( &Wcol, CHAMELEON_MAT_ALLOC_GLOBAL, ChamRealDouble, 2, 1, 2,
-                         A->mt * 2, A->nt, 0, 0, A->mt * 2, A->nt, A->p, A->q,
+                         A->mt * 2, A->nt, 0, 0, A->mt * 2, A->nt,
+                         chameleon_desc_datadist_get_iparam(A, 0),
+                         chameleon_desc_datadist_get_iparam(A, 1),
                          NULL, NULL, A->get_rankof_init, A->get_rankof_init_arg );
 
     /* Matrix to compute the global frobenius norm */
     chameleon_desc_init( &Welt, CHAMELEON_MAT_ALLOC_GLOBAL, ChamRealDouble, 2, 1, 2,
-                         workmt*2, worknt, 0, 0, workmt*2, worknt, A->p, A->q,
+                         workmt*2, worknt, 0, 0, workmt*2, worknt,
+                         chameleon_desc_datadist_get_iparam(A, 0),
+                         chameleon_desc_datadist_get_iparam(A, 1),
                          NULL, NULL, NULL, NULL );
 
     chameleon_pzgered_frb( uplo, A, &Wcol, &Welt, &options );
@@ -201,7 +205,7 @@ void chameleon_pzgered( cham_uplo_t         uplo,
 
     RUNTIME_sequence_wait( chamctxt, sequence );
 
-    gnorm = *((double *)Welt.get_blkaddr( &Welt, A->myrank / A->q, A->myrank % A->q ));
+    gnorm = *((double *)Welt.get_blkaddr( &Welt, A->myrank / chameleon_desc_datadist_get_iparam(A, 1), A->myrank % chameleon_desc_datadist_get_iparam(A, 1) ));
     chameleon_desc_destroy( &Welt );
 
     /**
