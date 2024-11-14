@@ -98,7 +98,7 @@ subs = {
         ('',                     'ORGLQ',                'ORGLQ',                'UNGLQ',                'UNGLQ'               ),
         ('',                     'SYEV',                 'SYEV',                 'HEEV',                 'HEEV'                ),
         ('',                     'SYG',                  'SYG',                  'HEG',                  'HEG'                 ),
-        ('',                     'const float ',         'const double ',        'const void \*',        'const void \*'       ),
+        ('',                     'const float ',         'const double ',       r'const void \*',       r'const void \*'       ), # Line that is extremely dangerous.
     ]
     + _extra_blas
     + _extra_BLAS
