@@ -178,7 +178,7 @@ INSERT_TASK_zperm_allreduce_send_A( const RUNTIME_option_t *options,
                                     int                     np,
                                     int                    *proc_involved )
 {
-    int p, rank;
+    int p;
 
     for ( p = 0; p < np; p ++ ) {
         if ( proc_involved[ p ] == myrank ) {
