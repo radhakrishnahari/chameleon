@@ -23,11 +23,11 @@
 /* Fortran BLAS interface */
 
 #define CHAMELEON_blas_zsymm CHAMELEON_GLOBAL( chameleon_blas_zsymm, CHAMELEON_BLAS_ZSYMM )
-void CHAMELEON_blas_zsymm ( const char* side, const char* uplo,
-                            const int* m, const int* n,
-                            const CHAMELEON_Complex64_t* alpha, const CHAMELEON_Complex64_t* a, const int* lda,
-                                                                const CHAMELEON_Complex64_t* b, const int* ldb,
-                            const CHAMELEON_Complex64_t* beta,  CHAMELEON_Complex64_t* c, const int* ldc )
+void CHAMELEON_blas_zsymm ( const char *side, const char *uplo,
+                            const int *m, const int *n,
+                            const CHAMELEON_Complex64_t *alpha, const CHAMELEON_Complex64_t *a, const int *lda,
+                                                                const CHAMELEON_Complex64_t *b, const int *ldb,
+                            const CHAMELEON_Complex64_t *beta,  CHAMELEON_Complex64_t *c, const int *ldc )
 {
     CHAMELEON_cblas_zsymm( CblasColMajor,
                            chameleon_blastocblas_side(side),
@@ -117,11 +117,11 @@ void CHAMELEON_blas_zsymm ( const char* side, const char* uplo,
  * @sa CHAMELEON_cblas_ssymm
  *
  */
-void CHAMELEON_cblas_zsymm( const CBLAS_ORDER order, const CBLAS_SIDE side, const CBLAS_UPLO uplo,
-                            const int M, const int N,
-                            const void *alpha, const CHAMELEON_Complex64_t *A, const int lda,
-                                               const CHAMELEON_Complex64_t *B, const int ldb,
-                            const void *beta,        CHAMELEON_Complex64_t *C, const int ldc )
+void CHAMELEON_cblas_zsymm( CBLAS_ORDER order, CBLAS_SIDE side, CBLAS_UPLO uplo,
+                            int M, int N,
+                            const void *alpha, const CHAMELEON_Complex64_t *A, int lda,
+                                               const CHAMELEON_Complex64_t *B, int ldb,
+                            const void *beta,        CHAMELEON_Complex64_t *C, int ldc )
 {
     if ( order != CblasColMajor ){
         fprintf( stderr, "CHAMELEON ERROR: %s(): %s\n", "CHAMELEON_cblas_zsymm", "illegal value of order" );
@@ -139,5 +139,5 @@ void CHAMELEON_cblas_zsymm( const CBLAS_ORDER order, const CBLAS_SIDE side, cons
     CHAMELEON_zsymm( (cham_side_t)side, (cham_uplo_t)uplo, M, N,
                      alphac, (CHAMELEON_Complex64_t *)A, lda,
                      (CHAMELEON_Complex64_t *)B, ldb,
-                     betac, (CHAMELEON_Complex64_t *)C, ldc );
+                     betac, C, ldc );
 }

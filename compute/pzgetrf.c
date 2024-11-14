@@ -447,7 +447,6 @@ chameleon_pzgetrf_panel_permute_batched( struct chameleon_pzgetrf_s *ws,
 {
     switch( ws->alg ) {
     case ChamGetrfPPiv:
-        chameleon_attr_fallthrough;
     case ChamGetrfPPivPerColumn:
     {
         int m;

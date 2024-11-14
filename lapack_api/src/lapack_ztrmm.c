@@ -23,11 +23,11 @@
 /* Fortran BLAS interface */
 
 #define CHAMELEON_blas_ztrmm CHAMELEON_GLOBAL( chameleon_blas_ztrmm, CHAMELEON_BLAS_ZTRMM )
-void CHAMELEON_blas_ztrmm ( const char* side, const char* uplo,
-                            const char* trans, const char* diag,
-                            const int* m, const int* n,
-                            const CHAMELEON_Complex64_t* alpha, const CHAMELEON_Complex64_t* a, const int* lda,
-                                                                const CHAMELEON_Complex64_t* b, const int* ldb )
+void CHAMELEON_blas_ztrmm ( const char *side, const char *uplo,
+                            const char *trans, const char *diag,
+                            const int *m, const int *n,
+                            const CHAMELEON_Complex64_t *alpha, const CHAMELEON_Complex64_t *a, const int *lda,
+                                                                      CHAMELEON_Complex64_t *b, const int *ldb )
 {
     CHAMELEON_cblas_ztrmm( CblasColMajor,
                            chameleon_blastocblas_side(side),
@@ -112,11 +112,11 @@ void CHAMELEON_blas_ztrmm ( const char* side, const char* uplo,
  * @sa CHAMELEON_cblas_strmm
  *
  */
-void CHAMELEON_cblas_ztrmm( const CBLAS_ORDER order, const CBLAS_SIDE side, const CBLAS_UPLO uplo,
-                            const CBLAS_TRANSPOSE trans, const CBLAS_DIAG diag,
-                            const int M, const int N,
-                            const void *alpha, const CHAMELEON_Complex64_t *A, const int lda,
-                                               const CHAMELEON_Complex64_t *B, const int ldb )
+void CHAMELEON_cblas_ztrmm( CBLAS_ORDER order, CBLAS_SIDE side, CBLAS_UPLO uplo,
+                            CBLAS_TRANSPOSE trans, CBLAS_DIAG diag,
+                            int M, int N,
+                            const void *alpha, const CHAMELEON_Complex64_t *A, int lda,
+                                                     CHAMELEON_Complex64_t *B, int ldb )
 {
     if ( order != CblasColMajor ){
         fprintf( stderr, "CHAMELEON ERROR: %s(): %s\n", "CHAMELEON_cblas_ztrmm", "illegal value of order" );
@@ -133,5 +133,5 @@ void CHAMELEON_cblas_ztrmm( const CBLAS_ORDER order, const CBLAS_SIDE side, cons
                      (cham_trans_t)trans, (cham_diag_t)diag,
                      M, N,
                      alphac, (CHAMELEON_Complex64_t *)A, lda,
-                     (CHAMELEON_Complex64_t *)B, ldb );
+                     B, ldb );
 }

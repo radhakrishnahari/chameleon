@@ -24,7 +24,7 @@
  * @return The CBLAS equivalent parameter (CblasNoTrans, CblasTrans or
  * CblasConjTrans).
  */
-int chameleon_blastocblas_trans(const char* trans)
+int chameleon_blastocblas_trans(const char *trans)
 {
     if ( (*trans == 'N') || (*trans == 'n') ) {
         return CblasNoTrans;
@@ -44,7 +44,7 @@ int chameleon_blastocblas_trans(const char* trans)
  * @param[in] uplo The input char BLAS side parameter
  * @return The CBLAS equivalent parameter (CblasLeft or CblasRight).
  */
-int chameleon_blastocblas_side(const char* side)
+int chameleon_blastocblas_side(const char *side)
 {
     if ( (*side == 'L') || (*side == 'l') ) {
         return CblasLeft;
@@ -62,7 +62,7 @@ int chameleon_blastocblas_side(const char* side)
  * @param[in] uplo The input char BLAS uplo parameter
  * @return The CBLAS equivalent parameter (CblasUpper or CblasLower).
  */
-int chameleon_blastocblas_uplo(const char* uplo)
+int chameleon_blastocblas_uplo(const char *uplo)
 {
     if ( (*uplo == 'U') || (*uplo == 'u') ) {
         return CblasUpper;
@@ -80,7 +80,7 @@ int chameleon_blastocblas_uplo(const char* uplo)
  * @param[in] diag The input char BLAS diag parameter
  * @return The CBLAS equivalent parameter (CblasUnit or CblasNonUnit).
  */
-int chameleon_blastocblas_diag(const char* diag)
+int chameleon_blastocblas_diag(const char *diag)
 {
     if ( (*diag == 'U') || (*diag == 'u') ) {
         return CblasUnit;
@@ -98,7 +98,7 @@ int chameleon_blastocblas_diag(const char* diag)
  * @param[in] norm The input char LAPACK norm parameter
  * @return The Chameleon equivalent parameter (ChamMaxNorm, ChamOneNorm, etc).
  */
-int chameleon_lapacktochameleon_norm(const char* norm)
+int chameleon_lapacktochameleon_norm(const char *norm)
 {
     if ( (*norm == 'M') || (*norm == 'm') ) {
         return ChamMaxNorm;

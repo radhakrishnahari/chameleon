@@ -23,11 +23,11 @@
 /* Fortran BLAS interface */
 
 #define CHAMELEON_blas_zgemm CHAMELEON_GLOBAL( chameleon_blas_zgemm, CHAMELEON_BLAS_ZGEMM )
-void CHAMELEON_blas_zgemm ( const char* transa, const char* transb,
-                            const int* m, const int* n, const int* k,
-                            const CHAMELEON_Complex64_t* alpha, const CHAMELEON_Complex64_t* a, const int* lda,
-                                                                const CHAMELEON_Complex64_t* b, const int* ldb,
-                            const CHAMELEON_Complex64_t* beta,  CHAMELEON_Complex64_t* c, const int* ldc )
+void CHAMELEON_blas_zgemm ( const char *transa, const char *transb,
+                            const int *m, const int *n, const int *k,
+                            const CHAMELEON_Complex64_t *alpha, const CHAMELEON_Complex64_t *a, const int *lda,
+                                                                const CHAMELEON_Complex64_t *b, const int *ldb,
+                            const CHAMELEON_Complex64_t *beta,        CHAMELEON_Complex64_t *c, const int *ldc )
 {
     CHAMELEON_cblas_zgemm( CblasColMajor,
                            chameleon_blastocblas_trans(transa),
@@ -119,11 +119,11 @@ void CHAMELEON_blas_zgemm ( const char* transa, const char* transb,
  * @sa CHAMELEON_cblas_sgemm
  *
  */
-void CHAMELEON_cblas_zgemm( const CBLAS_ORDER order, const CBLAS_TRANSPOSE transA, const CBLAS_TRANSPOSE transB,
-                            const int M, const int N, const int K,
-                            const void *alpha, const CHAMELEON_Complex64_t *A, const int lda,
-                                               const CHAMELEON_Complex64_t *B, const int ldb,
-                            const void *beta,        CHAMELEON_Complex64_t *C, const int ldc )
+void CHAMELEON_cblas_zgemm( CBLAS_ORDER order, CBLAS_TRANSPOSE transA, CBLAS_TRANSPOSE transB,
+                            int M, int N, int K,
+                            const void *alpha, const CHAMELEON_Complex64_t *A, int lda,
+                                               const CHAMELEON_Complex64_t *B, int ldb,
+                            const void *beta,        CHAMELEON_Complex64_t *C, int ldc )
 {
     if ( order != CblasColMajor ){
         fprintf( stderr, "CHAMELEON ERROR: %s(): %s\n", "CHAMELEON_cblas_zgemm", "illegal value of order" );
