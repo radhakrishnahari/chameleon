@@ -57,6 +57,7 @@ CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A )
 {
     CHAM_context_t             *chamctxt;
     struct chameleon_pzgetrf_s *ws;
+    int lookahead;
 
     chamctxt = chameleon_context_self();
     if ( chamctxt == NULL ) {
@@ -127,6 +128,12 @@ CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A )
                              A->mb * chameleon_desc_datadist_get_iparam(A, 0) * chameleon_desc_datadist_get_iparam(A, 1), A->n, 0, 0,
                              A->mb * chameleon_desc_datadist_get_iparam(A, 0) * chameleon_desc_datadist_get_iparam(A, 1), A->n, chameleon_desc_datadist_get_iparam(A, 0) * chameleon_desc_datadist_get_iparam(A, 1), 1,
                              NULL, NULL, NULL, A->get_rankof_init_arg );
+        lookahead = chamctxt->lookahead;
+        chameleon_desc_init( &(ws->Wl), CHAMELEON_MAT_ALLOC_TILE,
+                             ChamComplexDouble, A->mb, A->nb, (A->mb * A->nb),
+                             A->mt * A->mb, A->nb * chameleon_desc_datadist_get_iparam(A, 1) * lookahead, 0, 0,
+                             A->mt * A->mb, A->nb * chameleon_desc_datadist_get_iparam(A, 1) * lookahead, chameleon_desc_datadist_get_iparam(A, 0), chameleon_desc_datadist_get_iparam(A, 1),
+                             NULL, NULL, A->get_rankof_init, A->get_rankof_init_arg );
     }
 
     /* Set ib to 1 if per column algorithm */
@@ -195,6 +202,7 @@ CHAMELEON_zgetrf_WS_Free( void *user_ws )
          ( ws->alg == ChamGetrfPPivPerColumn  ) )
     {
         chameleon_desc_destroy( &(ws->Wu) );
+        chameleon_desc_destroy( &(ws->Wl) );
     }
     free( ws );
 }
@@ -394,6 +402,7 @@ CHAMELEON_zgetrf_Tile( CHAM_desc_t *A, CHAM_ipiv_t *IPIV )
     ws = CHAMELEON_zgetrf_WS_Alloc( A );
     CHAMELEON_zgetrf_Tile_Async( A, IPIV, ws, sequence, &request );
     CHAMELEON_Desc_Flush( A, sequence );
+    CHAMELEON_Ipiv_Flush( IPIV, sequence );
 
     chameleon_sequence_wait( chamctxt, sequence );
     CHAMELEON_zgetrf_WS_Free( ws );
