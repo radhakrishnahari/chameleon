@@ -23,9 +23,9 @@
 /* Fortran LAPACK interface */
 
 #define CHAMELEON_lapack_ztrtri CHAMELEON_GLOBAL( chameleon_lapack_ztrtri, CHAMELEON_LAPACK_ZTRTRI )
-void CHAMELEON_lapack_ztrtri ( const char* uplo, const char* diag, const int* n,
-                               CHAMELEON_Complex64_t* a, const int* lda,
-                               int* info )
+void CHAMELEON_lapack_ztrtri ( const char *uplo, const char *diag, const int *n,
+                               CHAMELEON_Complex64_t *a, const int *lda,
+                               int *info )
 {
     *info = CHAMELEON_lapacke_ztrtri( CblasColMajor,
                                       *uplo, *diag, *n, a, *lda );

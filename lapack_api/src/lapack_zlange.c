@@ -23,9 +23,9 @@
 /* Fortran LAPACK interface */
 
 #define CHAMELEON_lapack_zlange CHAMELEON_GLOBAL( chameleon_lapack_zlange, CHAMELEON_LAPACK_ZLANGE )
-double CHAMELEON_lapack_zlange ( const char* norm, const int* m, const int* n,
-                                 const CHAMELEON_Complex64_t* a, const int* lda,
-                                 double* work )
+double CHAMELEON_lapack_zlange ( const char *norm, const int *m, const int *n,
+                                 const CHAMELEON_Complex64_t *a, const int *lda,
+                                 double *work )
 {
     (void)work;
     return CHAMELEON_lapacke_zlange( CblasColMajor,

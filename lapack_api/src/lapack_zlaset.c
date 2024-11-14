@@ -23,9 +23,9 @@
 /* Fortran LAPACK interface */
 
 #define CHAMELEON_lapack_zlaset CHAMELEON_GLOBAL( chameleon_lapack_zlaset, CHAMELEON_LAPACK_ZLASET )
-void CHAMELEON_lapack_zlaset ( const char* uplo, const int* m, const int* n,
-                               const CHAMELEON_Complex64_t* alpha, const CHAMELEON_Complex64_t* beta,
-                                     CHAMELEON_Complex64_t* a, const int* lda )
+void CHAMELEON_lapack_zlaset ( const char *uplo, const int *m, const int *n,
+                               const CHAMELEON_Complex64_t *alpha, const CHAMELEON_Complex64_t *beta,
+                                     CHAMELEON_Complex64_t *a, const int *lda )
 {
     CHAMELEON_lapacke_zlaset( CblasColMajor,
                               *uplo, *m, *n,
@@ -90,8 +90,8 @@ void CHAMELEON_lapack_zlaset ( const char* uplo, const int* m, const int* n,
  *
  */
 int CHAMELEON_lapacke_zlaset( int matrix_layout, char uplo, int M, int N,
-                              const CHAMELEON_Complex64_t alpha, const CHAMELEON_Complex64_t beta,
-                                    CHAMELEON_Complex64_t *A, int lda )
+                              CHAMELEON_Complex64_t alpha, CHAMELEON_Complex64_t beta,
+                              CHAMELEON_Complex64_t *A, int lda )
 {
     if ( matrix_layout != CblasColMajor ){
         fprintf( stderr, "CHAMELEON ERROR: %s(): %s\n", "CHAMELEON_lapacke_zlaset", "illegal value of matrix_layout" );

@@ -23,9 +23,9 @@
 /* Fortran LAPACK interface */
 
 #define CHAMELEON_lapack_zlauum CHAMELEON_GLOBAL( chameleon_lapack_zlauum, CHAMELEON_LAPACK_ZLAUUM )
-void CHAMELEON_lapack_zlauum ( const char* uplo, const int* n,
-                               CHAMELEON_Complex64_t* a, const int* lda,
-                               int* info )
+void CHAMELEON_lapack_zlauum ( const char *uplo, const int *n,
+                               CHAMELEON_Complex64_t *a, const int *lda,
+                               int *info )
 {
     *info = CHAMELEON_lapacke_zlauum( CblasColMajor,
                                       *uplo, *n, a, *lda );
@@ -93,5 +93,5 @@ int CHAMELEON_lapacke_zlauum( int matrix_layout, char uplo, int N,
     }
 
     return CHAMELEON_zlauum( (cham_uplo_t)chameleon_blastocblas_uplo(&uplo), N,
-                             (CHAMELEON_Complex64_t *)A, lda );
+                             A, lda );
 }

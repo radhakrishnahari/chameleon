@@ -23,9 +23,9 @@
 /* Fortran LAPACK interface */
 
 #define CHAMELEON_lapack_zpotrf CHAMELEON_GLOBAL( chameleon_lapack_zpotrf, CHAMELEON_LAPACK_ZPOTRF )
-void CHAMELEON_lapack_zpotrf ( const char* uplo, const int* n,
-                               CHAMELEON_Complex64_t* a, const int* lda,
-                               int* info )
+void CHAMELEON_lapack_zpotrf ( const char *uplo, const int *n,
+                               CHAMELEON_Complex64_t *a, const int *lda,
+                               int *info )
 {
     *info = CHAMELEON_lapacke_zpotrf( CblasColMajor, *uplo, *n, a, *lda );
 }

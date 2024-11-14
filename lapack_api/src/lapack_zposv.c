@@ -23,10 +23,10 @@
 /* Fortran LAPACK interface */
 
 #define CHAMELEON_lapack_zposv CHAMELEON_GLOBAL( chameleon_lapack_zposv, CHAMELEON_LAPACK_ZPOSV )
-void CHAMELEON_lapack_zposv ( const char* uplo, const int* n, const int* nrhs,
-                              CHAMELEON_Complex64_t* a, const int* lda,
-                              CHAMELEON_Complex64_t* b, const int* ldb,
-                              int* info )
+void CHAMELEON_lapack_zposv ( const char *uplo, const int *n, const int *nrhs,
+                              CHAMELEON_Complex64_t *a, const int *lda,
+                              CHAMELEON_Complex64_t *b, const int *ldb,
+                              int *info )
 {
     *info = CHAMELEON_lapacke_zposv( CblasColMajor,
                                      *uplo, *n, *nrhs, a, *lda, b, *ldb );
