@@ -119,8 +119,7 @@ int CORE_zgeadd(cham_trans_t trans, int M, int N,
                              M, N, 0., 0., B, LDB );
     }
     else if ( beta != 1. ) {
-        LAPACKE_zlascl_work( LAPACK_COL_MAJOR, 'G',
-                             0, 0, 1., beta, M, N, B, LDB );
+        CORE_zlascal( ChamUpperLower, M, N, beta, B, LDB );
     }
 
     if( trans == ChamNoTrans ) {
