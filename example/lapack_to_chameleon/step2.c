@@ -117,21 +117,14 @@ int main(int argc, char *argv[]) {
      * CHAMELEON_Desc_Create( ... , 0, 0, number of rows, number of columns, 1, 1);
      * Have a look to the documentation for details about these parameters.
      */
-    CHAMELEON_Desc_Create(&descA,  NULL, ChamRealDouble,
+    CHAMELEON_Desc_Create(&descA, A, ChamRealDouble,
                       NB, NB,  NB*NB, N, N, 0, 0, N, N, 1, 1);
-    CHAMELEON_Desc_Create(&descB,  NULL, ChamRealDouble,
+    CHAMELEON_Desc_Create(&descB, B, ChamRealDouble,
                       NB, NB,  NB*NB, N, NRHS, 0, 0, N, NRHS, 1, 1);
-    CHAMELEON_Desc_Create(&descX,  NULL, ChamRealDouble,
+    CHAMELEON_Desc_Create(&descX, X, ChamRealDouble,
                       NB, NB,  NB*NB, N, NRHS, 0, 0, N, NRHS, 1, 1);
-    CHAMELEON_Desc_Create(&descAC, NULL, ChamRealDouble,
+    CHAMELEON_Desc_Create(&descAC, Acpy, ChamRealDouble,
                       NB, NB,  NB*NB, N, N, 0, 0, N, N, 1, 1);
-
-    /* copy LAPACK matrices in CHAMELEON descriptors to be able to call the tile
-     * interface */
-    CHAMELEON_dLap2Desc(UPLO,           A,    N, descA);
-    CHAMELEON_dLap2Desc(ChamUpperLower, B,    N, descB);
-    CHAMELEON_dLap2Desc(ChamUpperLower, X,    N, descX);
-    CHAMELEON_dLap2Desc(UPLO,           Acpy, N, descAC);
 
     /* You could alternatively create descriptors wrapping your allocated
      * matrices to avoid copies Lapack_to_Tile with the following */
@@ -209,12 +202,6 @@ int main(int argc, char *argv[]) {
             res, anorm, xnorm, bnorm,
             res / N / eps / (anorm * xnorm + bnorm ));
     }
-
-    /* get back results in LAPACK format if needed */
-    CHAMELEON_dDesc2Lap(UPLO,           descA,  A,    N);
-    CHAMELEON_dDesc2Lap(ChamUpperLower, descB,  B,    N);
-    CHAMELEON_dDesc2Lap(ChamUpperLower, descX,  X,    N);
-    CHAMELEON_dDesc2Lap(UPLO,           descAC, Acpy, N);
 
     /* deallocate A, B, X, Acpy and associated descriptors descA, ... */
     CHAMELEON_Desc_Destroy( &descA );
