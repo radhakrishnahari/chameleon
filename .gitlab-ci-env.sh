@@ -26,32 +26,11 @@ if [[ "$SYSTEM" == "linux" ]]; then
   fi
   export STARPU_DIR=/home/gitlab/install/starpu${STARPU_VARIANT}
 
-  # add additional env. var. depending on the starpu variant
-  case $STARPU_VARIANT in
-    -hip )
-      export CMAKE_PREFIX_PATH=$STARPU_DIR:/opt/rocm
-      export LD_LIBRARY_PATH=/opt/rocm/lib
-      ;;
-    -hipcuda )
-      export CMAKE_PREFIX_PATH=$STARPU_DIR:$HIPCUDA_DIR
-      export LD_LIBRARY_PATH=$HIPCUDA_DIR/lib
-      export HIP_PLATFORM=nvidia
-      export HIP_PATH=$HIPCUDA_DIR
-      ;;
-    * )
-      ;;
-  esac
-
   # for build: better to rely on pkg-config than to guess libraries with the env. var.
-  export PKG_CONFIG_PATH=$PARSEC_DIR/lib/pkgconfig:$PKG_CONFIG_PATH
   export PKG_CONFIG_PATH=$STARPU_DIR/lib/pkgconfig:$PKG_CONFIG_PATH
-  export PKG_CONFIG_PATH=$SIMGRID_DIR/lib/pkgconfig:$PKG_CONFIG_PATH
 
   # for ctest: we need this at runtime
-  export LD_LIBRARY_PATH=$PARSEC_DIR/lib:$LD_LIBRARY_PATH
-  export LD_LIBRARY_PATH=$QUARK_DIR/lib:$LD_LIBRARY_PATH
   export LD_LIBRARY_PATH=$STARPU_DIR/lib:$LD_LIBRARY_PATH
-  export LD_LIBRARY_PATH=$SIMGRID_DIR/lib:$LD_LIBRARY_PATH
 
 elif [[ "$SYSTEM" == "windows" ]]; then
 

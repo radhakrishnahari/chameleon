@@ -21,7 +21,7 @@ then
     exit 1
 fi
 cmake -B build -DCMAKE_PREFIX_PATH=$1
-cmake --build    build --verbose
+cmake --build build --verbose
 if [[ "$VERSION" != "starpu_simgrid" ]]; then
     ctest --test-dir build --verbose
 fi
