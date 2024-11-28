@@ -6,7 +6,7 @@
 #+OPTIONS: H:3 num:t \n:nil @:t ::t |:t _:nil ^:nil -:t f:t *:t <:t
 #+OPTIONS: TeX:t LaTeX:t skip:nil d:nil pri:nil tags:not-in-toc html-style:nil
 # #+HTML_LINK_HOME: https://solverstack.gitlabpages.inria.fr/chameleon/
-#+SETUPFILE: https://mfelsoci.gitlabpages.inria.fr/inria-org-html-themes/online-theme-readtheorginria.setup
+#+SETUPFILE: https://solverstack.gitlabpages.inria.fr/inria-org-html-themes/online-theme-readtheorginria.setup
 
 * Overview
 :PROPERTIES:

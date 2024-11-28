@@ -9,6 +9,8 @@
 (require 'org)
 (require 'htmlize)
 
+(setq org-safe-remote-resources '("https://solverstack.gitlabpages.inria.fr/inria-org-html-themes/online-theme-readtheorginria.setup"))
+
 (setq org-html-htmlize-output-type 'css)
 (setq org-src-fontify-natively t)
 (org-babel-do-load-languages

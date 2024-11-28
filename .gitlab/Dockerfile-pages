@@ -1,0 +1,35 @@
+#
+#  @file Dockerfile-pages
+#
+#  @copyright 2024-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+#                       Univ. Bordeaux. All rights reserved.
+#
+#  @version 1.3.0
+#  @author Florent Pruvost
+#  @date 2024-12-02
+#
+# This docker image is used to test the package during gitlab-ci pipelines.
+# It should be stored in the gitlab's project container registry:
+# https://gitlab.inria.fr/solverstack/chameleon/container_registry
+#
+FROM registry.gitlab.inria.fr/solverstack/chameleon
+
+USER root
+
+# Chameleon tools/pages.sh script additional dependencies
+RUN apt-get -y upgrade --no-install-recommends \
+    emacs \
+    emacs-goodies-el \
+    elpa-htmlize \
+    python3-click \
+    python3-elasticsearch \
+    python3-pandas \
+    r-cran-ggplot2 \
+    r-cran-plyr \
+    r-cran-reshape2
+
+RUN apt-get autoremove -y
+RUN apt-get autoclean -y
+RUN apt-get purge -y
+
+USER gitlab

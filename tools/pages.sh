@@ -5,13 +5,21 @@
 # @copyright 2020-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                      Univ. Bordeaux. All rights reserved.
 #
-# @version 1.2.0
+# @version 1.3.0
 # @author Florent Pruvost
 # @date 2022-02-22
 #
+set -e
+set -x
 CHAMELEON_SRC_DIR=${CHAMELEON_SRC_DIR:-$PWD}
 
-mkdir tmp_fig
+# where is installed starpu in the docker image
+CURRENTUSER=`whoami`
+if [[ -f /.dockerenv && $CURRENTUSER == "gitlab" ]]; then
+  export PKG_CONFIG_PATH=/home/gitlab/install/starpu/lib/pkgconfig:$PKG_CONFIG_PATH
+fi
+
+mkdir -p tmp_fig
 cd tmp_fig
 
 ## need to generate figures from last benchmarks
@@ -49,22 +57,23 @@ cd ..
 
 ## Build the doc
 VERSION=${VERSION:-pages}
-mkdir -p build-$VERSION
-cd build-$VERSION
-
-cmake $CHAMELEON_SRC_DIR -DCHAMELEON_ENABLE_DOC=ON
-make doc -j5
+cmake -S ${CHAMELEON_SRC_DIR} -B build-$VERSION -DCHAMELEON_ENABLE_DOC=ON
+cmake --build build-$VERSION --target doc --verbose -j5
 
 ## Copy files in public/ used as an artefact (zip archive) to upload on gitlab pages, see
-## Homepage: https://solverstack.gitlabpages.inria.fr/chameleon/index.html
-## API: https://solverstack.gitlabpages.inria.fr/chameleon/dev/index.html
-cd ..
-mkdir public/
-mkdir public/dev/
+mkdir -p public/dev/
+
+## Homepage (user's guide): https://solverstack.gitlabpages.inria.fr/chameleon/index.html
 cp build-$VERSION/doc/user/*.html public/
 cp build-$VERSION/doc/user/*.png public/
 cp build-$VERSION/doc/user/*.jpg public/
 cp build-$VERSION/doc/user/*.svg public/
+
+## API (doxygen): https://solverstack.gitlabpages.inria.fr/chameleon/dev/index.html
 cp -r build-$VERSION/doc/dev/html/* public/dev/
+
+## Images such as last performances on plafrim
 cp tmp_fig/* public/
+
+## lcov code coverage: https://solverstack.gitlabpages.inria.fr/chameleon/coverage/
 cp -r coverage public/
