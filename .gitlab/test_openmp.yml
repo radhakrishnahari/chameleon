@@ -2,7 +2,6 @@
 .test_openmp:
   extends: .test_script_linux
   needs: [build_openmp]
-  interruptible: true
   variables:
     SYSTEM: linux
     VERSION: openmp

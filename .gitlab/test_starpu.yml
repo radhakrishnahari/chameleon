@@ -2,7 +2,6 @@
 .test_starpu:
   extends: .test_script_linux
   needs: [build_starpu]
-  interruptible: true
   variables:
     SYSTEM: linux
     VERSION: starpu
@@ -43,7 +42,7 @@ test_starpu_macosx:
     - bash .gitlab/test.sh | tee ${LOGNAME}.log
   artifacts:
     name: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
-    expire_in: 180 minutes
+    expire_in: 1 week
     paths:
       - ${LOGNAME}.log
     reports:
@@ -69,7 +68,7 @@ test_starpu_macosx:
     - bash -lc .gitlab/test.sh | tee "$env:LOGNAME.log"
   artifacts:
     name: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
-    expire_in: 180 minutes
+    expire_in: 1 week
     paths:
       - ${LOGNAME}.log
     reports:

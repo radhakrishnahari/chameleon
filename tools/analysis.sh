@@ -68,6 +68,7 @@ sonar.scm.exclusions.disabled=true
 
 sonar.sources=build-openmp/runtime/openmp, build-parsec/runtime/parsec, build-quark/runtime/quark, build-starpu, compute, control, coreblas, example, include, runtime, testing
 sonar.inclusions=`cat filelist.txt | sed ':a;N;$!ba;s/\n/, /g'`
+sonar.coverage.exclusions=build-starpu/gpucublas/**/*,build-starpu/gpuhipblas/**/*
 sonar.sourceEncoding=UTF-8
 sonar.cxx.file.suffixes=.h,.c
 sonar.cxx.errorRecoveryEnabled=true
