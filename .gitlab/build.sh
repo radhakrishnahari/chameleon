@@ -59,7 +59,7 @@ case $SYSTEM in
 esac
 
 # Compile
-eval '${SCAN}cmake --build build-${VERSION} -j 4'
+eval '${SCAN}cmake --build build-${VERSION} -j 4 > /dev/null'
 
 # Install
 cmake --install build-${VERSION}
@@ -80,10 +80,8 @@ export FC=gfortran
 
 # Set the path variables
 if [[ "$SYSTEM" == "linux" ]]; then
-  #export LIBRARY_PATH=$PWD/../../install-${VERSION}/lib:/usr/local/lib:$LIBRARY_PATH
-  #export LD_LIBRARY_PATH=$PWD/../../install-${VERSION}/lib:/usr/local/lib:$LD_LIBRARY_PATH
-  export LIBRARY_PATH=$PWD/../../install-${VERSION}/lib:$LIBRARY_PATH
-  export LD_LIBRARY_PATH=$PWD/../../install-${VERSION}/lib:$LD_LIBRARY_PATH
+  export LIBRARY_PATH=$PWD/../../install-${VERSION}/lib:$LIBRARY_PATH:/usr/local/lib
+  export LD_LIBRARY_PATH=$PWD/../../install-${VERSION}/lib:$LD_LIBRARY_PATH:/usr/local/lib
 elif [[ "$SYSTEM" == "macosx" ]]; then
   export LIBRARY_PATH=$PWD/../../install-${VERSION}/lib:$LIBRARY_PATH
   export DYLD_LIBRARY_PATH=$PWD/../../install-${VERSION}/lib:$DYLD_LIBRARY_PATH
