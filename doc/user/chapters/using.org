@@ -464,39 +464,44 @@
 
      In Step2, we use the first way to create the descriptor:
      #+begin_example
-     CHAMELEON_Desc_Create(&descA, NULL, ChamRealDouble,
+     CHAMELEON_Desc_Create(&descA, A, ChamRealDouble,
                        NB, NB, NB*NB, N, N,
                        0, 0, N, N,
                        1, 1);
      #+end_example
      * *descA* is the descriptor to create.
      * The second argument is a pointer to existing data. The existing
-       data must follow LAPACK/PLASMA matrix layout [[sec:tile][Tile Data Layout]]
-       (1-D array column-major) if *CHAMELEON_Desc_Create* is used to create
+       data must follow LAPACK Column major layout [[sec:tile][Tile Data Layout]]
+       (1-D array column-major)  if *CHAMELEON_Desc_Create* is used to create
        the descriptor. The *CHAMELEON_Desc_Create_User* function can be used
        if you have data organized differently. This is discussed in
        the next paragraph [[sec:tuto_step3][Step3]].  Giving a *NULL* pointer means you let
-       the function allocate memory space.  This requires to copy your
-       data in the memory allocated by the *Desc_Create.  This can be
-       done with
+       the function allocate memory space.  This requires to copy the
+       original data into the memory managed by the descriptor by
+       calling:
        #+begin_example
-       CHAMELEON_Lapack_to_Tile(A, N, descA);
+       CHAMELEON_Lap2Desc( ChamUpperLower, A, N, descA );
        #+end_example
-     * Third argument of @code{Desc_Create} is the datatype (used for
+     * The third argument of @code{Desc_Create} is the datatype (used for
        memory allocation).
-     * Fourth argument until sixth argument stand for respectively,
+     * Fourth to eight arguments stand for respectively,
        the number of rows (*NB*), columns (*NB*) in each tile, the total
        number of values in a tile (*NB*NB*), the number of rows (*N*),
-       colmumns (*N*) in the entire matrix.
-     * Seventh argument until ninth argument stand for respectively,
-       the beginning row (0), column (0) indexes of the submatrix and
-       the number of rows (N), columns (N) in the submatrix.  These
+       and colmumns (*N*) in the entire matrix stored in the
+       memory area.
+     * The ninth (@code{i}) and tenth (@code{j}) arguments are
+       deprecated and should be set to 0. Their are kept for API
+       backward compatibility.stand for respectively,
+     * The eleventh (@code{m}) and twelfth (@code{n}) gives the size
+       of the matrix used in the later algorithms.  These
        arguments are specific and used in precise cases.  If you do
-       not consider submatrices, just use 0, 0, NROWS, NCOLS.
-     * Two last arguments are the parameter of the 2-D block-cyclic
+       not consider submatrices, just use the same values as for the
+       entire matrix size.
+     * The last two arguments are the parameters of the 2-D block-cyclic
        distribution grid, see [[http://www.netlib.org/scalapack/slug/node75.html][ScaLAPACK]].  To be able to use other data
        distribution over the nodes, *CHAMELEON_Desc_Create_User* function
-       should be used.
+       should be used. These should be both set to *1* if you provide
+       the data pointer.
 
 **** Step3
      <<sec:tuto_step3>>
