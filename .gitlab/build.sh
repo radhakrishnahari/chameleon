@@ -6,6 +6,11 @@ SCAN=""
 # Configure with CMake
 case $SYSTEM in
 
+  guix)
+    echo "build on guix"
+    cmake -B build-${VERSION} -S . -C cmake_modules/gitlab-ci-initial-cache.cmake $BUILD_OPTIONS
+    ;;
+
   linux)
     echo "build on linux"
     source .gitlab-ci-env.sh $CHAM_CI_ENV_ARG
@@ -13,11 +18,6 @@ case $SYSTEM in
       SCAN="scan-build -plist --intercept-first --exclude CMakeFiles --analyze-headers -o analyzer_reports "
     fi
     eval '${SCAN}cmake -B build-${VERSION} -S . -C cmake_modules/gitlab-ci-initial-cache.cmake $BUILD_OPTIONS'
-    ;;
-
-  guix)
-    echo "build on guix"
-    cmake -B build-${VERSION} -S . -C cmake_modules/gitlab-ci-initial-cache.cmake $BUILD_OPTIONS
     ;;
 
   macosx)
@@ -53,7 +53,7 @@ case $SYSTEM in
           -DCHAMELEON_USE_MPI=OFF
     ;;
   *)
-    echo "The SYSTEM environment variable is $SYSTEM. It is not one of : linux, guix, macosx, windows -> exit 1."
+    echo "The SYSTEM environment variable is $SYSTEM. It is not one of : guix, linux, macosx, windows -> exit 1."
     exit 1
     ;;
 esac
@@ -79,7 +79,10 @@ fi
 export FC=gfortran
 
 # Set the path variables
-if [[ "$SYSTEM" == "linux" ]]; then
+if [[ "$SYSTEM" == "guix" ]]; then
+  export LIBRARY_PATH=$PWD/../../install-${VERSION}/lib:$LIBRARY_PATH
+  export LD_LIBRARY_PATH=$PWD/../../install-${VERSION}/lib:$LD_LIBRARY_PATH
+elif [[ "$SYSTEM" == "linux" ]]; then
   export LIBRARY_PATH=$PWD/../../install-${VERSION}/lib:$LIBRARY_PATH:/usr/local/lib
   export LD_LIBRARY_PATH=$PWD/../../install-${VERSION}/lib:$LD_LIBRARY_PATH:/usr/local/lib
 elif [[ "$SYSTEM" == "macosx" ]]; then
@@ -90,12 +93,10 @@ elif [[ "$SYSTEM" == "windows" ]]; then
   export PATH=$PWD/../../install-${VERSION}/bin:$PATH
 fi
 
-#if [[ "$SYSTEM" != "guix" ]]; then
-  # 1) using cmake:
-  ./link_cmake.sh $PWD/../../install-${VERSION}
-  # 2) using pkg-config:
-  ./link_pkgconfig.sh $PWD/../../install-${VERSION}
-#fi
+# 1) using cmake:
+./link_cmake.sh $PWD/../../install-${VERSION}
+# 2) using pkg-config:
+./link_pkgconfig.sh $PWD/../../install-${VERSION}
 
 cd ../..
 rm -r install-${VERSION}

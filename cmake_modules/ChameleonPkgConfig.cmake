@@ -8,7 +8,7 @@
 ###
 #
 #  @project Chameleon
-#  @version 1.2.0
+#  @version 1.3.0
 #  @author Mathieu Faverge
 #  @author Florent Pruvost
 #  @author Abel Calluaud
@@ -93,7 +93,6 @@ macro(chameleon_generate_pkgconfig_files)
 
     if(CHAMELEON_USE_CUDA)
       list(APPEND GPUCUBLAS_PKGCONFIG_LIBS_PRIVATE ${CUDA_CUBLAS_LIBRARIES})
-      list(APPEND GPUCUBLAS_PKGCONFIG_REQUIRED "cuda")
       list(APPEND CHAMELEON_PKGCONFIG_REQUIRED "gpucublas")
     endif()
 
@@ -110,7 +109,28 @@ macro(chameleon_generate_pkgconfig_files)
   )
 
   if(CHAMELEON_USE_MPI)
-    list(APPEND CHAMELEON_PKGCONFIG_REQUIRED "mpi")
+    if(${MPI_C_LIBRARIES} MATCHES "mpich")
+      set(MPI_NAME "mpich")
+    elseif(${MPI_C_LIBRARIES} MATCHES "mvapich2")
+      set(MPI_NAME "mvapich2")
+    elseif(${MPI_C_LIBRARIES} MATCHES "madmpi" OR ${MPI_C_LIBRARIES} MATCHES "nmad")
+      set(MPI_NAME "nmad")
+    elseif(${MPI_C_LIBRARIES} MATCHES "openmpi")
+      set(MPI_NAME "ompi")
+    else()
+      set(MPI_NAME "mpi")
+    endif()
+    find_file(MPIPC_PATH "${MPI_NAME}.pc"
+              HINTS ${CMAKE_C_IMPLICIT_LINK_DIRECTORIES}
+              ENV PKG_CONFIG_PATH
+              PATH_SUFFIXES pkgconfig
+              NO_CACHE)
+    if(MPIPC_PATH)
+      list(APPEND CHAMELEON_PKGCONFIG_REQUIRED ${MPI_NAME})
+    else()
+      list(APPEND CHAMELEON_PKGCONFIG_INCS "${MPI_C_INCLUDE_DIRS}")
+      list(APPEND CHAMELEON_PKGCONFIG_LIBS "${MPI_C_LIBRARIES}")
+    endif()
   endif()
 
   generate_pkgconfig_files(
