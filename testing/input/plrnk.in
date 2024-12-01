@@ -7,8 +7,6 @@
 # N: Number of columns of matrix C
 # K: Rank of matrix C
 # LDC: Leading dimension of matrix C
-# seedA: seed used to generate random matrix A
-# seedB: seed used to generate random matrix B
 
 op = plrnk
 nb = 16
@@ -16,5 +14,3 @@ m = 37
 n = 23
 k = 11
 ldc = 41
-seedA = 1
-seedB = 2
