@@ -19,25 +19,164 @@
  */
 #include "control/common.h"
 
-#define C(m, n) C,  m,  n
-#define WA(m, n) &WA,  m,  n
-#define WB(m, n) &WB,  m,  n
+#define WA(m, n) WA, m,  n
+#define WB(m, n) WB, m,  n
+#define C(m, n)  C,  m,  n
 
 /**
  *  chameleon_pzplrnk - Generate a random rank-k matrix by tiles.
  */
-void chameleon_pzplrnk( int K, CHAM_desc_t *C,
-                        unsigned long long int seedA,
-                        unsigned long long int seedB,
-                        RUNTIME_sequence_t *sequence, RUNTIME_request_t *request )
+static inline void
+chameleon_pzplrnk_generic( CHAM_context_t         *chamctxt,
+                           int                     K,
+                           CHAM_desc_t            *WA,
+                           CHAM_desc_t            *WB,
+                           CHAM_desc_t            *C,
+                           unsigned long long int  seedA,
+                           unsigned long long int  seedB,
+                           RUNTIME_option_t       *options )
+{
+    RUNTIME_sequence_t   *sequence = options->sequence;
+    CHAMELEON_Complex64_t zbeta;
+    int  m, n, k, KT;
+    int  tempmm, tempnn, tempkk;
+    int  myrank  = RUNTIME_comm_rank( chamctxt );
+    int  initA;
+    int *initB = malloc( C->nt * sizeof(int) );
+
+    KT = (K + C->mb - 1) / C->mb;
+
+    for (k = 0; k < KT; k++) {
+        tempkk = k == KT-1 ? K - k * WA->nb : WA->nb;
+        zbeta  = k == 0 ? 0. : 1.;
+
+        memset( initB, 0, C->nt * sizeof(int) );
+
+        for (m = 0; m < C->mt; m++) {
+            tempmm = m == C->mt-1 ? C->m-m*C->mb : C->mb;
+
+            initA = 0;
+
+            for (n = 0; n < C->nt; n++) {
+                tempnn = n == C->nt-1 ? C->n-n*C->nb : C->nb;
+
+                if ( C->get_rankof( C(m, n) ) == myrank ) {
+                    if ( !initA ) {
+                        INSERT_TASK_zplrnt(
+                            options,
+                            tempmm, tempkk, WA(m, myrank),
+                            WA->m, m * WA->mb, k * WA->nb, seedA );
+                        initA = 1;
+                    }
+                    if ( !initB[n] ) {
+                        INSERT_TASK_zplrnt(
+                            options,
+                            tempkk, tempnn, WB(myrank, n),
+                            WB->m, k * WB->mb, n * WB->nb, seedB );
+                        initB[n] = 1;
+                    }
+
+                    INSERT_TASK_zgemm(
+                        options,
+                        ChamNoTrans, ChamNoTrans,
+                        tempmm, tempnn, tempkk, C->mb,
+                        1.,    WA(m, myrank),
+                               WB(myrank, n),
+                        zbeta, C(m, n));
+                }
+            }
+            if ( initA ) {
+                RUNTIME_data_flush( sequence, WA(m, myrank) );
+            }
+        }
+        for (n = 0; n < C->nt; n++) {
+            if ( initB[n] ) {
+                RUNTIME_data_flush( sequence, WB(myrank, n) );
+            }
+        }
+    }
+}
+
+/**
+ *  chameleon_pzplrnk - Generate a random rank-k matrix by tiles on a 2dbc grid.
+ */
+static inline void
+chameleon_pzplrnk_2dbc( CHAM_context_t         *chamctxt,
+                        int                     K,
+                        CHAM_desc_t            *WA,
+                        CHAM_desc_t            *WB,
+                        CHAM_desc_t            *C,
+                        unsigned long long int  seedA,
+                        unsigned long long int  seedB,
+                        RUNTIME_option_t       *options )
+{
+    RUNTIME_sequence_t   *sequence = options->sequence;
+    CHAMELEON_Complex64_t zbeta;
+    int m, n, k, KT;
+    int tempmm, tempnn, tempkk;
+    int p, q, myp, myq;
+
+    KT  = (K + C->mb - 1) / C->mb;
+    p   = chameleon_desc_datadist_get_iparam( C, 0 );
+    q   = chameleon_desc_datadist_get_iparam( C, 1 );
+    myp = C->myrank / q;
+    myq = C->myrank % q;
+
+    for (k = 0; k < KT; k++) {
+        tempkk = k == KT-1 ? K - k * WA->nb : WA->nb;
+        zbeta  = k == 0 ? 0. : 1.;
+
+        for (n = myq; n < C->nt; n += q) {
+            tempnn = n == C->nt-1 ? C->n-n*C->nb : C->nb;
+
+            INSERT_TASK_zplrnt(
+                options,
+                tempkk, tempnn, WB(myp, n),
+                WB->m, k * WB->mb, n * WB->nb, seedB );
+        }
+
+        for (m = myp; m < C->mt; m += p) {
+            tempmm = m == C->mt-1 ? C->m-m*C->mb : C->mb;
+
+            INSERT_TASK_zplrnt(
+                options,
+                tempmm, tempkk, WA(m, myq),
+                WA->m, m * WA->mb, k * WA->nb, seedA );
+
+            for (n = myq; n < C->nt; n+=q) {
+                tempnn = n == C->nt-1 ? C->n-n*C->nb : C->nb;
+
+                INSERT_TASK_zgemm(
+                    options,
+                    ChamNoTrans, ChamNoTrans,
+                    tempmm, tempnn, tempkk, C->mb,
+                    1.,    WA(m, myq),
+                           WB(myp, n),
+                    zbeta,  C(m, n));
+            }
+            RUNTIME_data_flush( sequence, WA(m, myq) );
+        }
+        for (n = myq; n < C->nt; n+=q) {
+            RUNTIME_data_flush( sequence, WB(myp, n) );
+        }
+    }
+}
+
+/**
+ * Rank-k matrix generator.
+ */
+void
+chameleon_pzplrnk( int                         K,
+                   CHAM_desc_t                *C,
+                   unsigned long long int      seedA,
+                   unsigned long long int      seedB,
+                   RUNTIME_sequence_t         *sequence,
+                   RUNTIME_request_t          *request )
 {
     CHAM_context_t *chamctxt;
     RUNTIME_option_t options;
-    int m, n, k, KT;
-    int tempmm, tempnn, tempkk;
-    int myp, myq;
-    CHAMELEON_Complex64_t zbeta;
     CHAM_desc_t WA, WB;
+    int p, q;
 
     chamctxt = chameleon_context_self();
     if (sequence->status != CHAMELEON_SUCCESS) {
@@ -45,67 +184,46 @@ void chameleon_pzplrnk( int K, CHAM_desc_t *C,
     }
     RUNTIME_options_init( &options, chamctxt, sequence, request );
 
-    chameleon_desc_init( &WA, CHAMELEON_MAT_ALLOC_TILE,
-                         ChamComplexDouble, C->mb, C->nb, (C->mb * C->nb),
-                         C->mt * C->mb, C->nb * chameleon_desc_datadist_get_iparam(C, 1), 0, 0,
-                         C->mt * C->mb, C->nb * chameleon_desc_datadist_get_iparam(C, 1),
-                         chameleon_desc_datadist_get_iparam(C, 0),
-                         chameleon_desc_datadist_get_iparam(C, 1),
-                         NULL, NULL, NULL, NULL );
-    chameleon_desc_init( &WB, CHAMELEON_MAT_ALLOC_TILE,
-                         ChamComplexDouble, C->mb, C->nb, (C->mb * C->nb),
-                         C->mb * chameleon_desc_datadist_get_iparam(C, 0), C->nt * C->nb, 0, 0,
-                         C->mb * chameleon_desc_datadist_get_iparam(C, 0), C->nt * C->nb,
-                         chameleon_desc_datadist_get_iparam(C, 0),
-                         chameleon_desc_datadist_get_iparam(C, 1),
-                         NULL, NULL, NULL, NULL );
+    p = chameleon_desc_datadist_get_iparam( C, 0 );
+    q = chameleon_desc_datadist_get_iparam( C, 1 );
+    if ( ( chamctxt->generic_enabled != CHAMELEON_TRUE )  &&
+         ( C->get_rankof_init == chameleon_getrankof_2d ) &&
+         ( (chameleon_desc_datadist_get_iparam(C, 0) != 1) ||
+           (chameleon_desc_datadist_get_iparam(C, 1) != 1) ) )
+    {
+        chameleon_desc_init( &WA, CHAMELEON_MAT_ALLOC_TILE,
+                             ChamComplexDouble, C->mb, C->nb, (C->mb * C->nb),
+                             C->mt * C->mb, C->nb * q, 0, 0,
+                             C->mt * C->mb, C->nb * q, p, q,
+                             NULL, NULL, NULL, NULL );
+        chameleon_desc_init( &WB, CHAMELEON_MAT_ALLOC_TILE,
+                             ChamComplexDouble, C->mb, C->nb, (C->mb * C->nb),
+                             C->mb * p, C->nt * C->nb, 0, 0,
+                             C->mb * p, C->nt * C->nb, p, q,
+                             NULL, NULL, NULL, NULL );
 
-    KT = (K + C->mb - 1) / C->mb;
-    myp = C->myrank / chameleon_desc_datadist_get_iparam(C, 1);
-    myq = C->myrank % chameleon_desc_datadist_get_iparam(C, 1);
+        chameleon_pzplrnk_2dbc( chamctxt, K, &WA, &WB, C, seedA, seedB, &options );
+    }
+    else {
+        int np = p * q;
+        chameleon_desc_init( &WA, CHAMELEON_MAT_ALLOC_TILE,
+                             ChamComplexDouble, C->mb, C->nb, (C->mb * C->nb),
+                             C->mt * C->mb, C->nb * np, 0, 0,
+                             C->mt * C->mb, C->nb * np, 1, np,
+                             NULL, NULL, NULL, NULL );
+        chameleon_desc_init( &WB, CHAMELEON_MAT_ALLOC_TILE,
+                             ChamComplexDouble, C->mb, C->nb, (C->mb * C->nb),
+                             C->mb * np, C->nt * C->nb, 0,  0,
+                             C->mb * np, C->nt * C->nb, np, 1,
+                             NULL, NULL, NULL, NULL );
 
-    for (k = 0; k < KT; k++) {
-        tempkk = k == KT-1 ? K - k * WA.nb : WA.nb;
-        zbeta  = k == 0 ? 0. : 1.;
-
-        for (n = myq; n < C->nt; n+=chameleon_desc_datadist_get_iparam(C, 1)) {
-            tempnn = n == C->nt-1 ? C->n-n*C->nb : C->nb;
-
-            INSERT_TASK_zplrnt(
-                &options,
-                tempkk, tempnn, WB(myp, n),
-                WB.m, k * WB.mb, n * WB.nb, seedB );
-        }
-
-        for (m = myp; m < C->mt; m+=chameleon_desc_datadist_get_iparam(C, 0)) {
-            tempmm = m == C->mt-1 ? C->m-m*C->mb : C->mb;
-
-            INSERT_TASK_zplrnt(
-                &options,
-                tempmm, tempkk, WA(m, myq),
-                WA.m, m * WA.mb, k * WA.nb, seedA );
-
-            for (n = myq; n < C->nt; n+=chameleon_desc_datadist_get_iparam(C, 1)) {
-                tempnn = n == C->nt-1 ? C->n-n*C->nb : C->nb;
-
-                INSERT_TASK_zgemm(
-                    &options,
-                    ChamNoTrans, ChamNoTrans,
-                    tempmm, tempnn, tempkk, C->mb,
-                    1.,    WA(m, myq),
-                           WB(myp, n),
-                    zbeta,  C(m, n));
-            }
-            RUNTIME_data_flush( sequence, WA(m, 0) );
-        }
-        for (n = myq; n < C->nt; n+=chameleon_desc_datadist_get_iparam(C, 1)) {
-            RUNTIME_data_flush( sequence, WB(0, n) );
-        }
+        chameleon_pzplrnk_generic( chamctxt, K, &WA, &WB, C, seedA, seedB, &options );
     }
 
     RUNTIME_desc_flush( &WA, sequence );
     RUNTIME_desc_flush( &WB, sequence );
     RUNTIME_desc_flush(  C,  sequence );
+
     chameleon_sequence_wait( chamctxt, sequence );
     chameleon_desc_destroy( &WA );
     chameleon_desc_destroy( &WB );
