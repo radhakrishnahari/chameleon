@@ -222,10 +222,36 @@ int chameleon_desc_init_internal( CHAM_desc_t *desc, const char *name, void *mat
 
     /* If one of the function get_* is NULL, we switch back to the default */
     desc->get_blktile = chameleon_desc_gettile;
-    desc->get_blkaddr = get_blkaddr ? get_blkaddr : chameleon_getaddr_ccrb;
-    desc->get_blkldd  = get_blkldd  ? get_blkldd  : chameleon_getblkldd_ccrb;
-    desc->get_rankof  = chameleon_getrankof_tile;
-    desc->get_rankof_init = get_rankof ? get_rankof : chameleon_getrankof_2d;
+
+    /* Data addresses */
+    if ( get_blkaddr ) {
+        desc->get_blkaddr = get_blkaddr;
+    }
+    else {
+        if ( (intptr_t)mat > 0 ) {
+            desc->get_blkaddr = chameleon_getaddr_cm;
+        }
+        else {
+            desc->get_blkaddr = chameleon_getaddr_ccrb;
+        }
+    }
+
+    /* Data leading dimensions */
+    if ( get_blkldd ) {
+        desc->get_blkldd = get_blkldd;
+    }
+    else {
+        if ( (intptr_t)mat > 0 ) {
+            desc->get_blkldd = chameleon_getblkldd_cm;
+        }
+        else {
+            desc->get_blkldd = chameleon_getblkldd_ccrb;
+        }
+    }
+
+    /* Data distribution */
+    desc->get_rankof          = chameleon_getrankof_tile;
+    desc->get_rankof_init     = get_rankof ? get_rankof : chameleon_getrankof_2d;
     desc->get_rankof_init_arg = get_rankof_arg;
 
     /* Matrix properties */
