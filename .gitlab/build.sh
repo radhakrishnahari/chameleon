@@ -83,8 +83,8 @@ if [[ "$SYSTEM" == "guix" ]]; then
   export LIBRARY_PATH=$PWD/../../install-${VERSION}/lib:$LIBRARY_PATH
   export LD_LIBRARY_PATH=$PWD/../../install-${VERSION}/lib:$LD_LIBRARY_PATH
 elif [[ "$SYSTEM" == "linux" ]]; then
-  export LIBRARY_PATH=$PWD/../../install-${VERSION}/lib:$LIBRARY_PATH:/usr/local/lib
-  export LD_LIBRARY_PATH=$PWD/../../install-${VERSION}/lib:$LD_LIBRARY_PATH:/usr/local/lib
+  export LIBRARY_PATH=$PWD/../../install-${VERSION}/lib:$LIBRARY_PATH
+  export LD_LIBRARY_PATH=$PWD/../../install-${VERSION}/lib:$LD_LIBRARY_PATH
 elif [[ "$SYSTEM" == "macosx" ]]; then
   export LIBRARY_PATH=$PWD/../../install-${VERSION}/lib:$LIBRARY_PATH
   export DYLD_LIBRARY_PATH=$PWD/../../install-${VERSION}/lib:$DYLD_LIBRARY_PATH

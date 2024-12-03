@@ -33,3 +33,8 @@ RUN apt-get autoclean -y
 RUN apt-get purge -y
 
 USER gitlab
+
+# Set some default environment variables
+ENV LIBRARY_PATH=/usr/local/lib
+ENV LD_LIBRARY_PATH=/usr/local/lib
+ENV PKG_CONFIG_PATH=/home/gitlab/install/starpu/lib/pkgconfig

@@ -81,3 +81,8 @@ RUN cd starpu-1.4.7/ && \
     rm starpu-1.4.7.tar.gz
 
 USER gitlab
+
+# Set some default environment variables
+ENV LIBRARY_PATH=/usr/local/lib
+ENV LD_LIBRARY_PATH=/usr/local/lib
+ENV PKG_CONFIG_PATH=/home/gitlab/install/starpu/lib/pkgconfig

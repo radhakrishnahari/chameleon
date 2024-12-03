@@ -13,12 +13,6 @@ set -e
 set -x
 CHAMELEON_SRC_DIR=${CHAMELEON_SRC_DIR:-$PWD}
 
-# where is installed starpu in the docker image
-CURRENTUSER=`whoami`
-if [[ -f /.dockerenv && $CURRENTUSER == "gitlab" ]]; then
-  export PKG_CONFIG_PATH=/home/gitlab/install/starpu/lib/pkgconfig:$PKG_CONFIG_PATH
-fi
-
 mkdir -p tmp_fig
 cd tmp_fig
 
