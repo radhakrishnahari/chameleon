@@ -2,7 +2,6 @@
 .test_parsec:
   extends: .test_script_linux
   needs: [build_parsec]
-  interruptible: true
   variables:
     SYSTEM: linux
     VERSION: parsec

@@ -68,10 +68,10 @@ endforeach()
 
 # Looking for emacs
 # -----------------
-FIND_PROGRAM(EMACS_COMPILER emacs)
-FIND_PROGRAM(TEX_COMPILER tex)
+find_program(EMACS_COMPILER emacs REQUIRED)
 
 if(EMACS_COMPILER)
+    message(STATUS "Looking for emacs - found")
 
     # Add target for homepage
     # -----------------------

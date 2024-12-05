@@ -30,7 +30,7 @@ cmake_minimum_required(VERSION 3.5)
 
 # Looking for doxygen
 # -------------------
-find_package(Doxygen)
+find_package(Doxygen REQUIRED)
 
 # Generate documentation
 # ----------------------

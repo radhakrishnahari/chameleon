@@ -2,7 +2,6 @@
 .test_quark:
   extends: .test_script_linux
   needs: [build_quark]
-  interruptible: true
   variables:
     SYSTEM: linux
     VERSION: quark

@@ -23,7 +23,8 @@
 # - consider generated files in ${BUILDDIR}
 # - exclude base *z* files to avoid duplication
 # - exclude cblas.h and lapacke-.h because not really part of chameleon and make cppcheck analysis too long
-
+set -e
+set -x
 if [ $# -gt 0 ]
 then
     BUILDDIR=$1
@@ -37,7 +38,7 @@ $TOOLSDIR/find_sources.sh
 export UNDEFINITIONS="-UCHAMELEON_USE_OPENCL -UWIN32 -UWIN64 -U_MSC_EXTENSIONS -U_MSC_VER -U__SUNPRO_C -U__SUNPRO_CC -U__sun -Usun -U__cplusplus"
 
 # run cppcheck analysis
-CPPCHECK_OPT=" -v -f --language=c --platform=unix64 --enable=all --xml --xml-version=2 --suppress=missingInclude ${UNDEFINITIONS}"
+CPPCHECK_OPT=" -v -f --language=c --platform=unix64 --enable=all --xml --xml-version=2 --suppress=missingIncludeSystem ${UNDEFINITIONS}"
 cppcheck $CPPCHECK_OPT --file-list=./filelist_none.txt 2> chameleon_cppcheck.xml
 cppcheck $CPPCHECK_OPT -DPRECISION_s -UPRECISION_d -UPRECISION_c -UPRECISION_z --file-list=./filelist_s.txt 2>> chameleon_cppcheck.xml
 cppcheck $CPPCHECK_OPT -DPRECISION_d -UPRECISION_s -UPRECISION_c -UPRECISION_z --file-list=./filelist_d.txt 2>> chameleon_cppcheck.xml
@@ -68,6 +69,7 @@ sonar.scm.exclusions.disabled=true
 
 sonar.sources=build-openmp/runtime/openmp, build-parsec/runtime/parsec, build-quark/runtime/quark, build-starpu, compute, control, coreblas, example, include, runtime, testing
 sonar.inclusions=`cat filelist.txt | sed ':a;N;$!ba;s/\n/, /g'`
+sonar.coverage.exclusions=build-starpu/gpucublas/**/*,build-starpu/gpuhipblas/**/*
 sonar.sourceEncoding=UTF-8
 sonar.cxx.file.suffixes=.h,.c
 sonar.cxx.errorRecoveryEnabled=true

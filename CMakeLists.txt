@@ -766,7 +766,7 @@ add_custom_target(chameleon_all_sources ALL DEPENDS ${CHAMELEON_SOURCES_TARGETS}
 
 if(CHAMELEON_ENABLE_DOC)
   add_subdirectory(doc)
-  if (DOXYGEN_EXECUTABLE AND EMACS_COMPILER AND TEX_COMPILER)
+  if (DOXYGEN_EXECUTABLE AND EMACS_COMPILER)
     add_custom_target(doc ALL DEPENDS doc-homepage doxygen-out)
   endif()
 endif()

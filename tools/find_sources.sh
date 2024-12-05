@@ -12,7 +12,7 @@
 #
 #set -x
 
-SRCDIR_TO_ANALYZE="build-openmp/runtime/openmp build-parsec/runtime/parsec build-quark/runtime/quark build-starpu build compute control coreblas example include runtime testing"
+SRCDIR_TO_ANALYZE="build-openmp/runtime/openmp build-parsec/runtime/parsec build-quark/runtime/quark build-starpu compute control coreblas example include runtime testing"
 
 echo $PWD
 rm -f filelist.txt

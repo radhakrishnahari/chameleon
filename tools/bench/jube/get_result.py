@@ -11,7 +11,6 @@
 #
 import pandas
 import click
-import csv
 from elasticsearch import Elasticsearch
 
 @click.command()
@@ -57,7 +56,7 @@ def main(
         doc_data = doc_data.drop(labels=['Commit_date_chameleon', 'Commit_sha_chameleon', 'Commit_sha_guix', 'Commit_sha_guix_hpc', 'Commit_sha_guix_hpcnonfree'])
 
         # append the Series object to the DataFrame object
-        docs = docs.append(doc_data)
+        docs = pandas.concat([docs, doc_data.to_frame().T])
 
     docs = docs.astype({"Nmpi": int, "Nthread": int, "Ngpu": int, "P": int, "Q": int, "M": int, "N": int, "K": int})
     docs = docs.rename(columns=str.lower)

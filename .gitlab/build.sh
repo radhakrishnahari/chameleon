@@ -3,8 +3,25 @@ set -ex
 
 SCAN=""
 
-if [[ "$SYSTEM" != "windows" ]]; then
-  if [[ "$SYSTEM" == "macosx" ]]; then
+# Configure with CMake
+case $SYSTEM in
+
+  guix)
+    echo "build on guix"
+    cmake -B build-${VERSION} -S . -C cmake_modules/gitlab-ci-initial-cache.cmake $BUILD_OPTIONS
+    ;;
+
+  linux)
+    echo "build on linux"
+    source .gitlab-ci-env.sh $CHAM_CI_ENV_ARG
+    if [[ $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH ]]; then
+      SCAN="scan-build -plist --intercept-first --exclude CMakeFiles --analyze-headers -o analyzer_reports "
+    fi
+    eval '${SCAN}cmake -B build-${VERSION} -S . -C cmake_modules/gitlab-ci-initial-cache.cmake $BUILD_OPTIONS'
+    ;;
+
+  macosx)
+    echo "build on macosx"
     # check starpu is already installed and install it if necessary
     DEP_INSTALLED=`brew ls --versions starpu | cut -d " " -f 2`
     if [[ -z "${DEP_INSTALLED}" ]]; then
@@ -24,23 +41,27 @@ if [[ "$SYSTEM" != "windows" ]]; then
     cmake -B build-${VERSION} -S . \
           -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=$PWD/install-${VERSION} \
           -DMORSE_ENABLE_COVERAGE=OFF -DBLA_PREFER_PKGCONFIG=ON
-  else
-    source .gitlab-ci-env.sh $CHAM_CI_ENV_ARG
-    if [[ $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH ]]
-    then
-      SCAN="scan-build -plist --intercept-first --exclude CMakeFiles --analyze-headers -o analyzer_reports "
-    fi
-    eval '${SCAN}cmake -B build-${VERSION} -S . -C cmake_modules/gitlab-ci-initial-cache.cmake $BUILD_OPTIONS'
-  fi
-else
-  # on windows the mpi_f08 interface is missing, see https://www.scivision.dev/windows-mpi-msys2/
-  # do not use static libraries because executables are too large and the build
-  # directory can reach more than 10Go
-  cmake -GNinja -B build-${VERSION} -S . \
-        -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=$PWD/install-${VERSION} \
-        -DCHAMELEON_USE_MPI=OFF
-fi
-eval '${SCAN}cmake --build build-${VERSION} -j 4'
+    ;;
+
+  windows)
+    echo "build on windows"
+    # on windows the mpi_f08 interface is missing, see https://www.scivision.dev/windows-mpi-msys2/
+    # do not use static libraries because executables are too large and the build
+    # directory can reach more than 10Go
+    cmake -GNinja -B build-${VERSION} -S . \
+          -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=$PWD/install-${VERSION} \
+          -DCHAMELEON_USE_MPI=OFF
+    ;;
+  *)
+    echo "The SYSTEM environment variable is $SYSTEM. It is not one of : guix, linux, macosx, windows -> exit 1."
+    exit 1
+    ;;
+esac
+
+# Compile
+eval '${SCAN}cmake --build build-${VERSION} -j 4 > /dev/null'
+
+# Install
 cmake --install build-${VERSION}
 
 #
@@ -58,7 +79,10 @@ fi
 export FC=gfortran
 
 # Set the path variables
-if [[ "$SYSTEM" == "linux" ]]; then
+if [[ "$SYSTEM" == "guix" ]]; then
+  export LIBRARY_PATH=$PWD/../../install-${VERSION}/lib:$LIBRARY_PATH
+  export LD_LIBRARY_PATH=$PWD/../../install-${VERSION}/lib:$LD_LIBRARY_PATH
+elif [[ "$SYSTEM" == "linux" ]]; then
   export LIBRARY_PATH=$PWD/../../install-${VERSION}/lib:$LIBRARY_PATH
   export LD_LIBRARY_PATH=$PWD/../../install-${VERSION}/lib:$LD_LIBRARY_PATH
 elif [[ "$SYSTEM" == "macosx" ]]; then

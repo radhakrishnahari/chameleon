@@ -1,15 +1,17 @@
 ---
-.build_script_linux:
+.build_script_common:
   stage: build
-  tags: ["docker", "large"]
   extends: .only-master-mr
-  script:
-    - bash .gitlab/build.sh | tee ${LOGNAME}.log
   artifacts:
     name: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
-    expire_in: 180 minutes
+    expire_in: 1 week
     untracked: true
     when: always
+
+.build_script_linux:
+  extends: .build_script_common
+  script:
+    - bash .gitlab/build.sh | tee ${LOGNAME}.log
 
 build_hmat:
   extends: .build_script_linux
@@ -26,7 +28,6 @@ build_openmp:
     VERSION: openmp
     LOGNAME: "chameleon-build-${SYSTEM}-${VERSION}"
     BUILD_OPTIONS: "-DCHAMELEON_SCHED=OPENMP"
-
 
 build_parsec:
   extends: .build_script_linux
@@ -50,25 +51,34 @@ build_starpu:
     SYSTEM: linux
     VERSION: starpu
     LOGNAME: "chameleon-build-${SYSTEM}-${VERSION}"
-    BUILD_OPTIONS: "-DCHAMELEON_USE_CUDA=ON -DCHAMELEON_USE_MPI=ON"
+    BUILD_OPTIONS: "-DCHAMELEON_USE_CUDA=OFF -DCHAMELEON_USE_MPI=ON"
+
+.build_script_guix:
+  tags: ['plafrim']
+  extends: .build_script_common
+  script:
+    - guix describe -f channels
+    - guix shell --pure --preserve=SYSTEM --preserve=VERSION --preserve=LOGNAME --preserve=BUILD_OPTIONS
+                 -D chameleon-${GUIX_CHAMELEON_VARIANT} coreutils bash-minimal --
+                 bash .gitlab/build.sh | tee ${LOGNAME}.log
+
+build_starpu_cuda:
+  extends: .build_script_guix
+  variables:
+    SYSTEM: guix
+    VERSION: starpu_cuda
+    GUIX_CHAMELEON_VARIANT: cuda
+    LOGNAME: "chameleon-build-${SYSTEM}-${VERSION}"
+    BUILD_OPTIONS: "-DCHAMELEON_USE_CUDA=ON -DCHAMELEON_USE_MPI=ON -DBLA_VENDOR=OpenBLAS"
 
 build_starpu_hip:
-  extends: .build_script_linux
+  extends: .build_script_guix
   variables:
-    SYSTEM: linux
+    SYSTEM: guix
     VERSION: starpu_hip
+    GUIX_CHAMELEON_VARIANT: hip
     LOGNAME: "chameleon-build-${SYSTEM}-${VERSION}"
-    CHAM_CI_ENV_ARG: hip
-    BUILD_OPTIONS: "-DCHAMELEON_USE_HIP_ROC=ON -DCHAMELEON_USE_MPI=ON"
-
-build_starpu_hipcuda:
-  extends: .build_script_linux
-  variables:
-    SYSTEM: linux
-    VERSION: starpu_hipcuda
-    LOGNAME: "chameleon-build-${SYSTEM}-${VERSION}"
-    CHAM_CI_ENV_ARG: hipcuda
-    BUILD_OPTIONS: "-DCHAMELEON_USE_HIP_CUDA=ON -DCHAMELEON_HIPBLAS_PATH=/home/gitlab/hipcuda/hipblas -DCHAMELEON_USE_MPI=ON"
+    BUILD_OPTIONS: "-DCHAMELEON_USE_HIP_ROC=ON -DCHAMELEON_USE_MPI=ON -DBLA_VENDOR=OpenBLAS -DCMAKE_C_COMPILER=gcc -DCMAKE_Fortran_COMPILER=gfortran"
 
 build_starpu_simgrid:
   extends: .build_script_linux
@@ -91,7 +101,7 @@ build_starpu_macosx:
     - bash .gitlab/build.sh | tee ${LOGNAME}.log
   artifacts:
     name: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
-    expire_in: 180 minutes
+    expire_in: 1 week
     paths:
       - ${LOGNAME}.log
   cache:
@@ -113,7 +123,7 @@ build_starpu_macosx:
     - bash -lc .gitlab/build.sh | tee "$env:LOGNAME.log"
   artifacts:
     name: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
-    expire_in: 180 minutes
+    expire_in: 1 week
     paths:
       - ${LOGNAME}.log
   cache:
