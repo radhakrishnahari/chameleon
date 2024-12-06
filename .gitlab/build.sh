@@ -64,10 +64,16 @@ eval '${SCAN}cmake --build build-${VERSION} -j 4 > /dev/null'
 # Install
 cmake --install build-${VERSION}
 
+
 #
 # Check link to chameleon
 #
-cd .gitlab/check_link/
+
+# Set the path variables
+if [[ "$SYSTEM" == "windows" ]]; then
+  export PATH="/c/Windows/WinSxS/x86_microsoft-windows-m..namespace-downlevel_31bf3856ad364e35_10.0.19041.1_none_21374cb0681a6320":$PATH
+fi
+source install-${VERSION}/bin/chameleon_env
 
 # Set the compiler
 if [[ "$SYSTEM" == "macosx" ]]; then
@@ -78,21 +84,7 @@ else
 fi
 export FC=gfortran
 
-# Set the path variables
-if [[ "$SYSTEM" == "guix" ]]; then
-  export LIBRARY_PATH=$PWD/../../install-${VERSION}/lib:$LIBRARY_PATH
-  export LD_LIBRARY_PATH=$PWD/../../install-${VERSION}/lib:$LD_LIBRARY_PATH
-elif [[ "$SYSTEM" == "linux" ]]; then
-  export LIBRARY_PATH=$PWD/../../install-${VERSION}/lib:$LIBRARY_PATH
-  export LD_LIBRARY_PATH=$PWD/../../install-${VERSION}/lib:$LD_LIBRARY_PATH
-elif [[ "$SYSTEM" == "macosx" ]]; then
-  export LIBRARY_PATH=$PWD/../../install-${VERSION}/lib:$LIBRARY_PATH
-  export DYLD_LIBRARY_PATH=$PWD/../../install-${VERSION}/lib:$DYLD_LIBRARY_PATH
-elif [[ "$SYSTEM" == "windows" ]]; then
-  export PATH="/c/Windows/WinSxS/x86_microsoft-windows-m..namespace-downlevel_31bf3856ad364e35_10.0.19041.1_none_21374cb0681a6320":$PATH
-  export PATH=$PWD/../../install-${VERSION}/bin:$PATH
-fi
-
+cd .gitlab/check_link/
 # 1) using cmake:
 ./link_cmake.sh $PWD/../../install-${VERSION}
 # 2) using pkg-config:
