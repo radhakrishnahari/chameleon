@@ -821,6 +821,8 @@ include(ChameleonPkgConfig)
 # Create .pc file
 # ---------------
 chameleon_generate_pkgconfig_files()
+
+generate_newenv_file(PACKAGE chameleon)
 #------------------------------------------------------------------------------
 
 ###############################################################################
