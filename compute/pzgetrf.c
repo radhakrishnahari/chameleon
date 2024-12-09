@@ -518,29 +518,48 @@ chameleon_pzgetrf_panel_update_ws( struct chameleon_pzgetrf_s *ws,
     CHAM_context_t  *chamctxt = chameleon_context_self();
     int m, tempmm, tempkn, q;
     int lookahead = chamctxt->lookahead;
-    int lq        = (k % lookahead) * chameleon_desc_datadist_get_iparam(A, 1);
-    int myp       = A->myrank / chameleon_desc_datadist_get_iparam(A, 1);
+    int P         = chameleon_desc_datadist_get_iparam(A, 0);
+    int Q         = chameleon_desc_datadist_get_iparam(A, 1);
+    int lq        = (k % lookahead) * Q;
+    int myp       = A->myrank / Q;
 
     tempkn = k == A->nt-1 ? A->n-k*A->nb : A->nb;
 
-    for ( m = k+1; m < A->mt; m++ ) {
-        if ( m % chameleon_desc_datadist_get_iparam(A, 0) != myp ) continue;
+    if ( k >= ws->ringswitch ) {
+        for ( m = k+1; m < A->mt; m++ ) {
+            if ( ( m % P ) != myp ) continue;
 
-        tempmm = m == A->mt-1 ? A->m-m*A->mb : A->mb;
-        INSERT_TASK_zlacpy(
-            options,
-            ChamUpperLower, tempmm, tempkn,
-            A( m, k ),
-            Wl( m, ( k % chameleon_desc_datadist_get_iparam(A, 1) ) + lq ) );
-
-        for ( q = 1; q < chameleon_desc_datadist_get_iparam(A, 1); q++ ) {
+            tempmm = m == A->mt-1 ? A->m-m*A->mb : A->mb;
             INSERT_TASK_zlacpy(
                 options,
                 ChamUpperLower, tempmm, tempkn,
-                Wl( m, ( ( k + q - 1 ) % chameleon_desc_datadist_get_iparam(A, 1) ) + lq ),
-                Wl( m, ( ( k + q )     % chameleon_desc_datadist_get_iparam(A, 1) ) + lq ) );
+                A( m, k ),
+                Wl( m, ( k % Q ) + lq ) );
+
+            for ( q = 1; q < Q; q++ ) {
+                INSERT_TASK_zlacpy(
+                    options,
+                    ChamUpperLower, tempmm, tempkn,
+                    Wl( m, ( ( k + q - 1 ) % Q ) + lq ),
+                    Wl( m, ( ( k + q )     % Q ) + lq ) );
+            }
+            RUNTIME_data_flush( options->sequence, A(m, k) );
         }
-        RUNTIME_data_flush( options->sequence, A(m, k) );
+    }
+    else {
+        for ( m = k+1; m < A->mt; m++ ) {
+            if ( ( m % P ) != myp ) continue;
+
+            tempmm = m == A->mt-1 ? A->m-m*A->mb : A->mb;
+            for ( q = 0; q < Q; q++ ) {
+                INSERT_TASK_zlacpy(
+                    options,
+                    ChamUpperLower, tempmm, tempkn,
+                    A( m, k ),
+                    Wl( m, ( ( k + q )% Q ) + lq ) );
+            }
+            RUNTIME_data_flush( options->sequence, A(m, k) );
+        }
     }
 }
 
