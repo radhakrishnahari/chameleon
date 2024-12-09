@@ -442,23 +442,23 @@ TCORE_zlascal( cham_uplo_t uplo, int m, int n, CHAMELEON_Complex64_t alpha, CHAM
 
 void
 TCORE_zlaset( cham_uplo_t           uplo,
-              int                   n1,
-              int                   n2,
+              int                   m,
+              int                   n,
               CHAMELEON_Complex64_t alpha,
               CHAMELEON_Complex64_t beta,
               CHAM_tile_t *         A )
 {
     coreblas_kernel_trace( A );
     assert( A->format & (CHAMELEON_TILE_FULLRANK | CHAMELEON_TILE_DESC) );
-    CORE_zlaset( uplo, n1, n2, alpha, beta, CHAM_tile_get_ptr( A ), A->ld );
+    CORE_zlaset( uplo, m, n, alpha, beta, CHAM_tile_get_ptr( A ), A->ld );
 }
 
 void
-TCORE_zlaset2( cham_uplo_t uplo, int n1, int n2, CHAMELEON_Complex64_t alpha, CHAM_tile_t *A )
+TCORE_zlaset2( cham_uplo_t uplo, int m, int n, CHAMELEON_Complex64_t alpha, CHAM_tile_t *A )
 {
     coreblas_kernel_trace( A );
     assert( A->format & (CHAMELEON_TILE_FULLRANK | CHAMELEON_TILE_DESC) );
-    CORE_zlaset2( uplo, n1, n2, alpha, CHAM_tile_get_ptr( A ), A->ld );
+    CORE_zlaset2( uplo, m, n, alpha, CHAM_tile_get_ptr( A ), A->ld );
 }
 
 int
