@@ -95,6 +95,8 @@ chameleon_pzplrnk_generic( CHAM_context_t         *chamctxt,
             }
         }
     }
+
+    free( initB );
 }
 
 /**
