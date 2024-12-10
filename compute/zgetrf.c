@@ -27,6 +27,7 @@
  *
  */
 #include "control/common.h"
+#include <limits.h>
 
 /**
  ********************************************************************************
@@ -102,6 +103,8 @@ CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A )
         chameleon_warning( "CHAMELEON_BATCH_SIZE", "CHAMELEON_GETRF_BATCH_SIZE must be smaller than CHAMELEON_BATCH_SIZE, please recompile with the right CHAMELEON_BATCH_SIZE, or reduce the CHAMELEON_GETRF_BATCH_SIZE value\n" );
         ws->batch_size = CHAMELEON_BATCH_SIZE;
     }
+
+    ws->ringswitch = chameleon_getenv_get_value_int( "CHAMELEON_GETRF_RINGSWITCH", INT_MAX );
 
     /* Allocation of U for permutation of the panels */
     if ( ws->alg == ChamGetrfNoPivPerColumn ) {
