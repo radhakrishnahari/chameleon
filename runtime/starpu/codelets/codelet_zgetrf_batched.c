@@ -74,7 +74,7 @@ INSERT_TASK_zgetrf_panel_offdiag_batched( const RUNTIME_option_t *options,
                                           CHAM_ipiv_t *ipiv )
 {
     int          task_num   = 0;
-    int          batch_size = ((struct chameleon_pzgetrf_s *)ws)->batch_size;
+    int          batch_size = ((struct chameleon_pzgetrf_s *)ws)->batch_size_blas2;
     void (*callback)(void*) = NULL;
     struct cl_getrf_batched_args_t *clargs = *clargs_ptr;
     int rankA = A->get_rankof( A, Am, An );
@@ -241,8 +241,9 @@ INSERT_TASK_zgetrf_panel_blocked_batched( const RUNTIME_option_t *options,
                                           void **clargs_ptr,
                                           CHAM_ipiv_t *ipiv )
 {
-    int          batch_size = ((struct chameleon_pzgetrf_s *)ws)->batch_size;
-    int          ib         = ((struct chameleon_pzgetrf_s *)ws)->ib;
+    struct chameleon_pzgetrf_s *tmp = (struct chameleon_pzgetrf_s *) ws;
+    int          ib         = tmp->ib;
+    int          batch_size = ( (h % ib) != 0 ) ? tmp->batch_size_blas2 : tmp->batch_size_blas3;
     int          task_num   = 0;
     void (*callback)(void*) = NULL;
     int accessU, access_npiv, access_ipiv, access_ppiv;

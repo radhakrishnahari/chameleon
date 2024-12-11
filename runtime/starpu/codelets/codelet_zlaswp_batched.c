@@ -72,7 +72,7 @@ void INSERT_TASK_zlaswp_batched( const RUNTIME_option_t *options,
                                  void                  **clargs_ptr )
 {
     int task_num   = 0;
-    int batch_size = ((struct chameleon_pzgetrf_s *)ws)->batch_size;
+    int batch_size = ((struct chameleon_pzgetrf_s *)ws)->batch_size_swap;
     int nhandles;
     struct cl_laswp_batched_args_t *clargs = *clargs_ptr;
     if ( Am->get_rankof( Am, Amm, Amn) != Am->myrank ) {

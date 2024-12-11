@@ -350,7 +350,7 @@ chameleon_pzgetrf_panel_facto( struct chameleon_pzgetrf_s *ws,
         break;
 
     case ChamGetrfPPivPerColumn:
-        if ( ws->batch_size > 0 ) {
+        if ( ws->batch_size_blas2 > 0 ) {
             chameleon_pzgetrf_panel_facto_percol_batched( ws, A, ipiv, k, options );
         }
         else {
@@ -359,7 +359,7 @@ chameleon_pzgetrf_panel_facto( struct chameleon_pzgetrf_s *ws,
         break;
 
     case ChamGetrfPPiv:
-        if ( ws->batch_size > 0 ) {
+        if ( ws->batch_size_blas2 > 0 ) {
             chameleon_pzgetrf_panel_facto_blocked_batched( ws, A, ipiv, k, options );
         }
         else {
@@ -583,7 +583,7 @@ chameleon_pzgetrf_panel_update( struct chameleon_pzgetrf_s *ws,
     tempkm = A->get_blkdim( A, k, DIM_m, A->m );
     tempnn = A->get_blkdim( A, n, DIM_n, A->n );
 
-    if ( ws->batch_size > 0 ) {
+    if ( ws->batch_size_swap > 0 ) {
         chameleon_pzgetrf_panel_permute_batched( ws, A, ipiv, k, n, options );
     }
     else {

@@ -113,10 +113,20 @@ CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A )
         chameleon_cleanenv( allreduce );
     }
 
-    ws->batch_size = chameleon_getenv_get_value_int( "CHAMELEON_GETRF_BATCH_SIZE", 0 );
-    if ( ws->batch_size > CHAMELEON_BATCH_SIZE ) {
-        chameleon_warning( "CHAMELEON_BATCH_SIZE", "CHAMELEON_GETRF_BATCH_SIZE must be smaller than CHAMELEON_BATCH_SIZE, please recompile with the right CHAMELEON_BATCH_SIZE, or reduce the CHAMELEON_GETRF_BATCH_SIZE value\n" );
-        ws->batch_size = CHAMELEON_BATCH_SIZE;
+    ws->batch_size_blas2 = chameleon_getenv_get_value_int( "CHAMELEON_GETRF_BATCH_SIZE_BLAS2", 0 );
+    if ( ws->batch_size_blas2 > CHAMELEON_BATCH_SIZE ) {
+        chameleon_warning( "CHAMELEON_BATCH_SIZE", "CHAMELEON_GETRF_BATCH_SIZE_BLAS2 must be smaller than CHAMELEON_BATCH_SIZE, please recompile with the right CHAMELEON_BATCH_SIZE, or reduce the CHAMELEON_GETRF_BATCH_SIZE_BLAS2 value\n" );
+        ws->batch_size_blas2 = CHAMELEON_BATCH_SIZE;
+    }
+    ws->batch_size_blas3 = chameleon_getenv_get_value_int( "CHAMELEON_GETRF_BATCH_SIZE_BLAS3", 0 );
+    if ( ws->batch_size_blas3 > CHAMELEON_BATCH_SIZE ) {
+        chameleon_warning( "CHAMELEON_BATCH_SIZE", "CHAMELEON_GETRF_BATCH_SIZE_BLAS3 must be smaller than CHAMELEON_BATCH_SIZE, please recompile with the right CHAMELEON_BATCH_SIZE, or reduce the CHAMELEON_GETRF_BATCH_SIZE_BLAS3 value\n" );
+        ws->batch_size_blas3 = CHAMELEON_BATCH_SIZE;
+    }
+    ws->batch_size_swap = chameleon_getenv_get_value_int( "CHAMELEON_GETRF_BATCH_SIZE_SWAP", 0 );
+    if ( ws->batch_size_swap > CHAMELEON_BATCH_SIZE ) {
+        chameleon_warning( "CHAMELEON_BATCH_SIZE", "CHAMELEON_GETRF_BATCH_SIZE_SWAP must be smaller than CHAMELEON_BATCH_SIZE, please recompile with the right CHAMELEON_BATCH_SIZE, or reduce the CHAMELEON_GETRF_BATCH_SIZE_SWAP value\n" );
+        ws->batch_size_swap = CHAMELEON_BATCH_SIZE;
     }
 
     ws->ringswitch = chameleon_getenv_get_value_int( "CHAMELEON_GETRF_RINGSWITCH", INT_MAX );
