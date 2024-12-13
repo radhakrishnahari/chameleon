@@ -228,6 +228,7 @@ void INSERT_TASK_map( const RUNTIME_option_t *options,
     int                   exec    = 0;
     int                   i, readonly = 1;
     size_t                clargs_size = 0;
+    uint32_t              where       = 0;
     void (*callback)(void*);
 
     if ( ( ndata < 0 ) || ( ndata > 3 ) ) {
@@ -275,6 +276,17 @@ void INSERT_TASK_map( const RUNTIME_option_t *options,
                                           (data[i].desc)->get_blktile( data[i].desc, m, n ) );
     }
 
+    /* Where to execute */
+    if ( op_fcts->cpufunc ) {
+        where |= STARPU_CPU;
+    }
+    if ( op_fcts->cudafunc ) {
+        where |= STARPU_CUDA;
+    }
+    if ( op_fcts->hipfunc ) {
+        where |= STARPU_HIP;
+    }
+
     /* Insert the task */
     switch( ndata ) {
     case 1:
@@ -291,6 +303,7 @@ void INSERT_TASK_map( const RUNTIME_option_t *options,
             STARPU_PRIORITY,          options->priority,
             STARPU_CALLBACK,          callback,
             STARPU_EXECUTE_ON_WORKER, options->workerid,
+            STARPU_EXECUTE_WHERE,     where,
             STARPU_NAME,              cl_name,
             0 );
         break;
@@ -310,6 +323,7 @@ void INSERT_TASK_map( const RUNTIME_option_t *options,
             STARPU_PRIORITY,          options->priority,
             STARPU_CALLBACK,          callback,
             STARPU_EXECUTE_ON_WORKER, options->workerid,
+            STARPU_EXECUTE_WHERE,     where,
             STARPU_NAME,              cl_name,
             0 );
         break;
@@ -330,6 +344,7 @@ void INSERT_TASK_map( const RUNTIME_option_t *options,
             STARPU_PRIORITY,          options->priority,
             STARPU_CALLBACK,          callback,
             STARPU_EXECUTE_ON_WORKER, options->workerid,
+            STARPU_EXECUTE_WHERE,     where,
             STARPU_NAME,              cl_name,
             0 );
         break;
