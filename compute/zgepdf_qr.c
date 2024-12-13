@@ -82,10 +82,12 @@ int CHAMELEON_zgepdf_qr_Tile( int doqr, int optid,
                               CHAM_desc_t *A1, CHAM_desc_t *TS1, CHAM_desc_t *TT1, CHAM_desc_t *Q1,
                               CHAM_desc_t *A2, CHAM_desc_t *TS2, CHAM_desc_t *TT2, CHAM_desc_t *Q2 )
 {
-    CHAM_context_t *chamctxt;
+    CHAM_context_t     *chamctxt;
     RUNTIME_sequence_t *sequence = NULL;
-    RUNTIME_request_t request = RUNTIME_REQUEST_INITIALIZER;
-    int status;
+    RUNTIME_request_t   request = RUNTIME_REQUEST_INITIALIZER;
+    CHAM_desc_t         D1, *D1ptr = NULL;
+    CHAM_desc_t         D2, *D2ptr = NULL;
+    int                 status;
 
     chamctxt = chameleon_context_self();
     if (chamctxt == NULL) {
@@ -94,16 +96,36 @@ int CHAMELEON_zgepdf_qr_Tile( int doqr, int optid,
     }
     chameleon_sequence_create( chamctxt, &sequence );
 
+#if defined(CHAMELEON_COPY_DIAG)
+    {
+        int n = A1->n;
+        chameleon_zdesc_copy_and_restrict( A1, &D1, A1->m, n );
+        D1ptr = &D1;
+        chameleon_zdesc_copy_and_restrict( A2, &D2, A2->m, n );
+        D2ptr = &D2;
+    }
+#endif
+
     chameleon_pzgepdf_qr( 1, doqr, optid, qrtreeT, qrtreeB,
-                          A1, TS1, TT1, NULL, Q1,
-                          A2, TS2, TT2, NULL, Q2,
+                          A1, TS1, TT1, D1ptr, Q1,
+                          A2, TS2, TT2, D2ptr, Q2,
                           sequence, &request );
 
     CHAMELEON_Desc_Flush( Q1, sequence );
     CHAMELEON_Desc_Flush( Q2, sequence );
 
+    if ( D1ptr != NULL ) {
+        CHAMELEON_Desc_Flush( D1ptr, sequence );
+        CHAMELEON_Desc_Flush( D2ptr, sequence );
+    }
     chameleon_sequence_wait( chamctxt, sequence );
     status = sequence->status;
     chameleon_sequence_destroy( chamctxt, sequence );
+
+    if ( D1ptr != NULL ) {
+        chameleon_desc_destroy( D1ptr );
+        chameleon_desc_destroy( D2ptr );
+    }
+
     return status;
 }
