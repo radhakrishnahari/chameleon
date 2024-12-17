@@ -27,9 +27,10 @@
  *
  * @ingroup CORE_CHAMELEON_Complex64_t
  *
- *  CORE_zlascal scales a two-dimensional matrix A. As opposite to
- *  CORE_zlascl(), no checks is performed to prevent under/overflow. This should
- *  have been done at higher level.
+ *  CORE_zlascal scales a two-dimensional matrix A.
+ *  As opposed to CORE_zlascl(), no checks is performed to prevent
+ *  under/overflow and scaling with a complex is possible. This should have been
+ *  done at higher level.
  *
  *******************************************************************************
  *
