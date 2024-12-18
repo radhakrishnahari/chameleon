@@ -1,5 +1,5 @@
 ---
-.test_starpu:
+.test_script_starpu:
   extends: .test_script_linux
   needs: [build_starpu]
   variables:
@@ -9,7 +9,7 @@
     TESTS_RESTRICTION: "-R _${CATEGORY}_${PRECISION}|example -E sytrf|sysv"
 
 test_starpu_master:
-  extends: .test_starpu
+  extends: .test_script_starpu
   rules:
     - if: ($CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH || $CI_COMMIT_BRANCH =~ /^ci-.*$/) && $CI_PIPELINE_SOURCE != "schedule"
   parallel:
@@ -18,7 +18,7 @@ test_starpu_master:
         CATEGORY: [shm, mpi]
 
 test_starpu_mr:
-  extends: .test_starpu
+  extends: .test_script_starpu
   rules:
     - if: ($CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME !~ /^notest-.*$/)
   parallel:
@@ -43,6 +43,7 @@ test_starpu_macosx:
   artifacts:
     name: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
     expire_in: 1 week
+    when: always
     paths:
       - ${LOGNAME}.log
     reports:
@@ -69,6 +70,7 @@ test_starpu_macosx:
   artifacts:
     name: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
     expire_in: 1 week
+    when: always
     paths:
       - ${LOGNAME}.log
     reports:

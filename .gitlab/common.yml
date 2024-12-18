@@ -37,5 +37,6 @@ variables:
     name: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
     expire_in: 1 week
     untracked: true
+    when: always
     reports:
       junit: ${LOGNAME}-junit.xml
