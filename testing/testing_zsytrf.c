@@ -63,7 +63,7 @@ testing_zsytrf_desc( run_arg_list_t *args, int check )
     /* Checks the factorisation and residue */
     if ( check ) {
         CHAM_desc_t *descA0 = CHAMELEON_Desc_Copy( descA, CHAMELEON_MAT_ALLOC_TILE );
-        CHAMELEON_zplgsy_Tile( (double)N, uplo, descA0, seedA );
+        CHAMELEON_zplgsy_Tile( (double)N, ChamUpperLower, descA0, seedA );
 
         hres += check_zxxtrf( args, ChamSymmetric, uplo, descA0, descA );
 
