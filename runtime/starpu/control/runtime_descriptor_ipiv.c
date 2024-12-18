@@ -96,15 +96,15 @@ void *RUNTIME_ipiv_getaddr( const CHAM_ipiv_t *ipiv, int m )
         return (void*)(*handle);
     }
 
-    const CHAM_desc_t *A = ipiv->desc;
-    int owner = A->get_rankof( A, m, m );
     int ncols = (mm == (ipiv->mt-1)) ? ipiv->m - mm * ipiv->mb : ipiv->mb;
 
     starpu_vector_data_register( handle, -1, (uintptr_t)NULL, ncols, sizeof(int) );
 
 #if defined(CHAMELEON_USE_MPI)
     {
-        int64_t tag = ipiv->mpitag_ipiv + mm;
+        const CHAM_desc_t *A     = ipiv->desc;
+        int                owner = A->get_rankof( A, m, m );
+        int64_t            tag   = ipiv->mpitag_ipiv + mm;
         starpu_mpi_data_register( *handle, tag, owner );
     }
 #endif /* defined(CHAMELEON_USE_MPI) */
@@ -173,15 +173,15 @@ void *RUNTIME_perm_getaddr( const CHAM_ipiv_t *ipiv, int m )
         return (void*)(*handle);
     }
 
-    const CHAM_desc_t *A = ipiv->desc;
-    int owner = A->get_rankof( A, m, m );
     int ncols = ipiv->mb;
 
     starpu_vector_data_register( handle, -1, (uintptr_t)NULL, ncols, sizeof(int) );
 
 #if defined(CHAMELEON_USE_MPI)
     {
-        int64_t tag = ipiv->mpitag_perm + mm;
+        const CHAM_desc_t *A     = ipiv->desc;
+        int                owner = A->get_rankof( A, m, m );
+        int64_t            tag   = ipiv->mpitag_perm + mm;
         starpu_mpi_data_register( *handle, tag, owner );
     }
 #endif /* defined(CHAMELEON_USE_MPI) */
@@ -202,15 +202,15 @@ void *RUNTIME_invp_getaddr( const CHAM_ipiv_t *ipiv, int m )
         return (void*)(*handle);
     }
 
-    const CHAM_desc_t *A = ipiv->desc;
-    int owner = A->get_rankof( A, m, m );
     int ncols = ipiv->mb;
 
     starpu_vector_data_register( handle, -1, (uintptr_t)NULL, ncols, sizeof(int) );
 
 #if defined(CHAMELEON_USE_MPI)
     {
-        int64_t tag = ipiv->mpitag_invp + mm;
+        const CHAM_desc_t *A     = ipiv->desc;
+        int                owner = A->get_rankof( A, m, m );
+        int64_t            tag   = ipiv->mpitag_invp + mm;
         starpu_mpi_data_register( *handle, tag, owner );
     }
 #endif /* defined(CHAMELEON_USE_MPI) */
@@ -303,6 +303,7 @@ void RUNTIME_perm_flushk( const RUNTIME_sequence_t *sequence,
     (void)sequence;
     (void)ipiv;
     (void)m;
+    (void)A;
 }
 
 void RUNTIME_ipiv_gather( const RUNTIME_sequence_t *sequence,
@@ -312,14 +313,13 @@ void RUNTIME_ipiv_gather( const RUNTIME_sequence_t *sequence,
     int64_t mb   = desc->mb;
     int64_t tag  = chameleon_starpu_tag_book( (int64_t)(desc->mt) );
     int     rank = CHAMELEON_Comm_rank();
-    int     owner = rank;
     int     m;
 
     for (m = 0; m < mt; m++, ipiv += mb) {
         starpu_data_handle_t ipiv_src = RUNTIME_ipiv_getaddr( desc, m );
 
 #if defined(CHAMELEON_USE_MPI)
-        owner = starpu_mpi_data_get_rank( ipiv_src );
+        int owner = starpu_mpi_data_get_rank( ipiv_src );
         if ( node != owner ) {
             starpu_mpi_tag_t tag = starpu_mpi_data_get_tag( ipiv_src );
 
