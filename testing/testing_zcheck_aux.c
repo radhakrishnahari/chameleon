@@ -453,6 +453,15 @@ int check_zsum_std( run_arg_list_t *args, cham_uplo_t uplo, cham_trans_t trans, 
     run_arg_add_double( args, "||B||", Binitnorm );
     run_arg_add_double( args, "||R||", Rnorm );
 
+    if ( alpha != 0. ) {
+        Anorm = Anorm * cabs(alpha);
+    }
+    if ( beta != 0. ) {
+        Binitnorm = Binitnorm * cabs(beta);
+    }
+
+    result = Rnorm / (max(Anorm, Binitnorm) * eps);
+
     /* Verifies if the result is inside a threshold */
     if ( isnan(Rnorm) || isinf(Rnorm) || isnan(result) || isinf(result) || (result > 10.0) ) {
         info_solution = 1;

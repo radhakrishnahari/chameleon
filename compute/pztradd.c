@@ -29,16 +29,17 @@
 /**
  *  Parallel tile matrix-matrix multiplication - dynamic scheduling
  */
-void chameleon_pztradd(cham_uplo_t uplo, cham_trans_t trans,
-                   CHAMELEON_Complex64_t alpha, CHAM_desc_t *A,
-                   CHAMELEON_Complex64_t beta,  CHAM_desc_t *B,
-                   RUNTIME_sequence_t *sequence, RUNTIME_request_t *request)
+void chameleon_pztradd( cham_uplo_t uplo, cham_trans_t trans,
+                        CHAMELEON_Complex64_t alpha, CHAM_desc_t *A,
+                        CHAMELEON_Complex64_t beta,  CHAM_desc_t *B,
+                        RUNTIME_sequence_t *sequence,
+                        RUNTIME_request_t  *request )
 {
     CHAM_context_t *chamctxt;
     RUNTIME_option_t options;
 
     int tempmm, tempnn, tempmn, tempnm;
-    int m, n;
+    int m, n, minmn;
 
     chamctxt = chameleon_context_self();
     if (sequence->status != CHAMELEON_SUCCESS) {
@@ -46,10 +47,12 @@ void chameleon_pztradd(cham_uplo_t uplo, cham_trans_t trans,
     }
     RUNTIME_options_init(&options, chamctxt, sequence, request);
 
+    minmn = chameleon_min( B->mt, B->nt );
+
     switch(uplo){
     case ChamLower:
         if (trans == ChamNoTrans) {
-            for (n = 0; n < chameleon_min(B->mt,B->nt); n++) {
+            for (n = 0; n < minmn; n++) {
                 tempnm = n == B->mt-1 ? B->m-n*B->mb : B->mb;
                 tempnn = n == B->nt-1 ? B->n-n*B->nb : B->nb;
 
@@ -72,8 +75,8 @@ void chameleon_pztradd(cham_uplo_t uplo, cham_trans_t trans,
         }
         else {
             for (n = 0; n < chameleon_min(B->mt,B->nt); n++) {
-                tempnm = n == B->mt-1 ? B->m-n*B->mb : B->mb;
-                tempnn = n == B->nt-1 ? B->n-n*B->nb : B->nb;
+                tempnm = n == B->mt-1 ? B->m - n * B->mb : B->mb;
+                tempnn = n == B->nt-1 ? B->n - n * B->nb : B->nb;
 
                 INSERT_TASK_ztradd(
                     &options,
@@ -95,9 +98,9 @@ void chameleon_pztradd(cham_uplo_t uplo, cham_trans_t trans,
         break;
     case ChamUpper:
         if (trans == ChamNoTrans) {
-            for (m = 0; m < chameleon_min(B->mt,B->nt); m++) {
-                tempmm = m == B->mt-1 ? B->m-B->mb*m : B->nb;
-                tempmn = m == B->nt-1 ? B->n-m*B->nb : B->nb;
+            for (m = 0; m < minmn; m++) {
+                tempmm = m == B->mt-1 ? B->m - m * B->mb : B->nb;
+                tempmn = m == B->nt-1 ? B->n - m * B->nb : B->nb;
 
                 INSERT_TASK_ztradd(
                     &options,
@@ -106,7 +109,7 @@ void chameleon_pztradd(cham_uplo_t uplo, cham_trans_t trans,
                     beta,  B(m, m));
 
                 for (n = m+1; n < B->nt; n++) {
-                    tempnn = n == B->nt-1 ? B->n-n*B->nb : B->nb;
+                    tempnn = n == B->nt-1 ? B->n - n * B->nb : B->nb;
 
                     INSERT_TASK_zgeadd(
                         &options,

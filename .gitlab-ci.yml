@@ -14,6 +14,7 @@ include:
   - .gitlab/docker.yml
   - .gitlab/build.yml
   - .gitlab/test_starpu.yml
+  - .gitlab/test_starpu_plafrim.yml
   - .gitlab/test_starpu_simgrid.yml
   - .gitlab/test_parsec.yml
   - .gitlab/test_quark.yml

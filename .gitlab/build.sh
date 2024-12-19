@@ -59,7 +59,7 @@ case $SYSTEM in
 esac
 
 # Compile
-eval '${SCAN}cmake --build build-${VERSION} -j 4 > /dev/null'
+eval '${SCAN}cmake --build build-${VERSION} -j ${CMAKE_BUILD_PARALLEL_LEVEL} > /dev/null'
 
 # Install
 cmake --install build-${VERSION}

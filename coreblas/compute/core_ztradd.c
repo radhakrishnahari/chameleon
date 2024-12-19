@@ -146,8 +146,7 @@ int CORE_ztradd(cham_uplo_t uplo, cham_trans_t trans, int M, int N,
                              M, N, 0., 0., B, LDB );
     }
     else if ( beta != (CHAMELEON_Complex64_t)1. ) {
-        LAPACKE_zlascl_work( LAPACK_COL_MAJOR, chameleon_lapack_const(uplo),
-                             0, 0, 1., beta, M, N, B, LDB );
+        CORE_zlascal( uplo, M, N, beta, B, LDB );
     }
 
     /**

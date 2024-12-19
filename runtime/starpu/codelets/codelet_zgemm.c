@@ -144,6 +144,7 @@ void INSERT_TASK_zgemm_Astat( const RUNTIME_option_t *options,
     int                      accessC;
     int                      exec    = 0;
     const char              *cl_name = "zgemm_Astat";
+    uint32_t                 where   = cl_zgemm.where;
 
     /* Handle cache */
     CHAMELEON_BEGIN_ACCESS_DECLARATION;
@@ -188,6 +189,13 @@ void INSERT_TASK_zgemm_Astat( const RUNTIME_option_t *options,
                                       B->get_blktile( B, Bm, Bn ),
                                       C->get_blktile( C, Cm, Cn ) );
 
+    /* WARNING: CUDA 12.3 has an issue when k=1 in complex, thus we disable gemm on gpu in these cases */
+#if defined(PRECISION_z) || defined(PRECISION_c)
+    if ( k == 1 ) {
+        where = STARPU_CPU;
+    }
+#endif
+
     /* Insert the task */
     rt_starpu_insert_task(
         &cl_zgemm,
@@ -204,6 +212,7 @@ void INSERT_TASK_zgemm_Astat( const RUNTIME_option_t *options,
         STARPU_CALLBACK,          callback,
         STARPU_EXECUTE_ON_NODE,   A->get_rankof(A, Am, An),
         STARPU_NAME,              cl_name,
+        STARPU_EXECUTE_WHERE,     where,
         0 );
 }
 
@@ -214,7 +223,7 @@ void INSERT_TASK_zgemm( const RUNTIME_option_t *options,
                                                      const CHAM_desc_t *B, int Bm, int Bn,
                         CHAMELEON_Complex64_t beta,  const CHAM_desc_t *C, int Cm, int Cn )
 {
-    if ( alpha == 0. ) {
+    if ( alpha == (CHAMELEON_Complex64_t)0. ) {
         INSERT_TASK_zlascal( options, ChamUpperLower, m, n, nb,
                              beta, C, Cm, Cn );
         return;
@@ -225,6 +234,7 @@ void INSERT_TASK_zgemm( const RUNTIME_option_t *options,
     int                      accessC;
     int                      exec = 0;
     const char              *cl_name = "zgemm";
+    uint32_t                 where   = cl_zgemm.where;
 
     /* Handle cache */
     CHAMELEON_BEGIN_ACCESS_DECLARATION;
@@ -249,13 +259,21 @@ void INSERT_TASK_zgemm( const RUNTIME_option_t *options,
     callback = options->profiling ? cl_zgemm_callback : NULL;
 
     /* Reduce the C access if needed */
-    accessC = ( beta == 0. ) ? STARPU_W : (STARPU_RW | ((beta == 1.) ? STARPU_COMMUTE : 0));
+    accessC = ( beta == (CHAMELEON_Complex64_t)0. ) ? STARPU_W :
+        (STARPU_RW | ((beta == (CHAMELEON_Complex64_t)1.) ? STARPU_COMMUTE : 0));
 
     /* Refine name */
     cl_name = chameleon_codelet_name( cl_name, 3,
                                       A->get_blktile( A, Am, An ),
                                       B->get_blktile( B, Bm, Bn ),
                                       C->get_blktile( C, Cm, Cn ) );
+
+    /* WARNING: CUDA 12.3 has an issue when k=1 in complex, thus we disable gemm on gpu in these cases */
+#if defined(PRECISION_z) || defined(PRECISION_c)
+    if ( k == 1 ) {
+        where = STARPU_CPU;
+    }
+#endif
 
     /* Insert the task */
     rt_starpu_insert_task(
@@ -274,5 +292,6 @@ void INSERT_TASK_zgemm( const RUNTIME_option_t *options,
         STARPU_EXECUTE_ON_WORKER, options->workerid,
         STARPU_POSSIBLY_PARALLEL, options->parallel,
         STARPU_NAME,              cl_name,
+        STARPU_EXECUTE_WHERE,     where,
         0 );
 }

@@ -241,7 +241,7 @@ testing_t   test_ztradd;
 const char *ztradd_params[] = { "mtxfmt", "nb",    "trans", "uplo",  "m",     "n", "lda",
                                 "ldb",    "alpha", "beta",  "seedA", "seedB", NULL };
 const char *ztradd_output[] = { NULL };
-const char *ztradd_outchk[] = { "RETURN", NULL };
+const char *ztradd_outchk[] = {  "||A||", "||B||", "||R||", "RETURN", NULL };
 
 /**
  * @brief Testing registration function

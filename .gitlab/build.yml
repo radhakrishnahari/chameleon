@@ -2,6 +2,8 @@
 .build_script_common:
   stage: build
   extends: .only-master-mr
+  variables:
+    CMAKE_BUILD_PARALLEL_LEVEL: 4
   artifacts:
     name: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
     expire_in: 1 week
@@ -10,6 +12,8 @@
 
 .build_script_linux:
   extends: .build_script_common
+  variables:
+    SYSTEM: linux
   script:
     - bash .gitlab/build.sh | tee ${LOGNAME}.log
 
@@ -56,29 +60,31 @@ build_starpu:
 .build_script_guix:
   tags: ['plafrim']
   extends: .build_script_common
+  variables:
+    SYSTEM: guix
+    CMAKE_BUILD_PARALLEL_LEVEL: 20
   script:
     - guix describe -f channels
-    - guix shell --pure --preserve=SYSTEM --preserve=VERSION --preserve=LOGNAME --preserve=BUILD_OPTIONS
-                 -D chameleon-${GUIX_CHAMELEON_VARIANT} coreutils bash-minimal --
+    - guix shell --pure --preserve=SYSTEM --preserve=VERSION --preserve=LOGNAME --preserve=BUILD_OPTIONS --preserve=CMAKE_BUILD_PARALLEL_LEVEL
+                 -D chameleon-${GPU_BACKEND} ${BLAS} coreutils bash-minimal --
                  bash .gitlab/build.sh | tee ${LOGNAME}.log
 
 build_starpu_cuda:
   extends: .build_script_guix
   variables:
-    SYSTEM: guix
     VERSION: starpu_cuda
-    GUIX_CHAMELEON_VARIANT: cuda
+    GPU_BACKEND: cuda
+    BLAS: "--with-input=openblas=intel-oneapi-mkl"
     LOGNAME: "chameleon-build-${SYSTEM}-${VERSION}"
-    BUILD_OPTIONS: "-DCHAMELEON_USE_CUDA=ON -DCHAMELEON_USE_MPI=ON -DBLA_VENDOR=OpenBLAS"
+    BUILD_OPTIONS: "-DCHAMELEON_USE_CUDA=ON -DCHAMELEON_USE_MPI=OFF -DBLA_VENDOR=Intel10_64lp_seq"
 
 build_starpu_hip:
   extends: .build_script_guix
   variables:
-    SYSTEM: guix
     VERSION: starpu_hip
-    GUIX_CHAMELEON_VARIANT: hip
+    GPU_BACKEND: hip
     LOGNAME: "chameleon-build-${SYSTEM}-${VERSION}"
-    BUILD_OPTIONS: "-DCHAMELEON_USE_HIP_ROC=ON -DCHAMELEON_USE_MPI=ON -DBLA_VENDOR=OpenBLAS -DCMAKE_C_COMPILER=gcc -DCMAKE_Fortran_COMPILER=gfortran"
+    BUILD_OPTIONS: "-DCHAMELEON_USE_HIP_ROC=ON -DCHAMELEON_USE_MPI=OFF -DBLA_VENDOR=OpenBLAS -DCMAKE_C_COMPILER=gcc -DCMAKE_Fortran_COMPILER=gfortran"
 
 build_starpu_simgrid:
   extends: .build_script_linux
@@ -97,11 +103,13 @@ build_starpu_macosx:
     SYSTEM: macosx
     VERSION: starpu
     LOGNAME: "chameleon-build-${SYSTEM}-${VERSION}"
+    CMAKE_BUILD_PARALLEL_LEVEL: 4
   script:
     - bash .gitlab/build.sh | tee ${LOGNAME}.log
   artifacts:
     name: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
     expire_in: 1 week
+    when: always
     paths:
       - ${LOGNAME}.log
   cache:
@@ -119,11 +127,13 @@ build_starpu_macosx:
     MSYSTEM: UCRT64
     VERSION: starpu
     LOGNAME: "chameleon-build-${SYSTEM}-${VERSION}"
+    CMAKE_BUILD_PARALLEL_LEVEL: 4
   script:
     - bash -lc .gitlab/build.sh | tee "$env:LOGNAME.log"
   artifacts:
     name: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
     expire_in: 1 week
+    when: always
     paths:
       - ${LOGNAME}.log
   cache:
