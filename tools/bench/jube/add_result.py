@@ -190,7 +190,7 @@ def format_entry_stats(row: Row, mpivendor: str, commit_chameleon: Repo, commit_
                 previousSD = thresholdSD
             maxAcceptableDiff = multiplier*previousSD
             diff = abs(currentV-previousMean)
-            if diff > maxAcceptableDiff:
+            if diff > maxAcceptableDiff and currentV < previousMean:
                 print("Regression: inputs %(Hostname)s, %(MPIvendor)s, %(Algorithm)s, %(Precision)s, %(Nmpi)s, %(P)s, %(Q)s, %(Nthread)s, %(Ngpu)s, %(M)s, %(N)s, %(K)s " % result)
                 print("Regression: outputs Gflops={0}, previousMean={1}, diff={2}, maxAcceptableDiff={3}".format(currentV, previousMean, diff, maxAcceptableDiff))
                 # make the script fail only if regression for not too small matrices
