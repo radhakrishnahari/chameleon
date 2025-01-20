@@ -63,7 +63,7 @@ void chameleon_pztradd( cham_uplo_t uplo, cham_trans_t trans,
                     beta,  B(n, n));
 
                 for (m = n+1; m < B->mt; m++) {
-                    tempmm = m == B->mt-1 ? B->m-B->mb*m : B->nb;
+                    tempmm = m == B->mt-1 ? B->m -m * B->mb : B->mb;
 
                     INSERT_TASK_zgeadd(
                         &options,
@@ -85,7 +85,7 @@ void chameleon_pztradd( cham_uplo_t uplo, cham_trans_t trans,
                     beta,  B(n, n));
 
                 for (m = n+1; m < B->mt; m++) {
-                    tempmm = m == B->mt-1 ? B->m-B->mb*m : B->nb;
+                    tempmm = m == B->mt-1 ? B->m - m * B->mb : B->mb;
 
                     INSERT_TASK_zgeadd(
                         &options,
@@ -99,7 +99,7 @@ void chameleon_pztradd( cham_uplo_t uplo, cham_trans_t trans,
     case ChamUpper:
         if (trans == ChamNoTrans) {
             for (m = 0; m < minmn; m++) {
-                tempmm = m == B->mt-1 ? B->m - m * B->mb : B->nb;
+                tempmm = m == B->mt-1 ? B->m - m * B->mb : B->mb;
                 tempmn = m == B->nt-1 ? B->n - m * B->nb : B->nb;
 
                 INSERT_TASK_ztradd(
@@ -121,7 +121,7 @@ void chameleon_pztradd( cham_uplo_t uplo, cham_trans_t trans,
         }
         else {
             for (m = 0; m < chameleon_min(B->mt,B->nt); m++) {
-                tempmm = m == B->mt-1 ? B->m-B->mb*m : B->nb;
+                tempmm = m == B->mt-1 ? B->m - m * B->mb : B->mb;
                 tempmn = m == B->nt-1 ? B->n-m*B->nb : B->nb;
 
                 INSERT_TASK_ztradd(
@@ -146,7 +146,7 @@ void chameleon_pztradd( cham_uplo_t uplo, cham_trans_t trans,
     default:
         if (trans == ChamNoTrans) {
             for (m = 0; m < B->mt; m++) {
-                tempmm = m == B->mt-1 ? B->m-B->mb*m : B->nb;
+                tempmm = m == B->mt-1 ? B->m - m * B->mb : B->mb;
 
                 for (n = 0; n < B->nt; n++) {
                     tempnn = n == B->nt-1 ? B->n-n*B->nb : B->nb;
@@ -161,7 +161,7 @@ void chameleon_pztradd( cham_uplo_t uplo, cham_trans_t trans,
         }
         else {
             for (m = 0; m < B->mt; m++) {
-                tempmm = m == B->mt-1 ? B->m-B->mb*m : B->nb;
+                tempmm = m == B->mt-1 ? B->m - m * B->mb : B->mb;
 
                 for (n = 0; n < B->nt; n++) {
                     tempnn = n == B->nt-1 ? B->n-n*B->nb : B->nb;
