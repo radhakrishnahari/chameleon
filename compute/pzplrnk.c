@@ -195,13 +195,13 @@ chameleon_pzplrnk( int                         K,
     {
         chameleon_desc_init( &WA, CHAMELEON_MAT_ALLOC_TILE,
                              ChamComplexDouble, C->mb, C->nb, (C->mb * C->nb),
-                             C->mt * C->mb, C->nb * q, 0, 0,
-                             C->mt * C->mb, C->nb * q, p, q,
+                             C->m, C->nb * q, 0, 0,
+                             C->m, C->nb * q, p, q,
                              NULL, NULL, NULL, NULL );
         chameleon_desc_init( &WB, CHAMELEON_MAT_ALLOC_TILE,
                              ChamComplexDouble, C->mb, C->nb, (C->mb * C->nb),
-                             C->mb * p, C->nt * C->nb, 0, 0,
-                             C->mb * p, C->nt * C->nb, p, q,
+                             C->mb * p, C->n, 0, 0,
+                             C->mb * p, C->n, p, q,
                              NULL, NULL, NULL, NULL );
 
         chameleon_pzplrnk_2dbc( chamctxt, K, &WA, &WB, C, seedA, seedB, &options );
@@ -210,13 +210,13 @@ chameleon_pzplrnk( int                         K,
         int np = p * q;
         chameleon_desc_init( &WA, CHAMELEON_MAT_ALLOC_TILE,
                              ChamComplexDouble, C->mb, C->nb, (C->mb * C->nb),
-                             C->mt * C->mb, C->nb * np, 0, 0,
-                             C->mt * C->mb, C->nb * np, 1, np,
+                             C->m, C->nb * np, 0, 0,
+                             C->m, C->nb * np, 1, np,
                              NULL, NULL, NULL, NULL );
         chameleon_desc_init( &WB, CHAMELEON_MAT_ALLOC_TILE,
                              ChamComplexDouble, C->mb, C->nb, (C->mb * C->nb),
-                             C->mb * np, C->nt * C->nb, 0,  0,
-                             C->mb * np, C->nt * C->nb, np, 1,
+                             C->mb * np, C->n, 0,  0,
+                             C->mb * np, C->n, np, 1,
                              NULL, NULL, NULL, NULL );
 
         chameleon_pzplrnk_generic( chamctxt, K, &WA, &WB, C, seedA, seedB, &options );
