@@ -465,7 +465,7 @@ void chameleon_pzunmqrrh( int genD, int BS, cham_side_t side, cham_trans_t trans
                 for (RD = BS; RD < C->nt-k; RD *= 2) {
                     for (p = k; p+RD < C->nt; p += 2*RD) {
                         n = p + RD;
-                        tempnn = n == C->mt-1 ? C->m-n*C->mb : C->mb;
+                        tempnn = n == C->nt-1 ? C->n-n*C->nb : C->nb;
 
                         for (m = 0; m < C->mt; m++) {
                             tempmm = m == C->mt-1 ? C->m-m*C->mb : C->mb;
