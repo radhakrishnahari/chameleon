@@ -51,7 +51,7 @@ void chameleon_pzsyr2k( cham_uplo_t uplo, cham_trans_t trans,
     RUNTIME_options_init(&options, chamctxt, sequence, request);
 
     for (n = 0; n < C->nt; n++) {
-        tempnn = n == C->nt-1 ? C->n-n*C->nb : C->nb;
+        tempnn = C->get_blkdim( C, n, DIM_n, C->n );
 
         if (uplo == ChamLower) {
             mmin = n+1;
@@ -67,7 +67,7 @@ void chameleon_pzsyr2k( cham_uplo_t uplo, cham_trans_t trans,
          */
         if (trans == ChamNoTrans) {
             for (k = 0; k < A->nt; k++) {
-                tempkn = k == A->nt-1 ? A->n-k*A->nb : A->nb;
+                tempkn = A->get_blkdim( A, k, DIM_n, A->n );
                 zbeta = k == 0 ? beta : zone;
                 INSERT_TASK_zsyr2k(
                     &options,
@@ -78,9 +78,9 @@ void chameleon_pzsyr2k( cham_uplo_t uplo, cham_trans_t trans,
                     zbeta, C(n, n)); /* ldc  * N */
             }
             for (m = mmin; m < mmax; m++) {
-                tempmm = m == C->mt-1 ? C->m-m*C->mb : C->mb;
+                tempmm = C->get_blkdim( C, m, DIM_m, C->m );
                 for (k = 0; k < A->nt; k++) {
-                    tempkn = k == A->nt-1 ? A->n-k*A->nb : A->nb;
+                    tempkn = A->get_blkdim( A, k, DIM_n, A->n );
                     zbeta = k == 0 ? beta : zone;
                     INSERT_TASK_zgemm(
                         &options,
@@ -105,7 +105,7 @@ void chameleon_pzsyr2k( cham_uplo_t uplo, cham_trans_t trans,
          */
         else {
             for (k = 0; k < A->mt; k++) {
-                tempkm = k == A->mt-1 ? A->m-k*A->mb : A->mb;
+                tempkm = A->get_blkdim( A, k, DIM_m, A->m );
                 zbeta = k == 0 ? beta : zone;
                 INSERT_TASK_zsyr2k(
                     &options,
@@ -116,9 +116,9 @@ void chameleon_pzsyr2k( cham_uplo_t uplo, cham_trans_t trans,
                     zbeta, C(n, n)); /* ldc * N */
             }
             for (m = mmin; m < mmax; m++) {
-                tempmm = m == C->mt-1 ? C->m-m*C->mb : C->mb;
+                tempmm = C->get_blkdim( C, m, DIM_m, C->m );
                 for (k = 0; k < A->mt; k++) {
-                    tempkm = k == A->mt-1 ? A->m-k*A->mb : A->mb;
+                    tempkm = A->get_blkdim( A, k, DIM_m, A->m );
                     zbeta = k == 0 ? beta : zone;
                     INSERT_TASK_zgemm(
                         &options,

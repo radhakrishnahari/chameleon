@@ -89,15 +89,15 @@ void chameleon_pzunglqrh( int genD, int BS,
     for (k = K-1; k >= 0; k--) {
         RUNTIME_iteration_push(chamctxt, k);
 
-        tempkm = k == A->mt-1 ? A->m-k*A->mb : A->mb;
+        tempkm = A->get_blkdim( A, k, DIM_m, A->m );
         lastRD = 0;
         for (RD = BS; RD < A->nt-k; RD *= 2)
             lastRD = RD;
         for (RD = lastRD; RD >= BS; RD /= 2) {
             for (N = k; N+RD < A->nt; N += 2*RD) {
-                tempNRDn = N+RD == A->nt-1 ? A->n-(N+RD)*A->nb : A->nb;
+                tempNRDn = A->get_blkdim( A, N+RD, DIM_n, A->n );
                 for (m = k; m < Q->mt; m++) {
-                    tempmm = m == Q->mt-1 ? Q->m-m*Q->mb : Q->mb;
+                    tempmm = Q->get_blkdim( Q, m, DIM_m, Q->m );
 
                     node = Q->get_rankof( Q, m, N+RD );
                     RUNTIME_data_migrate( sequence, Q(m, N),    node );
@@ -119,13 +119,13 @@ void chameleon_pzunglqrh( int genD, int BS,
             }
         }
         for (N = k; N < A->nt; N += BS) {
-            tempNn = N == A->nt-1 ? A->n-N*A->nb : A->nb;
+            tempNn = A->get_blkdim( A, N, DIM_n, A->n );
             tempkmin = chameleon_min(tempkm, tempNn);
             for (n = chameleon_min(N+BS, A->nt)-1; n > N; n--) {
-                tempnn = n == Q->nt-1 ? Q->n-n*Q->nb : Q->nb;
+                tempnn = Q->get_blkdim( Q, n, DIM_n, Q->n );
 
                 for (m = k; m < Q->mt; m++) {
-                    tempmm = m == Q->mt-1 ? Q->m-m*Q->mb : Q->mb;
+                    tempmm = Q->get_blkdim( Q, m, DIM_m, Q->m );
 
                     node = Q->get_rankof( Q, m, n );
                     RUNTIME_data_migrate( sequence, Q(m, N), node );
@@ -147,7 +147,7 @@ void chameleon_pzunglqrh( int genD, int BS,
             }
 
             if ( genD ) {
-                int tempDNn = N == D->nt-1 ? D->n-N*D->nb : D->nb;
+                int tempDNn = D->get_blkdim( D, N, DIM_n, D->n );
 
                 INSERT_TASK_zlacpy(
                     &options,
@@ -163,7 +163,7 @@ void chameleon_pzunglqrh( int genD, int BS,
 #endif
             }
             for (m = k; m < Q->mt; m++) {
-                tempmm = m == Q->mt-1 ? Q->m-m*Q->mb : Q->mb;
+                tempmm = Q->get_blkdim( Q, m, DIM_m, Q->m );
 
                 RUNTIME_data_migrate( sequence, Q(m, N),
                                       Q->get_rankof( Q, m, N ) );

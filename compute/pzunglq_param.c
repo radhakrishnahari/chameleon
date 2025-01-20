@@ -86,7 +86,7 @@ void chameleon_pzunglq_param( int genD, const libhqr_tree_t *qrtree, CHAM_desc_t
     for (k = K-1; k >= 0; k--) {
         RUNTIME_iteration_push(chamctxt, k);
 
-        tempkm = k == A->mt-1 ? A->m-k*A->mb : A->mb;
+        tempkm = A->get_blkdim( A, k, DIM_m, A->m );
 
         /* Setting the order of the tiles*/
         nbtiles = libhqr_walk_stepk( qrtree, k, tiles );
@@ -95,7 +95,7 @@ void chameleon_pzunglq_param( int genD, const libhqr_tree_t *qrtree, CHAM_desc_t
             n = tiles[i];
             p = qrtree->currpiv(qrtree, k, n);
 
-            tempnn = n == Q->nt-1 ? Q->n-n*Q->nb : Q->nb;
+            tempnn = Q->get_blkdim( Q, n, DIM_n, Q->n );
 
             if( qrtree->gettype(qrtree, k, n) == LIBHQR_KILLED_BY_TS ) {
                 /* TS kernel */
@@ -108,7 +108,7 @@ void chameleon_pzunglq_param( int genD, const libhqr_tree_t *qrtree, CHAM_desc_t
                 T = TT;
             }
             for (m = k; m < Q->mt; m++) {
-                tempmm = m == Q->mt-1 ? Q->m-m*Q->mb : Q->mb;
+                tempmm = Q->get_blkdim( Q, m, DIM_m, Q->m );
 
                 node = Q->get_rankof( Q, m, n );
                 RUNTIME_data_migrate( sequence, Q(m, p), node );
@@ -131,11 +131,11 @@ void chameleon_pzunglq_param( int genD, const libhqr_tree_t *qrtree, CHAM_desc_t
         for (i = 0; i < qrtree->getnbgeqrf(qrtree, k); i++) {
             p = qrtree->getm(qrtree, k, i);
 
-            temppn = p == A->nt-1 ? A->n-p*A->nb : A->nb;
+            temppn = A->get_blkdim( A, p, DIM_n, A->n );
             tempkmin = chameleon_min(tempkm, temppn);
 
             if ( genD ) {
-                int tempDpn = p == D->nt-1 ? D->n-p*D->nb : D->nb;
+                int tempDpn = D->get_blkdim( D, p, DIM_n, D->n );
                 INSERT_TASK_zlacpy(
                     &options,
                     ChamUpper, tempkmin, tempDpn,
@@ -150,7 +150,7 @@ void chameleon_pzunglq_param( int genD, const libhqr_tree_t *qrtree, CHAM_desc_t
 #endif
             }
             for (m = k; m < Q->mt; m++) {
-                tempmm = m == Q->mt-1 ? Q->m-m*Q->mb : Q->mb;
+                tempmm = Q->get_blkdim( Q, m, DIM_m, Q->m );
 
                 RUNTIME_data_migrate( sequence, Q(m, p),
                                       Q->get_rankof( Q, m, p ) );

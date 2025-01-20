@@ -55,9 +55,9 @@ void chameleon_pztrtri(cham_uplo_t uplo, cham_diag_t diag, CHAM_desc_t *A,
         for (k = 0; k < A->nt; k++) {
             RUNTIME_iteration_push(chamctxt, k);
 
-            tempkn = k == A->nt-1 ? A->n-k*A->nb : A->nb;
+            tempkn = A->get_blkdim( A, k, DIM_n, A->n );
             for (m = k+1; m < A->mt; m++) {
-                tempmm = m == A->mt-1 ? A->m-m*A->mb : A->mb;
+                tempmm = A->get_blkdim( A, m, DIM_m, A->m );
                 INSERT_TASK_ztrsm(
                     &options,
                     ChamRight, uplo, ChamNoTrans, diag,
@@ -66,7 +66,7 @@ void chameleon_pztrtri(cham_uplo_t uplo, cham_diag_t diag, CHAM_desc_t *A,
                            A(m, k));
             }
             for (m = k+1; m < A->mt; m++) {
-                tempmm = m == A->mt-1 ? A->m-m*A->mb : A->mb;
+                tempmm = A->get_blkdim( A, m, DIM_m, A->m );
                 for (n = 0; n < k; n++) {
                     INSERT_TASK_zgemm(
                         &options,
@@ -104,9 +104,9 @@ void chameleon_pztrtri(cham_uplo_t uplo, cham_diag_t diag, CHAM_desc_t *A,
         for (k = 0; k < A->mt; k++) {
             RUNTIME_iteration_push(chamctxt, k);
 
-            tempkm = k == A->mt-1 ? A->m-k*A->mb : A->mb;
+            tempkm = A->get_blkdim( A, k, DIM_m, A->m );
             for (n = k+1; n < A->nt; n++) {
-                tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
+                tempnn = A->get_blkdim( A, n, DIM_n, A->n );
                 INSERT_TASK_ztrsm(
                     &options,
                     ChamLeft, uplo, ChamNoTrans, diag,
@@ -115,7 +115,7 @@ void chameleon_pztrtri(cham_uplo_t uplo, cham_diag_t diag, CHAM_desc_t *A,
                            A(k, n));
             }
             for (n = k+1; n < A->nt; n++) {
-                tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
+                tempnn = A->get_blkdim( A, n, DIM_n, A->n );
                 for (m = 0; m < k; m++) {
                     INSERT_TASK_zgemm(
                         &options,

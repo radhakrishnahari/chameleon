@@ -54,10 +54,10 @@ chameleon_pzlange_one( cham_uplo_t uplo, cham_diag_t diag, CHAM_desc_t *A,
         int mmin = ( uplo == ChamLower ) ? n                      : 0;
         int mmax = ( uplo == ChamUpper ) ? chameleon_min(n+1, MT) : MT;
 
-        int tempnn = ( n == (NT-1) ) ? N - n * A->nb : A->nb;
+        int tempnn = A->get_blkdim( A, n, DIM_n, N );
 
         for(m = mmin; m < mmax; m++) {
-            int tempmm = ( m == (MT-1) ) ? M - m * A->mb : A->mb;
+            int tempmm = A->get_blkdim( A, m, DIM_m, M );
 
             if ( (n == m) && (uplo != ChamUpperLower) ) {
                 INSERT_TASK_ztrasm(
@@ -144,10 +144,10 @@ chameleon_pzlange_inf( cham_uplo_t uplo, cham_diag_t diag, CHAM_desc_t *A,
         int nmin = ( uplo == ChamUpper ) ? m                      : 0;
         int nmax = ( uplo == ChamLower ) ? chameleon_min(m+1, NT) : NT;
 
-        int tempmm = ( m == (MT-1) ) ? M - m * A->mb : A->mb;
+        int tempmm = A->get_blkdim( A, m, DIM_m, M );
 
         for(n = nmin; n < nmax; n++) {
-            int tempnn = ( n == (NT-1) ) ? N - n * A->nb : A->nb;
+            int tempnn = A->get_blkdim( A, n, DIM_n, N );
 
             if ( (n == m)  && (uplo != ChamUpperLower) ) {
                 INSERT_TASK_ztrasm(
@@ -230,10 +230,10 @@ chameleon_pzlange_max( cham_uplo_t uplo, cham_diag_t diag, CHAM_desc_t *A, CHAM_
         int nmin = ( uplo == ChamUpper ) ? m                      : 0;
         int nmax = ( uplo == ChamLower ) ? chameleon_min(m+1, NT) : NT;
 
-        int tempmm = ( m == (MT-1) ) ? M - m * A->mb : A->mb;
+        int tempmm = A->get_blkdim( A, m, DIM_m, M );
 
         for(n = nmin; n < nmax; n++) {
-            int tempnn = ( n == (NT-1) ) ? N - n * A->nb : A->nb;
+            int tempnn = A->get_blkdim( A, n, DIM_n, N );
 
             if ( (n == m)  && (uplo != ChamUpperLower) ) {
                 INSERT_TASK_zlantr(
@@ -313,10 +313,10 @@ chameleon_pzlange_frb( cham_uplo_t uplo, cham_diag_t diag, CHAM_desc_t *A, CHAM_
         int nmin = ( uplo == ChamUpper ) ? m                      : 0;
         int nmax = ( uplo == ChamLower ) ? chameleon_min(m+1, NT) : NT;
 
-        int tempmm = ( m == (MT-1) ) ? M - m * A->mb : A->mb;
+        int tempmm = A->get_blkdim( A, m, DIM_m, M );
 
         for(n = nmin; n < nmax; n++) {
-            int tempnn = ( n == (NT-1) ) ? N - n * A->nb : A->nb;
+            int tempnn = A->get_blkdim( A, n, DIM_n, N );
 
             if ( (n == m) && (uplo != ChamUpperLower) ) {
                 INSERT_TASK_ztrssq(

@@ -74,11 +74,11 @@ void chameleon_pztpqrt( int L, CHAM_desc_t *A, CHAM_desc_t *B, CHAM_desc_t *T,
     for (k = 0; k < A->nt; k++) {
         RUNTIME_iteration_push(chamctxt, k);
 
-        tempkm = k == A->mt-1 ? A->m-k*A->mb : A->mb;
-        tempkn = k == A->nt-1 ? A->n-k*A->nb : A->nb;
+        tempkm = A->get_blkdim( A, k, DIM_m, A->m );
+        tempkn = A->get_blkdim( A, k, DIM_n, A->n );
 
         for (m = 0; m < maxmt; m++) {
-            tempmm = m == B->mt-1 ? B->m-m*B->mb : B->mb;
+            tempmm = B->get_blkdim( B, m, DIM_m, B->m );
             templm = ((L > 0) && (m == maxmt-1)) ? tempmm : 0;
             /* TT kernel */
             INSERT_TASK_ztpqrt(
@@ -89,7 +89,7 @@ void chameleon_pztpqrt( int L, CHAM_desc_t *A, CHAM_desc_t *B, CHAM_desc_t *T,
                 T(m, k) );
 
             for (n = k+1; n < B->nt; n++) {
-                tempnn = n == B->nt-1 ? B->n-n*B->nb : B->nb;
+                tempnn = B->get_blkdim( B, n, DIM_n, B->n );
                 INSERT_TASK_ztpmqrt(
                     &options,
                     ChamLeft, ChamConjTrans,

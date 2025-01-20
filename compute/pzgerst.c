@@ -36,7 +36,7 @@ void chameleon_pzgerst( cham_uplo_t         uplo,
     RUNTIME_options_init(&options, chamctxt, sequence, request);
 
     for(m = 0; m < A->mt; m++) {
-        int tempmm = ( m == (A->mt-1) ) ? A->m - m * A->mb : A->mb;
+        int tempmm = A->get_blkdim( A, m, DIM_m, A->m );
         int nmin   = ( uplo == ChamUpper ) ? m                         : 0;
         int nmax   = ( uplo == ChamLower ) ? chameleon_min(m+1, A->nt) : A->nt;
 
@@ -46,7 +46,7 @@ void chameleon_pzgerst( cham_uplo_t         uplo,
             if (( tile->rank == A->myrank ) &&
                 ( tile->flttype != ChamComplexDouble ) )
             {
-                int tempnn = ( n == (A->nt-1) ) ? A->n - n * A->nb : A->nb;
+                int tempnn = A->get_blkdim( A, n, DIM_n, A->n );
 
                 INSERT_TASK_zgerst( &options,
                                      tempmm, tempnn, A( m, n ) );

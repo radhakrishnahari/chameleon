@@ -57,9 +57,9 @@ void chameleon_pztrmm(cham_side_t side, cham_uplo_t uplo,
         if (uplo == ChamUpper) {
             if (trans == ChamNoTrans) {
                 for (m = 0; m < B->mt; m++) {
-                    tempmm = m == B->mt-1 ? B->m-m*B->mb : B->mb;
+                    tempmm = B->get_blkdim( B, m, DIM_m, B->m );
                     for (n = 0; n < B->nt; n++) {
-                        tempnn = n == B->nt-1 ? B->n-n*B->nb : B->nb;
+                        tempnn = B->get_blkdim( B, n, DIM_n, B->n );
                         INSERT_TASK_ztrmm(
                             &options,
                             side, uplo, trans, diag,
@@ -68,7 +68,7 @@ void chameleon_pztrmm(cham_side_t side, cham_uplo_t uplo,
                                    B(m, n)); /* ldb * tempnn */
 
                         for (k = m+1; k < A->mt; k++) {
-                            tempkn = k == A->nt-1 ? A->n-k*A->nb : A->nb;
+                            tempkn = A->get_blkdim( A, k, DIM_n, A->n );
                             INSERT_TASK_zgemm(
                                 &options,
                                 trans, ChamNoTrans,
@@ -85,9 +85,9 @@ void chameleon_pztrmm(cham_side_t side, cham_uplo_t uplo,
              */
             else {
                 for (m = B->mt-1; m > -1; m--) {
-                    tempmm = m == B->mt-1 ? B->m-m*B->mb : B->mb;
+                    tempmm = B->get_blkdim( B, m, DIM_m, B->m );
                     for (n = 0; n < B->nt; n++) {
-                        tempnn = n == B->nt-1 ? B->n-n*B->nb : B->nb;
+                        tempnn = B->get_blkdim( B, n, DIM_n, B->n );
                         INSERT_TASK_ztrmm(
                             &options,
                             side, uplo, trans, diag,
@@ -114,9 +114,9 @@ void chameleon_pztrmm(cham_side_t side, cham_uplo_t uplo,
         else {
             if (trans == ChamNoTrans) {
                 for (m = B->mt-1; m > -1; m--) {
-                    tempmm = m == B->mt-1 ? B->m-m*B->mb : B->mb;
+                    tempmm = B->get_blkdim( B, m, DIM_m, B->m );
                     for (n = 0; n < B->nt; n++) {
-                        tempnn = n == B->nt-1 ? B->n-n*B->nb : B->nb;
+                        tempnn = B->get_blkdim( B, n, DIM_n, B->n );
                         INSERT_TASK_ztrmm(
                             &options,
                             side, uplo, trans, diag,
@@ -141,9 +141,9 @@ void chameleon_pztrmm(cham_side_t side, cham_uplo_t uplo,
              */
             else {
                 for (m = 0; m < B->mt; m++) {
-                    tempmm = m == B->mt-1 ? B->m-m*B->mb : B->mb;
+                    tempmm = B->get_blkdim( B, m, DIM_m, B->m );
                     for (n = 0; n < B->nt; n++) {
-                        tempnn = n == B->nt-1 ? B->n-n*B->nb : B->nb;
+                        tempnn = B->get_blkdim( B, n, DIM_n, B->n );
                         INSERT_TASK_ztrmm(
                             &options,
                             side, uplo, trans, diag,
@@ -152,7 +152,7 @@ void chameleon_pztrmm(cham_side_t side, cham_uplo_t uplo,
                                    B(m, n)); /* ldb * tempnn */
 
                         for (k = m+1; k < A->mt; k++) {
-                            tempkm = k == A->mt-1 ? A->m-k*A->mb : A->mb;
+                            tempkm = A->get_blkdim( A, k, DIM_m, A->m );
                             INSERT_TASK_zgemm(
                                 &options,
                                 trans, ChamNoTrans,
@@ -173,9 +173,9 @@ void chameleon_pztrmm(cham_side_t side, cham_uplo_t uplo,
         if (uplo == ChamUpper) {
             if (trans == ChamNoTrans) {
                 for (n = B->nt-1; n > -1; n--) {
-                    tempnn = n == B->nt-1 ? B->n-n*B->nb : B->nb;
+                    tempnn = B->get_blkdim( B, n, DIM_n, B->n );
                     for (m = 0; m < B->mt; m++) {
-                        tempmm = m == B->mt-1 ? B->m-m*B->mb : B->mb;
+                        tempmm = B->get_blkdim( B, m, DIM_m, B->m );
                         INSERT_TASK_ztrmm(
                             &options,
                             side, uplo, trans, diag,
@@ -200,9 +200,9 @@ void chameleon_pztrmm(cham_side_t side, cham_uplo_t uplo,
              */
             else {
                 for (n = 0; n < B->nt; n++) {
-                    tempnn = n == B->nt-1 ? B->n-n*B->nb : B->nb;
+                    tempnn = B->get_blkdim( B, n, DIM_n, B->n );
                     for (m = 0; m < B->mt; m++) {
-                        tempmm = m == B->mt-1 ? B->m-m*B->mb : B->mb;
+                        tempmm = B->get_blkdim( B, m, DIM_m, B->m );
                         INSERT_TASK_ztrmm(
                             &options,
                             side, uplo, trans, diag,
@@ -211,7 +211,7 @@ void chameleon_pztrmm(cham_side_t side, cham_uplo_t uplo,
                                    B(m, n)); /* ldb * tempnn */
 
                         for (k = n+1; k < A->mt; k++) {
-                            tempkn = k == A->nt-1 ? A->n-k*A->nb : A->nb;
+                            tempkn = A->get_blkdim( A, k, DIM_n, A->n );
                             INSERT_TASK_zgemm(
                                 &options,
                                 ChamNoTrans, trans,
@@ -230,9 +230,9 @@ void chameleon_pztrmm(cham_side_t side, cham_uplo_t uplo,
         else {
             if (trans == ChamNoTrans) {
                 for (n = 0; n < B->nt; n++) {
-                    tempnn = n == B->nt-1 ? B->n-n*B->nb : B->nb;
+                    tempnn = B->get_blkdim( B, n, DIM_n, B->n );
                     for (m = 0; m < B->mt; m++) {
-                        tempmm = m == B->mt-1 ? B->m-m*B->mb : B->mb;
+                        tempmm = B->get_blkdim( B, m, DIM_m, B->m );
                         INSERT_TASK_ztrmm(
                             &options,
                             side, uplo, trans, diag,
@@ -241,7 +241,7 @@ void chameleon_pztrmm(cham_side_t side, cham_uplo_t uplo,
                                    B(m, n)); /* ldb * tempnn */
 
                         for (k = n+1; k < A->mt; k++) {
-                            tempkn = k == A->nt-1 ? A->n-k*A->nb : A->nb;
+                            tempkn = A->get_blkdim( A, k, DIM_n, A->n );
                             INSERT_TASK_zgemm(
                                 &options,
                                 ChamNoTrans, trans,
@@ -258,9 +258,9 @@ void chameleon_pztrmm(cham_side_t side, cham_uplo_t uplo,
              */
             else {
                 for (n = B->nt-1; n > -1; n--) {
-                    tempnn = n == B->nt-1 ? B->n-n*B->nb : B->nb;
+                    tempnn = B->get_blkdim( B, n, DIM_n, B->n );
                     for (m = 0; m < B->mt; m++) {
-                        tempmm = m == B->mt-1 ? B->m-m*B->mb : B->mb;
+                        tempmm = B->get_blkdim( B, m, DIM_m, B->m );
                         INSERT_TASK_ztrmm(
                             &options,
                             side, uplo, trans, diag,

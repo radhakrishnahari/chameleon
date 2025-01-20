@@ -58,8 +58,8 @@ ztrsm_batch_cpu( void *op_args,
     tileB = va_arg(ap, CHAM_tile_t *);
     va_end(ap);
 
-    tempmm = m == descB->mt-1 ? descB->m - m * descB->mb : descB->mb;
-    tempnn = n == descB->nt-1 ? descB->n - n * descB->nb : descB->nb;
+    tempmm = descB->get_blkdim( descB, m, DIM_m, descB->m );
+    tempnn = descB->get_blkdim( descB, n, DIM_n, descB->n );
 
     TCORE_ztrsm(
         args->side, args->uplo, args->transA, args->diag,
@@ -103,8 +103,8 @@ ztrsm_batch_cuda( cublasHandle_t handle, void *op_args,
     assert( tileA->format & CHAMELEON_TILE_FULLRANK );
     assert( tileB->format & CHAMELEON_TILE_FULLRANK );
 
-    tempmm = m == descB->mt-1 ? descB->m - m * descB->mb : descB->mb;
-    tempnn = n == descB->nt-1 ? descB->n - n * descB->nb : descB->nb;
+    tempmm = descB->get_blkdim( descB, m, DIM_m, descB->m );
+    tempnn = descB->get_blkdim( descB, n, DIM_n, descB->n );
 
     CUDA_ztrsm(
             args->side, args->uplo, args->transA, args->diag,

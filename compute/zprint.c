@@ -34,8 +34,8 @@ zprint_cpu( void *op_args,
     struct zprint_args_s  *options = (struct zprint_args_s *)op_args;
     CHAMELEON_Complex64_t *A = CHAM_tile_get_ptr( tileA );
 
-    int tempmm = m == descA->mt-1 ? descA->m-m*descA->mb : descA->mb;
-    int tempnn = n == descA->nt-1 ? descA->n-n*descA->nb : descA->nb;
+    int tempmm = descA->get_blkdim( descA, m, DIM_m, descA->m );
+    int tempnn = descA->get_blkdim( descA, n, DIM_n, descA->n );
     int lda    = tileA->ld;
 
     if ( ndata > 1 ) {

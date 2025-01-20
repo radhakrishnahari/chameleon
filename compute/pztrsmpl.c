@@ -41,7 +41,7 @@ void chameleon_pztrsmpl( CHAM_desc_t *A, CHAM_desc_t *B, CHAM_desc_t *L, int *IP
 
     int k, m, n;
     int tempkm, tempnn, tempkmin, tempmm, tempkn;
-    int ib;
+    int ib, K, DIM_k;
 
     chamctxt = chameleon_context_self();
     if (sequence->status != CHAMELEON_SUCCESS) {
@@ -49,13 +49,23 @@ void chameleon_pztrsmpl( CHAM_desc_t *A, CHAM_desc_t *B, CHAM_desc_t *L, int *IP
     }
     RUNTIME_options_init(&options, chamctxt, sequence, request);
 
+    if ( A->m <= A->n ) {
+        K     = A->m;
+        DIM_k = DIM_m;
+    }
+    else {
+        K     = A->n;
+        DIM_k = DIM_n;
+    }
+
     ib = CHAMELEON_IB;
     for (k = 0; k < chameleon_min(A->mt, A->nt); k++) {
-        tempkm   = k == A->mt-1 ? A->m-k*A->mb : A->mb;
-        tempkn   = k == A->nt-1 ? A->n-k*A->nb : A->nb;
-        tempkmin = k == chameleon_min(A->mt, A->nt)-1 ? chameleon_min(A->m, A->n)-k*A->mb : A->mb;
+        tempkm   = A->get_blkdim( A, k, DIM_m, A->m );
+        tempkn   = A->get_blkdim( A, k, DIM_n, A->n );
+        tempkmin = A->get_blkdim( A, k, DIM_k, K    );
+
         for (n = 0; n < B->nt; n++) {
-            tempnn = n == B->nt-1 ? B->n-n*B->nb : B->nb;
+            tempnn = B->get_blkdim( B, n, DIM_n, B->n );
             INSERT_TASK_zgessm(
                 &options,
                 tempkm, tempnn, tempkmin, ib, L->nb,
@@ -65,9 +75,9 @@ void chameleon_pztrsmpl( CHAM_desc_t *A, CHAM_desc_t *B, CHAM_desc_t *L, int *IP
                 B(k, n));
         }
         for (m = k+1; m < A->mt; m++) {
-            tempmm = m == A->mt-1 ? A->m-m*A->mb : A->mb;
+            tempmm = A->get_blkdim( A, m, DIM_m, A->m );
             for (n = 0; n < B->nt; n++) {
-                tempnn  = n == B->nt-1 ? B->n-n*B->nb : B->nb;
+                tempnn = B->get_blkdim( B, n, DIM_n, B->n );
                 INSERT_TASK_zssssm(
                     &options,
                     A->nb, tempnn, tempmm, tempnn, tempkn, ib, L->nb,

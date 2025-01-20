@@ -71,8 +71,8 @@ void chameleon_pzgetrf_nopiv_generic( CHAM_desc_t        *A,
     for (k = 0; k < chameleon_min(A->mt, A->nt); k++) {
         RUNTIME_iteration_push(chamctxt, k);
 
-        tempkm = k == A->mt-1 ? A->m-k*A->mb : A->mb;
-        tempkn = k == A->nt-1 ? A->n-k*A->nb : A->nb;
+        tempkm = A->get_blkdim( A, k, DIM_m, A->m );
+        tempkn = A->get_blkdim( A, k, DIM_n, A->n );
 
         options.priority = 2*A->nt - 2*k;
         INSERT_TASK_zgetrf_nopiv(
@@ -82,7 +82,7 @@ void chameleon_pzgetrf_nopiv_generic( CHAM_desc_t        *A,
 
         for (m = k+1; m < A->mt; m++) {
             options.priority = 2*A->nt - 2*k - m;
-            tempmm = m == A->mt-1 ? A->m-m*A->mb : A->mb;
+            tempmm = A->get_blkdim( A, m, DIM_m, A->m );
             INSERT_TASK_ztrsm(
                 &options,
                 ChamRight, ChamUpper, ChamNoTrans, ChamNonUnit,
@@ -91,7 +91,7 @@ void chameleon_pzgetrf_nopiv_generic( CHAM_desc_t        *A,
                       A(m, k));
         }
         for (n = k+1; n < A->nt; n++) {
-            tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
+            tempnn = A->get_blkdim( A, n, DIM_n, A->n );
             options.priority = 2*A->nt - 2*k - n;
             INSERT_TASK_ztrsm(
                 &options,
@@ -101,7 +101,7 @@ void chameleon_pzgetrf_nopiv_generic( CHAM_desc_t        *A,
                       A(k, n));
 
             for (m = k+1; m < A->mt; m++) {
-                tempmm = m == A->mt-1 ? A->m-m*A->mb : A->mb;
+                tempmm = A->get_blkdim( A, m, DIM_m, A->m );
                 options.priority = 2*A->nt - 2*k  - n - m;
                 INSERT_TASK_zgemm(
                     &options,
@@ -157,8 +157,8 @@ void chameleon_pzgetrf_nopiv_ws( CHAM_desc_t        *A,
         lp = (k % lookahead) * chameleon_desc_datadist_get_iparam(A, 0);
         lq = (k % lookahead) * chameleon_desc_datadist_get_iparam(A, 1);
 
-        tempkm = k == A->mt-1 ? A->m-k*A->mb : A->mb;
-        tempkn = k == A->nt-1 ? A->n-k*A->nb : A->nb;
+        tempkm = A->get_blkdim( A, k, DIM_m, A->m );
+        tempkn = A->get_blkdim( A, k, DIM_n, A->n );
 
         options.priority = 2*A->nt - 2*k;
         INSERT_TASK_zgetrf_nopiv(
@@ -207,7 +207,7 @@ void chameleon_pzgetrf_nopiv_ws( CHAM_desc_t        *A,
             }
 
             options.priority = 2*A->nt - 2*k - m;
-            tempmm = m == A->mt-1 ? A->m-m*A->mb : A->mb;
+            tempmm = A->get_blkdim( A, m, DIM_m, A->m );
 
             assert( A->get_rankof( A, m, k ) == WU->get_rankof( WU, myp + lp, k) );
             INSERT_TASK_ztrsm(
@@ -244,7 +244,7 @@ void chameleon_pzgetrf_nopiv_ws( CHAM_desc_t        *A,
                 continue;
             }
 
-            tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
+            tempnn = A->get_blkdim( A, n, DIM_n, A->n );
             options.priority = 2*A->nt - 2*k - n;
 
             assert( A->get_rankof( A, k, n ) == WL->get_rankof( WL, k, myq+lq) );
@@ -281,7 +281,7 @@ void chameleon_pzgetrf_nopiv_ws( CHAM_desc_t        *A,
                     continue;
                 }
 
-                tempmm = m == A->mt-1 ? A->m-m*A->mb : A->mb;
+                tempmm = A->get_blkdim( A, m, DIM_m, A->m );
                 options.priority = 2*A->nt - 2*k  - n - m;
 
                 assert( A->get_rankof( A, m, n ) == WL->get_rankof( WL, m, myq + lq) );

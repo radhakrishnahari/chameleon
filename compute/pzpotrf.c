@@ -60,7 +60,7 @@ void chameleon_pzpotrf(cham_uplo_t uplo, CHAM_desc_t *A,
         for (k = 0; k < A->mt; k++) {
             RUNTIME_iteration_push(chamctxt, k);
 
-            tempkm = k == A->mt-1 ? A->m-k*A->mb : A->mb;
+            tempkm = A->get_blkdim( A, k, DIM_m, A->m );
 
             options.priority = 2*A->mt - 2*k;
             INSERT_TASK_zpotrf(
@@ -69,7 +69,7 @@ void chameleon_pzpotrf(cham_uplo_t uplo, CHAM_desc_t *A,
                 A(k, k), A->nb*k);
 
             for (m = k+1; m < A->mt; m++) {
-                tempmm = m == A->mt-1 ? A->m-m*A->mb : A->mb;
+                tempmm = A->get_blkdim( A, m, DIM_m, A->m );
 
                 options.priority = 2*A->mt - 2*k - m;
                 INSERT_TASK_ztrsm(
@@ -82,7 +82,7 @@ void chameleon_pzpotrf(cham_uplo_t uplo, CHAM_desc_t *A,
             RUNTIME_data_flush( sequence, A(k, k) );
 
             for (n = k+1; n < A->nt; n++) {
-                tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
+                tempnn = A->get_blkdim( A, n, DIM_n, A->n );
 
                 options.priority = 2*A->mt - 2*k - n;
                 INSERT_TASK_zherk(
@@ -93,7 +93,7 @@ void chameleon_pzpotrf(cham_uplo_t uplo, CHAM_desc_t *A,
                      1.0, A(n, n));
 
                 for (m = n+1; m < A->mt; m++) {
-                    tempmm = m == A->mt-1 ? A->m - m*A->mb : A->mb;
+                    tempmm = A->get_blkdim( A, m, DIM_m, A->m );
 
                     options.priority = 2*A->mt - 2*k - n - m;
                     INSERT_TASK_zgemm(
@@ -116,7 +116,7 @@ void chameleon_pzpotrf(cham_uplo_t uplo, CHAM_desc_t *A,
         for (k = 0; k < A->nt; k++) {
             RUNTIME_iteration_push(chamctxt, k);
 
-            tempkm = k == A->nt-1 ? A->n-k*A->nb : A->nb;
+            tempkm = A->get_blkdim( A, k, DIM_n, A->n );
 
             options.priority = 2*A->nt - 2*k;
             INSERT_TASK_zpotrf(
@@ -126,7 +126,7 @@ void chameleon_pzpotrf(cham_uplo_t uplo, CHAM_desc_t *A,
                 A(k, k), A->nb*k);
 
             for (n = k+1; n < A->nt; n++) {
-                tempnn = n == A->nt-1 ? A->n - n*A->nb : A->nb;
+                tempnn = A->get_blkdim( A, n, DIM_n, A->n );
 
                 options.priority = 2*A->nt - 2*k - n;
                 INSERT_TASK_ztrsm(
@@ -139,7 +139,7 @@ void chameleon_pzpotrf(cham_uplo_t uplo, CHAM_desc_t *A,
             RUNTIME_data_flush( sequence, A(k, k) );
 
             for (m = k+1; m < A->mt; m++) {
-                tempmm = m == A->mt-1 ? A->m - m*A->mb : A->mb;
+                tempmm = A->get_blkdim( A, m, DIM_m, A->m );
 
                 options.priority = 2*A->nt - 2*k  - m;
                 INSERT_TASK_zherk(
@@ -150,7 +150,7 @@ void chameleon_pzpotrf(cham_uplo_t uplo, CHAM_desc_t *A,
                      1.0, A(m, m));
 
                 for (n = m+1; n < A->nt; n++) {
-                    tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
+                    tempnn = A->get_blkdim( A, n, DIM_n, A->n );
 
                     options.priority = 2*A->nt - 2*k - n - m;
                     INSERT_TASK_zgemm(

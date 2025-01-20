@@ -91,15 +91,15 @@ void chameleon_pzungqrrh( int genD, int BS,
     for (k = K-1; k >= 0; k--) {
         RUNTIME_iteration_push(chamctxt, k);
 
-        tempkn = k == A->nt-1 ? A->n-k*A->nb : A->nb;
+        tempkn = A->get_blkdim( A, k, DIM_n, A->n );
         lastRD = 0;
         for (RD = BS; RD < A->mt-k; RD *= 2)
             lastRD = RD;
         for (RD = lastRD; RD >= BS; RD /= 2) {
             for (M = k; M+RD < A->mt; M += 2*RD) {
-                tempMRDm = M+RD == A->mt-1 ? A->m-(M+RD)*A->mb : A->mb;
+                tempMRDm = A->get_blkdim( A, M+RD, DIM_m, A->m );
                 for (n = k; n < Q->nt; n++) {
-                    tempnn = n == Q->nt-1 ? Q->n-n*Q->nb : Q->nb;
+                    tempnn = Q->get_blkdim( Q, n, DIM_n, Q->n );
 
                     node = Q->get_rankof( Q, M+RD, n );
                     RUNTIME_data_migrate( sequence, Q(M, n),    node );
@@ -121,13 +121,13 @@ void chameleon_pzungqrrh( int genD, int BS,
             }
         }
         for (M = k; M < A->mt; M += BS) {
-            tempMm   = M == A->mt-1 ? A->m-M*A->mb : A->mb;
+            tempMm = A->get_blkdim( A, M, DIM_m, A->m );
             tempkmin = chameleon_min(tempMm, tempkn);
             for (m = chameleon_min(M+BS, A->mt)-1; m > M; m--) {
-                tempmm = m == A->mt-1 ? A->m-m*A->mb : A->mb;
+                tempmm = A->get_blkdim( A, m, DIM_m, A->m );
 
                 for (n = k; n < Q->nt; n++) {
-                    tempnn = n == Q->nt-1 ? Q->n-n*Q->nb : Q->nb;
+                    tempnn = Q->get_blkdim( Q, n, DIM_n, Q->n );
 
                     node = Q->get_rankof( Q, m, n );
                     RUNTIME_data_migrate( sequence, Q(M, n), node );
@@ -148,7 +148,7 @@ void chameleon_pzungqrrh( int genD, int BS,
             }
 
             if ( genD ) {
-                int tempDMm = M == D->mt-1 ? D->m-M*D->mb : D->mb;
+                int tempDMm = D->get_blkdim( D, M, DIM_m, D->m );
                 INSERT_TASK_zlacpy(
                     &options,
                     ChamLower, tempDMm, tempkmin,
@@ -163,7 +163,7 @@ void chameleon_pzungqrrh( int genD, int BS,
 #endif
             }
             for (n = k; n < Q->nt; n++) {
-                tempnn = n == Q->nt-1 ? Q->n-n*Q->nb : Q->nb;
+                tempnn = Q->get_blkdim( Q, n, DIM_n, Q->n );
 
                 /* Restore the original location of the tiles */
                 RUNTIME_data_migrate( sequence, Q(M, n),

@@ -101,7 +101,7 @@ void chameleon_pzhetrd_he2hb(cham_uplo_t uplo,
 
     /* Let's extract the diagonal in a temporary copy that contains A and A' */
     for (k = 1; k < A->nt; k++){
-        tempkn = k == A->nt-1 ? A->n-k*A->nb : A->nb;
+        tempkn = A->get_blkdim( A, k, DIM_n, A->n );
 
         INSERT_TASK_zhe2ge( &options,
                             uplo, tempkn, tempkn, A->mb,
@@ -112,8 +112,8 @@ void chameleon_pzhetrd_he2hb(cham_uplo_t uplo,
        for (k = 0; k < A->nt-1; k++){
            RUNTIME_iteration_push(chamctxt, k);
 
-           tempkm = k+1 == A->mt-1 ? A->m-(k+1)*A->mb : A->mb;
-           tempkn = k   == A->nt-1 ? A->n- k   *A->nb : A->nb;
+           tempkm = A->get_blkdim( A, k+1, DIM_m, A->m );
+           tempkn = A->get_blkdim( A, k,   DIM_n, A->n );
 
            INSERT_TASK_zgeqrt(
                &options,
@@ -147,7 +147,7 @@ void chameleon_pzhetrd_he2hb(cham_uplo_t uplo,
 
            /* RIGHT on the remaining tiles until the bottom */
            for (m = k+2; m < A->mt ; m++) {
-               tempmm = m == A->mt-1 ? A->m-m*A->mb : A->mb;
+               tempmm = A->get_blkdim( A, m, DIM_m, A->m );
                INSERT_TASK_zunmqr(
                    &options,
                    ChamRight, ChamNoTrans,
@@ -158,7 +158,7 @@ void chameleon_pzhetrd_he2hb(cham_uplo_t uplo,
            }
 
            for (m = k+2; m < A->mt; m++) {
-               tempmm = m == A->mt-1 ? A->m-m*A->mb : A->mb;
+               tempmm = A->get_blkdim( A, m, DIM_m, A->m );
 
                options.priority = 1;
                INSERT_TASK_ztsqrt(
@@ -183,7 +183,7 @@ void chameleon_pzhetrd_he2hb(cham_uplo_t uplo,
 
                /* RIGHT */
                for (j = m+1; j < A->mt ; j++) {
-                   tempjj = j == A->mt-1 ? A->m-j*A->mb : A->mb;
+                   tempjj = A->get_blkdim( A, j, DIM_m, A->m );
                    INSERT_TASK_ztsmqr(
                        &options,
                        ChamRight, ChamNoTrans,
@@ -264,8 +264,9 @@ void chameleon_pzhetrd_he2hb(cham_uplo_t uplo,
        for (k = 0; k < A->nt-1; k++){
            RUNTIME_iteration_push(chamctxt, k);
 
-           tempkn = k+1 == A->nt-1 ? A->n-(k+1)*A->nb : A->nb;
-           tempkm = k   == A->mt-1 ? A->m- k   *A->mb : A->mb;
+           tempkm = A->get_blkdim( A, k,   DIM_m, A->m );
+           tempkn = A->get_blkdim( A, k+1, DIM_n, A->n );
+
            INSERT_TASK_zgelqt(
                &options,
                tempkm, tempkn, ib, A->nb,
@@ -298,7 +299,7 @@ void chameleon_pzhetrd_he2hb(cham_uplo_t uplo,
 
            /* LEFT on the remaining tiles until the left side */
            for (n = k+2; n < A->nt ; n++) {
-               tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
+               tempnn = A->get_blkdim( A, n, DIM_n, A->n );
                INSERT_TASK_zunmlq(
                    &options,
                    ChamLeft, ChamNoTrans,
@@ -309,7 +310,7 @@ void chameleon_pzhetrd_he2hb(cham_uplo_t uplo,
            }
 
            for (n = k+2; n < A->nt; n++) {
-               tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
+               tempnn = A->get_blkdim( A, n, DIM_n, A->n );
                options.priority = 1;
                INSERT_TASK_ztslqt(
                    &options,
@@ -333,7 +334,7 @@ void chameleon_pzhetrd_he2hb(cham_uplo_t uplo,
 
                /* LEFT */
                for (j = n+1; j < A->nt ; j++) {
-                   tempjj = j == A->nt-1 ? A->n-j*A->nb : A->nb;
+                   tempjj = A->get_blkdim( A, j, DIM_n, A->n );
                    INSERT_TASK_ztsmlq(
                        &options,
                        ChamLeft, ChamNoTrans,
@@ -413,7 +414,7 @@ void chameleon_pzhetrd_he2hb(cham_uplo_t uplo,
 
     /* Copy-back into A */
     for (k = 1; k < A->nt; k++){
-        tempkn = k == A->nt-1 ? A->n-k*A->nb : A->nb;
+        tempkn = A->get_blkdim( A, k, DIM_n, A->n );
         INSERT_TASK_zlacpy( &options,
                             uplo, tempkn, tempkn,
                             D(k), A(k, k));

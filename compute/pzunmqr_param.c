@@ -92,18 +92,18 @@ void chameleon_pzunmqr_param( int genD, const libhqr_tree_t *qrtree,
             for (k = 0; k < KT; k++) {
                 RUNTIME_iteration_push(chamctxt, k);
 
-                tempkn = k == A->nt - 1 ? A->n - k * A->nb : A->nb;
+                tempkn = A->get_blkdim( A, k, DIM_n, A->n );
 
                 T = TS;
                 for (i = 0; i < qrtree->getnbgeqrf(qrtree, k); i++) {
                     p = qrtree->getm(qrtree, k, i);
 
-                    temppm   = p == C->mt-1 ? C->m - p * C->mb : C->mb;
+                    temppm = C->get_blkdim( C, p, DIM_m, C->m );
                     tempkmin = chameleon_min( temppm, tempkn );
 
 
                     if ( genD ) {
-                        int tempDpm = p == D->mt-1 ? D->m-p*D->mb : D->mb;
+                        int tempDpm = D->get_blkdim( D, p, DIM_m, D->m );
 
                         INSERT_TASK_zlacpy(
                             &options,
@@ -119,7 +119,7 @@ void chameleon_pzunmqr_param( int genD, const libhqr_tree_t *qrtree,
 #endif
                     }
                     for (n = 0; n < C->nt; n++) {
-                        tempnn = n == C->nt-1 ? C->n-n*C->nb : C->nb;
+                        tempnn = C->get_blkdim( C, n, DIM_n, C->n );
                         INSERT_TASK_zunmqr(
                             &options, side, trans,
                             temppm, tempnn, tempkmin, ib, T->nb,
@@ -138,7 +138,7 @@ void chameleon_pzunmqr_param( int genD, const libhqr_tree_t *qrtree,
                     m = tiles[i];
                     p = qrtree->currpiv(qrtree, k, m);
 
-                    tempmm = m == C->mt-1 ? C->m-m*C->mb : C->mb;
+                    tempmm = C->get_blkdim( C, m, DIM_m, C->m );
 
                     if( qrtree->gettype(qrtree, k, m) == LIBHQR_KILLED_BY_TS ) {
                         /* TS kernel */
@@ -151,7 +151,7 @@ void chameleon_pzunmqr_param( int genD, const libhqr_tree_t *qrtree,
                         T = TT;
                     }
                     for (n = 0; n < C->nt; n++) {
-                        tempnn = n == C->nt-1 ? C->n-n*C->nb : C->nb;
+                        tempnn = C->get_blkdim( C, n, DIM_n, C->n );
 
                         node = C->get_rankof( C, m, n );
                         RUNTIME_data_migrate( sequence, C(p, n), node );
@@ -185,7 +185,7 @@ void chameleon_pzunmqr_param( int genD, const libhqr_tree_t *qrtree,
             for (k = KT-1; k >= 0; k--) {
                 RUNTIME_iteration_push(chamctxt, k);
 
-                tempkn = k == A->nt-1 ? A->n-k*A->nb : A->nb;
+                tempkn = A->get_blkdim( A, k, DIM_n, A->n );
 
                 /* Setting the order of the tiles*/
                 nbtiles = libhqr_walk_stepk( qrtree, k, tiles );
@@ -194,7 +194,7 @@ void chameleon_pzunmqr_param( int genD, const libhqr_tree_t *qrtree,
                     m = tiles[i];
                     p = qrtree->currpiv(qrtree, k, m);
 
-                    tempmm = m == C->mt-1 ? C->m-m*C->mb : C->mb;
+                    tempmm = C->get_blkdim( C, m, DIM_m, C->m );
 
                     if( qrtree->gettype(qrtree, k, m) == LIBHQR_KILLED_BY_TS ) {
                         /* TS kernel */
@@ -207,7 +207,7 @@ void chameleon_pzunmqr_param( int genD, const libhqr_tree_t *qrtree,
                         T = TT;
                     }
                     for (n = 0; n < C->nt; n++) {
-                        tempnn = n == C->nt-1 ? C->n-n*C->nb : C->nb;
+                        tempnn = C->get_blkdim( C, n, DIM_n, C->n );
 
                         node = C->get_rankof( C, m, n );
                         RUNTIME_data_migrate( sequence, C(p, n), node );
@@ -229,12 +229,12 @@ void chameleon_pzunmqr_param( int genD, const libhqr_tree_t *qrtree,
                 for (i = 0; i < qrtree->getnbgeqrf(qrtree, k); i++) {
                     p = qrtree->getm(qrtree, k, i);
 
-                    temppm   = p == C->mt-1 ? C->m-p*C->mb : C->mb;
+                    temppm = C->get_blkdim( C, p, DIM_m, C->m );
                     tempkmin = chameleon_min( temppm, tempkn );
 
 
                     if ( genD ) {
-                        int tempDpm = p == D->mt-1 ? D->m-p*D->mb : D->mb;
+                        int tempDpm = D->get_blkdim( D, p, DIM_m, D->m );
 
                         INSERT_TASK_zlacpy(
                             &options,
@@ -251,7 +251,7 @@ void chameleon_pzunmqr_param( int genD, const libhqr_tree_t *qrtree,
                     }
 
                     for (n = 0; n < C->nt; n++) {
-                        tempnn = n == C->nt-1 ? C->n-n*C->nb : C->nb;
+                        tempnn = C->get_blkdim( C, n, DIM_n, C->n );
 
                         RUNTIME_data_migrate( sequence, C(p, n),
                                               C->get_rankof( C, p, n ) );
@@ -278,7 +278,7 @@ void chameleon_pzunmqr_param( int genD, const libhqr_tree_t *qrtree,
             for (k = KT-1; k >= 0; k--) {
                 RUNTIME_iteration_push(chamctxt, k);
 
-                tempkn = k == A->nt-1 ? A->n - k * A->nb : A->nb;
+                tempkn = A->get_blkdim( A, k, DIM_n, A->n );
 
                 /* Setting the order of the tiles*/
                 nbtiles = libhqr_walk_stepk( qrtree, k, tiles );
@@ -287,7 +287,7 @@ void chameleon_pzunmqr_param( int genD, const libhqr_tree_t *qrtree,
                     n = tiles[i];
                     p = qrtree->currpiv(qrtree, k, n);
 
-                    tempnn = n == C->nt-1 ? C->n-n*C->nb : C->nb;
+                    tempnn = C->get_blkdim( C, n, DIM_n, C->n );
 
                     if( qrtree->gettype(qrtree, k, n) == LIBHQR_KILLED_BY_TS ) {
                         /* TS kernel */
@@ -301,7 +301,7 @@ void chameleon_pzunmqr_param( int genD, const libhqr_tree_t *qrtree,
                     }
 
                     for (m = 0; m < C->mt; m++) {
-                        tempmm = m == C->mt-1 ? C->m-m*C->mb : C->mb;
+                        tempmm = C->get_blkdim( C, m, DIM_m, C->m );
 
                         node = C->get_rankof( C, m, n );
                         RUNTIME_data_migrate( sequence, C(m, p), node );
@@ -323,11 +323,11 @@ void chameleon_pzunmqr_param( int genD, const libhqr_tree_t *qrtree,
                 for (i = 0; i < qrtree->getnbgeqrf(qrtree, k); i++) {
                     p = qrtree->getm(qrtree, k, i);
 
-                    temppn   = p == C->nt-1 ? C->n - p * C->nb : C->nb;
+                    temppn = C->get_blkdim( C, p, DIM_n, C->n );
                     tempkmin = chameleon_min(temppn, tempkn);
 
                     if ( genD ) {
-                        int tempDpm = p == D->mt-1 ? D->m-p*D->mb : D->mb;
+                        int tempDpm = D->get_blkdim( D, p, DIM_m, D->m );
 
                         INSERT_TASK_zlacpy(
                             &options,
@@ -344,7 +344,7 @@ void chameleon_pzunmqr_param( int genD, const libhqr_tree_t *qrtree,
                     }
 
                     for (m = 0; m < C->mt; m++) {
-                        tempmm = m == C->mt-1 ? C->m-m*C->mb : C->mb;
+                        tempmm = C->get_blkdim( C, m, DIM_m, C->m );
 
                         RUNTIME_data_migrate( sequence, C(m, p),
                                               C->get_rankof( C, m, p ) );
@@ -369,17 +369,17 @@ void chameleon_pzunmqr_param( int genD, const libhqr_tree_t *qrtree,
             for (k = 0; k < KT; k++) {
                 RUNTIME_iteration_push(chamctxt, k);
 
-                tempkn = k == A->nt-1 ? A->n-k*A->nb : A->nb;
+                tempkn = A->get_blkdim( A, k, DIM_n, A->n );
 
                 T = TS;
                 for (i = 0; i < qrtree->getnbgeqrf(qrtree, k); i++) {
                     p = qrtree->getm(qrtree, k, i);
 
-                    temppn   = p == C->nt - 1 ? C->n - p * C->nb : C->nb;
+                    temppn = C->get_blkdim( C, p, DIM_n, C->n );
                     tempkmin = chameleon_min( temppn, tempkn );
 
                     if ( genD ) {
-                        int tempDpm = p == D->mt-1 ? D->m-p*D->mb : D->mb;
+                        int tempDpm = D->get_blkdim( D, p, DIM_m, D->m );
 
                         INSERT_TASK_zlacpy(
                             &options,
@@ -396,7 +396,7 @@ void chameleon_pzunmqr_param( int genD, const libhqr_tree_t *qrtree,
                     }
 
                     for (m = 0; m < C->mt; m++) {
-                        tempmm = m == C->mt-1 ? C->m-m*C->mb : C->mb;
+                        tempmm = C->get_blkdim( C, m, DIM_m, C->m );
                         INSERT_TASK_zunmqr(
                             &options, side, trans,
                             tempmm, temppn, tempkmin, ib, T->nb,
@@ -415,7 +415,7 @@ void chameleon_pzunmqr_param( int genD, const libhqr_tree_t *qrtree,
                     n = tiles[i];
                     p = qrtree->currpiv(qrtree, k, n);
 
-                    tempnn = n == C->nt-1 ? C->n-n*C->nb : C->nb;
+                    tempnn = C->get_blkdim( C, n, DIM_n, C->n );
 
                     if( qrtree->gettype(qrtree, k, n) == LIBHQR_KILLED_BY_TS ) {
                         /* TS kernel */
@@ -429,7 +429,7 @@ void chameleon_pzunmqr_param( int genD, const libhqr_tree_t *qrtree,
                     }
 
                     for (m = 0; m < C->mt; m++) {
-                        tempmm = m == C->mt-1 ? C->m-m*C->mb : C->mb;
+                        tempmm = C->get_blkdim( C, m, DIM_m, C->m );
 
                         node = C->get_rankof( C, m, n );
                         RUNTIME_data_migrate( sequence, C(m, p), node );

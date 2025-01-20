@@ -44,8 +44,8 @@ void chameleon_pzlascal(cham_uplo_t uplo, CHAMELEON_Complex64_t alpha, CHAM_desc
     switch(uplo) {
     case ChamLower:
         for (n = 0; n < minmnt; n++) {
-            tempnm = n == A->mt-1 ? A->m-n*A->mb : A->mb;
-            tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
+            tempnm = A->get_blkdim( A, n, DIM_m, A->m );
+            tempnn = A->get_blkdim( A, n, DIM_n, A->n );
 
             INSERT_TASK_zlascal(
                 &options,
@@ -53,7 +53,7 @@ void chameleon_pzlascal(cham_uplo_t uplo, CHAMELEON_Complex64_t alpha, CHAM_desc
                 alpha, A(n, n));
 
             for (m = n+1; m < A->mt; m++) {
-                tempmm = m == A->mt-1 ? A->m - m * A->mb : A->mb;
+                tempmm = A->get_blkdim( A, m, DIM_m, A->m );
 
                 INSERT_TASK_zlascal(
                     &options,
@@ -65,8 +65,8 @@ void chameleon_pzlascal(cham_uplo_t uplo, CHAMELEON_Complex64_t alpha, CHAM_desc
 
     case ChamUpper:
         for (m = 0; m < minmnt; m++) {
-            tempmm = m == A->mt-1 ? A->m - m * A->mb : A->mb;
-            tempmn = m == A->nt-1 ? A->n-m*A->nb : A->nb;
+            tempmm = A->get_blkdim( A, m, DIM_m, A->m );
+            tempmn = A->get_blkdim( A, m, DIM_n, A->n );
 
             INSERT_TASK_zlascal(
                 &options,
@@ -74,7 +74,7 @@ void chameleon_pzlascal(cham_uplo_t uplo, CHAMELEON_Complex64_t alpha, CHAM_desc
                 alpha, A(m, m));
 
             for (n = m+1; n < A->nt; n++) {
-                tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
+                tempnn = A->get_blkdim( A, n, DIM_n, A->n );
 
                 INSERT_TASK_zlascal(
                     &options,
@@ -87,10 +87,10 @@ void chameleon_pzlascal(cham_uplo_t uplo, CHAMELEON_Complex64_t alpha, CHAM_desc
     case ChamUpperLower:
     default:
         for (m = 0; m < A->mt; m++) {
-            tempmm = m == A->mt-1 ? A->m - m * A->mb : A->mb;
+            tempmm = A->get_blkdim( A, m, DIM_m, A->m );
 
             for (n = 0; n < A->nt; n++) {
-                tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
+                tempnn = A->get_blkdim( A, n, DIM_n, A->n );
 
                 INSERT_TASK_zlascal(
                     &options,

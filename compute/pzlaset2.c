@@ -51,15 +51,15 @@ void chameleon_pzlaset2( cham_uplo_t            uplo,
 
     if (uplo == ChamLower) {
         for (j = 0; j < minmn; j++){
-            tempjm = j == A->mt-1 ? A->m-j*A->mb : A->mb;
-            tempjn = j == A->nt-1 ? A->n-j*A->nb : A->nb;
+            tempjm = A->get_blkdim( A, j, DIM_m, A->m );
+            tempjn = A->get_blkdim( A, j, DIM_n, A->n );
             INSERT_TASK_zlaset2(
                 &options,
                 ChamLower, tempjm, tempjn, alpha,
                 A(j, j));
 
             for (i = j+1; i < A->mt; i++){
-                tempim = i == A->mt-1 ? A->m-i*A->mb : A->mb;
+                tempim = A->get_blkdim( A, i, DIM_m, A->m );
                 INSERT_TASK_zlaset2(
                     &options,
                     ChamUpperLower, tempim, tempjn, alpha,
@@ -69,9 +69,9 @@ void chameleon_pzlaset2( cham_uplo_t            uplo,
     }
     else if (uplo == ChamUpper) {
         for (j = 1; j < A->nt; j++){
-            tempjn = j == A->nt-1 ? A->n-j*A->nb : A->nb;
+            tempjn = A->get_blkdim( A, j, DIM_n, A->n );
             for (i = 0; i < chameleon_min(j, A->mt); i++){
-                tempim = i == A->mt-1 ? A->m-i*A->mb : A->mb;
+                tempim = A->get_blkdim( A, i, DIM_m, A->m );
                 INSERT_TASK_zlaset2(
                     &options,
                     ChamUpperLower, tempim, tempjn, alpha,
@@ -79,8 +79,8 @@ void chameleon_pzlaset2( cham_uplo_t            uplo,
             }
         }
         for (j = 0; j < minmn; j++){
-            tempjm = j == A->mt-1 ? A->m-j*A->mb : A->mb;
-            tempjn = j == A->nt-1 ? A->n-j*A->nb : A->nb;
+            tempjm = A->get_blkdim( A, j, DIM_m, A->m );
+            tempjn = A->get_blkdim( A, j, DIM_n, A->n );
             INSERT_TASK_zlaset2(
                 &options,
                 ChamUpper, tempjm, tempjn, alpha,
@@ -89,9 +89,9 @@ void chameleon_pzlaset2( cham_uplo_t            uplo,
     }
     else {
         for (i = 0; i < A->mt; i++){
-            tempim = i == A->mt-1 ? A->m-i*A->mb : A->mb;
+            tempim = A->get_blkdim( A, i, DIM_m, A->m );
             for (j = 0; j < A->nt; j++){
-                tempjn = j == A->nt-1 ? A->n-j*A->nb : A->nb;
+                tempjn = A->get_blkdim( A, j, DIM_n, A->n );
                 INSERT_TASK_zlaset2(
                     &options,
                     ChamUpperLower, tempim, tempjn, alpha,

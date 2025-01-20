@@ -50,7 +50,7 @@ int chameleon_pzgeqrf_param_step( int genD, cham_uplo_t uplo, int k, int ib,
     int tempkmin, tempkn, tempnn, tempmm, temppm;
     int node, nbtiles;
 
-    tempkn = k == A->nt-1 ? A->n-k*A->nb : A->nb;
+    tempkn = A->get_blkdim( A, k, DIM_n, A->n );
 
     /* The number of geqrt to apply */
     nbgeqrt = qrtree->getnbgeqrf( qrtree, k );
@@ -64,7 +64,7 @@ int chameleon_pzgeqrf_param_step( int genD, cham_uplo_t uplo, int k, int ib,
             continue;
         }
 
-        temppm = p == A->mt-1 ? A->m-p*A->mb : A->mb;
+        temppm = A->get_blkdim( A, p, DIM_m, A->m );
         tempkmin = chameleon_min(temppm, tempkn);
 
         INSERT_TASK_zgeqrt(
@@ -73,8 +73,8 @@ int chameleon_pzgeqrf_param_step( int genD, cham_uplo_t uplo, int k, int ib,
             A(p, k), T(p, k) );
 
         if ( genD ) {
-            int tempDpm = p == D->mt-1 ? D->m-p*D->mb : D->mb;
-            int tempDkn = k == D->nt-1 ? D->n-k*D->nb : D->nb;
+            int tempDpm = D->get_blkdim( D, p, DIM_m, D->m );
+            int tempDkn = D->get_blkdim( D, k, DIM_n, D->n );
 
             INSERT_TASK_zlacpy(
                 options,
@@ -90,7 +90,7 @@ int chameleon_pzgeqrf_param_step( int genD, cham_uplo_t uplo, int k, int ib,
         }
 
         for (n = k+1; n < A->nt; n++) {
-            tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
+            tempnn = A->get_blkdim( A, n, DIM_n, A->n );
             INSERT_TASK_zunmqr(
                 options,
                 ChamLeft, ChamConjTrans,
@@ -113,7 +113,7 @@ int chameleon_pzgeqrf_param_step( int genD, cham_uplo_t uplo, int k, int ib,
         m = tiles[i];
         p = qrtree->currpiv( qrtree, k, m );
 
-        tempmm = m == A->mt-1 ? A->m-m*A->mb : A->mb;
+        tempmm = A->get_blkdim( A, m, DIM_m, A->m );
 
         if ( qrtree->gettype( qrtree, k, m ) == LIBHQR_KILLED_BY_TS ) {
             /* TS kernel */
@@ -143,7 +143,7 @@ int chameleon_pzgeqrf_param_step( int genD, cham_uplo_t uplo, int k, int ib,
             T(m, k));
 
         for (n = k+1; n < A->nt; n++) {
-            tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
+            tempnn = A->get_blkdim( A, n, DIM_n, A->n );
 
             node = A->get_rankof( A, m, n );
             RUNTIME_data_migrate( sequence, A(p, n), node );

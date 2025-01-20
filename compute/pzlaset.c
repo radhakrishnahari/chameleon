@@ -52,15 +52,15 @@ void chameleon_pzlaset( cham_uplo_t uplo,
 
     if (uplo == ChamLower) {
        for (j = 0; j < minmn; j++){
-           tempjm = j == A->mt-1 ? A->m-j*A->mb : A->mb;
-           tempjn = j == A->nt-1 ? A->n-j*A->nb : A->nb;
+           tempjm = A->get_blkdim( A, j, DIM_m, A->m );
+           tempjn = A->get_blkdim( A, j, DIM_n, A->n );
            INSERT_TASK_zlaset(
                &options,
                ChamLower, tempjm, tempjn, alpha, beta,
                A(j, j));
 
            for (i = j+1; i < A->mt; i++){
-               tempim = i == A->mt-1 ? A->m-i*A->mb : A->mb;
+               tempim = A->get_blkdim( A, i, DIM_m, A->m );
                INSERT_TASK_zlaset(
                    &options,
                    ChamUpperLower, tempim, tempjn, alpha, alpha,
@@ -70,11 +70,11 @@ void chameleon_pzlaset( cham_uplo_t uplo,
     }
     else if (uplo == ChamUpper) {
         for (i = 0; i < A->mt; i++) {
-            tempim = i == A->mt-1 ? A->m-i*A->mb : A->mb;
+            tempim = A->get_blkdim( A, i, DIM_m, A->m );
 
             if ( i < A->nt ) {
                 j = i;
-                tempjn = j == A->nt-1 ? A->n-j*A->nb : A->nb;
+                tempjn = A->get_blkdim( A, j, DIM_n, A->n );
 
                 INSERT_TASK_zlaset(
                     &options,
@@ -82,7 +82,7 @@ void chameleon_pzlaset( cham_uplo_t uplo,
                     alpha, beta, A(i, j));
             }
             for (j = i+1; j < A->nt; j++) {
-                tempjn = j == A->nt-1 ? A->n-j*A->nb : A->nb;
+                tempjn = A->get_blkdim( A, j, DIM_n, A->n );
 
                 INSERT_TASK_zlaset(
                     &options,
@@ -93,9 +93,9 @@ void chameleon_pzlaset( cham_uplo_t uplo,
     }
     else {
        for (i = 0; i < A->mt; i++){
-           tempim = i == A->mt-1 ? A->m-i*A->mb : A->mb;
+           tempim = A->get_blkdim( A, i, DIM_m, A->m );
            for (j = 0; j < A->nt; j++){
-               tempjn = j == A->nt-1 ? A->n-j*A->nb : A->nb;
+               tempjn = A->get_blkdim( A, j, DIM_n, A->n );
                INSERT_TASK_zlaset(
                    &options,
                    ChamUpperLower, tempim, tempjn,

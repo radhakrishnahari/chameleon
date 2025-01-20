@@ -92,7 +92,7 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
      *
      */
     for(n = myq; n < A->nt; n += chameleon_desc_datadist_get_iparam(A, 1)) {
-        tempnn = n == A->nt-1 ? A->n - n * A->nb : A->nb;
+        tempnn = A->get_blkdim( A, n, DIM_n, A->n );
 
         /* Zeroes the local intermediate vector */
         INSERT_TASK_dlaset(
@@ -103,7 +103,7 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
 
         /* Computes the sums of the local tiles into the local vector */
         for(m = myp; m < A->mt; m += chameleon_desc_datadist_get_iparam(A, 0)) {
-            tempmm = m == A->mt-1 ? A->m - m * A->mb : A->mb;
+            tempmm = A->get_blkdim( A, m, DIM_m, A->m );
             INSERT_TASK_dzasum(
                 &options,
                 ChamColumnwise, ChamUpperLower, tempmm, tempnn,
@@ -131,7 +131,7 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
             NRMX( myp, myq ) );
 
         for( n = myq; n < A->nt; n += chameleon_desc_datadist_get_iparam(A, 1) ) {
-	    tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
+	    tempnn = A->get_blkdim( A, n, DIM_n, A->n );
 	    INSERT_TASK_dgessq(
                 &options, ChamEltwise, 1, tempnn,
                 DROW( myp, n   ),
@@ -207,7 +207,7 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
         if ( cnt == 0 )
         {
             for (n = myq; n < A->nt; n += chameleon_desc_datadist_get_iparam(A, 1)) {
-                tempnn = n == A->nt-1 ? A->n - n * A->nb : A->nb;
+                tempnn = A->get_blkdim( A, n, DIM_n, A->n );
 
                 if ( myp == 0 ) {
 #if defined(PRECISION_z) || defined(PRECISION_c)
@@ -245,7 +245,7 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
          */
         scl = 1. / e0;
         for (n = myq; n < A->nt; n += chameleon_desc_datadist_get_iparam(A, 1)) {
-            tempnn = n == A->nt-1 ? A->n - n * A->nb : A->nb;
+            tempnn = A->get_blkdim( A, n, DIM_n, A->n );
 
             INSERT_TASK_zlascal(
                 &options,
@@ -257,10 +257,10 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
          *  Compute Sx = S * x
          */
         for(m = myp; m < A->mt;  m+=chameleon_desc_datadist_get_iparam(A, 0)) {
-            tempmm = m == A->mt-1 ? A->m - m * A->mb : A->mb;
+            tempmm = A->get_blkdim( A, m, DIM_m, A->m );
 
             for (n = myq; n < A->nt; n += chameleon_desc_datadist_get_iparam(A, 1) ) {
-                tempnn = n == A->nt-1 ? A->n - n * A->nb : A->nb;
+                tempnn = A->get_blkdim( A, n, DIM_n, A->n );
                 beta   = n == myq ? 0. : 1.;
 
                 INSERT_TASK_zgemv(
@@ -292,10 +292,10 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
          *  Compute x = S' * S * x = S' * Sx
          */
         for ( n = myq; n < A->nt; n += chameleon_desc_datadist_get_iparam(A, 1) ) {
-            tempnn = n == A->nt-1 ? A->n - n * A->nb : A->nb;
+            tempnn = A->get_blkdim( A, n, DIM_n, A->n );
 
             for( m = myp; m < A->mt;  m += chameleon_desc_datadist_get_iparam(A, 0) ) {
-                tempmm = m == A->mt-1 ? A->m - m * A->mb : A->mb;
+                tempmm = A->get_blkdim( A, m, DIM_m, A->m );
                 beta   = m == myp ? 0. : 1.;
 
                 INSERT_TASK_zgemv(
@@ -336,7 +336,7 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
                 NRMX( myp, myq ) );
 
             for( n = myq; n < A->nt; n += chameleon_desc_datadist_get_iparam(A, 1) ) {
-                tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
+                tempnn = A->get_blkdim( A, n, DIM_n, A->n );
 
                 INSERT_TASK_zgessq(
                     &options, ChamEltwise, 1, tempnn,
@@ -378,7 +378,7 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
                 NRMSX( myp, myq ) );
 
             for( m = myp; m < A->mt; m += chameleon_desc_datadist_get_iparam(A, 0) ) {
-                tempmm = m == A->mt-1 ? A->m-m*A->mb : A->mb;
+                tempmm = A->get_blkdim( A, m, DIM_m, A->m );
                 INSERT_TASK_zgessq(
                     &options, ChamEltwise, tempmm, 1,
                     SX(    m,   myq ),

@@ -53,12 +53,12 @@ chameleon_pzplrnk_generic( CHAM_context_t         *chamctxt,
         memset( initB, 0, C->nt * sizeof(int) );
 
         for (m = 0; m < C->mt; m++) {
-            tempmm = m == C->mt-1 ? C->m-m*C->mb : C->mb;
+            tempmm = C->get_blkdim( C, m, DIM_m, C->m );
 
             initA = 0;
 
             for (n = 0; n < C->nt; n++) {
-                tempnn = n == C->nt-1 ? C->n-n*C->nb : C->nb;
+                tempnn = C->get_blkdim( C, n, DIM_n, C->n );
 
                 if ( C->get_rankof( C(m, n) ) == myrank ) {
                     if ( !initA ) {
@@ -129,7 +129,7 @@ chameleon_pzplrnk_2dbc( CHAM_context_t         *chamctxt,
         zbeta  = k == 0 ? 0. : 1.;
 
         for (n = myq; n < C->nt; n += q) {
-            tempnn = n == C->nt-1 ? C->n-n*C->nb : C->nb;
+            tempnn = C->get_blkdim( C, n, DIM_n, C->n );
 
             INSERT_TASK_zplrnt(
                 options,
@@ -138,7 +138,7 @@ chameleon_pzplrnk_2dbc( CHAM_context_t         *chamctxt,
         }
 
         for (m = myp; m < C->mt; m += p) {
-            tempmm = m == C->mt-1 ? C->m-m*C->mb : C->mb;
+            tempmm = C->get_blkdim( C, m, DIM_m, C->m );
 
             INSERT_TASK_zplrnt(
                 options,
@@ -146,7 +146,7 @@ chameleon_pzplrnk_2dbc( CHAM_context_t         *chamctxt,
                 WA->m, m * WA->mb, k * WA->nb, seedA );
 
             for (n = myq; n < C->nt; n+=q) {
-                tempnn = n == C->nt-1 ? C->n-n*C->nb : C->nb;
+                tempnn = C->get_blkdim( C, n, DIM_n, C->n );
 
                 INSERT_TASK_zgemm(
                     options,

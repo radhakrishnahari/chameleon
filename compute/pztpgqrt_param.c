@@ -98,13 +98,13 @@ void chameleon_pztpgqrt_param( int genD, cham_uplo_t uplo, int K,
         /* Combine Bottom and Top matrices by merging last pivot with ATop(k,*) */
         {
             CHAM_desc_t *T = TT;
-            int temppm = p == Q->mt-1 ? Q->m - p * Q->mb : Q->mb;
-            int tempkn = k == A->nt-1 ? A->n - k * A->nb : A->nb;
+            int temppm = Q->get_blkdim( Q, p, DIM_m, Q->m );
+            int tempkn = A->get_blkdim( A, k, DIM_n, A->n );
             int tempnn;
             int L = temppm;
 
             for (n = k; n < Q->nt; n++) {
-                tempnn = n == Q->nt-1 ? Q->n-n*Q->nb : Q->nb;
+                tempnn = Q->get_blkdim( Q, n, DIM_n, Q->n );
 
                 node = Q->get_rankof( Q, p, n );
                 RUNTIME_data_migrate( sequence, QTop(k, n), node );

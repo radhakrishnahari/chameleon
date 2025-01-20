@@ -80,16 +80,16 @@ void chameleon_pztpgqrt( int KT, int L,
     for (k = KT-1; k >= 0; k--) {
         RUNTIME_iteration_push(chamctxt, k);
 
-        tempkn = k == Q1->nt-1 ? Q1->n-k*Q1->nb : Q1->nb;
+        tempkn = Q1->get_blkdim( Q1, k, DIM_n, Q1->n );
 
         /* Equivalent to the tsmqr step on Q1,Q2 */
         maxmtk = chameleon_min( Q2->mt, maxmt+k ) - 1;
         for (m = maxmtk; m > -1; m--) {
-            tempmm = m == Q2->mt-1 ? Q2->m-m*Q2->mb : Q2->mb;
+            tempmm = Q2->get_blkdim( Q2, m, DIM_m, Q2->m );
             templm = ((L > 0) && (m == maxmtk)) ? tempmm : 0;
 
             for (n = k; n < Q2->nt; n++) {
-                tempnn = n == Q2->nt-1 ? Q2->n-n*Q2->nb : Q2->nb;
+                tempnn = Q2->get_blkdim( Q2, n, DIM_n, Q2->n );
                 /* TT kernel */
                 INSERT_TASK_ztpmqrt(
                     &options,

@@ -89,9 +89,9 @@ void chameleon_pzgeqrfrh( int genD, int BS, CHAM_desc_t *A, CHAM_desc_t *T, CHAM
     for (k = 0; k < K; k++) {
         RUNTIME_iteration_push(chamctxt, k);
 
-        tempkn = k == A->nt-1 ? A->n-k*A->nb : A->nb;
+        tempkn = A->get_blkdim( A, k, DIM_n, A->n );
         for (M = k; M < A->mt; M += BS) {
-            tempMm = M == A->mt-1 ? A->m-M*A->mb : A->mb;
+            tempMm = A->get_blkdim( A, M, DIM_m, A->m );
             tempkmin = chameleon_min(tempMm, tempkn);
 
             INSERT_TASK_zgeqrt(
@@ -100,8 +100,8 @@ void chameleon_pzgeqrfrh( int genD, int BS, CHAM_desc_t *A, CHAM_desc_t *T, CHAM
                 A(M, k),
                 T(M, k));
             if ( genD ) {
-                int tempDMm = M == D->mt-1 ? D->m-M*D->mb : D->mb;
-                int tempDkn = k == D->nt-1 ? D->n-k*D->nb : D->nb;
+                int tempDMm = D->get_blkdim( D, M, DIM_m, D->m );
+                int tempDkn = D->get_blkdim( D, k, DIM_n, D->n );
 
                 INSERT_TASK_zlacpy(
                     &options,
@@ -117,7 +117,7 @@ void chameleon_pzgeqrfrh( int genD, int BS, CHAM_desc_t *A, CHAM_desc_t *T, CHAM
 #endif
             }
             for (n = k+1; n < A->nt; n++) {
-                tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
+                tempnn = A->get_blkdim( A, n, DIM_n, A->n );
                 INSERT_TASK_zunmqr(
                     &options,
                     ChamLeft, ChamConjTrans,
@@ -130,7 +130,7 @@ void chameleon_pzgeqrfrh( int genD, int BS, CHAM_desc_t *A, CHAM_desc_t *T, CHAM
             RUNTIME_data_flush( sequence, T(M, k) );
 
             for (m = M+1; m < chameleon_min(M+BS, A->mt); m++) {
-                tempmm = m == A->mt-1 ? A->m-m*A->mb : A->mb;
+                tempmm = A->get_blkdim( A, m, DIM_m, A->m );
 
                 RUNTIME_data_migrate( sequence, A(M, k),
                                       A->get_rankof( A, m, k ) );
@@ -144,7 +144,7 @@ void chameleon_pzgeqrfrh( int genD, int BS, CHAM_desc_t *A, CHAM_desc_t *T, CHAM
                     T(m, k));
 
                 for (n = k+1; n < A->nt; n++) {
-                    tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
+                    tempnn = A->get_blkdim( A, n, DIM_n, A->n );
 
                     RUNTIME_data_migrate( sequence, A(M, n),
                                           A->get_rankof( A, m, n ) );
@@ -164,7 +164,7 @@ void chameleon_pzgeqrfrh( int genD, int BS, CHAM_desc_t *A, CHAM_desc_t *T, CHAM
         }
         for (RD = BS; RD < A->mt-k; RD *= 2) {
             for (M = k; M+RD < A->mt; M += 2*RD) {
-                tempMRDm = M+RD == A->mt-1 ? A->m-(M+RD)*A->mb : A->mb;
+                tempMRDm = A->get_blkdim( A, M+RD, DIM_m, A->m );
 
                 node = A->get_rankof( A, M+RD, k );
                 RUNTIME_data_migrate( sequence, A(M, k),    node );
@@ -179,7 +179,7 @@ void chameleon_pzgeqrfrh( int genD, int BS, CHAM_desc_t *A, CHAM_desc_t *T, CHAM
                     T2(M+RD, k));
 
                 for (n = k+1; n < A->nt; n++) {
-                    tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
+                    tempnn = A->get_blkdim( A, n, DIM_n, A->n );
 
                     node = A->get_rankof( A, M+RD, n );
                     RUNTIME_data_migrate( sequence, A(M, n),    node );

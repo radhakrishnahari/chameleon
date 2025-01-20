@@ -46,8 +46,8 @@ int chameleon_pzgelqf_step( int genD, int k, int ib,
     int m, n;
     int tempkm, tempkn, tempmm, tempnn;
 
-    tempkm = k == A->mt-1 ? A->m-k*A->mb : A->mb;
-    tempkn = k == A->nt-1 ? A->n-k*A->nb : A->nb;
+    tempkm = A->get_blkdim( A, k, DIM_m, A->m );
+    tempkn = A->get_blkdim( A, k, DIM_n, A->n );
     INSERT_TASK_zgelqt(
         options,
         tempkm, tempkn, ib, T->nb,
@@ -55,8 +55,8 @@ int chameleon_pzgelqf_step( int genD, int k, int ib,
         T(k, k));
 
     if ( genD ) {
-        int tempDkm = k == D->mt-1 ? D->m-k*D->mb : D->mb;
-        int tempDkn = k == D->nt-1 ? D->n-k*D->nb : D->nb;
+        int tempDkm = D->get_blkdim( D, k, DIM_m, D->m );
+        int tempDkn = D->get_blkdim( D, k, DIM_n, D->n );
         INSERT_TASK_zlacpy(
             options,
             ChamUpper, tempDkm, tempDkn,
@@ -72,7 +72,7 @@ int chameleon_pzgelqf_step( int genD, int k, int ib,
     }
 
     for (m = k+1; m < A->mt; m++) {
-        tempmm = m == A->mt-1 ? A->m-m*A->mb : A->mb;
+        tempmm = A->get_blkdim( A, m, DIM_m, A->m );
         INSERT_TASK_zunmlq(
             options,
             ChamRight, ChamConjTrans,
@@ -85,7 +85,7 @@ int chameleon_pzgelqf_step( int genD, int k, int ib,
     RUNTIME_data_flush( sequence, T(k, k) );
 
     for (n = k+1; n < A->nt; n++) {
-        tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
+        tempnn = A->get_blkdim( A, n, DIM_n, A->n );
 
         RUNTIME_data_migrate( sequence, A(k, k),
                               A->get_rankof( A, k, n ) );
@@ -98,7 +98,7 @@ int chameleon_pzgelqf_step( int genD, int k, int ib,
             A(k, n),
             T(k, n));
         for (m = k+1; m < A->mt; m++) {
-            tempmm = m == A->mt-1 ? A->m-m*A->mb : A->mb;
+            tempmm = A->get_blkdim( A, m, DIM_m, A->m );
 
             RUNTIME_data_migrate( sequence, A(m, k),
                                   A->get_rankof( A, m, n ) );
