@@ -28,6 +28,7 @@
  */
 #include "testings.h"
 #include "coreblas/lapacke.h"
+#include <chameleon/getenv.h>
 
 testing_options_t options;
 
@@ -35,6 +36,9 @@ testing_options_t options;
  * @brief Defines all the parameters of the testings
  *
  * @warning: keep in sync with vendor_ztesting. Must be kept in the main file for precision generation.
+ * The `#if !defined(CHAMELEON_TESTINGS_VENDOR)` are not necessary in this
+ * file, but they allow to easily identify which parameters are not available
+ * in the vendor version.
  */
 parameter_t parameters[] = {
     /* Name, helper, shname, flags, has_arg, psize, valtype, value, vallist, read, sprint */
@@ -47,7 +51,7 @@ parameter_t parameters[] = {
     { "nowarmup", "Disable the warmup run to load libraries", 'w', PARAM_OPTION, 0, 0, TestValInt, {0}, NULL, pread_int, sprint_int },
 #if !defined(CHAMELEON_TESTINGS_VENDOR)
     { "check",    "Enable checking of the result",            'c', PARAM_OPTION, 0, 0, TestValInt, {0}, NULL, pread_int, sprint_int },
-    { "trace",    "Enable the trace generation",              'T', PARAM_OPTION, 0, 0, TestValInt, {0}, NULL, pread_int, sprint_int },
+    { "trace",    "Enable the trace generation",              'T', PARAM_OPTION, 0, 0, TestValInt, {0}, NULL, pread_int, sprint_int }, /* "--trace" and "-T" are hardcoded in a warning message below */
     { "mtxfmt",   "Change the way the matrix is stored (0: global, 1: tiles, 2: OOC)", 'F', PARAM_OPTION | PARAM_INPUT | PARAM_OUTPUT, 1, 6, TestValInt, {0}, NULL, pread_int, sprint_int },
     { "profile",  "Display the kernel profiling",             -33, PARAM_OPTION, 0, 0, TestValInt, {0}, NULL, pread_int, sprint_int },
     { "forcegpu", "Force kernels on GPU",                     -34, PARAM_OPTION, 0, 0, TestValInt, {0}, NULL, pread_int, sprint_int },
@@ -234,6 +238,17 @@ int main (int argc, char **argv) {
             RUNTIME_zlocality_allrestrict( restriction );
         }
 #endif
+    }
+
+    if ( !options.trace )
+    {
+        CHAM_context_t *chamctxt = CHAMELEON_GetContext();
+        if ( (chamctxt->scheduler == RUNTIME_SCHED_STARPU) && (chameleon_getenv_get_value_int("STARPU_FXT_TRACE", 0) == 1) )
+        {
+            /* People often forget the --trace option */
+            fprintf( stderr, "STARPU_FXT_TRACE is set, but you did not enabled Chameleon trace option with -T or --trace\n" );
+        }
+        /* Add here similar test for other runtime systems if necessary */
     }
 
     /* Warmup */
