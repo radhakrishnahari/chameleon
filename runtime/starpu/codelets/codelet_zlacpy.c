@@ -227,6 +227,8 @@ void INSERT_TASK_zlacpyx( const RUNTIME_option_t *options,
     char        *cl_name = "zlacpyx";
     CHAM_tile_t *tileA   = A->get_blktile( A, Am, An );
     CHAM_tile_t *tileB   = B->get_blktile( B, Bm, Bn );
+    bubble_args_t           *b_args  = NULL;
+    RUNTIME_request_t       *request  = options->request;
 
     /* Handle cache */
     CHAMELEON_BEGIN_ACCESS_DECLARATION;
@@ -332,6 +334,9 @@ void INSERT_TASK_zlacpy( const RUNTIME_option_t *options,
     char        *cl_name = "zlacpy";
     CHAM_tile_t *tileA   = A->get_blktile( A, Am, An );
     CHAM_tile_t *tileB   = B->get_blktile( B, Bm, Bn );
+    int          is_bubble;
+    bubble_args_t           *b_args  = NULL;
+    RUNTIME_request_t       *request  = options->request;
 
     /* Handle cache */
     CHAMELEON_BEGIN_ACCESS_DECLARATION;
