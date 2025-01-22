@@ -119,6 +119,9 @@ int CHAMELEON_lapacke_zpotrs( int matrix_layout, char uplo, int N, int NRHS,
 int CHAMELEON_lapacke_ztrtri( int matrix_layout, char uplo, char diag, int N,
                               CHAMELEON_Complex64_t *A, int lda );
 
+int CHAMELEON_lapacke_zgetrf( int matrix_layout, int M, int N,
+                              CHAMELEON_Complex64_t *A, int lda, int *IPIV );
+
 END_C_DECLS
 
 #endif /* _chameleon_zlapack_h_ */

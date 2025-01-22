@@ -57,6 +57,7 @@ install( FILES ${CHAMELEON_LAPACK_HDRS}
 set(LAPACK_SRCS_GENERATED "")
 set(ZSRC
   src/lapack_zgemm.c
+  src/lapack_zgetrf.c
   src/lapack_zhemm.c
   src/lapack_zher2k.c
   src/lapack_zherk.c
