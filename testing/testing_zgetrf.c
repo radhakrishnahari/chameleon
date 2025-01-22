@@ -158,8 +158,90 @@ testing_zgetrf_desc( run_arg_list_t *args, int check )
 }
 #endif
 
+int
+testing_zgetrf_std( run_arg_list_t *args, int check )
+{
+    testdata_t test_data = { .args = args };
+    int        hres      = 0;
+
+    /* Read arguments */
+    int         api   = parameters_getvalue_int( "api" );
+    int         nb    = run_arg_get_nb( args );
+    int         N     = run_arg_get_int( args, "N", 1000 );
+    int         M     = run_arg_get_int( args, "M", N );
+    int         LDA   = run_arg_get_int( args, "LDA", M );
+    int         seedA = run_arg_get_int( args, "seedA", testing_ialea() );
+    int         minMN = chameleon_min( M, N );
+
+    /* Descriptors */
+    CHAMELEON_Complex64_t *A;
+    int *IPIV;
+
+    CHAMELEON_Set( CHAMELEON_TILE_SIZE, nb );
+
+    /* Creates the matrices */
+    A = malloc( LDA*N*sizeof(CHAMELEON_Complex64_t) );
+    IPIV = malloc( minMN * sizeof(int) );
+
+    /* Fills the matrix with random values */
+    CHAMELEON_zplrnt( M, N, A, LDA, seedA );
+
+    /* Calculates the solution */
+#if defined(CHAMELEON_TESTINGS_VENDOR)
+    testing_start( &test_data );
+    hres = LAPACKE_zgetrf( LAPACK_COL_MAJOR, M, N, A, LDA, IPIV );
+    test_data.hres = hres;
+    testing_stop( &test_data, flops_zgetrf( M, N ) );
+#else
+    testing_start( &test_data );
+    switch ( api ) {
+    case 1:
+        hres = CHAMELEON_zgetrf( M, N, A, LDA, IPIV );
+        break;
+#if !defined(CHAMELEON_SIMULATION)
+    case 2:
+        CHAMELEON_lapacke_zgetrf( CblasColMajor, M, N, A, LDA, IPIV );
+        break;
+#endif
+    default:
+        if ( CHAMELEON_Comm_rank() == 0 ) {
+            fprintf( stderr,
+                     "SKIPPED: This function can only be used with the option --api 1 or --api 2.\n" );
+        }
+        return -1;
+    }
+    test_data.hres = hres;
+    testing_stop( &test_data, flops_zgetrf( M, N ) );
+
+#if !defined(CHAMELEON_SIMULATION)
+    /* Checks the factorisation and residue */
+    if ( check ) {
+        CHAMELEON_Complex64_t *A0 = malloc( LDA*N*sizeof(CHAMELEON_Complex64_t) );
+        CHAMELEON_zplrnt( M, N, A0, LDA, seedA );
+
+        /* Compute the permutation of A0: P * A0 */
+        LAPACKE_zlaswp( LAPACK_COL_MAJOR, N, A0, M, 1, minMN, IPIV, 1 );
+
+        hres += check_zxxtrf_std( args, ChamGeneral, ChamUpperLower, M, N, A0, A, LDA );
+
+        free( A0 );
+    }
+#endif
+#endif
+
+    free ( IPIV );
+    free( A );
+
+    (void)check;
+    return hres;
+}
+
 testing_t   test_zgetrf;
+#if defined(CHAMELEON_TESTINGS_VENDOR)
+const char *zgetrf_params[] = { "m", "n", "lda", "seedA", NULL };
+#else
 const char *zgetrf_params[] = { "mtxfmt", "nb", "ib", "m", "n", "lda", "seedA", "diag", NULL };
+#endif
 const char *zgetrf_output[] = { NULL };
 const char *zgetrf_outchk[] = { "||A||", "||A-fact(A)||", "RETURN", NULL };
 
@@ -180,7 +262,7 @@ testing_zgetrf_init( void )
 #else
     test_zgetrf.fptr_desc = testing_zgetrf_desc;
 #endif
-    test_zgetrf.fptr_std  = NULL; /* testing_zgetrf_std; */
+    test_zgetrf.fptr_std  = testing_zgetrf_std;
     test_zgetrf.next   = NULL;
 
     testing_register( &test_zgetrf );
