@@ -180,7 +180,7 @@ testing_zgetrf_std( run_arg_list_t *args, int check )
     CHAMELEON_Set( CHAMELEON_TILE_SIZE, nb );
 
     /* Creates the matrices */
-    A = malloc( LDA*N*sizeof(CHAMELEON_Complex64_t) );
+    A = malloc( (size_t) LDA*N*sizeof(CHAMELEON_Complex64_t) );
     IPIV = malloc( minMN * sizeof(int) );
 
     /* Fills the matrix with random values */
@@ -216,7 +216,7 @@ testing_zgetrf_std( run_arg_list_t *args, int check )
 #if !defined(CHAMELEON_SIMULATION)
     /* Checks the factorisation and residue */
     if ( check ) {
-        CHAMELEON_Complex64_t *A0 = malloc( LDA*N*sizeof(CHAMELEON_Complex64_t) );
+        CHAMELEON_Complex64_t *A0 = malloc( (size_t) LDA*N*sizeof(CHAMELEON_Complex64_t) );
         CHAMELEON_zplrnt( M, N, A0, LDA, seedA );
 
         /* Compute the permutation of A0: P * A0 */

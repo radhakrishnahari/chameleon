@@ -102,7 +102,7 @@ testing_ztrtri_std( run_arg_list_t *args, int check )
     CHAMELEON_Set( CHAMELEON_TILE_SIZE, nb );
 
     /* Creates the matrices */
-    A = malloc( LDA*N*sizeof(CHAMELEON_Complex64_t) );
+    A = malloc( (size_t) LDA*N*sizeof(CHAMELEON_Complex64_t) );
 
     /* Initialises the matrices with the same values */
     CHAMELEON_zplghe( (double)N, uplo, N, A, LDA, seedA );
@@ -130,7 +130,7 @@ testing_ztrtri_std( run_arg_list_t *args, int check )
 
     /* Checks the inverse */
     if ( check ) {
-        CHAMELEON_Complex64_t *A0 = malloc( LDA*N*sizeof(CHAMELEON_Complex64_t) );
+        CHAMELEON_Complex64_t *A0 = malloc( (size_t) LDA*N*sizeof(CHAMELEON_Complex64_t) );
         CHAMELEON_zplghe( (double)N, uplo, N, A0, LDA, seedA );
 
         hres += check_ztrtri_std( args, ChamTriangular, uplo, diag, N, A0, A, LDA );

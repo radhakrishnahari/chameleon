@@ -162,8 +162,8 @@ testing_zunmlq_std( run_arg_list_t *args, int check )
     An = ( side == ChamLeft ) ? M : N;
 
     /* Creates the matrices */
-    A = malloc( LDA*An*sizeof(CHAMELEON_Complex64_t) );
-    C = malloc( LDC*N *sizeof(CHAMELEON_Complex64_t) );
+    A = malloc( (size_t) LDA*An*sizeof(CHAMELEON_Complex64_t) );
+    C = malloc( (size_t) LDC*N *sizeof(CHAMELEON_Complex64_t) );
     CHAMELEON_Alloc_Workspace_zgels( K, An, &descT, P, Q );
 
     /* Fills the matrix with random values */
@@ -181,8 +181,8 @@ testing_zunmlq_std( run_arg_list_t *args, int check )
 
     /* Checks the factorisation and orthogonality */
     if ( check ) {
-        CHAMELEON_Complex64_t *C0   = malloc( LDC*N*sizeof(CHAMELEON_Complex64_t) );
-        CHAMELEON_Complex64_t *Qlap = malloc( An*An*sizeof(CHAMELEON_Complex64_t) );
+        CHAMELEON_Complex64_t *C0   = malloc( (size_t) LDC*N*sizeof(CHAMELEON_Complex64_t) );
+        CHAMELEON_Complex64_t *Qlap = malloc( (size_t) An*An*sizeof(CHAMELEON_Complex64_t) );
 
         CHAMELEON_zplrnt( M, N, C0, LDC, seedC );
         CHAMELEON_zunglq( An, An, K, A, LDA, descT, Qlap, An );

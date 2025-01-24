@@ -83,7 +83,7 @@ int check_zmatrices_std( run_arg_list_t *args, cham_uplo_t uplo, int M, int N, C
     double Anorm, Rnorm, result;
     cham_fixdbl_t eps = testing_getaccuracy();
 
-    double *work = (double *)malloc( LDA*N*sizeof(double) );
+    double *work = (double *)malloc( (size_t) LDA*N*sizeof(double) );
 
     /* Computes the norms */
     if ( uplo == ChamUpperLower ) {
@@ -526,9 +526,9 @@ int check_zsum ( run_arg_list_t *args, cham_uplo_t uplo, cham_trans_t trans, CHA
     cham_uplo_t uploA            = uplo;
 
     if ( rank == 0 ) {
-        A     = malloc( LDA*An*sizeof(CHAMELEON_Complex64_t) );
-        Bref  = malloc( LDB*N* sizeof(CHAMELEON_Complex64_t) );
-        Bcham = malloc( LDB*N* sizeof(CHAMELEON_Complex64_t) );
+        A     = malloc( (size_t) LDA*An*sizeof(CHAMELEON_Complex64_t) );
+        Bref  = malloc( (size_t) LDB*N* sizeof(CHAMELEON_Complex64_t) );
+        Bcham = malloc( (size_t) LDB*N* sizeof(CHAMELEON_Complex64_t) );
     }
 
     if ( uplo != ChamUpperLower && trans != ChamNoTrans ) {
@@ -704,8 +704,8 @@ int check_zrankk_std( run_arg_list_t *args, int M, int N, int K, CHAMELEON_Compl
     Anorm = LAPACKE_zlange( LAPACK_COL_MAJOR, 'F', M, N, A, LDA );
 
     /* check rank of A using SVD, value K+1 of Sigma must be small enough */
-    CHAMELEON_Complex64_t *U  = malloc( M * M * sizeof(CHAMELEON_Complex64_t) );
-    CHAMELEON_Complex64_t *VT = malloc( N * N * sizeof(CHAMELEON_Complex64_t) );
+    CHAMELEON_Complex64_t *U  = malloc( (size_t) M * M * sizeof(CHAMELEON_Complex64_t) );
+    CHAMELEON_Complex64_t *VT = malloc( (size_t) N * N * sizeof(CHAMELEON_Complex64_t) );
     double *S    = malloc( minMN * sizeof(double) );
     double *work = malloc( minMN * sizeof(double) );
 
@@ -769,7 +769,7 @@ int check_zrankk( run_arg_list_t *args, int K, CHAM_desc_t *descA )
     /* Converts the matrices to LAPACK layout in order to check values on the main process */
     CHAMELEON_Complex64_t *A = NULL;
     if ( rank == 0 ) {
-        A = malloc( M*N*sizeof(CHAMELEON_Complex64_t) );
+        A = malloc( (size_t) M*N*sizeof(CHAMELEON_Complex64_t) );
     }
     CHAMELEON_Desc2Lap( ChamUpperLower, descA, A, LDA );
 

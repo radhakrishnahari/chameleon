@@ -112,7 +112,7 @@ testing_zcesca_std( run_arg_list_t *args, int check )
     CHAMELEON_Set( CHAMELEON_TILE_SIZE, nb );
 
     /* Create the matrices */
-    A = malloc( LDA*N*sizeof(CHAMELEON_Complex64_t) );
+    A = malloc( (size_t) LDA*N*sizeof(CHAMELEON_Complex64_t) );
 
     /* Fill the matrix with random values */
     CHAMELEON_zplrnt( M, N, A, LDA, seedA );

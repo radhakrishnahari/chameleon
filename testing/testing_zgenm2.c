@@ -168,7 +168,7 @@ testing_zgenm2_std( run_arg_list_t *args, int check )
 #endif
 
     /* Creates the matrix */
-    A = malloc( LDA*N*sizeof(CHAMELEON_Complex64_t) );
+    A = malloc( (size_t) LDA*N*sizeof(CHAMELEON_Complex64_t) );
 
     /* Fills the matrix with random values */
     hres = CHAMELEON_zlatms( M, N, ChamDistUniform, seedA, ChamNonsymPosv, D, 0, cond, 0., A, LDA );

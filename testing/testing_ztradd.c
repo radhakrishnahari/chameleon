@@ -193,8 +193,8 @@ testing_ztradd_std( run_arg_list_t *args, int check )
     }
 
     /* Creates the matrices */
-    A = malloc( LDA*An*sizeof(CHAMELEON_Complex64_t) );
-    B = malloc( LDB*N* sizeof(CHAMELEON_Complex64_t) );
+    A = malloc( (size_t) LDA*An*sizeof(CHAMELEON_Complex64_t) );
+    B = malloc( (size_t) LDB*N* sizeof(CHAMELEON_Complex64_t) );
 
     /* Fills the matrix with random values */
     switch ( uplo ) {
@@ -218,7 +218,7 @@ testing_ztradd_std( run_arg_list_t *args, int check )
 
     /* Checks the solution */
     if ( check ) {
-        CHAMELEON_Complex64_t *B0 = malloc( LDB*N* sizeof(CHAMELEON_Complex64_t) );
+        CHAMELEON_Complex64_t *B0 = malloc( (size_t) LDB*N* sizeof(CHAMELEON_Complex64_t) );
 
         if ( uplo == ChamUpperLower ) {
             CHAMELEON_zplrnt( M, N, B0, LDB, seedB );
