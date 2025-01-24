@@ -222,6 +222,7 @@ int chameleon_desc_init_internal( CHAM_desc_t *desc, const char *name, void *mat
 
     /* If one of the function get_* is NULL, we switch back to the default */
     desc->get_blktile = chameleon_desc_gettile;
+    desc->get_blkdim  = chameleon_getblkdim;
 
     /* Data addresses */
     if ( get_blkaddr ) {

@@ -88,8 +88,92 @@ int chameleon_getblkldd_cm  ( const CHAM_desc_t *A, int m );
 int chameleon_getblkldd_ccrb( const CHAM_desc_t *A, int m );
 /**
  * @}
+ * @name Tile dimensions computation in algorithms
+ * @{
  */
 
+/**
+ *
+ * @ingroup Descriptor
+ *
+ * @brief Return tile dimension along the m dimension with regular tile sizes
+ *
+ * @param[in] A
+ *          The chameleon descriptor for which to compute the size
+ *
+ * @param[in] m
+ *          The row index of the tile
+ *
+ * @param[in] lm
+ *          The matrix row dimension against which to compute the size
+ *
+ * @retval The dimension of the tile along the row/first dimension with a limit on lm
+ *
+ */
+static inline int
+chameleon_getblkdim_m( const CHAM_desc_t *A, int m, int lm )
+{
+    return (((m + 1) * A->mb) > lm ) ? lm - m * A->mb : A->mb;
+}
+
+/**
+ *
+ * @ingroup Descriptor
+ *
+ * @brief Return tile dimension along the n dimension with regular tile sizes
+ *
+ * @param[in] A
+ *          The chameleon descriptor for which to compute the size
+ *
+ * @param[in] n
+ *          The column index of the tile
+ *
+ * @param[in] ln
+ *          The matrix column dimension against which to compute the size
+ *
+ * @retval The dimension of the tile along the column/second dimension with a limit on ln
+ *
+ */
+static inline int
+chameleon_getblkdim_n( const CHAM_desc_t *A, int n, int ln )
+{
+    return (((n + 1) * A->nb) > ln ) ? ln - n * A->nb : A->nb;
+}
+
+/**
+ *
+ * @ingroup Descriptor
+ *
+ * @brief Return tile dimension along the dim dimension with regular tile sizes
+ *
+ * @param[in] A
+ *          The chameleon descriptor for which to compute the size
+ *
+ * @param[in] m
+ *          The index of the tile in the given dimension
+ *
+ * @param[in] dim
+ *          The dimension on which to compute the size
+ *
+ * @param[in] lm
+ *          The matrix dimension along the chosen dim.
+ *
+ * @retval The dimension of the tile along the dim dimension with a limit on lm
+ *
+ */
+static inline int
+chameleon_getblkdim( const CHAM_desc_t *A, int m, cham_dim_t dim, int lm )
+{
+    if ( dim == 0 ) {
+        return chameleon_getblkdim_m( A, m, lm );
+    }
+    else {
+        return chameleon_getblkdim_n( A, m, lm );
+    }
+}
+/**
+ * @}
+ */
 #ifdef __cplusplus
 }
 #endif

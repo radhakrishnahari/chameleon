@@ -44,9 +44,9 @@ chameleon_pzcesca_internal( int center,
      *  1) compute sums and sum-square (scl,ssq) in each tile
      */
     for(n = 0; n < NT; n++) {
-        int tempnn = ( n == (NT-1) ) ? N - n * A->nb : A->nb;
+        int tempnn = A->get_blkdim( A, n, DIM_n, N );
         for(m = 0; m < MT; m++) {
-            int tempmm = ( m == (MT-1) ) ? M - m * A->mb : A->mb;
+            int tempmm = A->get_blkdim( A, m, DIM_m, M );
             if ( (center == 1) && ( (axis == ChamColumnwise) || (axis == ChamEltwise) ) ) {
                 INSERT_TASK_zgesum(
                     options, ChamColumnwise, tempmm, tempnn,
@@ -71,7 +71,7 @@ chameleon_pzcesca_internal( int center,
     }
 
     for(n = 0; n < NT; n++) {
-        int tempnn = ( n == (NT-1) ) ? N - n * A->nb : A->nb;
+        int tempnn = A->get_blkdim( A, n, DIM_n, N );
 
         if ( (center == 1) && ( (axis == ChamColumnwise) || (axis == ChamEltwise) ) ) {
             /**
@@ -126,7 +126,7 @@ chameleon_pzcesca_internal( int center,
     }
 
     for(m = 0; m < MT; m++) {
-        int tempmm = ( m == (MT-1) ) ? M - m * A->mb : A->mb;
+        int tempmm = A->get_blkdim( A, m, DIM_m, M );
 
         if ( (center == 1) && ( (axis == ChamRowwise) || (axis == ChamEltwise) ) ) {
             /**
@@ -193,10 +193,10 @@ chameleon_pzcesca_internal( int center,
 
     /* Finally compute Centered-Scaled matrix coefficients inplace */
     for(n = 0; n < NT; n++) {
-        int tempnn = ( n == (NT-1) ) ? N - n * A->nb : A->nb;
+        int tempnn = A->get_blkdim( A, n, DIM_n, N );
 
         for(m = 0; m < MT; m++) {
-            int tempmm = ( m == (MT-1) ) ? M - m * A->mb : A->mb;
+            int tempmm = A->get_blkdim( A, m, DIM_m, M );
 
             INSERT_TASK_zcesca(
                 options,
@@ -234,9 +234,9 @@ void chameleon_pzcesca( struct chameleon_pzcesca_s *ws, int center, int scale, c
 
     /* Initialize Wgcol */
     for(m = 0; m < Wgcol->mt; m++) {
-        tempmm = m == Wgcol->mt-1 ? Wgcol->m-m*Wgcol->mb : Wgcol->mb;
+        tempmm = Wgcol->get_blkdim( Wgcol, m, DIM_m, Wgcol->m );
         for(n = 0; n < Wgcol->nt; n++) {
-            tempnn = n == Wgcol->nt-1 ? Wgcol->n-n*Wgcol->nb : Wgcol->nb;
+            tempnn = Wgcol->get_blkdim( Wgcol, n, DIM_n, Wgcol->n );
             INSERT_TASK_dlaset(
                 &options,
                 ChamUpperLower, tempmm, tempnn,
@@ -246,9 +246,9 @@ void chameleon_pzcesca( struct chameleon_pzcesca_s *ws, int center, int scale, c
     }
     /* Initialize Wgrow */
     for(m = 0; m < Wgrow->mt; m++) {
-        tempmm = m == Wgrow->mt-1 ? Wgrow->m-m*Wgrow->mb : Wgrow->mb;
+        tempmm = Wgrow->get_blkdim( Wgrow, m, DIM_m, Wgrow->m );
         for(n = 0; n < Wgrow->nt; n++) {
-            tempnn = n == Wgrow->nt-1 ? Wgrow->n-n*Wgrow->nb : Wgrow->nb;
+            tempnn = Wgrow->get_blkdim( Wgrow, n, DIM_n, Wgrow->n );
             INSERT_TASK_dlaset(
                 &options,
                 ChamUpperLower, tempmm, tempnn,
@@ -258,9 +258,9 @@ void chameleon_pzcesca( struct chameleon_pzcesca_s *ws, int center, int scale, c
     }
     /* Initialize Wgelt */
     for(m = 0; m < Wgelt->mt; m++) {
-        tempmm = m == Wgelt->mt-1 ? Wgelt->m-m*Wgelt->mb : Wgelt->mb;
+        tempmm = Wgelt->get_blkdim( Wgelt, m, DIM_m, Wgelt->m );
         for(n = 0; n < Wgelt->nt; n++) {
-            tempnn = n == Wgelt->nt-1 ? Wgelt->n-n*Wgelt->nb : Wgelt->nb;
+            tempnn = Wgelt->get_blkdim( Wgelt, n, DIM_n, Wgelt->n );
             INSERT_TASK_dlaset(
                 &options,
                 ChamUpperLower, tempmm, tempnn,
@@ -270,9 +270,9 @@ void chameleon_pzcesca( struct chameleon_pzcesca_s *ws, int center, int scale, c
     }
     /* Initialize Wdcol */
     for(m = 0; m < Wdcol->mt; m++) {
-        tempmm = m == Wdcol->mt-1 ? Wdcol->m-m*Wdcol->mb : Wdcol->mb;
+        tempmm = Wdcol->get_blkdim( Wdcol, m, DIM_m, Wdcol->m );
         for(n = 0; n < Wdcol->nt; n++) {
-            tempnn = n == Wdcol->nt-1 ? Wdcol->n-n*Wdcol->nb : Wdcol->nb;
+            tempnn = Wdcol->get_blkdim( Wdcol, n, DIM_n, Wdcol->n );
             INSERT_TASK_dlaset(
                 &options,
                 ChamUpperLower, tempmm, tempnn,
@@ -282,9 +282,9 @@ void chameleon_pzcesca( struct chameleon_pzcesca_s *ws, int center, int scale, c
     }
     /* Initialize Wdrow */
     for(m = 0; m < Wdrow->mt; m++) {
-        tempmm = m == Wdrow->mt-1 ? Wdrow->m-m*Wdrow->mb : Wdrow->mb;
+        tempmm = Wdrow->get_blkdim( Wdrow, m, DIM_m, Wdrow->m );
         for(n = 0; n < Wdrow->nt; n++) {
-            tempnn = n == Wdrow->nt-1 ? Wdrow->n-n*Wdrow->nb : Wdrow->nb;
+            tempnn = Wdrow->get_blkdim( Wdrow, n, DIM_n, Wdrow->n );
             INSERT_TASK_dlaset(
                 &options,
                 ChamUpperLower, tempmm, tempnn,

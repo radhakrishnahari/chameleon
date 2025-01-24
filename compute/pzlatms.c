@@ -34,8 +34,8 @@ zlaset_diag_cpu( void *op_args,
     const double          *D = (const double *)op_args;
     CHAMELEON_Complex64_t *A = CHAM_tile_get_ptr( tileA );
 
-    int tempmm = m == descA->mt-1 ? descA->m-m*descA->mb : descA->mb;
-    int tempnn = n == descA->nt-1 ? descA->n-n*descA->nb : descA->nb;
+    int tempmm = descA->get_blkdim( descA, m, DIM_m, descA->m );
+    int tempnn = descA->get_blkdim( descA, n, DIM_n, descA->n );
     int minmn  = chameleon_min( tempmm, tempnn );
     int lda    = tileA->ld;
     int i;

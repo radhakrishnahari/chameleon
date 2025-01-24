@@ -84,9 +84,9 @@ chameleon_pzgemm_Astat( CHAM_context_t *chamctxt, cham_trans_t transA, cham_tran
     }
 
     for (n = 0; n < C->nt; n++) {
-        tempnn = n == C->nt-1 ? C->n-n*C->nb : C->nb;
+        tempnn = C->get_blkdim( C, n, DIM_n, C->n );
         for (m = 0; m < C->mt; m++) {
-            tempmm = m == C->mt-1 ? C->m-m*C->mb : C->mb;
+            tempmm = C->get_blkdim( C, m, DIM_m, C->m );
 
             /* Scale C */
             options->forcesub = 0;
@@ -100,7 +100,7 @@ chameleon_pzgemm_Astat( CHAM_context_t *chamctxt, cham_trans_t transA, cham_tran
             if (transA == ChamNoTrans) {
                 if (transB == ChamNoTrans) {
                     for (k = 0; k < A->nt; k++) {
-                        tempkn = k == A->nt-1 ? A->n-k*A->nb : A->nb;
+                        tempkn = A->get_blkdim( A, k, DIM_n, A->n );
 
                         INSERT_TASK_zgemm_Astat(
                             options,
@@ -116,7 +116,7 @@ chameleon_pzgemm_Astat( CHAM_context_t *chamctxt, cham_trans_t transA, cham_tran
                  */
                 else {
                     for (k = 0; k < A->nt; k++) {
-                        tempkn = k == A->nt-1 ? A->n-k*A->nb : A->nb;
+                        tempkn = A->get_blkdim( A, k, DIM_n, A->n );
 
                         INSERT_TASK_zgemm_Astat(
                             options,
@@ -134,7 +134,7 @@ chameleon_pzgemm_Astat( CHAM_context_t *chamctxt, cham_trans_t transA, cham_tran
             else {
                 if (transB == ChamNoTrans) {
                     for (k = 0; k < A->mt; k++) {
-                        tempkm = k == A->mt-1 ? A->m-k*A->mb : A->mb;
+                        tempkm = A->get_blkdim( A, k, DIM_m, A->m );
 
                         INSERT_TASK_zgemm_Astat(
                             options,
@@ -150,7 +150,7 @@ chameleon_pzgemm_Astat( CHAM_context_t *chamctxt, cham_trans_t transA, cham_tran
                  */
                 else {
                     for (k = 0; k < A->mt; k++) {
-                        tempkm = k == A->mt-1 ? A->m-k*A->mb : A->mb;
+                        tempkm = A->get_blkdim( A, k, DIM_m, A->m );
 
                         INSERT_TASK_zgemm_Astat(
                             options,
@@ -186,17 +186,25 @@ chameleon_pzgemm_summa( CHAM_context_t *chamctxt, cham_trans_t transA, cham_tran
     RUNTIME_sequence_t *sequence = options->sequence;
     int m, n, k, p, q, KT, K, lp, lq;
     int tempmm, tempnn, tempkk;
-    int lookahead, myp, myq;
+    int lookahead, myp, myq, DIM_k;
 
     CHAMELEON_Complex64_t zbeta;
     CHAMELEON_Complex64_t zone = (CHAMELEON_Complex64_t)1.0;
 
     lookahead = chamctxt->lookahead;
 
-    KT  = transA == ChamNoTrans ? A->nt : A->mt;
-    K   = transA == ChamNoTrans ? A->n  : A->m;
-    myp = C->myrank / chameleon_desc_datadist_get_iparam(C, 1);
-    myq = C->myrank % chameleon_desc_datadist_get_iparam(C, 1);
+    if ( transA == ChamNoTrans ) {
+        KT    = A->nt;
+        K     = A->n;
+        DIM_k = DIM_n;
+    }
+    else {
+        KT    = A->mt;
+        K     = A->m;
+        DIM_k = DIM_m;
+    }
+    myp   = C->myrank / chameleon_desc_datadist_get_iparam(C, 1);
+    myq   = C->myrank % chameleon_desc_datadist_get_iparam(C, 1);
 
     /*
      *  A: ChamNoTrans / B: ChamNoTrans
@@ -204,12 +212,13 @@ chameleon_pzgemm_summa( CHAM_context_t *chamctxt, cham_trans_t transA, cham_tran
     for (k = 0; k < KT; k++ ) {
         lp = (k % lookahead) * chameleon_desc_datadist_get_iparam(C, 0);
         lq = (k % lookahead) * chameleon_desc_datadist_get_iparam(C, 1);
-        tempkk = k == KT - 1 ? K - k * A->nb : A->nb;
+
+        tempkk = A->get_blkdim( A, k, DIM_k, K );
         zbeta = k == 0 ? beta : zone;
 
         /* Transfert ownership of the k column of A */
         for (m = 0; m < C->mt; m ++ ) {
-            tempmm = m == C->mt-1 ? C->m - m * C->mb : C->mb;
+            tempmm = C->get_blkdim( C, m, DIM_m, C->m );
 
             if ( transA == ChamNoTrans ) {
                 INSERT_TASK_zlacpy(
@@ -249,7 +258,7 @@ chameleon_pzgemm_summa( CHAM_context_t *chamctxt, cham_trans_t transA, cham_tran
 
         /* Transfert ownership of the k row of B */
         for (n = 0; n < C->nt; n++) {
-            tempnn = n == C->nt-1 ? C->n-n*C->nb : C->nb;
+            tempnn = C->get_blkdim( C, n, DIM_n, C->n );
 
             if ( transB == ChamNoTrans ) {
                 INSERT_TASK_zlacpy(
@@ -288,10 +297,10 @@ chameleon_pzgemm_summa( CHAM_context_t *chamctxt, cham_trans_t transA, cham_tran
         }
 
         for (m = myp; m < C->mt; m+=chameleon_desc_datadist_get_iparam(C, 0)) {
-            tempmm = m == C->mt-1 ? C->m-m*C->mb : C->mb;
+            tempmm = C->get_blkdim( C, m, DIM_m, C->m );
 
             for (n = myq; n < C->nt; n+=chameleon_desc_datadist_get_iparam(C, 1)) {
-                tempnn = n == C->nt-1 ? C->n-n*C->nb : C->nb;
+                tempnn = C->get_blkdim( C, n, DIM_n, C->n );
 
                 INSERT_TASK_zgemm(
                     options,
@@ -327,16 +336,16 @@ chameleon_pzgemm_generic( CHAM_context_t *chamctxt, cham_trans_t transA, cham_tr
     CHAMELEON_Complex64_t zone = (CHAMELEON_Complex64_t)1.0;
 
     for (m = 0; m < C->mt; m++) {
-        tempmm = m == C->mt-1 ? C->m-m*C->mb : C->mb;
+        tempmm = C->get_blkdim( C, m, DIM_m, C->m );
         for (n = 0; n < C->nt; n++) {
-            tempnn = n == C->nt-1 ? C->n-n*C->nb : C->nb;
+            tempnn = C->get_blkdim( C, n, DIM_n, C->n );
             /*
              *  A: ChamNoTrans / B: ChamNoTrans
              */
             if (transA == ChamNoTrans) {
                 if (transB == ChamNoTrans) {
                     for (k = 0; k < A->nt; k++) {
-                        tempkn = k == A->nt-1 ? A->n-k*A->nb : A->nb;
+                        tempkn = A->get_blkdim( A, k, DIM_n, A->n );
                         zbeta = k == 0 ? beta : zone;
                         INSERT_TASK_zgemm(
                             options,
@@ -352,7 +361,7 @@ chameleon_pzgemm_generic( CHAM_context_t *chamctxt, cham_trans_t transA, cham_tr
                  */
                 else {
                     for (k = 0; k < A->nt; k++) {
-                        tempkn = k == A->nt-1 ? A->n-k*A->nb : A->nb;
+                        tempkn = A->get_blkdim( A, k, DIM_n, A->n );
                         zbeta = k == 0 ? beta : zone;
                         INSERT_TASK_zgemm(
                             options,
@@ -370,7 +379,7 @@ chameleon_pzgemm_generic( CHAM_context_t *chamctxt, cham_trans_t transA, cham_tr
             else {
                 if (transB == ChamNoTrans) {
                     for (k = 0; k < A->mt; k++) {
-                        tempkm = k == A->mt-1 ? A->m-k*A->mb : A->mb;
+                        tempkm = A->get_blkdim( A, k, DIM_m, A->m );
                         zbeta = k == 0 ? beta : zone;
                         INSERT_TASK_zgemm(
                             options,
@@ -386,7 +395,7 @@ chameleon_pzgemm_generic( CHAM_context_t *chamctxt, cham_trans_t transA, cham_tr
                  */
                 else {
                     for (k = 0; k < A->mt; k++) {
-                        tempkm = k == A->mt-1 ? A->m-k*A->mb : A->mb;
+                        tempkm = A->get_blkdim( A, k, DIM_m, A->m );
                         zbeta = k == 0 ? beta : zone;
                         INSERT_TASK_zgemm(
                             options,

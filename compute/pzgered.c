@@ -80,10 +80,10 @@ chameleon_pzgered_frb( cham_uplo_t       uplo,
         int nmin = ( uplo == ChamUpper ) ? m                      : 0;
         int nmax = ( uplo == ChamLower ) ? chameleon_min(m+1, NT) : NT;
 
-        int tempmm = ( m == (MT-1) ) ? M - m * A->mb : A->mb;
+        int tempmm = A->get_blkdim( A, m, DIM_m, M );
 
         for(n = nmin; n < nmax; n++) {
-            int tempnn = ( n == (NT-1) ) ? N - n * A->nb : A->nb;
+            int tempnn = A->get_blkdim( A, n, DIM_n, N );
 
             if ( (n == m) && (uplo != ChamUpperLower) ) {
                 INSERT_TASK_ztrssq(
@@ -235,13 +235,13 @@ void chameleon_pzgered( cham_uplo_t         uplo,
 
     for(m = 0; m < A->mt; m++)
     {
-        int tempmm = ( m == (A->mt-1) ) ? A->m - m * A->mb : A->mb;
+        int tempmm = A->get_blkdim( A, m, DIM_m, A->m );
         int nmin   = ( uplo == ChamUpper ) ? m                         : 0;
         int nmax   = ( uplo == ChamLower ) ? chameleon_min(m+1, A->nt) : A->nt;
 
         for(n = nmin; n < nmax; n++)
         {
-            int tempnn = ( n == (A->nt-1) ) ? A->n - n * A->nb : A->nb;
+            int tempnn = A->get_blkdim( A, n, DIM_n, A->n );
 
             /*
              * u_{high} = 1e-16 (later should be application accuracy)

@@ -49,7 +49,7 @@ void chameleon_pzlauum(cham_uplo_t uplo, CHAM_desc_t *A,
      */
     if (uplo == ChamLower) {
         for (k = 0; k < A->mt; k++) {
-            tempkm = k == A->mt-1 ? A->m-k*A->mb : A->mb;
+            tempkm = A->get_blkdim( A, k, DIM_m, A->m );
             for(n = 0; n < k; n++) {
                 INSERT_TASK_zherk(
                     &options,
@@ -89,7 +89,7 @@ void chameleon_pzlauum(cham_uplo_t uplo, CHAM_desc_t *A,
      */
     else {
         for (k = 0; k < A->mt; k++) {
-            tempkn = k == A->nt-1 ? A->n-k*A->nb : A->nb;
+            tempkn = A->get_blkdim( A, k, DIM_n, A->n );
 
             for (m = 0; m < k; m++) {
                 INSERT_TASK_zherk(

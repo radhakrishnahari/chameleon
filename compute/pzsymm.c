@@ -110,9 +110,9 @@ chameleon_pzsymm_Astat( CHAM_context_t *chamctxt, cham_side_t side, cham_uplo_t 
     }
 
     for(n = 0; n < C->nt; n++) {
-        tempnn = n == C->nt-1 ? C->n-n*C->nb : C->nb;
+        tempnn = C->get_blkdim( C, n, DIM_n, C->n );
         for(m = 0; m < C->mt; m++) {
-            tempmm = m == C->mt-1 ? C->m-m*C->mb : C->mb;
+            tempmm = C->get_blkdim( C, m, DIM_m, C->m );
 
             /* Scale C */
             options->forcesub = 0;
@@ -126,7 +126,7 @@ chameleon_pzsymm_Astat( CHAM_context_t *chamctxt, cham_side_t side, cham_uplo_t 
             if (side == ChamLeft) {
                 if (uplo == ChamLower) {
                     for (k = 0; k < C->mt; k++) {
-                        tempkm = k == C->mt-1 ? C->m-k*C->mb : C->mb;
+                        tempkm = C->get_blkdim( C, k, DIM_m, C->m );
 
                         if (k < m) {
                             INSERT_TASK_zgemm_Astat(
@@ -162,7 +162,7 @@ chameleon_pzsymm_Astat( CHAM_context_t *chamctxt, cham_side_t side, cham_uplo_t 
                  */
                 else {
                     for (k = 0; k < C->mt; k++) {
-                        tempkm = k == C->mt-1 ? C->m-k*C->mb : C->mb;
+                        tempkm = C->get_blkdim( C, k, DIM_m, C->m );
 
                         if (k < m) {
                             INSERT_TASK_zgemm_Astat(
@@ -200,7 +200,7 @@ chameleon_pzsymm_Astat( CHAM_context_t *chamctxt, cham_side_t side, cham_uplo_t 
             else {
                 if (uplo == ChamLower) {
                     for (k = 0; k < C->nt; k++) {
-                        tempkn = k == C->nt-1 ? C->n-k*C->nb : C->nb;
+                        tempkn = C->get_blkdim( C, k, DIM_n, C->n );
 
                         if (k < n) {
                             INSERT_TASK_zgemm_Astat(
@@ -236,7 +236,7 @@ chameleon_pzsymm_Astat( CHAM_context_t *chamctxt, cham_side_t side, cham_uplo_t 
                  */
                 else {
                     for (k = 0; k < C->nt; k++) {
-                        tempkn = k == C->nt-1 ? C->n-k*C->nb : C->nb;
+                        tempkn = C->get_blkdim( C, k, DIM_n, C->n );
 
                         if (k < n) {
                             INSERT_TASK_zgemm_Astat(
@@ -293,7 +293,7 @@ chameleon_pzsymm_summa_left( CHAM_context_t *chamctxt, cham_uplo_t uplo,
 {
     RUNTIME_sequence_t *sequence = options->sequence;
     cham_trans_t transA;
-    int m, n, k, p, q, KT, K, lp, lq;
+    int m, n, k, p, q, KT, lp, lq;
     int tempmm, tempnn, tempkk;
     int lookahead, myp, myq;
 
@@ -302,14 +302,13 @@ chameleon_pzsymm_summa_left( CHAM_context_t *chamctxt, cham_uplo_t uplo,
 
     lookahead = chamctxt->lookahead;
     KT  = A->nt;
-    K   = A->n;
     myp = C->myrank / chameleon_desc_datadist_get_iparam(C, 1);
     myq = C->myrank % chameleon_desc_datadist_get_iparam(C, 1);
 
     for (k = 0; k < KT; k++ ) {
         lp = (k % lookahead) * chameleon_desc_datadist_get_iparam(C, 0);
         lq = (k % lookahead) * chameleon_desc_datadist_get_iparam(C, 1);
-        tempkk = k == KT - 1 ? K - k * A->nb : A->nb;
+        tempkk = A->get_blkdim( A, k, DIM_n, A->n );
         zbeta = k == 0 ? beta : zone;
 
         /* Transfert ownership of the k column of A or B */
@@ -317,7 +316,7 @@ chameleon_pzsymm_summa_left( CHAM_context_t *chamctxt, cham_uplo_t uplo,
             int Am, Ak;
             int tempam, tempak;
 
-            tempmm = m == C->mt-1 ? C->m - m * C->mb : C->mb;
+            tempmm = C->get_blkdim( C, m, DIM_m, C->m );
 
             if ( (( uplo == ChamUpper ) && ( m > k )) ||
                  (( uplo == ChamLower ) && ( m < k )) )
@@ -356,7 +355,7 @@ chameleon_pzsymm_summa_left( CHAM_context_t *chamctxt, cham_uplo_t uplo,
         /* Transfert ownership of the k row of B, or A */
         for (n = 0; n < C->nt; n++) {
 
-            tempnn = n == C->nt-1 ? C->n-n*C->nb : C->nb;
+            tempnn = C->get_blkdim( C, n, DIM_n, C->n );
 
             INSERT_TASK_zlacpy(
                 options,
@@ -377,11 +376,11 @@ chameleon_pzsymm_summa_left( CHAM_context_t *chamctxt, cham_uplo_t uplo,
 
         /* Perform the update of this iteration */
         for (m = myp; m < C->mt; m+=chameleon_desc_datadist_get_iparam(C, 0)) {
-            tempmm = m == C->mt-1 ? C->m-m*C->mb : C->mb;
+            tempmm = C->get_blkdim( C, m, DIM_m, C->m );
 
             if ( k == m ) {
                 for (n = myq; n < C->nt; n+=chameleon_desc_datadist_get_iparam(C, 1)) {
-                    tempnn = n == C->nt-1 ? C->n-n*C->nb : C->nb;
+                    tempnn = C->get_blkdim( C, n, DIM_n, C->n );
 
                     INSERT_TASK_zsymm(
                         options, ChamLeft, uplo,
@@ -402,7 +401,7 @@ chameleon_pzsymm_summa_left( CHAM_context_t *chamctxt, cham_uplo_t uplo,
                 }
 
                 for (n = myq; n < C->nt; n+=chameleon_desc_datadist_get_iparam(C, 1)) {
-                    tempnn = n == C->nt-1 ? C->n-n*C->nb : C->nb;
+                    tempnn = C->get_blkdim( C, n, DIM_n, C->n );
 
                     INSERT_TASK_zgemm(
                         options, transA, ChamNoTrans,
@@ -429,7 +428,7 @@ chameleon_pzsymm_summa_right( CHAM_context_t *chamctxt, cham_uplo_t uplo,
 {
     RUNTIME_sequence_t *sequence = options->sequence;
     cham_trans_t transA;
-    int m, n, k, p, q, KT, K, lp, lq;
+    int m, n, k, p, q, KT, lp, lq;
     int tempmm, tempnn, tempkk;
     int lookahead, myp, myq;
 
@@ -438,20 +437,19 @@ chameleon_pzsymm_summa_right( CHAM_context_t *chamctxt, cham_uplo_t uplo,
 
     lookahead = chamctxt->lookahead;
     KT  = A->mt;
-    K   = A->m;
     myp = C->myrank / chameleon_desc_datadist_get_iparam(C, 1);
     myq = C->myrank % chameleon_desc_datadist_get_iparam(C, 1);
 
     for (k = 0; k < KT; k++ ) {
         lp = (k % lookahead) * chameleon_desc_datadist_get_iparam(C, 0);
         lq = (k % lookahead) * chameleon_desc_datadist_get_iparam(C, 1);
-        tempkk = k == KT - 1 ? K - k * A->nb : A->nb;
+        tempkk = A->get_blkdim( A, k, DIM_m, A->m );
         zbeta = k == 0 ? beta : zone;
 
         /* Transfert ownership of the k column of A or B */
         for (m = 0; m < C->mt; m++ ) {
 
-            tempmm = m == C->mt-1 ? C->m - m * C->mb : C->mb;
+            tempmm = C->get_blkdim( C, m, DIM_m, C->m );
 
             INSERT_TASK_zlacpy(
                 options,
@@ -475,7 +473,7 @@ chameleon_pzsymm_summa_right( CHAM_context_t *chamctxt, cham_uplo_t uplo,
             int Ak, An;
             int tempak, tempan;
 
-            tempnn = n == C->nt-1 ? C->n-n*C->nb : C->nb;
+            tempnn = C->get_blkdim( C, n, DIM_n, C->n );
 
             if ( (( uplo == ChamUpper ) && ( n < k )) ||
                  (( uplo == ChamLower ) && ( n > k )) )
@@ -512,11 +510,11 @@ chameleon_pzsymm_summa_right( CHAM_context_t *chamctxt, cham_uplo_t uplo,
 
         /* Perform the update of this iteration */
         for (n = myq; n < C->nt; n+=chameleon_desc_datadist_get_iparam(C, 1)) {
-            tempnn = n == C->nt-1 ? C->n-n*C->nb : C->nb;
+            tempnn = C->get_blkdim( C, n, DIM_n, C->n );
 
             if ( k == n ) {
                 for (m = myp; m < C->mt; m+=chameleon_desc_datadist_get_iparam(C, 0)) {
-                    tempmm = m == C->mt-1 ? C->m-m*C->mb : C->mb;
+                    tempmm = C->get_blkdim( C, m, DIM_m, C->m );
 
                     /* A has been stored in WA or WB for the summa ring */
                     INSERT_TASK_zsymm(
@@ -538,7 +536,7 @@ chameleon_pzsymm_summa_right( CHAM_context_t *chamctxt, cham_uplo_t uplo,
                 }
 
                 for (m = myp; m < C->mt; m+=chameleon_desc_datadist_get_iparam(C, 0)) {
-                    tempmm = m == C->mt-1 ? C->m-m*C->mb : C->mb;
+                    tempmm = C->get_blkdim( C, m, DIM_m, C->m );
 
                     INSERT_TASK_zgemm(
                         options, ChamNoTrans, transA,
@@ -595,16 +593,16 @@ chameleon_pzsymm_generic( CHAM_context_t *chamctxt, cham_side_t side, cham_uplo_
     CHAMELEON_Complex64_t zone = (CHAMELEON_Complex64_t)1.0;
 
     for(m = 0; m < C->mt; m++) {
-        tempmm = m == C->mt-1 ? C->m-m*C->mb : C->mb;
+        tempmm = C->get_blkdim( C, m, DIM_m, C->m );
         for(n = 0; n < C->nt; n++) {
-            tempnn = n == C->nt-1 ? C->n-n*C->nb : C->nb;
+            tempnn = C->get_blkdim( C, n, DIM_n, C->n );
             /*
              *  ChamLeft / ChamLower
              */
             if (side == ChamLeft) {
                 if (uplo == ChamLower) {
                     for (k = 0; k < C->mt; k++) {
-                        tempkm = k == C->mt-1 ? C->m-k*C->mb : C->mb;
+                        tempkm = C->get_blkdim( C, k, DIM_m, C->m );
                         zbeta = k == 0 ? beta : zone;
                         if (k < m) {
                             INSERT_TASK_zgemm(
@@ -642,7 +640,7 @@ chameleon_pzsymm_generic( CHAM_context_t *chamctxt, cham_side_t side, cham_uplo_
                  */
                 else {
                     for (k = 0; k < C->mt; k++) {
-                        tempkm = k == C->mt-1 ? C->m-k*C->mb : C->mb;
+                        tempkm = C->get_blkdim( C, k, DIM_m, C->m );
                         zbeta = k == 0 ? beta : zone;
                         if (k < m) {
                             INSERT_TASK_zgemm(
@@ -682,7 +680,7 @@ chameleon_pzsymm_generic( CHAM_context_t *chamctxt, cham_side_t side, cham_uplo_
             else {
                 if (uplo == ChamLower) {
                     for (k = 0; k < C->nt; k++) {
-                        tempkn = k == C->nt-1 ? C->n-k*C->nb : C->nb;
+                        tempkn = C->get_blkdim( C, k, DIM_n, C->n );
                         zbeta = k == 0 ? beta : zone;
                         if (k < n) {
                             INSERT_TASK_zgemm(
@@ -720,7 +718,7 @@ chameleon_pzsymm_generic( CHAM_context_t *chamctxt, cham_side_t side, cham_uplo_
                  */
                 else {
                     for (k = 0; k < C->nt; k++) {
-                        tempkn = k == C->nt-1 ? C->n-k*C->nb : C->nb;
+                        tempkn = C->get_blkdim( C, k, DIM_n, C->n );
                         zbeta = k == 0 ? beta : zone;
                         if (k < n) {
                             INSERT_TASK_zgemm(

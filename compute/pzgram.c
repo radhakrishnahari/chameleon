@@ -42,10 +42,10 @@ chameleon_pzgram_internal( cham_uplo_t uplo,
     for(n = 0; n < NT; n++) {
         int mmin = ( uplo == ChamLower ) ? n                      : 0;
         int mmax = ( uplo == ChamUpper ) ? chameleon_min(n+1, MT) : MT;
-        int tempnn = ( n == (NT-1) ) ? N - n * A->nb : A->nb;
+        int tempnn = A->get_blkdim( A, n, DIM_n, N );
 
         for(m = mmin; m < mmax; m++) {
-            int tempmm = ( m == (MT-1) ) ? M - m * A->mb : A->mb;
+            int tempmm = A->get_blkdim( A, m, DIM_m, M );
 
             if ( n == m ) {
                 INSERT_TASK_dsyssq(
@@ -66,7 +66,7 @@ chameleon_pzgram_internal( cham_uplo_t uplo,
     }
 
     for(n = 0; n < NT; n++) {
-        int tempnn = ( n == (NT-1) ) ? N - n * A->nb : A->nb;
+        int tempnn = A->get_blkdim( A, n, DIM_n, N );
 
         /**
          *  2) reduce columns (scl,ssq) tiles per processus (between lines)
@@ -116,10 +116,10 @@ chameleon_pzgram_internal( cham_uplo_t uplo,
     for(n = 0; n < NT; n++) {
         int mmin = ( uplo == ChamLower ) ? n                      : 0;
         int mmax = ( uplo == ChamUpper ) ? chameleon_min(n+1, MT) : MT;
-        int tempnn = ( n == (NT-1) ) ? N - n * A->nb : A->nb;
+        int tempnn = A->get_blkdim( A, n, DIM_n, N );
 
         for(m = mmin; m < mmax; m++) {
-            int tempmm = ( m == (MT-1) ) ? M - m * A->mb : A->mb;
+            int tempmm = A->get_blkdim( A, m, DIM_m, M );
 
             INSERT_TASK_zgram(
                 options,
@@ -152,9 +152,9 @@ void chameleon_pzgram( struct chameleon_pzgram_s *ws, cham_uplo_t uplo, CHAM_des
 
     /* Initialize Wcol */
     for(m = 0; m < Wcol->mt; m++) {
-        tempmm = m == Wcol->mt-1 ? Wcol->m-m*Wcol->mb : Wcol->mb;
+        tempmm = Wcol->get_blkdim( Wcol, m, DIM_m, Wcol->m );
         for(n = 0; n < Wcol->nt; n++) {
-            tempnn = n == Wcol->nt-1 ? Wcol->n-n*Wcol->nb : Wcol->nb;
+            tempnn = Wcol->get_blkdim( Wcol, n, DIM_n, Wcol->n );
             INSERT_TASK_dlaset(
                 &options,
                 ChamUpperLower, tempmm, tempnn,
@@ -164,9 +164,9 @@ void chameleon_pzgram( struct chameleon_pzgram_s *ws, cham_uplo_t uplo, CHAM_des
     }
     /* Initialize Welt */
     for(m = 0; m < Welt->mt; m++) {
-        tempmm = m == Welt->mt-1 ? Welt->m-m*Welt->mb : Welt->mb;
+        tempmm = Welt->get_blkdim( Welt, m, DIM_m, Welt->m );
         for(n = 0; n < Welt->nt; n++) {
-            tempnn = n == Welt->nt-1 ? Welt->n-n*Welt->nb : Welt->nb;
+            tempnn = Welt->get_blkdim( Welt, n, DIM_n, Welt->n );
             INSERT_TASK_dlaset(
                 &options,
                 ChamUpperLower, tempmm, tempnn,

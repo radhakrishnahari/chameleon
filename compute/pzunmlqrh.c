@@ -95,17 +95,17 @@ void chameleon_pzunmlqrh( int genD, int BS, cham_side_t side, cham_trans_t trans
             for (k = 0; k < KT; k++) {
                 RUNTIME_iteration_push(chamctxt, k);
 
-                tempkm = k == A->mt - 1 ? A->m - k * A->mb : A->mb;
+                tempkm = A->get_blkdim( A, k, DIM_m, A->m );
 
 
                 for (p = k; p < C->mt; p += BS) {
 
-                    temppm   = p == C->mt-1 ? C->m - p * C->mb : C->mb;
+                    temppm = C->get_blkdim( C, p, DIM_m, C->m );
                     tempkmin = chameleon_min( temppm, tempkm );
 
 
                     if ( genD ) {
-                        int tempDpn = p == D->nt-1 ? D->n-p*D->nb : D->nb;
+                        int tempDpn = D->get_blkdim( D, p, DIM_n, D->n );
 
                         INSERT_TASK_zlacpy(
                             &options,
@@ -121,7 +121,7 @@ void chameleon_pzunmlqrh( int genD, int BS, cham_side_t side, cham_trans_t trans
 #endif
                     }
                     for (n = 0; n < C->nt; n++) {
-                        tempnn = n == C->nt-1 ? C->n-n*C->nb : C->nb;
+                        tempnn = C->get_blkdim( C, n, DIM_n, C->n );
                         INSERT_TASK_zunmlq(
                             &options,
                             side, trans,
@@ -134,10 +134,10 @@ void chameleon_pzunmlqrh( int genD, int BS, cham_side_t side, cham_trans_t trans
                     RUNTIME_data_flush( sequence, T(k, p) );
 
                     for (m = p+1; m < chameleon_min(p+BS, C->mt); m++) {
-                        tempmm = m == C->mt-1 ? C->m-m*C->mb : C->mb;
+                        tempmm = C->get_blkdim( C, m, DIM_m, C->m );
 
                         for (n = 0; n < C->nt; n++) {
-                            tempnn = n == C->nt-1 ? C->n-n*C->nb : C->nb;
+                            tempnn = C->get_blkdim( C, n, DIM_n, C->n );
 
                             node = C->get_rankof( C, m, n );
                             RUNTIME_data_migrate( sequence, C(p, n), node );
@@ -160,10 +160,10 @@ void chameleon_pzunmlqrh( int genD, int BS, cham_side_t side, cham_trans_t trans
                     for (p = k; p+RD < C->mt; p += 2*RD) {
                         m = p+RD;
 
-                        tempmm = m == C->mt-1 ? C->m-m*C->mb : C->mb;
+                        tempmm = C->get_blkdim( C, m, DIM_m, C->m );
 
                         for (n = 0; n < C->nt; n++) {
-                            tempnn = n == C->nt-1 ? C->n-n*C->nb : C->nb;
+                            tempnn = C->get_blkdim( C, n, DIM_n, C->n );
 
                             node = C->get_rankof( C, m, n );
                             RUNTIME_data_migrate( sequence, C(p, n), node );
@@ -200,7 +200,7 @@ void chameleon_pzunmlqrh( int genD, int BS, cham_side_t side, cham_trans_t trans
             for (k = KT-1; k >= 0; k--) {
                 RUNTIME_iteration_push(chamctxt, k);
 
-                tempkm = k == A->mt-1 ? A->m-k*A->mb : A->mb;
+                tempkm = A->get_blkdim( A, k, DIM_m, A->m );
 
                 lastRD = 0;
                 for (RD = BS; RD < C->mt-k; RD *= 2)
@@ -209,10 +209,10 @@ void chameleon_pzunmlqrh( int genD, int BS, cham_side_t side, cham_trans_t trans
                     for (p = k; p+RD < C->mt; p += 2*RD) {
                         m = p+RD;
 
-                        tempmm = m == C->mt-1 ? C->m-m*C->mb : C->mb;
+                        tempmm = C->get_blkdim( C, m, DIM_m, C->m );
 
                         for (n = 0; n < C->nt; n++) {
-                            tempnn = n == C->nt-1 ? C->n-n*C->nb : C->nb;
+                            tempnn = C->get_blkdim( C, n, DIM_n, C->n );
 
                             node = C->get_rankof( C, m, n );
                             RUNTIME_data_migrate( sequence, C(p, n), node );
@@ -234,10 +234,10 @@ void chameleon_pzunmlqrh( int genD, int BS, cham_side_t side, cham_trans_t trans
                 for (p = k; p < C->mt; p += BS) {
 
                     for (m = chameleon_min(p+BS, C->mt)-1; m > p; m--) {
-                        tempmm = m == C->mt-1 ? C->m-m*C->mb : C->mb;
+                        tempmm = C->get_blkdim( C, m, DIM_m, C->m );
 
                         for (n = 0; n < C->nt; n++) {
-                            tempnn = n == C->nt-1 ? C->n-n*C->nb : C->nb;
+                            tempnn = C->get_blkdim( C, n, DIM_n, C->n );
 
                             node = C->get_rankof( C, m, n );
                             RUNTIME_data_migrate( sequence, C(p, n), node );
@@ -256,11 +256,11 @@ void chameleon_pzunmlqrh( int genD, int BS, cham_side_t side, cham_trans_t trans
                         RUNTIME_data_flush( sequence, T(k, m) );
                     }
 
-                    temppm   = p == C->mt-1 ? C->m-p*C->mb : C->mb;
+                    temppm = C->get_blkdim( C, p, DIM_m, C->m );
                     tempkmin = chameleon_min( temppm, tempkm );
 
                     if ( genD ) {
-                        int tempDpn = p == D->nt-1 ? D->n-p*D->nb : D->nb;
+                        int tempDpn = D->get_blkdim( D, p, DIM_n, D->n );
 
                         INSERT_TASK_zlacpy(
                             &options,
@@ -277,7 +277,7 @@ void chameleon_pzunmlqrh( int genD, int BS, cham_side_t side, cham_trans_t trans
                     }
 
                     for (n = 0; n < C->nt; n++) {
-                        tempnn = n == C->nt-1 ? C->n-n*C->nb : C->nb;
+                        tempnn = C->get_blkdim( C, n, DIM_n, C->n );
 
                         RUNTIME_data_migrate( sequence, C(p, n),
                                               C->get_rankof( C, p, n ) );
@@ -304,7 +304,7 @@ void chameleon_pzunmlqrh( int genD, int BS, cham_side_t side, cham_trans_t trans
             for (k = KT-1; k >= 0; k--) {
                 RUNTIME_iteration_push(chamctxt, k);
 
-                tempkm = k == A->mt-1 ? A->m-k*A->mb : A->mb;
+                tempkm = A->get_blkdim( A, k, DIM_m, A->m );
                 lastRD = 0;
                 for (RD = BS; RD < C->nt-k; RD *= 2)
                     lastRD = RD;
@@ -312,10 +312,10 @@ void chameleon_pzunmlqrh( int genD, int BS, cham_side_t side, cham_trans_t trans
                     for (p = k; p+RD < C->nt; p += 2*RD) {
                         n = p+RD;
 
-                        tempnn = n == C->nt-1 ? C->n-n*C->nb : C->nb;
+                        tempnn = C->get_blkdim( C, n, DIM_n, C->n );
 
                         for (m = 0; m < C->mt; m++) {
-                            tempmm = m == C->mt-1 ? C->m-m*C->mb : C->mb;
+                            tempmm = C->get_blkdim( C, m, DIM_m, C->m );
 
                             node = C->get_rankof( C, m, n );
                             RUNTIME_data_migrate( sequence, C(m, p), node );
@@ -338,10 +338,10 @@ void chameleon_pzunmlqrh( int genD, int BS, cham_side_t side, cham_trans_t trans
 
                     for (n = chameleon_min(p+BS, C->nt)-1; n > p; n--) {
 
-                        tempnn = n == C->nt-1 ? C->n-n*C->nb : C->nb;
+                        tempnn = C->get_blkdim( C, n, DIM_n, C->n );
 
                         for (m = 0; m < C->mt; m++) {
-                            tempmm = m == C->mt-1 ? C->m-m*C->mb : C->mb;
+                            tempmm = C->get_blkdim( C, m, DIM_m, C->m );
 
                             node = C->get_rankof( C, m, n );
                             RUNTIME_data_migrate( sequence, C(m, p), node );
@@ -360,11 +360,11 @@ void chameleon_pzunmlqrh( int genD, int BS, cham_side_t side, cham_trans_t trans
                         RUNTIME_data_flush( sequence, T(k, n) );
                     }
 
-                    temppn   = p == C->nt-1 ? C->n - p * C->nb : C->nb;
+                    temppn = C->get_blkdim( C, p, DIM_n, C->n );
                     tempkmin = chameleon_min( temppn, tempkm );
 
                     if ( genD ) {
-                        int tempDpn = p == D->nt-1 ? D->n-p*D->nb : D->nb;
+                        int tempDpn = D->get_blkdim( D, p, DIM_n, D->n );
 
                         INSERT_TASK_zlacpy(
                             &options,
@@ -381,7 +381,7 @@ void chameleon_pzunmlqrh( int genD, int BS, cham_side_t side, cham_trans_t trans
                     }
 
                     for (m = 0; m < C->mt; m++) {
-                        tempmm = m == C->mt-1 ? C->m-m*C->mb : C->mb;
+                        tempmm = C->get_blkdim( C, m, DIM_m, C->m );
 
                         RUNTIME_data_migrate( sequence, C(m, p),
                                               C->get_rankof( C, m, p ) );
@@ -406,14 +406,14 @@ void chameleon_pzunmlqrh( int genD, int BS, cham_side_t side, cham_trans_t trans
             for (k = 0; k < KT; k++) {
                 RUNTIME_iteration_push(chamctxt, k);
 
-                tempkm = k == A->mt-1 ? A->m-k*A->mb : A->mb;
+                tempkm = A->get_blkdim( A, k, DIM_m, A->m );
 
                 for (p = k; p < C->nt; p += BS) {
-                    temppn   = p == C->nt - 1 ? C->n - p * C->nb : C->nb;
+                    temppn = C->get_blkdim( C, p, DIM_n, C->n );
                     tempkmin = chameleon_min( temppn, tempkm );
 
                     if ( genD ) {
-                        int tempDpn = p == D->nt-1 ? D->n-p*D->nb : D->nb;
+                        int tempDpn = D->get_blkdim( D, p, DIM_n, D->n );
 
                         INSERT_TASK_zlacpy(
                             &options,
@@ -430,7 +430,7 @@ void chameleon_pzunmlqrh( int genD, int BS, cham_side_t side, cham_trans_t trans
                     }
 
                     for (m = 0; m < C->mt; m++) {
-                        tempmm = m == C->mt-1 ? C->m-m*C->mb : C->mb;
+                        tempmm = C->get_blkdim( C, m, DIM_m, C->m );
                         INSERT_TASK_zunmlq(
                             &options, side, trans,
                             tempmm, temppn, tempkmin, ib, T->nb,
@@ -442,9 +442,9 @@ void chameleon_pzunmlqrh( int genD, int BS, cham_side_t side, cham_trans_t trans
                     RUNTIME_data_flush( sequence, T(k, p) );
 
                     for (n = p+1; n < chameleon_min(p+BS, C->nt); n++) {
-                        tempnn = n == C->nt-1 ? C->n-n*C->nb : C->nb;
+                        tempnn = C->get_blkdim( C, n, DIM_n, C->n );
                         for (m = 0; m < C->mt; m++) {
-                            tempmm = m == C->mt-1 ? C->m-m*C->mb : C->mb;
+                            tempmm = C->get_blkdim( C, m, DIM_m, C->m );
 
                             node = C->get_rankof( C, m, n );
                             RUNTIME_data_migrate( sequence, C(m, p), node );
@@ -466,10 +466,10 @@ void chameleon_pzunmlqrh( int genD, int BS, cham_side_t side, cham_trans_t trans
                 for (RD = BS; RD < C->nt-k; RD *= 2) {
                     for (p = k; p+RD < C->nt; p += 2*RD) {
                         n = p + RD;
-                        tempnn = n == C->mt-1 ? C->m-n*C->mb : C->mb;
+                        tempnn = C->get_blkdim( C, n, DIM_n, C->n );
 
                         for (m = 0; m < C->mt; m++) {
-                            tempmm = m == C->mt-1 ? C->m-m*C->mb : C->mb;
+                            tempmm = C->get_blkdim( C, m, DIM_m, C->m );
 
                             node = C->get_rankof( C, m, n );
                             RUNTIME_data_migrate( sequence, C(m, p), node );

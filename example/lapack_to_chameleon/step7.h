@@ -83,8 +83,8 @@ static int Cham_build_plgsy_cpu( void *op_args, cham_uplo_t uplo, int m, int n, 
     int             tempmm, tempnn;
 
     /* Get the dimension of the tile */
-    tempmm = (m == (descA->mt-1)) ? (descA->m - m * descA->mb) : descA->mb;
-    tempnn = (n == (descA->nt-1)) ? (descA->n - n * descA->nb) : descA->nb;
+    tempmm = descA->get_blkdim( descA, m, DIM_m, descA->m );
+    tempnn = descA->get_blkdim( descA, n, DIM_n, descA->n );
 
     /* fill the tile with the coreblas function plgsy = random SPD matrix generator */
     TCORE_dplgsy( data->bump, tempmm, tempnn, tileA,
@@ -101,8 +101,8 @@ static int Cham_build_plrnt_cpu( void *op_args, cham_uplo_t uplo, int m, int n, 
     int             tempmm, tempnn;
 
     /* Get the dimension of the tile */
-    tempmm = (m == (descA->mt-1)) ? (descA->m - m * descA->mb) : descA->mb;
-    tempnn = (n == (descA->nt-1)) ? (descA->n - n * descA->nb) : descA->nb;
+    tempmm = descA->get_blkdim( descA, m, DIM_m, descA->m );
+    tempnn = descA->get_blkdim( descA, n, DIM_n, descA->n );
 
     /* fill the tile with the coreblas function plrnt = random general matrix generator */
     TCORE_dplrnt( tempmm, tempnn, tileA,

@@ -99,8 +99,8 @@ void chameleon_pztpqrt_param( int genD, cham_uplo_t uplo, int K,
         /* Combine with ATop and A by merging last pivot with A(k,k) */
         {
             CHAM_desc_t *T;
-            int temppm = p == ATop->mt-1 ? ATop->m - p * ATop->mb : ATop->mb;
-            int tempkn = k == ATop->nt-1 ? ATop->n - k * ATop->nb : ATop->nb;
+            int temppm = ATop->get_blkdim( ATop, p, DIM_m, ATop->m );
+            int tempkn = ATop->get_blkdim( ATop, k, DIM_n, ATop->n );
             int L, node, tempnn;
 
             T = TT;
@@ -118,7 +118,7 @@ void chameleon_pztpqrt_param( int genD, cham_uplo_t uplo, int K,
                 T(p, k));
 
             for (n = k+1; n < A->nt; n++) {
-                tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
+                tempnn = A->get_blkdim( A, n, DIM_n, A->n );
 
                 node = A->get_rankof( A, p, n );
                 RUNTIME_data_migrate( sequence, ATop(k, n), node );

@@ -58,8 +58,8 @@ chameleon_pzgetrf_panel_facto_nopiv( struct chameleon_pzgetrf_s *ws,
     const CHAMELEON_Complex64_t zone = (CHAMELEON_Complex64_t) 1.0;
     int m, tempkm, tempkn, tempmm;
 
-    tempkm = k == A->mt-1 ? A->m-k*A->mb : A->mb;
-    tempkn = k == A->nt-1 ? A->n-k*A->nb : A->nb;
+    tempkm = A->get_blkdim( A, k, DIM_m, A->m );
+    tempkn = A->get_blkdim( A, k, DIM_n, A->n );
 
     /*
      * Algorithm per block without pivoting
@@ -70,7 +70,7 @@ chameleon_pzgetrf_panel_facto_nopiv( struct chameleon_pzgetrf_s *ws,
          A(k, k), 0);
 
     for (m = k+1; m < A->mt; m++) {
-        tempmm = (m == (A->mt - 1)) ? A->m - m * A->mb : A->mb;
+        tempmm = A->get_blkdim( A, m, DIM_m, A->m );
         INSERT_TASK_ztrsm(
             options,
             ChamRight, ChamUpper, ChamNoTrans, ChamNonUnit,
@@ -90,8 +90,8 @@ chameleon_pzgetrf_panel_facto_nopiv_percol( struct chameleon_pzgetrf_s *ws,
     int m, h;
     int tempkm, tempkn, tempmm, minmn;
 
-    tempkm = k == A->mt-1 ? A->m-k*A->mb : A->mb;
-    tempkn = k == A->nt-1 ? A->n-k*A->nb : A->nb;
+    tempkm = A->get_blkdim( A, k, DIM_m, A->m );
+    tempkn = A->get_blkdim( A, k, DIM_n, A->n );
     minmn  = chameleon_min( tempkm, tempkn );
 
     /*
@@ -103,7 +103,7 @@ chameleon_pzgetrf_panel_facto_nopiv_percol( struct chameleon_pzgetrf_s *ws,
             A( k, k ), U( k, k ), A->mb * k );
 
         for (m = k+1; m < A->mt; m++) {
-            tempmm = (m == (A->mt - 1)) ? A->m - m * A->mb : A->mb;
+            tempmm = A->get_blkdim( A, m, DIM_m, A->m );
             INSERT_TASK_zgetrf_nopiv_percol_trsm(
                 options, tempmm, tempkn, h,
                 A( m, k ), U( k, k ) );
@@ -123,8 +123,8 @@ chameleon_pzgetrf_panel_facto_percol( struct chameleon_pzgetrf_s *ws,
     int m, h;
     int tempkm, tempkn, tempmm, minmn;
 
-    tempkm = k == A->mt-1 ? A->m-k*A->mb : A->mb;
-    tempkn = k == A->nt-1 ? A->n-k*A->nb : A->nb;
+    tempkm = A->get_blkdim( A, k, DIM_m, A->m );
+    tempkn = A->get_blkdim( A, k, DIM_n, A->n );
     minmn  = chameleon_min( tempkm, tempkn );
 
     /* Update the number of column */
@@ -141,7 +141,7 @@ chameleon_pzgetrf_panel_facto_percol( struct chameleon_pzgetrf_s *ws,
             ipiv );
 
         for (m = k+1; m < A->mt; m++) {
-            tempmm = (m == (A->mt - 1)) ? A->m - m * A->mb : A->mb;
+            tempmm = A->get_blkdim( A, m, DIM_m, A->m );
             INSERT_TASK_zgetrf_percol_offdiag(
                 options,
                 tempmm, tempkn, h, m * A->mb,
@@ -173,8 +173,8 @@ chameleon_pzgetrf_panel_facto_percol_batched( struct chameleon_pzgetrf_s *ws,
     void **clargs = malloc( sizeof(char *) );
     memset( clargs, 0, sizeof(char *) );
 
-    tempkm = k == A->mt-1 ? A->m-k*A->mb : A->mb;
-    tempkn = k == A->nt-1 ? A->n-k*A->nb : A->nb;
+    tempkm = A->get_blkdim( A, k, DIM_m, A->m );
+    tempkn = A->get_blkdim( A, k, DIM_n, A->n );
     minmn  = chameleon_min( tempkm, tempkn );
 
     /* Update the number of column */
@@ -190,7 +190,7 @@ chameleon_pzgetrf_panel_facto_percol_batched( struct chameleon_pzgetrf_s *ws,
         INSERT_TASK_zgetrf_percol_diag( options, tempkm, tempkn, h, k * A->mb, A(k, k), ipiv );
 
         for ( m = k+1; m < A->mt; m++ ) {
-            tempmm = (m == (A->mt - 1)) ? A->m - m * A->mb : A->mb;
+            tempmm = A->get_blkdim( A, m, DIM_m, A->m );
             INSERT_TASK_zgetrf_panel_offdiag_batched( options, tempmm, tempkn, h, m * A->mb,
                                                       (void *)ws, A(m, k), clargs, ipiv );
         }
@@ -216,8 +216,8 @@ chameleon_pzgetrf_panel_facto_blocked( struct chameleon_pzgetrf_s *ws,
     int m, h, b, nbblock;
     int tempkm, tempkn, tempmm, minmn;
 
-    tempkm = k == A->mt-1 ? A->m-k*A->mb : A->mb;
-    tempkn = k == A->nt-1 ? A->n-k*A->nb : A->nb;
+    tempkm = A->get_blkdim( A, k, DIM_m, A->m );
+    tempkn = A->get_blkdim( A, k, DIM_n, A->n );
     minmn  = chameleon_min( tempkm, tempkn );
 
     /* Update the number of column */
@@ -240,7 +240,7 @@ chameleon_pzgetrf_panel_facto_blocked( struct chameleon_pzgetrf_s *ws,
                 ipiv );
 
             for (m = k+1; m < A->mt; m++) {
-                tempmm = (m == (A->mt - 1)) ? A->m - m * A->mb : A->mb;
+                tempmm = A->get_blkdim( A, m, DIM_m, A->m );
                 INSERT_TASK_zgetrf_blocked_offdiag(
                     options,
                     tempmm, tempkn, j, m * A->mb, ws->ib,
@@ -283,8 +283,8 @@ chameleon_pzgetrf_panel_facto_blocked_batched( struct chameleon_pzgetrf_s *ws,
     void **clargs = malloc( sizeof(char *) );
     memset( clargs, 0, sizeof(char *) );
 
-    tempkm = k == A->mt-1 ? A->m-k*A->mb : A->mb;
-    tempkn = k == A->nt-1 ? A->n-k*A->nb : A->nb;
+    tempkm = A->get_blkdim( A, k, DIM_m, A->m );
+    tempkn = A->get_blkdim( A, k, DIM_n, A->n );
     minmn  = chameleon_min( tempkm, tempkn );
 
     /* Update the number of column */
@@ -303,7 +303,7 @@ chameleon_pzgetrf_panel_facto_blocked_batched( struct chameleon_pzgetrf_s *ws,
             j =  h + b * ws->ib;
 
             for ( m = k; m < A->mt; m++ ) {
-                tempmm = (m == (A->mt - 1)) ? A->m - m * A->mb : A->mb;
+                tempmm = A->get_blkdim( A, m, DIM_m, A->m );
                 INSERT_TASK_zgetrf_panel_blocked_batched( options, tempmm, tempkn, j, m * A->mb,
                                                           (void *)ws, A(m, k), Up(k, k), clargs, ipiv );
             }
@@ -405,9 +405,9 @@ chameleon_pzgetrf_panel_permute( struct chameleon_pzgetrf_s *ws,
             return;
         }
 
-        tempkm = k == A->mt-1 ? A->m-k*A->mb : A->mb;
-        tempkn = k == A->nt-1 ? A->n-k*A->nb : A->nb;
-        tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
+        tempkm = A->get_blkdim( A, k, DIM_m, A->m );
+        tempkn = A->get_blkdim( A, k, DIM_n, A->n );
+        tempnn = A->get_blkdim( A, n, DIM_n, A->n );
         minmn  = chameleon_min( tempkm, tempkn );
 
         /* Extract selected rows into U */
@@ -474,9 +474,9 @@ chameleon_pzgetrf_panel_permute_batched( struct chameleon_pzgetrf_s *ws,
         void **clargs = malloc( sizeof(char *) );
         *clargs = NULL;
 
-        tempkm = k == A->mt-1 ? A->m-k*A->mb : A->mb;
-        tempkn = k == A->nt-1 ? A->n-k*A->nb : A->nb;
-        tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
+        tempkm = A->get_blkdim( A, k, DIM_m, A->m );
+        tempkn = A->get_blkdim( A, k, DIM_n, A->n );
+        tempnn = A->get_blkdim( A, n, DIM_n, A->n );
         minmn  = chameleon_min( tempkm, tempkn );
 
         /* Extract selected rows into U */
@@ -523,13 +523,13 @@ chameleon_pzgetrf_panel_update_ws( struct chameleon_pzgetrf_s *ws,
     int lq        = (k % lookahead) * Q;
     int myp       = A->myrank / Q;
 
-    tempkn = k == A->nt-1 ? A->n-k*A->nb : A->nb;
+    tempkn = A->get_blkdim( A, k, DIM_n, A->n );
 
     if ( k >= ws->ringswitch ) {
         for ( m = k+1; m < A->mt; m++ ) {
             if ( ( m % P ) != myp ) continue;
 
-            tempmm = m == A->mt-1 ? A->m-m*A->mb : A->mb;
+            tempmm = A->get_blkdim( A, m, DIM_m, A->m );
             INSERT_TASK_zlacpy(
                 options,
                 ChamUpperLower, tempmm, tempkn,
@@ -550,7 +550,7 @@ chameleon_pzgetrf_panel_update_ws( struct chameleon_pzgetrf_s *ws,
         for ( m = k+1; m < A->mt; m++ ) {
             if ( ( m % P ) != myp ) continue;
 
-            tempmm = m == A->mt-1 ? A->m-m*A->mb : A->mb;
+            tempmm = A->get_blkdim( A, m, DIM_m, A->m );
             for ( q = 0; q < Q; q++ ) {
                 INSERT_TASK_zlacpy(
                     options,
@@ -581,8 +581,8 @@ chameleon_pzgetrf_panel_update( struct chameleon_pzgetrf_s *ws,
     int myq       = A->myrank % chameleon_desc_datadist_get_iparam(A, 1);
     int lq        = (k % lookahead) * chameleon_desc_datadist_get_iparam(A, 1);
 
-    tempkm = k == A->mt-1 ? A->m-k*A->mb : A->mb;
-    tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
+    tempkm = A->get_blkdim( A, k, DIM_m, A->m );
+    tempnn = A->get_blkdim( A, n, DIM_n, A->n );
 
     if ( ws->batch_size > 0 ) {
         chameleon_pzgetrf_panel_permute_batched( ws, A, ipiv, k, n, options );
@@ -612,7 +612,7 @@ chameleon_pzgetrf_panel_update( struct chameleon_pzgetrf_s *ws,
     }
 
     for (m = k+1; m < A->mt; m++) {
-        tempmm  = m == A->mt-1 ? A->m-m*A->mb : A->mb;
+        tempmm = A->get_blkdim( A, m, DIM_m, A->m );
         rankAmn = A->get_rankof( A, m, n );
 
         if ( A->myrank == rankAmn ) {
@@ -700,8 +700,8 @@ void chameleon_pzgetrf( struct chameleon_pzgetrf_s *ws,
                 {
                     chameleon_pzgetrf_panel_permute_batched( ws, A, IPIV, k, n, &options );
                     if ( A->myrank == chameleon_getrankof_2d( A, k, n ) ) {
-                        tempkm = k == A->mt-1 ? A->m-k*A->mb : A->mb;
-                        tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
+                        tempkm = A->get_blkdim( A, k, DIM_m, A->m );
+                        tempnn = A->get_blkdim( A, n, DIM_n, A->n );
                         INSERT_TASK_zlacpy( &options, ChamUpperLower, tempkm, tempnn,
                                             Wu(A->myrank, n), A(k, n) );
                         RUNTIME_data_flush( sequence, A(k, n) );
@@ -720,8 +720,8 @@ void chameleon_pzgetrf( struct chameleon_pzgetrf_s *ws,
                 {
                     chameleon_pzgetrf_panel_permute( ws, A, IPIV, k, n, &options );
                     if ( A->myrank == chameleon_getrankof_2d( A, k, n ) ) {
-                        tempkm = k == A->mt-1 ? A->m-k*A->mb : A->mb;
-                        tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
+                        tempkm = A->get_blkdim( A, k, DIM_m, A->m );
+                        tempnn = A->get_blkdim( A, n, DIM_n, A->n );
                         INSERT_TASK_zlacpy( &options, ChamUpperLower, tempkm, tempnn,
                                             Wu(A->myrank, n), A(k, n) );
                         RUNTIME_data_flush( sequence, A(k, n) );

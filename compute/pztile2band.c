@@ -38,9 +38,7 @@ void chameleon_pztile2band( cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B,
     int k;
     int tempkm, tempkn;
     int minmnt = chameleon_min(A->mt, A->nt);
-    int Bnb = B->nb;
     int Bmb = B->mb;
-    int Amb = A->mb;
 
     chamctxt = chameleon_context_self();
     if (sequence->status != CHAMELEON_SUCCESS) {
@@ -59,8 +57,8 @@ void chameleon_pztile2band( cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B,
             assert( A->i == B->j );
             assert( A->j >= B->j );
 
-            tempkm = ( k == A->mt-1 ) ? A->m - k * Amb : Amb;
-            tempkn = ( k == B->nt-1 ) ? B->n - k * Bnb : Bnb;
+            tempkm = A->get_blkdim( A, k, DIM_m, A->m );
+            tempkn = B->get_blkdim( B, k, DIM_n, B->n );
 
             INSERT_TASK_zlaset( &options, ChamUpperLower, Bmb, tempkn,
                                 0., 0., B, 0, k );
@@ -72,7 +70,7 @@ void chameleon_pztile2band( cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B,
             if ( k < minmnt-1 ) {
                 tileA = A->get_blktile( A, k+1, k );
 
-                tempkm = ( (k+1) == A->mt-1 ) ? A->m - (k+1) * Amb : Amb;
+                tempkm = A->get_blkdim( A, k+1, DIM_m, A->m );
 
                 INSERT_TASK_zlacpyx( &options, ChamUpper, tempkm, tempkn,
                                      0,     A, k+1, k, tileA->ld,
@@ -88,8 +86,8 @@ void chameleon_pztile2band( cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B,
             assert( A->i == B->i );
             assert( A->i >= B->j );
 
-            tempkm = ( k == A->mt-1 ) ? A->m - k * Amb : Amb;
-            tempkn = ( k == B->nt-1 ) ? B->n - k * Bnb : Bnb;
+            tempkm = A->get_blkdim( A, k, DIM_m, A->m );
+            tempkn = B->get_blkdim( B, k, DIM_n, B->n );
 
             INSERT_TASK_zlaset( &options, ChamUpperLower, Bmb, tempkn,
                                 0., 0., B, 0, k );
@@ -101,7 +99,7 @@ void chameleon_pztile2band( cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B,
             if ( k > 0 ) {
                 tileA = A->get_blktile( A, k-1, k );
 
-                tempkm = ( (k-1) == A->mt-1 ) ? A->m - (k-1) * Amb : Amb;
+                tempkm = A->get_blkdim( A, k-1, DIM_m, A->m );
 
                 INSERT_TASK_zlacpyx( &options, ChamLower, tempkm, tempkn,
                                      0, A, k-1, k, tileA->ld,

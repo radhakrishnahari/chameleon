@@ -47,10 +47,10 @@ void chameleon_pzplghe( double bump, cham_uplo_t uplo, CHAM_desc_t *A,
     switch ( uplo ) {
     case ChamLower:
         for (n = 0; n < minmn; n++) {
-            tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
+            tempnn = A->get_blkdim( A, n, DIM_n, A->n );
 
             for (m = n; m < A->mt; m++) {
-                tempmm = m == A->mt-1 ? A->m-m*A->mb : A->mb;
+                tempmm = A->get_blkdim( A, m, DIM_m, A->m );
 
                 options.priority = m + n;
                 INSERT_TASK_zplghe(
@@ -63,10 +63,10 @@ void chameleon_pzplghe( double bump, cham_uplo_t uplo, CHAM_desc_t *A,
 
     case ChamUpper:
         for (m = 0; m < minmn; m++) {
-            tempmm = m == A->mt-1 ? A->m-m*A->mb : A->mb;
+            tempmm = A->get_blkdim( A, m, DIM_m, A->m );
 
             for (n = m; n < A->nt; n++) {
-                tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
+                tempnn = A->get_blkdim( A, n, DIM_n, A->n );
 
                 options.priority = m + n;
                 INSERT_TASK_zplghe(
@@ -80,10 +80,10 @@ void chameleon_pzplghe( double bump, cham_uplo_t uplo, CHAM_desc_t *A,
     case ChamUpperLower:
     default:
         for (m = 0; m < A->mt; m++) {
-            tempmm = m == A->mt-1 ? A->m-m*A->mb : A->mb;
+            tempmm = A->get_blkdim( A, m, DIM_m, A->m );
 
             for (n = 0; n < A->nt; n++) {
-                tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
+                tempnn = A->get_blkdim( A, n, DIM_n, A->n );
 
                 options.priority = m + n;
                 INSERT_TASK_zplghe(

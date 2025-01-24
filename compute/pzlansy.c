@@ -51,10 +51,10 @@ chameleon_pzlansy_inf( cham_uplo_t uplo, CHAM_desc_t *A,
         int nmin = ( uplo == ChamUpper ) ? m                      : 0;
         int nmax = ( uplo == ChamLower ) ? chameleon_min(m+1, NT) : NT;
 
-        int tempmm = ( m == (MT-1) ) ? M - m * A->mb : A->mb;
+        int tempmm = A->get_blkdim( A, m, DIM_m, M );
 
         for(n = nmin; n < nmax; n++) {
-            int tempnn = ( n == (NT-1) ) ? N - n * A->nb : A->nb;
+            int tempnn = A->get_blkdim( A, n, DIM_n, N );
 
             if ( n == m ) {
                 INSERT_TASK_dzasum(
@@ -77,7 +77,7 @@ chameleon_pzlansy_inf( cham_uplo_t uplo, CHAM_desc_t *A,
     }
 
     for(m = 0; m < MT; m++) {
-        int tempmm = ( m == (MT-1) ) ? M - m * A->mb : A->mb;
+        int tempmm = A->get_blkdim( A, m, DIM_m, M );
 
         for(n = Q; n < NT; n++) {
             INSERT_TASK_daxpy(
@@ -144,10 +144,10 @@ chameleon_pzlansy_max( cham_trans_t trans, cham_uplo_t uplo, CHAM_desc_t *A,
         int nmin = (uplo == ChamUpper ) ? m                      : 0;
         int nmax = (uplo == ChamLower ) ? chameleon_min(m+1, NT) : NT;
 
-        int tempmm = ( m == (MT-1) ) ? M - m * A->mb : A->mb;
+        int tempmm = A->get_blkdim( A, m, DIM_m, M );
 
         for(n = nmin; n < nmax; n++) {
-            int tempnn = ( n == (NT-1) ) ? N - n * A->nb : A->nb;
+            int tempnn = A->get_blkdim( A, n, DIM_n, N );
 
             if ( n == m ) {
                 if ( trans == ChamConjTrans) {
@@ -230,10 +230,10 @@ chameleon_pzlansy_frb( cham_trans_t trans, cham_uplo_t uplo,
         int nmin = (uplo == ChamUpper ) ? m                      : 0;
         int nmax = (uplo == ChamLower ) ? chameleon_min(m+1, NT) : NT;
 
-        int tempmm = ( m == (MT-1) ) ? M - m * A->mb : A->mb;
+        int tempmm = A->get_blkdim( A, m, DIM_m, M );
 
         for(n = nmin; n < nmax; n++) {
-            int tempnn = ( n == (NT-1) ) ? N - n * A->nb : A->nb;
+            int tempnn = A->get_blkdim( A, n, DIM_n, N );
 
             if ( n == m ) {
                 if ( trans == ChamConjTrans) {

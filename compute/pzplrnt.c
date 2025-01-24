@@ -46,10 +46,10 @@ void chameleon_pzplrnt( CHAM_desc_t *A,
     RUNTIME_options_init(&options, chamctxt, sequence, request);
 
     for (m = 0; m < A->mt; m++) {
-        tempmm = m == A->mt-1 ? A->m-m*A->mb : A->mb;
+        tempmm = A->get_blkdim( A, m, DIM_m, A->m );
 
         for (n = 0; n < A->nt; n++) {
-            tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
+            tempnn = A->get_blkdim( A, n, DIM_n, A->n );
 
             INSERT_TASK_zplrnt(
                 &options,

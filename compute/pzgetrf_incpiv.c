@@ -84,8 +84,8 @@ void chameleon_pzgetrf_incpiv( CHAM_desc_t *A, CHAM_desc_t *L, CHAM_desc_t *D, i
     for (k = 0; k < minMNT; k++) {
         RUNTIME_iteration_push(chamctxt, k);
 
-        tempkm = k == A->mt-1 ? A->m-k*A->mb : A->mb;
-        tempkn = k == A->nt-1 ? A->n-k*A->nb : A->nb;
+        tempkm = A->get_blkdim( A, k, DIM_m, A->m );
+        tempkn = A->get_blkdim( A, k, DIM_n, A->n );
         INSERT_TASK_zgetrf_incpiv(
             &options,
             tempkm, tempkn, ib, L->nb,
@@ -105,7 +105,7 @@ void chameleon_pzgetrf_incpiv( CHAM_desc_t *A, CHAM_desc_t *L, CHAM_desc_t *D, i
         }
 
         for (n = k+1; n < A->nt; n++) {
-            tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
+            tempnn = A->get_blkdim( A, n, DIM_n, A->n );
             INSERT_TASK_zgessm(
                 &options,
                 tempkm, tempnn, tempkm, ib, L->nb,
@@ -115,7 +115,7 @@ void chameleon_pzgetrf_incpiv( CHAM_desc_t *A, CHAM_desc_t *L, CHAM_desc_t *D, i
                 A(k, n));
         }
         for (m = k+1; m < A->mt; m++) {
-            tempmm = m == A->mt-1 ? A->m-m*A->mb : A->mb;
+            tempmm = A->get_blkdim( A, m, DIM_m, A->m );
             INSERT_TASK_ztstrf(
                 &options,
                 tempmm, tempkn, ib, L->nb,
@@ -126,7 +126,7 @@ void chameleon_pzgetrf_incpiv( CHAM_desc_t *A, CHAM_desc_t *L, CHAM_desc_t *D, i
                 m == A->mt-1, A->nb*k);
 
             for (n = k+1; n < A->nt; n++) {
-                tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
+                tempnn = A->get_blkdim( A, n, DIM_n, A->n );
                 INSERT_TASK_zssssm(
                     &options,
                     A->nb, tempnn, tempmm, tempnn, A->nb, ib, L->nb,

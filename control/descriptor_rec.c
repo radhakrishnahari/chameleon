@@ -73,8 +73,8 @@ chameleon_recdesc_create( const char *name, CHAM_desc_t **descptr, void *mat, ch
             char *subname;
 
             tile = desc->get_blktile( desc, m, n );
-            tempmm = m == desc->mt-1 ? desc->m - m * desc->mb : desc->mb;
-            tempnn = n == desc->nt-1 ? desc->n - n * desc->nb : desc->nb;
+            tempmm = desc->get_blkdim( desc, m, DIM_m, desc->m );
+            tempnn = desc->get_blkdim( desc, n, DIM_n, desc->n );
 
             chameleon_asprintf( &subname, "%s[%d,%d]", name, m, n );
 

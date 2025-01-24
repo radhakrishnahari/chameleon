@@ -52,13 +52,13 @@ void chameleon_pzungqr_param_step( int genD, cham_uplo_t uplo, int k, int ib,
     int tempmm, tempnn, tempkmin, tempkn;
     int nbgeqrt, node;
 
-    tempkn = k == A->nt-1 ? A->n - k * A->nb : A->nb;
+    tempkn = A->get_blkdim( A, k, DIM_n, A->n );
 
     for (i = nbtiles-1; i >= 0; i--) {
         m = tiles[i];
         p = qrtree->currpiv( qrtree, k, m );
 
-        tempmm = m == Q->mt-1 ? Q->m-m*Q->mb : Q->mb;
+        tempmm = Q->get_blkdim( Q, m, DIM_m, Q->m );
 
         if( qrtree->gettype( qrtree, k, m ) == LIBHQR_KILLED_BY_TS ) {
             /* TS kernel */
@@ -77,7 +77,7 @@ void chameleon_pzungqr_param_step( int genD, cham_uplo_t uplo, int k, int ib,
         }
 
         for (n = k; n < Q->nt; n++) {
-            tempnn = n == Q->nt-1 ? Q->n-n*Q->nb : Q->nb;
+            tempnn = Q->get_blkdim( Q, n, DIM_n, Q->n );
 
             node = Q->get_rankof( Q, m, n );
             RUNTIME_data_migrate( sequence, Q(p, n), node );
@@ -108,11 +108,11 @@ void chameleon_pzungqr_param_step( int genD, cham_uplo_t uplo, int k, int ib,
             continue;
         }
 
-        tempmm = m == A->mt-1 ? A->m-m*A->mb : A->mb;
+        tempmm = A->get_blkdim( A, m, DIM_m, A->m );
         tempkmin = chameleon_min( tempmm, tempkn );
 
         if ( genD ) {
-            int tempDmm = m == D->mt-1 ? D->m - m * D->mb : D->mb;
+            int tempDmm = D->get_blkdim( D, m, DIM_m, D->m );
             INSERT_TASK_zlacpy(
                 options,
                 ChamLower, tempDmm, tempkmin,
@@ -128,7 +128,7 @@ void chameleon_pzungqr_param_step( int genD, cham_uplo_t uplo, int k, int ib,
         }
 
         for (n = k; n < Q->nt; n++) {
-            tempnn = n == Q->nt-1 ? Q->n-n*Q->nb : Q->nb;
+            tempnn = Q->get_blkdim( Q, n, DIM_n, Q->n );
 
             /* Restore the original location of the tiles */
             RUNTIME_data_migrate( sequence, Q(m, n),

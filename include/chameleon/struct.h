@@ -80,6 +80,7 @@ typedef struct chameleon_desc_s CHAM_desc_t;
 
 typedef void*        (*blkaddr_fct_t)        ( const CHAM_desc_t*, int, int );
 typedef int          (*blkldd_fct_t)         ( const CHAM_desc_t*, int );
+typedef int          (*blkdim_fct_t)         ( const CHAM_desc_t*, int, cham_dim_t, int );
 typedef int          (*blkrankof_fct_t)      ( const CHAM_desc_t*, int, int );
 typedef int          (*datadist_access_fct_t)( const CHAM_desc_t*, int, ... );
 typedef CHAM_tile_t* (*blktile_fct_t)        ( const CHAM_desc_t*, int, int );
@@ -116,11 +117,12 @@ void chameleon_desc_set_datadist( CHAM_desc_t *to, cham_data_dist_t *from );
 
 struct chameleon_desc_s {
     const char *name;
-    blktile_fct_t   get_blktile;     /**> function to get chameleon tiles address           */
-    blkaddr_fct_t   get_blkaddr;     /**> function to get chameleon tiles address           */
-    blkldd_fct_t    get_blkldd;      /**> function to get chameleon tiles leading dimension */
-    blkrankof_fct_t get_rankof;      /**> function to get chameleon tiles MPI rank          */
-    blkrankof_fct_t get_rankof_init; /**> function to get chameleon tiles MPI rank          */
+    blktile_fct_t   get_blktile;     /**> function to get chameleon tiles address                     */
+    blkaddr_fct_t   get_blkaddr;     /**> function to get chameleon tiles address                     */
+    blkldd_fct_t    get_blkldd;      /**> function to get chameleon tiles leading dimension           */
+    blkdim_fct_t    get_blkdim;      /**> function to get chameleon tiles dimension within algorithms */
+    blkrankof_fct_t get_rankof;      /**> function to get chameleon tiles MPI rank                    */
+    blkrankof_fct_t get_rankof_init; /**> function to get chameleon tiles MPI rank                    */
 
     void* get_rankof_init_arg;
     CHAM_tile_t *tiles;  /**> pointer to the array of tiles descriptors  */

@@ -61,13 +61,13 @@ zgemm_batch_cpu( void *op_args,
     tileC = va_arg(ap, CHAM_tile_t *);
     va_end(ap);
 
-    tempmm = m == descC->mt-1 ? descC->m - m * descC->mb : descC->mb;
-    tempnn = n == descC->nt-1 ? descC->n - n * descC->nb : descC->nb;
+    tempmm = descC->get_blkdim( descC, m, DIM_m, descC->m );
+    tempnn = descC->get_blkdim( descC, n, DIM_n, descC->n );
     if ( args->transA == ChamNoTrans ) {
-        tempkk = n == descA->nt-1 ? descA->n - n * descA->nb : descA->nb;
+        tempkk = descA->get_blkdim( descA, n, DIM_n, descA->n );
     }
     else {
-        tempkk = m == descA->mt-1 ? descA->m - m * descA->mb : descA->mb;
+        tempkk = descA->get_blkdim( descA, m, DIM_m, descA->m );
     }
 
     TCORE_zgemm(
@@ -112,13 +112,13 @@ zgemm_batch_cuda( cublasHandle_t handle, void *op_args,
     tileC = va_arg(ap, CHAM_tile_t *);
     va_end(ap);
 
-    tempmm = m == descC->mt-1 ? descC->m - m * descC->mb : descC->mb;
-    tempnn = n == descC->nt-1 ? descC->n - n * descC->nb : descC->nb;
+    tempmm = descC->get_blkdim( descC, m, DIM_m, descC->m );
+    tempnn = descC->get_blkdim( descC, n, DIM_n, descC->n );
     if ( args->transA == ChamNoTrans ) {
-        tempkk = n == descA->nt-1 ? descA->n - n * descA->nb : descA->nb;
+        tempkk = descA->get_blkdim( descA, n, DIM_n, descA->n );
     }
     else {
-        tempkk = m == descA->mt-1 ? descA->m - m * descA->mb : descA->mb;
+        tempkk = descA->get_blkdim( descA, m, DIM_m, descA->m );
     }
 
     CUDA_zgemm( args->transA, args->transB, tempmm, tempnn, tempkk,

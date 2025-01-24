@@ -43,7 +43,7 @@ zplghe_batch_cpu( void *op_args,
         fprintf( stderr, "zplghe_batch_cpu: requires two pieces of data and %d have been given\n", ndata );
     }
 
-    tempnn = n == descA->nt-1 ? descA->n - n * descA->nb : descA->nb;
+    tempnn = descA->get_blkdim( descA, n, DIM_n, descA->n );
 
     /**
      * Let's fo the math to give the right bigM:

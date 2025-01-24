@@ -114,6 +114,14 @@ typedef enum chameleon_flttype_e {
 #define ChamConvertRealHalfToHalf     ChamConvert( ChamRealHalf,   ChamRealHalf   )
 
 /**
+ * @brief Matrix dimensions naming
+ */
+typedef enum chameleon_dim_e {
+    DIM_m = 0,
+    DIM_n = 1,
+} cham_dim_t;
+
+/**
  * @brief Matrix tile storage
  */
 typedef enum chameleon_storage_e {
