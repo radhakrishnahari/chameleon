@@ -107,6 +107,8 @@ testing_options_init( testing_options_t *options )
     options->splitsub  = parameters_getvalue_int( "splitsub" );
     options->threads   = parameters_getvalue_int( "threads" );
     options->trace     = parameters_getvalue_int( "trace" );
+#else
+    options->threads   = -1;
 #endif
 
     options->file = parameters_getvalue_str( "file" );
