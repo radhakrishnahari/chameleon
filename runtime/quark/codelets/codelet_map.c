@@ -80,7 +80,7 @@ void INSERT_TASK_map( const RUNTIME_option_t *options,
         return;
     }
 
-    qargs_size = sizeof( struct quark_map_args_s ) + (ndata - 1) * sizeof( CHAM_desc_t * );
+    qargs_size = sizeof( struct quark_map_args_s ) + sizeof( CHAM_desc_t * ) * (ndata - 1);
     qargs = malloc( qargs_size );
     qargs->uplo    = uplo;
     qargs->m       = m;

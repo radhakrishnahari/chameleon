@@ -128,7 +128,7 @@ testing_zgetrf_desc( run_arg_list_t *args, int check )
         if ( CHAMELEON_Comm_rank() == 0 ) {
             int *ipiv;
 
-            ipiv = malloc( minMN * sizeof(int) );
+            ipiv = malloc( sizeof(int) * minMN );
             CHAMELEON_Ipiv_Gather( descIPIV, ipiv, 0 );
             LAPACKE_zlaswp( LAPACK_COL_MAJOR, N, descA0c->mat, M, 1, minMN, ipiv, 1 );
             free( ipiv );
@@ -180,8 +180,8 @@ testing_zgetrf_std( run_arg_list_t *args, int check )
     CHAMELEON_Set( CHAMELEON_TILE_SIZE, nb );
 
     /* Creates the matrices */
-    A = malloc( (size_t) LDA*N*sizeof(CHAMELEON_Complex64_t) );
-    IPIV = malloc( minMN * sizeof(int) );
+    A = malloc( sizeof(CHAMELEON_Complex64_t) * LDA*N );
+    IPIV = malloc( sizeof(int) * minMN );
 
     /* Fills the matrix with random values */
     CHAMELEON_zplrnt( M, N, A, LDA, seedA );
@@ -216,7 +216,7 @@ testing_zgetrf_std( run_arg_list_t *args, int check )
 #if !defined(CHAMELEON_SIMULATION)
     /* Checks the factorisation and residue */
     if ( check ) {
-        CHAMELEON_Complex64_t *A0 = malloc( (size_t) LDA*N*sizeof(CHAMELEON_Complex64_t) );
+        CHAMELEON_Complex64_t *A0 = malloc( sizeof(CHAMELEON_Complex64_t) * LDA*N );
         CHAMELEON_zplrnt( M, N, A0, LDA, seedA );
 
         /* Compute the permutation of A0: P * A0 */

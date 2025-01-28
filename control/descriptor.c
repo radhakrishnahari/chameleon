@@ -97,7 +97,7 @@ void chameleon_desc_init_tiles( CHAM_desc_t *desc, blkrankof_fct_t rankof )
     int ii, jj;
 
     assert( rankof != chameleon_getrankof_tile );
-    desc->tiles = malloc( desc->lmt * desc->lnt * sizeof(CHAM_tile_t) );
+    desc->tiles = malloc( sizeof(CHAM_tile_t) * desc->lmt * desc->lnt );
 
     tile = desc->tiles;
     for( jj=0; jj<desc->lnt; jj++ ) {

@@ -138,8 +138,8 @@ testing_zlacpy_std( run_arg_list_t *args, int check )
     CHAMELEON_Set( CHAMELEON_TILE_SIZE, nb );
 
     /* Creates two different matrices */
-    A = malloc( (size_t) LDA*N*sizeof(CHAMELEON_Complex64_t) );
-    B = malloc( (size_t) LDB*N*sizeof(CHAMELEON_Complex64_t) );
+    A = malloc( sizeof(CHAMELEON_Complex64_t) * LDA*N );
+    B = malloc( sizeof(CHAMELEON_Complex64_t) * LDB*N );
 
     /* Fills each matrix with different random values */
     CHAMELEON_zplrnt( M, N, A, LDA, seedA );

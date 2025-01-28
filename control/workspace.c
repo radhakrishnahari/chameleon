@@ -111,7 +111,7 @@ int chameleon_alloc_ipiv(int M, int N, cham_tasktype_t func, int type, CHAM_desc
     lm = (int64_t)IB * (int64_t)MT;
     ln = (int64_t)NB * (int64_t)NT;
 
-    size = (size_t)(chameleon_min(MT, NT) * NB * NT * sizeof(int));
+    size = (size_t)(sizeof(int) * chameleon_min(MT, NT) * NB * NT);
     if (size == 0) {
         *IPIV = NULL;
         return CHAMELEON_SUCCESS;

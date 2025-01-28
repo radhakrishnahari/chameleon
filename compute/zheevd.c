@@ -400,7 +400,7 @@ int CHAMELEON_zheevd_Tile_Async( cham_job_t jobz, cham_uplo_t uplo,
     NB = descA.mb;
 
     /* Allocate data structures for reduction to tridiagonal form */
-    E = malloc( (N - 1) * sizeof(double) );
+    E = malloc( sizeof(double) * (N - 1) );
     if (E == NULL) {
         chameleon_error("CHAMELEON_zheevd_Tile_Async", "malloc(E) failed");
         free(E);
@@ -409,9 +409,9 @@ int CHAMELEON_zheevd_Tile_Async( cham_job_t jobz, cham_uplo_t uplo,
 
     if (jobz == ChamVec){
         /* Have to synchrone right now */
-        Q2 = malloc( N * N * sizeof(CHAMELEON_Complex64_t));
+        Q2 = malloc( sizeof(CHAMELEON_Complex64_t) * N * N );
         /* For bug in lapacke */
-        memset( Q2, 0, N * N * sizeof(CHAMELEON_Complex64_t));
+        memset( Q2, 0, sizeof(CHAMELEON_Complex64_t) * N * N );
     }
 
     status = CHAMELEON_zhetrd_Tile_Async( jobz, uplo,
@@ -437,7 +437,7 @@ int CHAMELEON_zheevd_Tile_Async( cham_job_t jobz, cham_uplo_t uplo,
         return CHAMELEON_SUCCESS;
     }
 
-    V = malloc( N * N * sizeof(CHAMELEON_Complex64_t) );
+    V = malloc( sizeof(CHAMELEON_Complex64_t) * N * N );
     if (V == NULL) {
         chameleon_error("CHAMELEON_zheevd_Tile_Async", "malloc(V) failed");
         free(E);
@@ -446,7 +446,7 @@ int CHAMELEON_zheevd_Tile_Async( cham_job_t jobz, cham_uplo_t uplo,
         return CHAMELEON_ERR_OUT_OF_RESOURCES;
     }
     /* For bug in lapacke */
-    memset(V, 0, N * N * sizeof(CHAMELEON_Complex64_t));
+    memset(V, 0, sizeof(CHAMELEON_Complex64_t) * N * N );
 
     /*
      * Tridiagonal eigensolver

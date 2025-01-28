@@ -236,8 +236,8 @@ int check_zgesvd( run_arg_list_t *args, cham_job_t jobu, cham_job_t jobvt, CHAM_
     int LDA  = descA->lm;
 
     if ( rank == 0 ) {
-        Ainit = malloc( (size_t) LDA*N*sizeof(CHAMELEON_Complex64_t) );
-        A     = malloc( (size_t) LDA*N*sizeof(CHAMELEON_Complex64_t) );
+        Ainit = malloc( sizeof(CHAMELEON_Complex64_t) * LDA*N );
+        A     = malloc( sizeof(CHAMELEON_Complex64_t) * LDA*N );
     }
 
     CHAMELEON_zDesc2Lap( ChamUpperLower, descAinit, Ainit, LDA );

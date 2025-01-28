@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
 
     /* initialize some parameters with default values */
     int iparam[IPARAM_SIZEOF];
-    memset(iparam, 0, IPARAM_SIZEOF*sizeof(int));
+    memset( iparam, 0, sizeof(int) * IPARAM_SIZEOF );
     init_iparam(iparam);
 
     /* read arguments */
@@ -116,7 +116,7 @@ int main(int argc, char *argv[]) {
     CHAMELEON_dlacpy_Tile(ChamUpperLower, descA, descAC);
 
     /* copy B in X before solving
-     * same sense as memcpy(X, B, N*NRHS*sizeof(double)) but for descriptors */
+     * same sense as memcpy( X, B, sizeof(double) * N * NRHS ) but for descriptors */
     CHAMELEON_dlacpy_Tile(ChamUpperLower, descB, descX);
 
     /************************************************************/

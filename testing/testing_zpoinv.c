@@ -109,7 +109,7 @@ testing_zpoinv_std( run_arg_list_t *args, int check )
     CHAMELEON_Set( CHAMELEON_TILE_SIZE, nb );
 
     /* Create the matrices */
-    A = malloc( (size_t) LDA*N*sizeof(CHAMELEON_Complex64_t) );
+    A = malloc( sizeof(CHAMELEON_Complex64_t) * LDA*N );
 
     /* Initialise the matrix with the random values */
     CHAMELEON_zplghe( (double)N, uplo, N, A, LDA, seedA );
@@ -129,7 +129,7 @@ testing_zpoinv_std( run_arg_list_t *args, int check )
 
     /* Check the inverse */
     if ( check ) {
-        CHAMELEON_Complex64_t *A0 = malloc( (size_t) LDA * N * sizeof(CHAMELEON_Complex64_t) );
+        CHAMELEON_Complex64_t *A0 = malloc( sizeof(CHAMELEON_Complex64_t) * LDA * N  );
         CHAMELEON_zplghe( (double)N, uplo, N, A0, LDA, seedA );
 
         hres += check_ztrtri_std( args, ChamHermitian, uplo, ChamNonUnit, N, A0, A, LDA );

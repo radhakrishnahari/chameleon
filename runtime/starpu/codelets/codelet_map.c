@@ -258,7 +258,7 @@ void INSERT_TASK_map( const RUNTIME_option_t *options,
     CHAMELEON_END_ACCESS_DECLARATION;
 
     if ( exec ) {
-        clargs_size = sizeof( struct cl_map_args_s ) + (ndata - 1) * sizeof( CHAM_desc_t * );
+        clargs_size = sizeof( struct cl_map_args_s ) + sizeof( CHAM_desc_t * ) * (ndata - 1);
         clargs = malloc( clargs_size );
         clargs->uplo    = uplo;
         clargs->m       = m;

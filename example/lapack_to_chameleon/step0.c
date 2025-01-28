@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
 
     /* initialize some parameters with default values */
     int iparam[IPARAM_SIZEOF];
-    memset(iparam, 0, IPARAM_SIZEOF*sizeof(int));
+    memset( iparam, 0, sizeof(int) * IPARAM_SIZEOF );
     init_iparam(iparam);
 
     /* read arguments */
@@ -70,10 +70,10 @@ int main(int argc, char *argv[]) {
      *     - set of RHS vectors B       : size N x NRHS
      *     - set of solutions vectors X : size N x NRHS
      */
-    double *A    = malloc( N * N    * sizeof(double) );
-    double *Acpy = malloc( N * N    * sizeof(double) );
-    double *B    = malloc( N * NRHS * sizeof(double) );
-    double *X    = malloc( N * NRHS * sizeof(double) );
+    double *A    = malloc( sizeof(double) * N * N    );
+    double *Acpy = malloc( sizeof(double) * N * N    );
+    double *B    = malloc( sizeof(double) * N * NRHS );
+    double *X    = malloc( sizeof(double) * N * NRHS );
 
     /* generate A matrix with random values such that it is spd */
     CORE_dplgsy( (double)N, N, N, A, N, N, N, N, 51 );
@@ -82,10 +82,10 @@ int main(int argc, char *argv[]) {
     CORE_dplrnt( N, NRHS, B, N, N, N, NRHS, 5673 );
 
     /* copy A before facto. in order to check the result */
-    memcpy(Acpy, A, N * N * sizeof(double));
+    memcpy( Acpy, A, sizeof(double) * N * N );
 
     /* copy B in X before solving */
-    memcpy(X, B, N*NRHS*sizeof(double));
+    memcpy( X, B, sizeof(double) * N * NRHS );
 
     /************************************************************/
     /* solve the system AX = B using the Cholesky factorization */

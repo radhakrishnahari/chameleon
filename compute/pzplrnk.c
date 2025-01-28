@@ -42,7 +42,7 @@ chameleon_pzplrnk_generic( CHAM_context_t         *chamctxt,
     int  tempmm, tempnn, tempkk;
     int  myrank  = RUNTIME_comm_rank( chamctxt );
     int  initA;
-    int *initB = malloc( C->nt * sizeof(int) );
+    int *initB = malloc( sizeof(int) * C->nt );
 
     KT = (K + C->mb - 1) / C->mb;
 
@@ -50,7 +50,7 @@ chameleon_pzplrnk_generic( CHAM_context_t         *chamctxt,
         tempkk = k == KT-1 ? K - k * WA->nb : WA->nb;
         zbeta  = k == 0 ? 0. : 1.;
 
-        memset( initB, 0, C->nt * sizeof(int) );
+        memset( initB, 0, sizeof(int) * C->nt );
 
         for (m = 0; m < C->mt; m++) {
             tempmm = C->get_blkdim( C, m, DIM_m, C->m );

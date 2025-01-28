@@ -136,7 +136,7 @@ testing_zlange_std( run_arg_list_t *args, int check )
     CHAMELEON_Set( CHAMELEON_TILE_SIZE, nb );
 
     /* Creates the matrix */
-    A = malloc( (size_t) LDA*N*sizeof(CHAMELEON_Complex64_t) );
+    A = malloc( sizeof(CHAMELEON_Complex64_t) * LDA*N );
 
     /* Fills the matrix with random values */
     CHAMELEON_zplrnt( M, N, A, LDA, seedA );

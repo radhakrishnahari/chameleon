@@ -35,12 +35,12 @@ int CUDA_ztsqrt(
         magmaDoubleComplex *dwork,
         CUstream stream)
 {
-#define da1_ref(a_1,a_2) ( da1+(a_2)*ldda1 + (a_1))
-#define da2_ref(a_1,a_2) ( da2+(a_2)*ldda2 + (a_1))
-#define a2_ref(a_1,a_2) ( a2+(a_2)*lda2 + (a_1))
-#define t_ref(a_1,a_2) ( t+(a_2)*ldt + (a_1))
-#define dt_ref(a_1,a_2) ( dt+(a_2)*lddt + (a_1))
-#define d_ref(a_1,a_2) ( d+(a_2)*ldd + (a_1))
+#define da1_ref(a_1,a_2) ( da1+(size_t)(a_2)*ldda1 + (a_1))
+#define da2_ref(a_1,a_2) ( da2+(size_t)(a_2)*ldda2 + (a_1))
+#define a2_ref( a_1,a_2) ( a2 +(size_t)(a_2)*lda2  + (a_1))
+#define t_ref(  a_1,a_2) ( t  +(size_t)(a_2)*ldt   + (a_1))
+#define dt_ref( a_1,a_2) ( dt +(size_t)(a_2)*lddt  + (a_1))
+#define d_ref(  a_1,a_2) ( d  +(size_t)(a_2)*ldd   + (a_1))
 
     int i, k, lddwork, old_i, old_ib, rows, cols;
     int ib;
@@ -65,15 +65,15 @@ int CUDA_ztsqrt(
     lddwork= nb;
 
     /* lower parts of little T must be zero: memset all to 0 for simplicity */
-    memset(t, 0, nb*nb*sizeof(magmaDoubleComplex));
-    cudaMemset(dt, 0, nb*n*sizeof(magmaDoubleComplex));
+    memset( t, 0, sizeof(magmaDoubleComplex) * nb * nb );
+    cudaMemset( dt, 0, sizeof(magmaDoubleComplex) nb * n );
 
     /* copy the first diag tile of A1 from device to host: da1 -> d */
     cublasGetMatrix(nb, nb, sizeof(magmaDoubleComplex),
                     da1_ref(0, 0), ldda1,
                     d, ldd);
 //  cudaMemcpy( d, da1_ref(0,0),
-//              nb*nb*sizeof(cuDoubleComplex),
+//              sizeof(cuDoubleComplex) * nb * nb,
 //              cudaMemcpyDeviceToHost );
 
     /* copy first panel of A2 from device to host: da2 -> a2 */
@@ -81,7 +81,7 @@ int CUDA_ztsqrt(
 //                    da2_ref(0, 0), ldda2,
 //                    a2, lda2);
     cudaMemcpy( a2, da2_ref(0, 0),
-                m*nb*sizeof(cuDoubleComplex),
+                sizeof(cuDoubleComplex) * m * nb,
                 cudaMemcpyDeviceToHost );
 
     /* This is only blocked code for now */
@@ -100,7 +100,7 @@ int CUDA_ztsqrt(
                             da1_ref(i, i), ldda1,
                             d, ldd);
 //          cudaMemcpy( d, da1_ref(i,i),
-//              ib*ib*sizeof(cuDoubleComplex),
+//              sizeof(cuDoubleComplex) * ib * ib,
 //              cudaMemcpyDeviceToHost );
 
             /* copy panel of A2 from device to host: da2 -> a2 */
@@ -108,7 +108,7 @@ int CUDA_ztsqrt(
                             da2_ref(0, i), ldda2,
                             a2, lda2);
 //            cudaMemcpy( a2, da2_ref(0,i),
-//                rows*ib*sizeof(cuDoubleComplex),
+//                sizeof(cuDoubleComplex) * rows * ib,
 //                cudaMemcpyDeviceToHost );
 
             /* Apply H' to A(i:m,i+2*ib:n) from the left */
@@ -141,7 +141,7 @@ int CUDA_ztsqrt(
                         a2, lda2,
                         da2_ref(0, i), ldda2);
 //        cudaMemcpy( da2_ref(0,i), a2,
-//            rows*ib*sizeof(cuDoubleComplex),
+//            sizeof(cuDoubleComplex) * rows * ib,
 //            cudaMemcpyHostToDevice );
 
         /* Send the triangular factor T from hwork to the GPU */
@@ -149,7 +149,7 @@ int CUDA_ztsqrt(
                         t, ldt,
                         dt_ref(0, i), lddt);
 //        cudaMemcpy( dt_ref(0,i), t,
-//            ib*ib*sizeof(cuDoubleComplex),
+//            sizeof(cuDoubleComplex) * ib * ib,
 //            cudaMemcpyHostToDevice );
 
         /* get back the diag tile in A1 from host to device: d -> da1 */
@@ -157,7 +157,7 @@ int CUDA_ztsqrt(
                         d, ldd,
                         da1_ref(i, i), ldda1);
 //        cudaMemcpy( da1_ref(i, i), d,
-//            ib*ib*sizeof(cuDoubleComplex),
+//            sizeof(cuDoubleComplex) * ib * ib,
 //            cudaMemcpyHostToDevice );
 
         /* tsmqr update on one panel forward (look ahead 1) */

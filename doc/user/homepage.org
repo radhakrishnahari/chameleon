@@ -402,9 +402,9 @@
         *     - set of RHS vectors B       : size N x NRHS
         *     - set of solutions vectors X : size N x NRHS
         */
-       double *A    = malloc( N * N    * sizeof(double) );
-       double *B    = malloc( N * NRHS * sizeof(double) );
-       double *X    = malloc( N * NRHS * sizeof(double) );
+       double *A = malloc( sizeof(double) * N * N    );
+       double *B = malloc( sizeof(double) * N * NRHS );
+       double *X = malloc( sizeof(double) * N * NRHS );
 
        /* generate A matrix with random values such that it is spd */
        CHAMELEON_dplgsy( (double)N, ChamUpperLower, N, A, N, 51 );
@@ -413,7 +413,7 @@
        CHAMELEON_dplrnt( N, NRHS, B, N, 5673 );
 
        /* copy B in X before solving */
-       memcpy(X, B, N*NRHS*sizeof(double));
+       memcpy( X, B, sizeof(double) * N * NRHS );
 
        /************************************************************/
        /* solve the system AX = B using the Cholesky factorization */

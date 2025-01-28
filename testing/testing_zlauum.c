@@ -106,7 +106,7 @@ testing_zlauum_std( run_arg_list_t *args, int check )
     CHAMELEON_Set( CHAMELEON_TILE_SIZE, nb );
 
     /* Creates the matrices */
-    A = malloc( (size_t) LDA*N*sizeof(CHAMELEON_Complex64_t) );
+    A = malloc( sizeof(CHAMELEON_Complex64_t) * LDA*N );
 
     /* Initialises the matrices with the same values */
     CHAMELEON_zplghe( 0., uplo, N, A, LDA, seedA );
@@ -133,7 +133,7 @@ testing_zlauum_std( run_arg_list_t *args, int check )
     testing_stop( &test_data, flops_zlauum( N ) );
 
     if ( check ) {
-        CHAMELEON_Complex64_t *A0 = malloc( (size_t) LDA*N*sizeof(CHAMELEON_Complex64_t) );
+        CHAMELEON_Complex64_t *A0 = malloc( sizeof(CHAMELEON_Complex64_t) * LDA*N );
         CHAMELEON_zplghe( 0., uplo, N, A0, LDA, seedA );
 
         hres += check_zlauum_std( args, uplo, N, A0, A, LDA );

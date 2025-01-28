@@ -83,7 +83,7 @@ int check_zmatrices_std( run_arg_list_t *args, cham_uplo_t uplo, int M, int N, C
     double Anorm, Rnorm, result;
     cham_fixdbl_t eps = testing_getaccuracy();
 
-    double *work = (double *)malloc( (size_t) LDA*N*sizeof(double) );
+    double *work = (double *)malloc( sizeof(double) * LDA * N );
 
     /* Computes the norms */
     if ( uplo == ChamUpperLower ) {
@@ -163,8 +163,8 @@ int check_zmatrices( run_arg_list_t *args, cham_uplo_t uplo, CHAM_desc_t *descA,
     CHAMELEON_Complex64_t *B = NULL;
 
     if ( rank == 0 ) {
-        A = (CHAMELEON_Complex64_t *)malloc((size_t)(LDA) * (size_t)(N) * sizeof(CHAMELEON_Complex64_t));
-        B = (CHAMELEON_Complex64_t *)malloc((size_t)(LDB) * (size_t)(N) * sizeof(CHAMELEON_Complex64_t));
+        A = (CHAMELEON_Complex64_t *)malloc( (size_t)(LDA) * (size_t)(N) * sizeof(CHAMELEON_Complex64_t) );
+        B = (CHAMELEON_Complex64_t *)malloc( (size_t)(LDB) * (size_t)(N) * sizeof(CHAMELEON_Complex64_t) );
         if ( (A == NULL) || (B == NULL) ) {
             free( A );
             free( B );
@@ -234,7 +234,7 @@ int check_znorm_std( run_arg_list_t *args, cham_mtxtype_t matrix_type, cham_norm
                      cham_diag_t diag, double norm_cham, int M, int N, CHAMELEON_Complex64_t *A, int LDA )
 {
     int info_solution  = 0;
-    double *work       = (double*) malloc(chameleon_max(M, N)*sizeof(double));
+    double *work       = (double*) malloc( sizeof(double) * chameleon_max(M, N) );
     double norm_lapack;
     double result;
     cham_fixdbl_t eps = testing_getaccuracy();
@@ -341,7 +341,7 @@ int check_znorm( run_arg_list_t *args, cham_mtxtype_t matrix_type, cham_normtype
     int LDA                  = M;
 
     if ( rank == 0 ) {
-        A = (CHAMELEON_Complex64_t *)malloc(LDA*N*sizeof(CHAMELEON_Complex64_t));
+        A = (CHAMELEON_Complex64_t *)malloc( sizeof(CHAMELEON_Complex64_t) * LDA * N );
     }
 
     /* Converts the matrix to LAPACK layout in order to use the LAPACK norm function */
@@ -428,7 +428,7 @@ int check_zsum_std( run_arg_list_t *args, cham_uplo_t uplo, cham_trans_t trans, 
     }
 
     cham_fixdbl_t eps = testing_getaccuracy();
-    double *work = malloc(chameleon_max(M, N)* sizeof(double));
+    double *work = malloc( sizeof(double) * chameleon_max(M, N) );
 
     /* Makes the sum with the core function */
     if ( uplo == ChamUpperLower ) {
@@ -526,9 +526,9 @@ int check_zsum ( run_arg_list_t *args, cham_uplo_t uplo, cham_trans_t trans, CHA
     cham_uplo_t uploA            = uplo;
 
     if ( rank == 0 ) {
-        A     = malloc( (size_t) LDA*An*sizeof(CHAMELEON_Complex64_t) );
-        Bref  = malloc( (size_t) LDB*N* sizeof(CHAMELEON_Complex64_t) );
-        Bcham = malloc( (size_t) LDB*N* sizeof(CHAMELEON_Complex64_t) );
+        A     = malloc( sizeof(CHAMELEON_Complex64_t) * LDA * An );
+        Bref  = malloc( sizeof(CHAMELEON_Complex64_t) * LDB * N  );
+        Bcham = malloc( sizeof(CHAMELEON_Complex64_t) * LDB * N  );
     }
 
     if ( uplo != ChamUpperLower && trans != ChamNoTrans ) {
@@ -640,8 +640,8 @@ int check_zscale( run_arg_list_t *args, cham_uplo_t uplo, CHAMELEON_Complex64_t 
     CHAMELEON_Complex64_t *Ainit = NULL;
 
     if ( rank == 0 ) {
-        A     = (CHAMELEON_Complex64_t *)malloc(LDA*N*sizeof(CHAMELEON_Complex64_t));
-        Ainit = (CHAMELEON_Complex64_t *)malloc(LDA*N*sizeof(CHAMELEON_Complex64_t));
+        A     = (CHAMELEON_Complex64_t *)malloc(sizeof( CHAMELEON_Complex64_t) * LDA * N );
+        Ainit = (CHAMELEON_Complex64_t *)malloc(sizeof( CHAMELEON_Complex64_t) * LDA * N );
     }
 
     /* Converts the matrix to LAPACK layout in order to scale with BLAS */
@@ -704,10 +704,10 @@ int check_zrankk_std( run_arg_list_t *args, int M, int N, int K, CHAMELEON_Compl
     Anorm = LAPACKE_zlange( LAPACK_COL_MAJOR, 'F', M, N, A, LDA );
 
     /* check rank of A using SVD, value K+1 of Sigma must be small enough */
-    CHAMELEON_Complex64_t *U  = malloc( (size_t) M * M * sizeof(CHAMELEON_Complex64_t) );
-    CHAMELEON_Complex64_t *VT = malloc( (size_t) N * N * sizeof(CHAMELEON_Complex64_t) );
-    double *S    = malloc( minMN * sizeof(double) );
-    double *work = malloc( minMN * sizeof(double) );
+    CHAMELEON_Complex64_t *U  = malloc( sizeof(CHAMELEON_Complex64_t) * M * M );
+    CHAMELEON_Complex64_t *VT = malloc( sizeof(CHAMELEON_Complex64_t) * N * N );
+    double *S    = malloc( sizeof(double) * minMN );
+    double *work = malloc( sizeof(double) * minMN );
 
     LAPACKE_zgesvd( LAPACK_COL_MAJOR, 'A', 'A', M, N, A, LDA, S, U, M, VT, N, work );
 
@@ -769,7 +769,7 @@ int check_zrankk( run_arg_list_t *args, int K, CHAM_desc_t *descA )
     /* Converts the matrices to LAPACK layout in order to check values on the main process */
     CHAMELEON_Complex64_t *A = NULL;
     if ( rank == 0 ) {
-        A = malloc( (size_t) M*N*sizeof(CHAMELEON_Complex64_t) );
+        A = malloc( sizeof(CHAMELEON_Complex64_t) * M * N );
     }
     CHAMELEON_Desc2Lap( ChamUpperLower, descA, A, LDA );
 

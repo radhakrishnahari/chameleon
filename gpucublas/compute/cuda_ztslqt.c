@@ -35,12 +35,12 @@ int CUDA_ztslqt(
         magmaDoubleComplex *dwork,
         CUstream stream)
 {
-#define da1_ref(a_1,a_2) ( da1+(a_2)*ldda1 + (a_1))
-#define da2_ref(a_1,a_2) ( da2+(a_2)*ldda2 + (a_1))
-#define a2_ref(a_1,a_2) ( a2+(a_2)*lda2 + (a_1))
-#define t_ref(a_1,a_2) ( t+(a_2)*ldt + (a_1))
-#define dt_ref(a_1,a_2) ( dt+(a_2)*lddt + (a_1))
-#define d_ref(a_1,a_2) ( d+(a_2)*ldd + (a_1))
+#define da1_ref(a_1,a_2) ( da1+(size_t)(a_2)*ldda1 + (a_1))
+#define da2_ref(a_1,a_2) ( da2+(size_t)(a_2)*ldda2 + (a_1))
+#define a2_ref( a_1,a_2) ( a2 +(size_t)(a_2)*lda2  + (a_1))
+#define t_ref(  a_1,a_2) ( t  +(size_t)(a_2)*ldt   + (a_1))
+#define dt_ref( a_1,a_2) ( dt +(size_t)(a_2)*lddt  + (a_1))
+#define d_ref(  a_1,a_2) ( d  +(size_t)(a_2)*ldd   + (a_1))
 
     int i, k, lddwork, old_i, old_ib, rows, cols;
     int ib;
@@ -63,8 +63,8 @@ int CUDA_ztslqt(
     lddwork= m;
 
     /* lower parts of little T must be zero: memset all to 0 for simplicity */
-    memset(t, 0, nb*n*sizeof(magmaDoubleComplex));
-    cudaMemset(dt, 0, nb*n*sizeof(magmaDoubleComplex));
+    memset( t, 0, sizeof(magmaDoubleComplex) * nb * n );
+    cudaMemset( dt, 0, sizeof(magmaDoubleComplex) * nb * n );
 
     //k = chameleon_min(m, nb); // m can be lower than IB
     /* copy the first diag tile of A1 from device to host: da1 -> d */

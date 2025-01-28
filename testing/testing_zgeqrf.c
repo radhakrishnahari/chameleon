@@ -135,7 +135,7 @@ testing_zgeqrf_std( run_arg_list_t *args, int check )
     }
 
     /* Creates the matrices */
-    A = malloc( (size_t) LDA*N*sizeof(CHAMELEON_Complex64_t) );
+    A = malloc( sizeof(CHAMELEON_Complex64_t) * LDA*N );
     CHAMELEON_Alloc_Workspace_zgels( M, N, &descT, P, Q );
 
     /* Fills the matrix with random values */
@@ -149,8 +149,8 @@ testing_zgeqrf_std( run_arg_list_t *args, int check )
 
     /* Checks the factorisation and orthogonality */
     if ( check ) {
-        CHAMELEON_Complex64_t *Qlap = malloc( (size_t) M*M*sizeof(CHAMELEON_Complex64_t) );
-        CHAMELEON_Complex64_t *A0   = malloc( (size_t) LDA*N*sizeof(CHAMELEON_Complex64_t) );
+        CHAMELEON_Complex64_t *Qlap = malloc( sizeof(CHAMELEON_Complex64_t) * M*M );
+        CHAMELEON_Complex64_t *A0   = malloc( sizeof(CHAMELEON_Complex64_t) * LDA*N );
 
         CHAMELEON_zplrnt( M, N, A0, LDA, seedA );
 

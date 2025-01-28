@@ -131,7 +131,7 @@ cppi_get_size(starpu_data_handle_t handle)
                        "Error. The given data is not a pivot interface." );
 #endif
 
-    size = cppi_interface->arraysize * 2 + 4 * sizeof(int);
+    size = cppi_interface->arraysize * 2 + sizeof(int) * 4;
     return size;
 }
 
@@ -248,7 +248,7 @@ cppi_peek_data( starpu_data_handle_t handle, unsigned node, void *ptr, size_t co
      * received data has been registered. Thus, datatype was not existant and we
      * need to unpack the data ourselves
      */
-    STARPU_ASSERT( count == (size + 4 * sizeof(int)) );
+    STARPU_ASSERT( count == (size + sizeof(int) * 4) );
 
 #else
 
