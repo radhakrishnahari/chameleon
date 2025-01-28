@@ -141,7 +141,7 @@ int CHAMELEON_Lapack_to_Tile( void *Af77, int LDA, CHAM_desc_t *A ) __attribute_
 int CHAMELEON_Tile_to_Lapack( CHAM_desc_t *A, void *Af77, int LDA ) __attribute__((deprecated("Please refer to CHAMELEON_Desc2Lap() instead")));
 
 /* Descriptor */
-int CHAMELEON_Element_Size( cham_flttype_t type );
+ssize_t CHAMELEON_Element_Size( cham_flttype_t type );
 
 int CHAMELEON_Desc_Create_User( CHAM_desc_t **desc, void *mat, cham_flttype_t dtyp, int mb, int nb, int bsiz,
                                 int lm, int ln, int i, int j, int m, int n, int p, int q,
