@@ -107,7 +107,7 @@ testing_zgesvd_desc( run_arg_list_t *args, int check )
 
     if ( (jobu == ChamAllVec) || (jobu == ChamSVec) ) {
         Un  = ( jobu == ChamSVec ) ? K : M;
-        U   = malloc( LDU*Un*sizeof(CHAMELEON_Complex64_t) );
+        U   = malloc( (size_t) LDU*Un*sizeof(CHAMELEON_Complex64_t) );
     }
     else {
         U = NULL;
@@ -115,7 +115,7 @@ testing_zgesvd_desc( run_arg_list_t *args, int check )
 
     if ( (jobvt == ChamAllVec) || (jobvt == ChamSVec) ) {
         LDVt = ( jobvt == ChamSVec ) ? K : N;
-        Vt   = malloc( LDVt*N*sizeof(CHAMELEON_Complex64_t) );
+        Vt   = malloc( (size_t) LDVt*N*sizeof(CHAMELEON_Complex64_t) );
     }
     else {
         Vt = NULL;
@@ -212,12 +212,12 @@ testing_zgesvd_std( run_arg_list_t *args, int check )
     }
 
     /* Creates the matrices */
-    A = malloc( LDA*N*sizeof(CHAMELEON_Complex64_t) );
+    A = malloc( (size_t) LDA*N*sizeof(CHAMELEON_Complex64_t) );
     CHAMELEON_Alloc_Workspace_zgesvd( M, N, &descT, 1, 1 );
 
     if ( (jobu == ChamAllVec) || (jobu == ChamSVec) ) {
         Un  = ( jobu == ChamSVec ) ? K : M;
-        U   = malloc( LDU*Un*sizeof(CHAMELEON_Complex64_t) );
+        U   = malloc( (size_t) LDU*Un*sizeof(CHAMELEON_Complex64_t) );
     }
     else {
         U = NULL;
@@ -225,7 +225,7 @@ testing_zgesvd_std( run_arg_list_t *args, int check )
 
     if ( (jobvt == ChamAllVec) || (jobvt == ChamSVec) ) {
         LDVt = ( jobvt == ChamSVec ) ? K : N;
-        Vt   = malloc( LDVt*N*sizeof(CHAMELEON_Complex64_t) );
+        Vt   = malloc( (size_t) LDVt*N*sizeof(CHAMELEON_Complex64_t) );
     }
     else {
         Vt = NULL;
@@ -250,7 +250,7 @@ testing_zgesvd_std( run_arg_list_t *args, int check )
      * with the call to CHAMELEON_zgepdf_qdwh).
      */
     if ( check ) {
-        A0 = malloc( LDA*N*sizeof(CHAMELEON_Complex64_t) );
+        A0 = malloc( (size_t) LDA*N*sizeof(CHAMELEON_Complex64_t) );
         CHAMELEON_zlacpy( ChamUpperLower, M, N, A, LDA, A0, LDA );
     }
 

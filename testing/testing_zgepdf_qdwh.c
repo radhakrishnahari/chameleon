@@ -162,8 +162,8 @@ testing_zgepdf_qdwh_std( run_arg_list_t *args, int check )
     }
 
     /* Creates the matrix */
-    A = malloc( LDA*N*sizeof(CHAMELEON_Complex64_t) );
-    H = malloc( LDB*N*sizeof(CHAMELEON_Complex64_t) );
+    A = malloc( (size_t) LDA*N*sizeof(CHAMELEON_Complex64_t) );
+    H = malloc( (size_t) LDB*N*sizeof(CHAMELEON_Complex64_t) );
 
     /* Fills the matrix with random values */
     hres = CHAMELEON_zlatms( M, N, ChamDistUniform, seedA, ChamNonsymPosv, NULL, mode, cond, 1., A, LDA );
@@ -178,7 +178,7 @@ testing_zgepdf_qdwh_std( run_arg_list_t *args, int check )
      * with the call to CHAMELEON_zgepdf_qdwh).
      */
     if ( check ) {
-        A0 = malloc( LDA*N*sizeof(CHAMELEON_Complex64_t) );
+        A0 = malloc( (size_t) LDA*N*sizeof(CHAMELEON_Complex64_t) );
         CHAMELEON_zlacpy( ChamUpperLower, M, N, A, LDA, A0, LDA );
     }
 

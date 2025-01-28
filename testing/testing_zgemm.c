@@ -184,9 +184,9 @@ testing_zgemm_std( run_arg_list_t *args, int check )
     }
 
     /* Create the matrices */
-    A = malloc( LDA*An*sizeof(CHAMELEON_Complex64_t) );
-    B = malloc( LDB*Bn*sizeof(CHAMELEON_Complex64_t) );
-    C = malloc( LDC*N*sizeof(CHAMELEON_Complex64_t) );
+    A = malloc( (size_t) LDA*An*sizeof(CHAMELEON_Complex64_t) );
+    B = malloc( (size_t) LDB*Bn*sizeof(CHAMELEON_Complex64_t) );
+    C = malloc( (size_t) LDC*N*sizeof(CHAMELEON_Complex64_t) );
 
     /* Fill the matrices with random values */
     CHAMELEON_zplrnt( Am, An, A, LDA, seedA );
@@ -222,7 +222,7 @@ testing_zgemm_std( run_arg_list_t *args, int check )
     /* Check the solution */
     if ( check ) {
         CHAMELEON_Complex64_t *Cinit;
-        Cinit = malloc( LDC*N*sizeof(CHAMELEON_Complex64_t) );
+        Cinit = malloc( (size_t) LDC*N*sizeof(CHAMELEON_Complex64_t) );
         CHAMELEON_zplrnt( M, N, Cinit, LDC, seedC );
 
         hres += check_zgemm_std( args, transA, transB, alpha, M, N, K, A, LDA, B, LDB, beta, Cinit, C, LDC );

@@ -155,8 +155,8 @@ testing_zsyrk_std( run_arg_list_t *args, int check )
     }
 
     /* Creates the matrices */
-    A = malloc( LDA*An*sizeof(CHAMELEON_Complex64_t) );
-    C = malloc( LDC*N *sizeof(CHAMELEON_Complex64_t) );
+    A = malloc( (size_t) LDA*An*sizeof(CHAMELEON_Complex64_t) );
+    C = malloc( (size_t) LDC*N *sizeof(CHAMELEON_Complex64_t) );
 
     /* Fills the matrix with random values */
     CHAMELEON_zplrnt( Am, An, A, LDA, seedA );
@@ -191,7 +191,7 @@ testing_zsyrk_std( run_arg_list_t *args, int check )
     /* Checks the solution */
     if ( check ) {
         CHAMELEON_Complex64_t *Cinit;
-        Cinit = malloc( LDC*N*sizeof(CHAMELEON_Complex64_t) );
+        Cinit = malloc( (size_t) LDC*N*sizeof(CHAMELEON_Complex64_t) );
         CHAMELEON_zplgsy( bump, uplo, N, Cinit, LDC, seedC );
 
         hres += check_zsyrk_std( args, ChamSymmetric, uplo, trans, N, K, alpha, A, LDA, NULL, LDA, beta, Cinit, C, LDC );
