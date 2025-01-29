@@ -141,7 +141,7 @@ int CORE_ztstrf(int M, int N, int IB, int NB,
         return CHAMELEON_SUCCESS;
 
     /* Set L to 0 */
-    memset(L, 0, LDL*N*sizeof(CHAMELEON_Complex64_t));
+    memset( L, 0, sizeof(CHAMELEON_Complex64_t) * LDL * N );
 
     ip = 0;
     for (ii = 0; ii < N; ii += IB) {

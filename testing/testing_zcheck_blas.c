@@ -208,10 +208,10 @@ int check_zgemm( run_arg_list_t *args, cham_trans_t transA, cham_trans_t transB,
 
     /* Creates the LAPACK version of the matrices */
     if ( rank == 0 ) {
-        A    = (CHAMELEON_Complex64_t *)malloc(LDA*An*sizeof(CHAMELEON_Complex64_t));
-        B    = (CHAMELEON_Complex64_t *)malloc(LDB*Bn*sizeof(CHAMELEON_Complex64_t));
-        Cref = (CHAMELEON_Complex64_t *)malloc(LDC*N *sizeof(CHAMELEON_Complex64_t));
-        C    = (CHAMELEON_Complex64_t *)malloc(LDC*N *sizeof(CHAMELEON_Complex64_t));
+        A    = (CHAMELEON_Complex64_t *)malloc( sizeof(CHAMELEON_Complex64_t) * LDA * An );
+        B    = (CHAMELEON_Complex64_t *)malloc( sizeof(CHAMELEON_Complex64_t) * LDB * Bn );
+        Cref = (CHAMELEON_Complex64_t *)malloc( sizeof(CHAMELEON_Complex64_t) * LDC * N  );
+        C    = (CHAMELEON_Complex64_t *)malloc( sizeof(CHAMELEON_Complex64_t) * LDC * N  );
     }
 
     CHAMELEON_zDesc2Lap( ChamUpperLower, descA,    A,    LDA );
@@ -432,10 +432,10 @@ int check_zsymm( run_arg_list_t *args, cham_mtxtype_t matrix_type, cham_side_t s
     int LDC                     = M;
 
     if ( rank == 0 ) {
-        A    = ( CHAMELEON_Complex64_t * ) malloc( (size_t) LDA*An*sizeof( CHAMELEON_Complex64_t ) );
-        B    = ( CHAMELEON_Complex64_t * ) malloc( (size_t) LDB*N *sizeof( CHAMELEON_Complex64_t ) );
-        Cref = ( CHAMELEON_Complex64_t * ) malloc( (size_t) LDC*N *sizeof( CHAMELEON_Complex64_t ) );
-        C    = ( CHAMELEON_Complex64_t * ) malloc( (size_t) LDC*N *sizeof( CHAMELEON_Complex64_t ) );
+        A    = ( CHAMELEON_Complex64_t * ) malloc( sizeof( CHAMELEON_Complex64_t ) * LDA * An );
+        B    = ( CHAMELEON_Complex64_t * ) malloc( sizeof( CHAMELEON_Complex64_t ) * LDB * N  );
+        Cref = ( CHAMELEON_Complex64_t * ) malloc( sizeof( CHAMELEON_Complex64_t ) * LDC * N  );
+        C    = ( CHAMELEON_Complex64_t * ) malloc( sizeof( CHAMELEON_Complex64_t ) * LDC * N  );
     }
 
     /* Creates the LAPACK version of the matrices */
@@ -691,12 +691,12 @@ int check_zsyrk( run_arg_list_t *args, cham_mtxtype_t matrix_type, cham_uplo_t u
     LDC = N;
 
     if ( rank == 0 ) {
-        A    = (CHAMELEON_Complex64_t *)malloc( (size_t) LDA * An * sizeof(CHAMELEON_Complex64_t) );
+        A    = (CHAMELEON_Complex64_t *)malloc( sizeof(CHAMELEON_Complex64_t) * LDA * An  );
         if ( descB != NULL ) {
-            B = (CHAMELEON_Complex64_t *)malloc( (size_t) LDB * Bn * sizeof(CHAMELEON_Complex64_t) );
+            B = (CHAMELEON_Complex64_t *)malloc( sizeof(CHAMELEON_Complex64_t) * LDB * Bn  );
         }
-        Cref = (CHAMELEON_Complex64_t *)malloc( (size_t) LDC * N * sizeof(CHAMELEON_Complex64_t) );
-        C    = (CHAMELEON_Complex64_t *)malloc( (size_t) LDC * N * sizeof(CHAMELEON_Complex64_t) );
+        Cref = (CHAMELEON_Complex64_t *)malloc( sizeof(CHAMELEON_Complex64_t) * LDC * N  );
+        C    = (CHAMELEON_Complex64_t *)malloc( sizeof(CHAMELEON_Complex64_t) * LDC * N  );
     }
 
     /* Creates the LAPACK version of the matrices */
@@ -899,9 +899,9 @@ int check_ztrmm( run_arg_list_t *args, int check_func, cham_side_t side, cham_up
     int LDB                     = M;
 
     if ( rank == 0 ) {
-        A    = (CHAMELEON_Complex64_t *)malloc( (size_t) LDA*An*sizeof(CHAMELEON_Complex64_t) );
-        Bref = (CHAMELEON_Complex64_t *)malloc( (size_t) LDB*N *sizeof(CHAMELEON_Complex64_t) );
-        B    = (CHAMELEON_Complex64_t *)malloc( (size_t) LDB*N *sizeof(CHAMELEON_Complex64_t) );
+        A    = (CHAMELEON_Complex64_t *)malloc( sizeof(CHAMELEON_Complex64_t) * LDA * An );
+        Bref = (CHAMELEON_Complex64_t *)malloc( sizeof(CHAMELEON_Complex64_t) * LDB * N  );
+        B    = (CHAMELEON_Complex64_t *)malloc( sizeof(CHAMELEON_Complex64_t) * LDB * N  );
     }
 
     /* Creates the LAPACK version of the matrices */

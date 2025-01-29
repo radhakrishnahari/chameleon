@@ -100,7 +100,7 @@ testing_zgetrf_nopiv_std( run_arg_list_t *args, int check )
     CHAMELEON_Set( CHAMELEON_TILE_SIZE, nb );
 
     /* Creates the matrices */
-    A = malloc( (size_t) LDA*N*sizeof(CHAMELEON_Complex64_t) );
+    A = malloc( sizeof(CHAMELEON_Complex64_t) * LDA*N );
 
     /* Fills the matrix with random values */
     CHAMELEON_zplgtr( 0,    ChamUpper, M, N, A, LDA, seedA   );
@@ -114,7 +114,7 @@ testing_zgetrf_nopiv_std( run_arg_list_t *args, int check )
 
     /* Checks the factorisation and residue */
     if ( check ) {
-        CHAMELEON_Complex64_t *A0 = malloc( (size_t) LDA*N*sizeof(CHAMELEON_Complex64_t) );
+        CHAMELEON_Complex64_t *A0 = malloc( sizeof(CHAMELEON_Complex64_t) * LDA*N );
         CHAMELEON_zplgtr( 0,    ChamUpper, M, N, A0, LDA, seedA   );
         CHAMELEON_zplgtr( bump, ChamLower, M, N, A0, LDA, seedA+1 );
 

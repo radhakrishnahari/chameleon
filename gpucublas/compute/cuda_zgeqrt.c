@@ -35,10 +35,10 @@ CUDA_zgeqrt(
     magmaDoubleComplex *dwork,
     CUstream stream )
 {
-#define da_ref(a_1,a_2) ( da+(a_2)*(ldda) + (a_1))
-#define v_ref(a_1,a_2)  ( v+(a_2)*(ldv) + (a_1))
-#define dt_ref(a_1,a_2) ( dt+(a_2)*(lddt) + (a_1))
-#define t_ref(a_1,a_2)  ( t+(a_2)*(ldt) + (a_1))
+#define da_ref(a_1,a_2) ( da+(size_t)(a_2)*(ldda) + (a_1))
+#define v_ref( a_1,a_2) ( v +(size_t)(a_2)*(ldv)  + (a_1))
+#define dt_ref(a_1,a_2) ( dt+(size_t)(a_2)*(lddt) + (a_1))
+#define t_ref( a_1,a_2) ( t +(size_t)(a_2)*(ldt)  + (a_1))
 
     int i, k, ib, old_i, old_ib, rows, cols;
     double _Complex one=1.;
@@ -58,8 +58,8 @@ CUDA_zgeqrt(
     }
 
     /* lower parts of little T must be zero: memset to 0 for simplicity */
-    memset(t_ref(0,0), 0, nb*n*sizeof(magmaDoubleComplex));
-    cudaMemsetAsync(dt_ref(0,0), 0, nb*n*sizeof(magmaDoubleComplex), stream);
+    memset( t_ref(0,0), 0, sizeof(magmaDoubleComplex) * nb * n );
+    cudaMemsetAsync( dt_ref(0,0), 0, sizeof(magmaDoubleComplex) * nb * n, stream );
 
     if ( (nb > 1) && (nb < k) ) {
         /* Use blocked code initially */

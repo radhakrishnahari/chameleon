@@ -83,7 +83,7 @@ int main(int argc, char *argv[]) {
 
   /* initialize some parameters with default values */
   int iparam[IPARAM_SIZEOF];
-  memset(iparam, 0, IPARAM_SIZEOF*sizeof(int));
+  memset( iparam, 0, sizeof(int) * IPARAM_SIZEOF );
   init_iparam(iparam);
 
   /* read arguments */

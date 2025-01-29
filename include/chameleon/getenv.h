@@ -49,7 +49,7 @@ chameleon_getenv( const char *var ) {
     char *str;
     int len = 512;
     int rc;
-    str = (char*)malloc(len * sizeof(char));
+    str = (char*)malloc( sizeof(char) * len );
     rc = GetEnvironmentVariable(var, str, len);
     if (rc == 0) {
         free(str);

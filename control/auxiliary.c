@@ -187,19 +187,19 @@ int CHAMELEON_Version(int *ver_major, int *ver_minor, int *ver_micro)
  * @retval Element size in bytes
  *
  */
-int CHAMELEON_Element_Size( cham_flttype_t type )
+ssize_t CHAMELEON_Element_Size( cham_flttype_t type )
 {
     switch( cham_get_flttype(type) ) {
-        case ChamByte:          return          1;
-        case ChamInteger16:     return   sizeof(int16_t);
-        case ChamInteger32:     return   sizeof(int32_t);
-        case ChamInteger64:     return   sizeof(int64_t);
-        case ChamRealHalf:      return   2;
-        case ChamRealFloat:     return   sizeof(float);
-        case ChamRealDouble:    return   sizeof(double);
-        case ChamComplexHalf:   return   4;
-        case ChamComplexFloat:  return 2*sizeof(float);
-        case ChamComplexDouble: return 2*sizeof(double);
+        case ChamByte:          return (ssize_t)1;
+        case ChamInteger16:     return sizeof(int16_t);
+        case ChamInteger32:     return sizeof(int32_t);
+        case ChamInteger64:     return sizeof(int64_t);
+        case ChamRealHalf:      return (ssize_t)2;
+        case ChamRealFloat:     return sizeof(float);
+        case ChamRealDouble:    return sizeof(double);
+        case ChamComplexHalf:   return (ssize_t)4;
+        case ChamComplexFloat:  return sizeof(float)  * 2;
+        case ChamComplexDouble: return sizeof(double) * 2;
         default: chameleon_fatal_error("CHAMELEON_Element_Size", "undefined type");
                  return CHAMELEON_ERR_ILLEGAL_VALUE;
 

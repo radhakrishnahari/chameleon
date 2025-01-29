@@ -184,8 +184,8 @@ testing_zgels_hqr_std( run_arg_list_t *args, int check )
     CHAMELEON_Set( CHAMELEON_INNER_BLOCK_SIZE, ib );
 
     /* Creates the matrices */
-    A = malloc( (size_t) LDA*N*   sizeof(CHAMELEON_Complex64_t) );
-    X = malloc( (size_t) LDB*NRHS*sizeof(CHAMELEON_Complex64_t) );
+    A = malloc( sizeof(CHAMELEON_Complex64_t) * LDA*N );
+    X = malloc( sizeof(CHAMELEON_Complex64_t) * LDB*NRHS );
     CHAMELEON_Alloc_Workspace_zgels( M, N, &descTS, P, Q );
     CHAMELEON_Alloc_Workspace_zgels( M, N, &descTT, P, Q );
 
@@ -211,8 +211,8 @@ testing_zgels_hqr_std( run_arg_list_t *args, int check )
     if ( check ) {
         CHAMELEON_Complex64_t *A0, *B;
 
-        A0 = malloc( (size_t) LDA*N*   sizeof(CHAMELEON_Complex64_t) );
-        B  = malloc( (size_t) LDB*NRHS*sizeof(CHAMELEON_Complex64_t) );
+        A0 = malloc( sizeof(CHAMELEON_Complex64_t) * LDA*N );
+        B  = malloc( sizeof(CHAMELEON_Complex64_t) * LDB*NRHS );
 
         CHAMELEON_zplrnt( M,     N,    A0, LDA, seedA );
         CHAMELEON_zplrnt( maxMN, NRHS, B,  LDB, seedB );

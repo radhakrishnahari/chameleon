@@ -140,8 +140,8 @@ testing_ztrmm_std( run_arg_list_t *args, int check )
     An = ( side == ChamLeft ) ? M : N;
 
     /* Creates the matrices */
-    A = malloc( (size_t) LDA*An*sizeof(CHAMELEON_Complex64_t) );
-    B = malloc( (size_t) LDB*N *sizeof(CHAMELEON_Complex64_t) );
+    A = malloc( sizeof(CHAMELEON_Complex64_t) * LDA*An );
+    B = malloc( sizeof(CHAMELEON_Complex64_t) * LDB*N  );
 
     /* Fills the matrix with random values */
     CHAMELEON_zplrnt( An, An, A, LDA, seedA );
@@ -177,7 +177,7 @@ testing_ztrmm_std( run_arg_list_t *args, int check )
     /* Checks the solution */
     if ( check ) {
         CHAMELEON_Complex64_t *Binit;
-        Binit = malloc( (size_t) LDB*N*sizeof(CHAMELEON_Complex64_t) );
+        Binit = malloc( sizeof(CHAMELEON_Complex64_t) * LDB*N );
         CHAMELEON_zplrnt( M, N, Binit, LDB, seedB );
 
         hres += check_ztrmm_std( args, CHECK_TRMM, side, uplo, trans, diag, M, N, alpha, A, LDA, B, Binit, LDB );

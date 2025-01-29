@@ -92,7 +92,7 @@ testing_zplrnk_std( run_arg_list_t *args, int check )
     CHAMELEON_Set( CHAMELEON_TILE_SIZE, nb );
 
     /* Creates the matrix */
-    C = malloc ( LDC*N*sizeof(CHAMELEON_Complex64_t) );
+    C = malloc( sizeof(CHAMELEON_Complex64_t) * LDC * N );
 
     /* Calculates the random rank-k matrix */
     testing_start( &test_data );

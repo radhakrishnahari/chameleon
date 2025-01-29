@@ -69,7 +69,7 @@ testing_zgenm2_desc( run_arg_list_t *args, int check )
     CHAMELEON_Set( CHAMELEON_TILE_SIZE, nb );
 
     /* Generate the diagonal of eigen/singular values */
-    D = malloc( minMN * sizeof(double) );
+    D = malloc( sizeof(double) * minMN );
 #if !defined(CHAMELEON_SIMULATION)
     hres = CORE_dlatm1( mode, cond, 0, ChamDistUniform, seedA, D, minMN );
     if ( hres != 0 ) {
@@ -152,7 +152,7 @@ testing_zgenm2_std( run_arg_list_t *args, int check )
     CHAMELEON_Set( CHAMELEON_TILE_SIZE, nb );
 
     /* Generate the diagonal of eigen/singular values */
-    D = malloc( minMN * sizeof(double) );
+    D = malloc( sizeof(double) * minMN );
 #if !defined(CHAMELEON_SIMULATION)
     hres = CORE_dlatm1( mode, cond, 0, ChamDistUniform, seedA, D, minMN );
     if ( hres != 0 ) {
@@ -168,7 +168,7 @@ testing_zgenm2_std( run_arg_list_t *args, int check )
 #endif
 
     /* Creates the matrix */
-    A = malloc( (size_t) LDA*N*sizeof(CHAMELEON_Complex64_t) );
+    A = malloc( sizeof(CHAMELEON_Complex64_t) * LDA*N );
 
     /* Fills the matrix with random values */
     hres = CHAMELEON_zlatms( M, N, ChamDistUniform, seedA, ChamNonsymPosv, D, 0, cond, 0., A, LDA );

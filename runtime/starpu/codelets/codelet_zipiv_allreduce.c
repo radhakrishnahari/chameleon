@@ -54,7 +54,7 @@ static void cl_zipiv_allreduce_cpu_func( void *descr[], void *cl_arg )
          ( cppi_me->has_diag  == -1 ) )
     {
         cblas_zcopy( clargs->n, nextpiv_src->diagrow, 1, nextpiv_me->diagrow, 1 );
-        assert( cppi_src->arraysize == clargs->n * sizeof(CHAMELEON_Complex64_t) );
+        assert( cppi_src->arraysize == sizeof(CHAMELEON_Complex64_t) * clargs->n );
         cppi_me->has_diag = 1;
     }
 

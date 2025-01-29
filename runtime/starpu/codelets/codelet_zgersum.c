@@ -98,8 +98,8 @@ cl_zgersum_init_cuda_func( void *descr[], void *cl_arg )
 
     tileA = cti_interface_get(descr[0]);
 
-    rc = cudaMemset2D( tileA->mat, tileA->ld * sizeof(CHAMELEON_Complex64_t), 0,
-                       tileA->m * sizeof(CHAMELEON_Complex64_t), tileA->n );
+    rc = cudaMemset2D( tileA->mat, sizeof(CHAMELEON_Complex64_t) * tileA->ld, 0,
+                       sizeof(CHAMELEON_Complex64_t) * tileA->m, tileA->n );
     assert( rc == CUBLAS_STATUS_SUCCESS );
 
     (void)cl_arg;

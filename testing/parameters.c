@@ -408,7 +408,7 @@ parameters_read_file( const char  *filename )
     }
 
     len = 256;
-    line_read = malloc( len * sizeof( char ) );
+    line_read = malloc( sizeof( char ) * len );
 
     while ( getline( &line_read, &len, fp ) != -1 )
     {

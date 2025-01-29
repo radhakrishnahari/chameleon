@@ -136,7 +136,7 @@ void INSERT_TASK_map( const RUNTIME_option_t *options,
         return;
     }
 
-    pargs_size = sizeof( struct parsec_map_args_s ) + (ndata - 1) * sizeof( CHAM_desc_t * );
+    pargs_size = sizeof( struct parsec_map_args_s ) + sizeof( CHAM_desc_t * ) * (ndata - 1);
     pargs = malloc( pargs_size );
     pargs->uplo    = uplo;
     pargs->m       = m;

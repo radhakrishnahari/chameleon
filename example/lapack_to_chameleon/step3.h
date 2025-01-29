@@ -127,7 +127,7 @@ double **allocate_tile_matrix(int m, int n, int nb){
     /* compute number of tiles in rows and columns */
     mt = (m%nb==0) ? (m/nb) : (m/nb+1);
     nt = (n%nb==0) ? (n/nb) : (n/nb+1);
-    mat = malloc( mt*nt*sizeof(double*) );
+    mat = malloc( sizeof(double*) * mt * nt );
     if (!mat){
         printf ("\nIn allocate_tile_matrix, memory Allocation Failure of mat !\n\n");
         exit (EXIT_FAILURE);

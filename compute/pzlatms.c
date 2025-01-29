@@ -121,7 +121,7 @@ void chameleon_pzlatms( cham_dist_t idist, unsigned long long int seed, cham_sym
 #endif
 
         if ( D == NULL ) {
-            D = malloc( minmn * sizeof(double) );
+            D = malloc( sizeof(double) * minmn );
             alloc_d = 1;
         }
         rc = CORE_dlatm1( mode, cond, irsign, idist, seed, D, minmn );

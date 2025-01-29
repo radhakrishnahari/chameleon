@@ -107,7 +107,7 @@ testing_zgesvd_desc( run_arg_list_t *args, int check )
 
     if ( (jobu == ChamAllVec) || (jobu == ChamSVec) ) {
         Un  = ( jobu == ChamSVec ) ? K : M;
-        U   = malloc( (size_t) LDU*Un*sizeof(CHAMELEON_Complex64_t) );
+        U   = malloc( sizeof(CHAMELEON_Complex64_t) * LDU*Un );
     }
     else {
         U = NULL;
@@ -115,15 +115,15 @@ testing_zgesvd_desc( run_arg_list_t *args, int check )
 
     if ( (jobvt == ChamAllVec) || (jobvt == ChamSVec) ) {
         LDVt = ( jobvt == ChamSVec ) ? K : N;
-        Vt   = malloc( (size_t) LDVt*N*sizeof(CHAMELEON_Complex64_t) );
+        Vt   = malloc( sizeof(CHAMELEON_Complex64_t) * LDVt*N );
     }
     else {
         Vt = NULL;
     }
 
     /* Generate the diagonal of eigen/singular values */
-    D = malloc( K*sizeof(double) );
-    S = malloc( K*sizeof(double) );
+    D = malloc( sizeof(double) * K );
+    S = malloc( sizeof(double) * K );
 
     /* Fills the matrix with random values */
     hres = CHAMELEON_zlatms_Tile( ChamDistUniform, seedA, ChamNonsymPosv, D, mode, cond, 1., descA );
@@ -212,12 +212,12 @@ testing_zgesvd_std( run_arg_list_t *args, int check )
     }
 
     /* Creates the matrices */
-    A = malloc( (size_t) LDA*N*sizeof(CHAMELEON_Complex64_t) );
+    A = malloc( sizeof(CHAMELEON_Complex64_t) * LDA*N );
     CHAMELEON_Alloc_Workspace_zgesvd( M, N, &descT, 1, 1 );
 
     if ( (jobu == ChamAllVec) || (jobu == ChamSVec) ) {
         Un  = ( jobu == ChamSVec ) ? K : M;
-        U   = malloc( (size_t) LDU*Un*sizeof(CHAMELEON_Complex64_t) );
+        U   = malloc( sizeof(CHAMELEON_Complex64_t) * LDU*Un );
     }
     else {
         U = NULL;
@@ -225,15 +225,15 @@ testing_zgesvd_std( run_arg_list_t *args, int check )
 
     if ( (jobvt == ChamAllVec) || (jobvt == ChamSVec) ) {
         LDVt = ( jobvt == ChamSVec ) ? K : N;
-        Vt   = malloc( (size_t) LDVt*N*sizeof(CHAMELEON_Complex64_t) );
+        Vt   = malloc( sizeof(CHAMELEON_Complex64_t) * LDVt*N );
     }
     else {
         Vt = NULL;
     }
 
     /* Generate the diagonal of eigen/singular values */
-    D = malloc( K*sizeof(double) );
-    S = malloc( K*sizeof(double) );
+    D = malloc( sizeof(double) * K );
+    S = malloc( sizeof(double) * K );
 
     /* Fills the matrix with random values */
     hres = CHAMELEON_zlatms( M, N, ChamDistUniform, seedA, ChamNonsymPosv, D, mode, cond, 1., A, LDA );
@@ -250,7 +250,7 @@ testing_zgesvd_std( run_arg_list_t *args, int check )
      * with the call to CHAMELEON_zgepdf_qdwh).
      */
     if ( check ) {
-        A0 = malloc( (size_t) LDA*N*sizeof(CHAMELEON_Complex64_t) );
+        A0 = malloc( sizeof(CHAMELEON_Complex64_t) * LDA*N );
         CHAMELEON_zlacpy( ChamUpperLower, M, N, A, LDA, A0, LDA );
     }
 

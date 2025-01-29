@@ -123,8 +123,8 @@ testing_zsysv_std( run_arg_list_t *args, int check )
     CHAMELEON_Set( CHAMELEON_TILE_SIZE, nb );
 
     /* Creates the matrices */
-    A = malloc( (size_t) LDA*N*   sizeof(CHAMELEON_Complex64_t) );
-    X = malloc( (size_t) LDB*NRHS*sizeof(CHAMELEON_Complex64_t) );
+    A = malloc( sizeof(CHAMELEON_Complex64_t) * LDA*N );
+    X = malloc( sizeof(CHAMELEON_Complex64_t) * LDB*NRHS );
 
     /* Fills the matrix with random values */
     CHAMELEON_zplgsy( (double)N, uplo, N, A, LDA, seedA );
@@ -141,13 +141,13 @@ testing_zsysv_std( run_arg_list_t *args, int check )
         CHAMELEON_Complex64_t *A0, *B;
 
         /* Check the factorization */
-        A0 = malloc( (size_t) LDA*N*sizeof(CHAMELEON_Complex64_t) );
+        A0 = malloc( sizeof(CHAMELEON_Complex64_t) * LDA*N );
         CHAMELEON_zplgsy( (double)N, uplo, N, A0, LDA, seedA );
 
         hres += check_zxxtrf_std( args, ChamSymmetric, uplo, N, N, A0, A, LDA );
 
         /* Check the solve */
-        B = malloc( (size_t) LDB*NRHS*sizeof(CHAMELEON_Complex64_t) );
+        B = malloc( sizeof(CHAMELEON_Complex64_t) * LDB*NRHS );
         CHAMELEON_zplrnt( N, NRHS, B, LDB, seedB );
 
         CHAMELEON_zplgsy( (double)N, uplo, N, A0, LDA, seedA );

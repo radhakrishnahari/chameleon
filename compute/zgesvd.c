@@ -472,13 +472,13 @@ int CHAMELEON_zgesvd_Tile_Async( cham_job_t jobu, cham_job_t jobvt,
     }
 #endif
 
-    E = malloc( MINMN * sizeof(double) );
+    E = malloc( sizeof(double) * MINMN );
     if ( E == NULL ) {
         chameleon_error( "CHAMELEON_zgesvd_Tile_Async", "malloc(E) failed" );
         free( E );
         return CHAMELEON_ERR_OUT_OF_RESOURCES;
     }
-    memset( E, 0, MINMN * sizeof(double) );
+    memset( E, 0, sizeof(double) * MINMN );
 
 
     /* Reduction to band + bidiagonal */
