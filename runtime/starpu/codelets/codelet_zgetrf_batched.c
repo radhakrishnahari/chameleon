@@ -321,7 +321,7 @@ INSERT_TASK_zgetrf_panel_blocked_batched( const RUNTIME_option_t *options,
 #endif
     struct chameleon_pzgetrf_s *tmp = (struct chameleon_pzgetrf_s *) ws;
     int ib         = tmp->ib;
-    int batch_size = ( (h % ib) != 0 ) ? tmp->batch_size_blas2 : tmp->batch_size_blas3;
+    int batch_size = tmp->batch_size;
     int task_num   = 0;
     struct cl_zgetrf_batched_args_s *clargs = *clargs_ptr;
 

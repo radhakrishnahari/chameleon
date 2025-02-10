@@ -23,12 +23,71 @@
  *
  */
 #include "control/common.h"
+#include "chameleon/flops.h"
 
 #define A(m,n)   A,               m, n
 #define U(m,n)   &(ws->U),        m, n
 #define Up(m,n)  &(ws->Up),       m, n
 #define Wu(m,n)  &(ws->laswp->W), m, n
 #define Wl(m,n)  &(ws->Wl),       m, n
+
+/*
+ * Function to compute the optimal batch size when generating the graph that
+ * covers all the possibilities of pivoting within the factorized panel.
+ *
+ * @param[in] ws
+ *      The workspace data structure associated to the algorithm that holds all
+ *      extra information that may be needed for LU factorization
+ *
+ * @param[in] mt
+ *      The number of tiles to factorize within the panel
+ *
+ * @param[in] mb
+ *      The default tile size.
+ *
+ * @param[in] j
+ *      The index of the column to factorize
+ *
+ * @return The optimal batch size.
+ *
+ */
+static inline int
+chameleon_pzgetrf_batch_size( const struct chameleon_pzgetrf_s *ws,
+                              int mt, int mb, int j )
+{
+    if ( ws->batch_adaptive == 0 ) {
+        return ( ( j % ws->ib ) != 0 ) ? ws->batch_size_blas2 : ws->batch_size_blas3;
+    }
+
+    double flops     = flops_zgetrf_blocked_offdiag( mb, mb, j, ws->ib );
+    int    batch_max = chameleon_min( CHAMELEON_BATCH_SIZE, mt );
+    int    batch_sze = batch_max;
+
+    /**
+     * First solution. (Alycia Lisito)
+     *
+     * This solution aims at maximizing the batch size.
+     */
+    if ( j != 0 ) {
+        batch_sze = chameleon_min( chameleon_max( ws->flops_min / flops, 1 ), batch_max );
+    }
+
+    if ( mt % batch_sze != 0 ) {
+        batch_sze = chameleon_min( chameleon_ceil( mt, mt / batch_sze ), batch_max );
+    }
+
+    /**
+     * Second solution. (Mathieu Faverge)
+     *
+     * This solution aims at balancing the load rather than increasing the task size.
+     */
+    /*
+     batch_sze = chameleon_ceil( mt,
+                                 chameleon_max( chameleon_ceil( mt, batch_max ),
+                                                ( mt * flops ) / ws->flops_min ) );
+     */
+    return batch_sze;
+}
 
 /*
  * All the functions below are panel factorization variant.
@@ -307,6 +366,7 @@ chameleon_pzgetrf_panel_facto_blocked_batched( struct chameleon_pzgetrf_s *ws,
         for ( h = 0; h < hmax; h++ ) {
             j =  h + b * ws->ib;
 
+            ws->batch_size = chameleon_pzgetrf_batch_size( ws, A->mt - k, A->nb, j );
             for ( m = k; m < A->mt; m++ ) {
                 tempmm = A->get_blkdim( A, m, DIM_m, A->m );
                 INSERT_TASK_zgetrf_panel_blocked_batched( options, tempmm, tempkn, j, m * A->mb,
