@@ -6,7 +6,7 @@
     SYSTEM: linux
     VERSION: starpu
     LOGNAME: "chameleon-test-${SYSTEM}-${VERSION}-${CATEGORY}-${PRECISION}"
-    TESTS_RESTRICTION: "-R _${CATEGORY}_${PRECISION}|example -E sytrf|sysv"
+    TESTS_RESTRICTION: "-R _${CATEGORY}_${PRECISION}|example"
 
 test_starpu_master:
   extends: .test_script_starpu
