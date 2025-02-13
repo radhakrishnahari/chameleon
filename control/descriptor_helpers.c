@@ -101,6 +101,26 @@ int chameleon_involved_in_panelk_2dbc( const CHAM_desc_t *A, int k ) {
 }
 
 /**
+ * @brief Test if the MPI process p is involved in the panel k for 2DBC distributions.
+ *
+ * @param[in] A
+ *        The matrix descriptor.
+ *
+ * @param[in] k
+ *        The index of the panel to test.
+ *
+ * @param[in] p
+ *        The rank of the MPI process.
+ *
+ * @return 1 if the current MPI process contributes to the panel k.
+ *         0 if the current MPI process doesn't contribute to the panel k.
+ *
+ */
+int chameleon_p_involved_in_panelk_2dbc( const CHAM_desc_t *A, int k, int p ) {
+    return ( p % chameleon_desc_datadist_get_iparam(A,1) == k % chameleon_desc_datadist_get_iparam(A,1) );
+}
+
+/**
  * @brief Test if the current MPI process is involved in the panel k for 2DBC distributions.
  *
  * @param[in] A
