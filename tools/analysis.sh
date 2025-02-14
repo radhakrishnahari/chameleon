@@ -2,13 +2,13 @@
 ###
 #
 #  @file analysis.sh
-#  @copyright 2013-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+#  @copyright 2013-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
-#  @version 1.2.0
+#  @version 1.3.0
 #  @author Florent Pruvost
 #  @author Mathieu Faverge
-#  @date 2022-02-22
+#  @date 2024-12-03
 #
 ###
 
@@ -82,6 +82,9 @@ sonar.cxx.cppcheck.reportPaths=chameleon_cppcheck.xml
 sonar.cxx.clangsa.reportPaths=build-openmp/analyzer_reports/*/*.plist, build-parsec/analyzer_reports/*/*.plist, build-quark/analyzer_reports/*/*.plist, build-starpu/analyzer_reports/*/*.plist, build-starpu_simgrid/analyzer_reports/*/*.plist
 sonar.cxx.jsonCompilationDatabase=compile_commands.json
 EOF
+echo "====== sonar-project.properties ============"
+cat sonar-project.properties
+echo "============================================"
 
-# run sonar analysis + publish on sonarqube-dev
+# run sonar analysis + publish on sonarqube
 sonar-scanner -X > sonar.log
