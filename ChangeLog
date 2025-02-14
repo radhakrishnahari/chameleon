@@ -5,14 +5,29 @@ chameleon-1.3.0
         - Add CHAMELEON_[dz]gerst... functions to restore the original numerical precision of the tiles in a descriptor
  - types: add support for half precision arithmetic into the data descriptors
  - cuda: add half precision conversion kernels, and variants of the gemm kernels (hgemm, and gemmex)
+ - cuda: Check error after lauching kernels
  - descriptors: Add the possibility to pass arguments to the rankof
    function. This is used to provide custom distribuitions through a
    given file. *WARNING*: It changes the interface of
-   CHAMELEON_Desc_Create_User that requires aan additional `, NULL`
-   parameters in the general case.
+   CHAMELEON_Desc_Create_User that requires an additional `, NULL`
+        parameters in the general case.
+ - control: Defined the default parameters through environment variables first and make sure the testings use the default value instead of overwritting them.
+ - control: Make the CHAM_context_t structure public, and provide a function to the user to access the pointer in case of the development of its own functionalities using the RUNTIME API.
+ - compute: Refactor the code that compute the kernel dimension to potentially enable variadic tile sizes
+ - compute/map: Rework the map functions family to be able to pass multiple descriptor with parameterized access types.
+ - compute/getrf: Add a basic LU factorization with partial pivoting (WARNING: this functionnality is still under development and does not provide full performance yet)
  - compute/poinv: Add the possibility to use an intermediate distribution for the TRTRI operation
  - compute/getrf_nopiv: Add lookahead through temporary buffers to better regulate the communication allocations
  - runtime/starpu: Whenever possible replace the lacpy codelet by a direct memory copy from the input handler to the output one
+ - runtime/starpu: better separation of the public interface from the internal interface for code reusing the RUNTIME API
+ - testings: Display in help message the option possible values when possible
+ - bug: fix issue with undefined vasprintf
+ - bug: Make sure generic algorithms are used when at least one of the data descriptor is not 2D block cyclic and might cause issues.
+ - bug/starpu: Fix the --forcegpu option to integrate HIP devices withing the option and make sure it's applied only when possible
+ - Fix issue 124: RP_CHAMELEON_PRECISION is the set of supported precisions, while CHAMELEON_PRECISION is the set of enabled precisions
+ - Fix the trsm flops issue that was miscalculated.
+ - Fix integer overflow in malloc where size_t was not used
+ - ci/docker: provide a simpler docker image dedicated to the project
 
 chameleon-1.2.0
 ------------------------------------------------------------------------
