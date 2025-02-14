@@ -48,6 +48,9 @@ int chameleon_sequence_create(CHAM_context_t *chamctxt, RUNTIME_sequence_t **seq
         return CHAMELEON_ERR_OUT_OF_RESOURCES;
     }
 
+    (*sequence)->comm   = chamctxt->comm;
+    (*sequence)->myrank = RUNTIME_comm_rank( chamctxt );
+
     RUNTIME_sequence_create( chamctxt, *sequence );
 
     (*sequence)->status = CHAMELEON_SUCCESS;

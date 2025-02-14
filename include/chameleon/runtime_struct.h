@@ -84,9 +84,10 @@ typedef struct runtime_request_s {
  */
 typedef struct runtime_sequence_s {
     int                status;   /**< Return status registered by the tasks for the request     */
+    int                myrank;   /**< MPI Comm rank within the associated communicator          */
     RUNTIME_request_t *request;  /**< Pointer to the request that failed if any, NULL otherwise */
     void              *schedopt; /**< Specific runtime data pointer to handle the sequence      */
-    MPI_Comm           comm;     /**< MPI communicator                                         */
+    MPI_Comm           comm;     /**< MPI communicator                                          */
 } RUNTIME_sequence_t;
 
 /**
