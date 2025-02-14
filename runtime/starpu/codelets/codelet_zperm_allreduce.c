@@ -102,14 +102,14 @@ INSERT_TASK_zperm_allreduce_recv( const RUNTIME_option_t *options,
 {
     struct cl_redux_args_t *clargs;
     clargs = malloc( sizeof( struct cl_redux_args_t ) );
-    clargs->tempmm = tempmm;
-    clargs->n      = n;
-    clargs->p      = p;
-    clargs->q      = q;
-    clargs->p_first  = p_first;
-    clargs->me     = me;
-    clargs->shift  = shift;
-    clargs->np_inv = np;
+    clargs->tempmm  = tempmm;
+    clargs->n       = n;
+    clargs->p       = p;
+    clargs->q       = q;
+    clargs->p_first = p_first;
+    clargs->me      = me;
+    clargs->shift   = shift;
+    clargs->np_inv  = np;
 
     rt_starpu_insert_task(
         &cl_zperm_allreduce,
@@ -124,20 +124,19 @@ INSERT_TASK_zperm_allreduce_recv( const RUNTIME_option_t *options,
     starpu_mpi_cache_flush( options->sequence->comm, RTBLKADDR(U, CHAMELEON_Complex64_t, src, n) );
 }
 
-void
-INSERT_TASK_zperm_allreduce( const RUNTIME_option_t *options,
-                             const CHAM_desc_t      *A,
-                             CHAM_ipiv_t            *ipiv,
-                             int                     ipivk,
-                             int                     k,
-                             int                     n,
-                             CHAM_desc_t            *U,
-                             int                     Um,
-                             int                     Un,
-                             void                   *ws )
+static void
+zperm_allreduce_chameleon_starpu_task( const RUNTIME_option_t     *options,
+                                       const CHAM_desc_t          *A,
+                                       CHAM_desc_t                *U,
+                                       int                         Um,
+                                       int                         Un,
+                                       CHAM_ipiv_t                *ipiv,
+                                       int                         ipivk,
+                                       int                         k,
+                                       int                         n,
+                                       struct chameleon_pzgetrf_s *ws)
 {
-    struct chameleon_pzgetrf_s *tmp = (struct chameleon_pzgetrf_s *)ws;
-    int *proc_involved = tmp->proc_involved;
+    int *proc_involved = ws->proc_involved;
     int  np_involved   = chameleon_min( chameleon_desc_datadist_get_iparam(A, 0), A->mt - k);
     int  np_iter       = np_involved;
     int  p_recv, p_send, me, p_first;
@@ -166,6 +165,27 @@ INSERT_TASK_zperm_allreduce( const RUNTIME_option_t *options,
             shift   = shift << 1;
             np_iter = chameleon_ceil( np_iter, 2 );
         }
+    }
+}
+
+void
+INSERT_TASK_zperm_allreduce( const RUNTIME_option_t *options,
+                             const CHAM_desc_t      *A,
+                             CHAM_desc_t            *U,
+                             int                     Um,
+                             int                     Un,
+                             CHAM_ipiv_t            *ipiv,
+                             int                     ipivk,
+                             int                     k,
+                             int                     n,
+                             void                   *ws )
+{
+    struct chameleon_pzgetrf_s *tmp = (struct chameleon_pzgetrf_s *)ws;
+    cham_getrf_allreduce_t alg = tmp->alg_allreduce;
+    switch( alg ) {
+    case ChamStarPUTasks:
+    default:
+        zperm_allreduce_chameleon_starpu_task( options, A, U, Um, Un, ipiv, ipivk, k, n, tmp );
     }
 }
 
@@ -284,24 +304,24 @@ INSERT_TASK_zperm_allreduce_send_invp( const RUNTIME_option_t *options,
 void
 INSERT_TASK_zperm_allreduce( const RUNTIME_option_t *options,
                              const CHAM_desc_t      *A,
+                             CHAM_desc_t            *U,
+                             int                     Um,
+                             int                     Un,
                              CHAM_ipiv_t            *ipiv,
                              int                     ipivk,
                              int                     k,
                              int                     n,
-                             CHAM_desc_t            *U,
-                             int                     Um,
-                             int                     Un,
                              void                   *ws )
 {
     (void)options;
     (void)A;
+    (void)U;
+    (void)Um;
+    (void)Un;
     (void)ipiv;
     (void)ipivk;
     (void)k;
     (void)n;
-    (void)U;
-    (void)Um;
-    (void)Un;
     (void)ws;
 }
 #endif

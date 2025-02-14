@@ -150,7 +150,7 @@ chameleon_pzgetrf_panel_facto_percol( struct chameleon_pzgetrf_s *ws,
         }
 
         /* Reduce globally (between MPI processes) */
-        INSERT_TASK_zipiv_allreduce( A, options, ipiv, ws->proc_involved, k, h, tempkn );
+        INSERT_TASK_zipiv_allreduce( options, A, ipiv, k, h, tempkn, ws );
     }
 
     /* Flush temporary data used for the pivoting */
@@ -196,7 +196,7 @@ chameleon_pzgetrf_panel_facto_percol_batched( struct chameleon_pzgetrf_s *ws,
         }
         INSERT_TASK_zgetrf_panel_offdiag_batched_flush( options, A, k, clargs, ipiv );
 
-        INSERT_TASK_zipiv_allreduce( A, options, ipiv, ws->proc_involved, k, h, tempkn );
+        INSERT_TASK_zipiv_allreduce( options, A, ipiv, k, h, tempkn, ws );
     }
 
     free( clargs );
@@ -250,7 +250,7 @@ chameleon_pzgetrf_panel_facto_blocked( struct chameleon_pzgetrf_s *ws,
 
             assert( j <= minmn );
             /* Reduce globally (between MPI processes) */
-            INSERT_TASK_zipiv_allreduce( A, options, ipiv, ws->proc_involved, k, j, tempkn );
+            INSERT_TASK_zipiv_allreduce( options, A, ipiv, k, j, tempkn, ws );
 
             if ( ( b < (nbblock-1) ) && ( h == hmax-1 ) ) {
                 INSERT_TASK_zgetrf_blocked_trsm(
@@ -312,7 +312,7 @@ chameleon_pzgetrf_panel_facto_blocked_batched( struct chameleon_pzgetrf_s *ws,
 
             assert( j <= minmn );
             /* Reduce globally (between MPI processes) */
-            INSERT_TASK_zipiv_allreduce( A, options, ipiv, ws->proc_involved, k, j, tempkn );
+            INSERT_TASK_zipiv_allreduce( options, A, ipiv, k, j, tempkn, ws );
 
             if ( (b < (nbblock-1)) && (h == hmax-1) ) {
                 INSERT_TASK_zgetrf_blocked_trsm(
@@ -338,10 +338,12 @@ chameleon_pzgetrf_panel_facto( struct chameleon_pzgetrf_s *ws,
                                int                         k,
                                RUNTIME_option_t           *options )
 {
+#if defined(CHAMELEON_USE_MPI)
     chameleon_get_proc_involved_in_panelk_2dbc( A, k, k, ws );
     if ( !ws->involved ) {
         return;
     }
+#endif
 
     /* TODO: Should be replaced by a function pointer */
     switch( ws->alg ) {
@@ -350,7 +352,7 @@ chameleon_pzgetrf_panel_facto( struct chameleon_pzgetrf_s *ws,
         break;
 
     case ChamGetrfPPivPerColumn:
-        if ( ws->batch_size > 0 ) {
+        if ( ws->batch_size_blas2 > 0 ) {
             chameleon_pzgetrf_panel_facto_percol_batched( ws, A, ipiv, k, options );
         }
         else {
@@ -359,7 +361,7 @@ chameleon_pzgetrf_panel_facto( struct chameleon_pzgetrf_s *ws,
         break;
 
     case ChamGetrfPPiv:
-        if ( ws->batch_size > 0 ) {
+        if ( ws->batch_size_blas2 > 0 ) {
             chameleon_pzgetrf_panel_facto_blocked_batched( ws, A, ipiv, k, options );
         }
         else {
@@ -392,19 +394,6 @@ chameleon_pzgetrf_panel_permute( struct chameleon_pzgetrf_s *ws,
         int tempkm, tempkn, tempnn, minmn;
         int withlacpy;
 
-        chameleon_get_proc_involved_in_panelk_2dbc( A, k, n, ws );
-        if ( A->myrank == chameleon_getrankof_2d( A, k, k ) ) {
-            INSERT_TASK_zperm_allreduce_send_perm( options, ipiv, k, A->myrank, ws->np_involved, ws->proc_involved );
-            INSERT_TASK_zperm_allreduce_send_invp( options, ipiv, k, A, k, n );
-        }
-        if ( A->myrank == chameleon_getrankof_2d( A, k, n ) ) {
-            INSERT_TASK_zperm_allreduce_send_A( options, A, k, n, A->myrank, ws->np_involved, ws->proc_involved );
-        }
-
-        if ( !ws->involved ) {
-            return;
-        }
-
         tempkm = A->get_blkdim( A, k, DIM_m, A->m );
         tempkn = A->get_blkdim( A, k, DIM_n, A->n );
         tempnn = A->get_blkdim( A, n, DIM_n, A->n );
@@ -433,8 +422,7 @@ chameleon_pzgetrf_panel_permute( struct chameleon_pzgetrf_s *ws,
                                     ipiv, k, A(k, n), A(m, n) );
         }
 
-        INSERT_TASK_zperm_allreduce( options, A, ipiv, k, k, n,
-                                     Wu(A->myrank, n), ws );
+        INSERT_TASK_zperm_allreduce( options, A, Wu(A->myrank, n), ipiv, k, k, n, ws );
     }
     break;
     default:
@@ -457,19 +445,6 @@ chameleon_pzgetrf_panel_permute_batched( struct chameleon_pzgetrf_s *ws,
         int m;
         int tempkm, tempkn, tempnn, minmn;
         int withlacpy;
-
-        chameleon_get_proc_involved_in_panelk_2dbc( A, k, n, ws );
-        if ( A->myrank == chameleon_getrankof_2d( A, k, k ) ) {
-            INSERT_TASK_zperm_allreduce_send_perm( options, ipiv, k, A->myrank, ws->np_involved, ws->proc_involved );
-            INSERT_TASK_zperm_allreduce_send_invp( options, ipiv, k, A, k, n );
-        }
-        if ( A->myrank == chameleon_getrankof_2d( A, k, n ) ) {
-            INSERT_TASK_zperm_allreduce_send_A( options, A, k, n, A->myrank, ws->np_involved, ws->proc_involved );
-        }
-
-        if ( !ws->involved ) {
-            return;
-        }
 
         void **clargs = malloc( sizeof(char *) );
         *clargs = NULL;
@@ -499,7 +474,7 @@ chameleon_pzgetrf_panel_permute_batched( struct chameleon_pzgetrf_s *ws,
         }
         INSERT_TASK_zlaswp_batched_flush( options, ipiv, k, A(k, n), Wu(A->myrank, n), clargs );
 
-        INSERT_TASK_zperm_allreduce( options, A, ipiv, k, k, n, Wu(A->myrank, n), ws );
+        INSERT_TASK_zperm_allreduce( options, A, Wu(A->myrank, n), ipiv, k, k, n, ws );
 
         free( clargs );
     }
@@ -510,13 +485,87 @@ chameleon_pzgetrf_panel_permute_batched( struct chameleon_pzgetrf_s *ws,
 }
 
 static inline void
+chameleon_pzgetrf_panel_permute_forward( struct chameleon_pzgetrf_s *ws,
+                                         CHAM_desc_t                *A,
+                                         CHAM_ipiv_t                *ipiv,
+                                         int                         k,
+                                         int                         n,
+                                         RUNTIME_option_t           *options )
+{
+#if defined(CHAMELEON_USE_MPI)
+    chameleon_get_proc_involved_in_panelk_2dbc( A, k, n, ws );
+    if ( A->myrank == chameleon_getrankof_2d( A, k, k ) ) {
+        INSERT_TASK_zperm_allreduce_send_perm( options, ipiv, k, A->myrank, ws->np_involved, ws->proc_involved );
+        INSERT_TASK_zperm_allreduce_send_invp( options, ipiv, k, A, k, n );
+    }
+    if ( A->myrank == chameleon_getrankof_2d( A, k, n ) ) {
+        INSERT_TASK_zperm_allreduce_send_A( options, A, k, n, A->myrank, ws->np_involved, ws->proc_involved );
+    }
+
+    if ( !ws->involved ) {
+        return;
+    }
+#endif
+
+    if ( ws->batch_size_swap > 0 ) {
+        chameleon_pzgetrf_panel_permute_batched( ws, A, ipiv, k, n, options );
+    }
+    else {
+        chameleon_pzgetrf_panel_permute( ws, A, ipiv, k, n, options );
+    }
+}
+
+static inline void
+chameleon_pzgetrf_panel_permute_backward( struct chameleon_pzgetrf_s *ws,
+                                          CHAM_desc_t                *A,
+                                          CHAM_ipiv_t                *ipiv,
+                                          int                         k,
+                                          int                         n,
+                                          RUNTIME_option_t           *options,
+                                          RUNTIME_sequence_t         *sequence )
+{
+    int tempkm, tempnn;
+
+#if defined(CHAMELEON_USE_MPI)
+    chameleon_get_proc_involved_in_panelk_2dbc( A, k, n, ws );
+    if ( A->myrank == chameleon_getrankof_2d( A, k, k ) ) {
+        INSERT_TASK_zperm_allreduce_send_perm( options, ipiv, k, A->myrank, ws->np_involved, ws->proc_involved );
+        INSERT_TASK_zperm_allreduce_send_invp( options, ipiv, k, A, k, n );
+    }
+    if ( A->myrank == chameleon_getrankof_2d( A, k, n ) ) {
+        INSERT_TASK_zperm_allreduce_send_A( options, A, k, n, A->myrank, ws->np_involved, ws->proc_involved );
+    }
+
+    if ( !ws->involved ) {
+        return;
+    }
+#endif
+
+    if ( ws->batch_size_swap > 0 ) {
+        chameleon_pzgetrf_panel_permute_batched( ws, A, ipiv, k, n, options );
+    }
+    else {
+        chameleon_pzgetrf_panel_permute( ws, A, ipiv, k, n, options );
+    }
+
+    if ( A->myrank == chameleon_getrankof_2d( A, k, n ) ) {
+
+        tempkm = A->get_blkdim( A, k, DIM_m, A->m );
+        tempnn = A->get_blkdim( A, n, DIM_n, A->n );
+        INSERT_TASK_zlacpy( options, ChamUpperLower, tempkm, tempnn,
+                            Wu(A->myrank, n), A(k, n) );
+        RUNTIME_data_flush( sequence, A(k, n) );
+    }
+}
+
+static inline void
 chameleon_pzgetrf_panel_update_ws( struct chameleon_pzgetrf_s *ws,
                                    CHAM_desc_t                *A,
                                    int                         k,
                                    RUNTIME_option_t           *options )
 {
     CHAM_context_t  *chamctxt = chameleon_context_self();
-    int m, tempmm, tempkn, q;
+    int m, n, tempmm, tempkn, tempkm, p, q, involved, np;
     int lookahead = chamctxt->lookahead;
     int P         = chameleon_desc_datadist_get_iparam(A, 0);
     int Q         = chameleon_desc_datadist_get_iparam(A, 1);
@@ -561,6 +610,44 @@ chameleon_pzgetrf_panel_update_ws( struct chameleon_pzgetrf_s *ws,
             RUNTIME_data_flush( options->sequence, A(m, k) );
         }
     }
+
+    tempkm = A->get_blkdim( A, k, DIM_m, A->m );
+    np = chameleon_desc_datadist_get_iparam(A, 1) * chameleon_desc_datadist_get_iparam(A, 0);
+#if defined(CHAMELEON_USE_MPI)
+    /* Send Akk for replicated trsm */
+    if ( A->myrank == chameleon_getrankof_2d( A, k, k ) ) {
+        for ( p = 0; p < np; p++ ) {
+            involved = 0;
+            for ( n = k+1; n < A->nt; n++ ) {
+                if ( chameleon_p_involved_in_panelk_2dbc( A, n, p ) ) {
+                    involved = 1;
+                    break;
+                }
+            }
+            if ( involved ) {
+                INSERT_TASK_zlacpy( options, ChamUpperLower, tempkm, tempkn,
+                                    A(k, k), Wu(p, k) );
+            }
+        }
+    }
+    else {
+        involved = 0;
+        for ( n = k+1; n < A->nt; n++ ) {
+            if ( chameleon_involved_in_panelk_2dbc( A, n ) ) {
+                involved = 1;
+                break;
+            }
+        }
+        if ( involved ) {
+            INSERT_TASK_zlacpy( options, ChamUpperLower, tempkm, tempkn,
+                                A(k, k), Wu(A->myrank, k) );
+        }
+    }
+#else
+    INSERT_TASK_zlacpy( options, ChamUpperLower, tempkm, tempkn,
+                        A(k, k), Wu(A->myrank, k) );
+#endif
+    RUNTIME_data_flush( options->sequence, A(k, k) );
 }
 
 static inline void
@@ -584,30 +671,17 @@ chameleon_pzgetrf_panel_update( struct chameleon_pzgetrf_s *ws,
     tempkm = A->get_blkdim( A, k, DIM_m, A->m );
     tempnn = A->get_blkdim( A, n, DIM_n, A->n );
 
-    if ( ws->batch_size > 0 ) {
-        chameleon_pzgetrf_panel_permute_batched( ws, A, ipiv, k, n, options );
-    }
-    else {
-        chameleon_pzgetrf_panel_permute( ws, A, ipiv, k, n, options );
-    }
+    chameleon_pzgetrf_panel_permute_forward( ws, A, ipiv, k, n, options );
 
-    if ( A->myrank == chameleon_getrankof_2d( A, k, k ) ) {
-        for ( p = 0; p < ws->np_involved; p++ ) {
-            INSERT_TASK_ztrsm(
-                options,
-                ChamLeft, ChamLower, ChamNoTrans, ChamUnit,
-                tempkm, tempnn, A->mb,
-                zone, A(k, k),
-                      Wu(ws->proc_involved[p], n) );
-            RUNTIME_data_flush( options->sequence, Wu(ws->proc_involved[p], n) );
-        }
-    }
-    else if ( ws->involved ) {
+#if defined(CHAMELEON_USE_MPI)
+    if ( ws->involved )
+#endif
+    {
         INSERT_TASK_ztrsm(
             options,
             ChamLeft, ChamLower, ChamNoTrans, ChamUnit,
             tempkm, tempnn, A->mb,
-            zone, A(k, k),
+            zone, Wu(A->myrank, k),
                   Wu(A->myrank, n) );
     }
 
@@ -632,7 +706,6 @@ chameleon_pzgetrf_panel_update( struct chameleon_pzgetrf_s *ws,
     }
 
     RUNTIME_data_flush( options->sequence, Wu(A->myrank, n) );
-    RUNTIME_data_flush( options->sequence, A(k, k) );
     RUNTIME_data_flush( options->sequence, A(k, n) );
 }
 
@@ -683,54 +756,26 @@ void chameleon_pzgetrf( struct chameleon_pzgetrf_s *ws,
         }
 
         /* Flush panel k */
-        for (m = k; m < A->mt; m++) {
+        for (m = k+1; m < A->mt; m++) {
             RUNTIME_data_flush( sequence, A(m, k) );
         }
+        RUNTIME_data_flush( sequence, Wu(A->myrank, k) );
 
         RUNTIME_iteration_pop( chamctxt );
     }
     CHAMELEON_Desc_Flush( &(ws->Wl), sequence );
 
     /* Backward pivoting */
-    if ( ws->batch_size > 0 ) {
-        for (k = 1; k < min_mnt; k++) {
-            for (n = 0; n < k; n++) {
-                if ( chameleon_involved_in_panelk_2dbc( A, k ) ||
-                    chameleon_involved_in_panelk_2dbc( A, n ) )
-                {
-                    chameleon_pzgetrf_panel_permute_batched( ws, A, IPIV, k, n, &options );
-                    if ( A->myrank == chameleon_getrankof_2d( A, k, n ) ) {
-                        tempkm = A->get_blkdim( A, k, DIM_m, A->m );
-                        tempnn = A->get_blkdim( A, n, DIM_n, A->n );
-                        INSERT_TASK_zlacpy( &options, ChamUpperLower, tempkm, tempnn,
-                                            Wu(A->myrank, n), A(k, n) );
-                        RUNTIME_data_flush( sequence, A(k, n) );
-                    }
-                }
-                RUNTIME_data_flush( sequence, Wu(A->myrank, n) );
+    for (k = 1; k < min_mnt; k++) {
+        for (n = 0; n < k; n++) {
+            if ( chameleon_involved_in_panelk_2dbc( A, k ) ||
+                 chameleon_involved_in_panelk_2dbc( A, n ) )
+            {
+                chameleon_pzgetrf_panel_permute_backward( ws, A, IPIV, k, n, &options, sequence );
             }
-            RUNTIME_perm_flushk( sequence, IPIV, k );
+            RUNTIME_data_flush( sequence, Wu(A->myrank, n) );
         }
-    }
-    else {
-        for (k = 1; k < min_mnt; k++) {
-            for (n = 0; n < k; n++) {
-                if ( chameleon_involved_in_panelk_2dbc( A, k ) ||
-                    chameleon_involved_in_panelk_2dbc( A, n ) )
-                {
-                    chameleon_pzgetrf_panel_permute( ws, A, IPIV, k, n, &options );
-                    if ( A->myrank == chameleon_getrankof_2d( A, k, n ) ) {
-                        tempkm = A->get_blkdim( A, k, DIM_m, A->m );
-                        tempnn = A->get_blkdim( A, n, DIM_n, A->n );
-                        INSERT_TASK_zlacpy( &options, ChamUpperLower, tempkm, tempnn,
-                                            Wu(A->myrank, n), A(k, n) );
-                        RUNTIME_data_flush( sequence, A(k, n) );
-                    }
-                }
-                RUNTIME_data_flush( sequence, Wu(A->myrank, n) );
-            }
-            RUNTIME_perm_flushk( sequence, IPIV, k );
-        }
+        RUNTIME_perm_flushk( sequence, IPIV, k );
     }
     CHAMELEON_Desc_Flush( &(ws->Wu), sequence );
 
