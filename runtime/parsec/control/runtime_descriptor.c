@@ -16,6 +16,7 @@
  * @author Mathieu Faverge
  * @author Guillaume Sylvand
  * @author Samuel Thibault
+ * @author Florent Pruvost
  * @date 2024-03-16
  *
  */

@@ -20,6 +20,7 @@
  * @author Samuel Thibault
  * @author Terry Cojean
  * @author Matthieu Kuhn
+ * @author Pierre Esterie
  * @date 2025-01-24
  * @precisions normal z -> s d c
  *

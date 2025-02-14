@@ -19,6 +19,7 @@
  * @author Samuel Thibault
  * @author Matthieu Kuhn
  * @author Lionel Eyraud-Dubois
+ * @author Pierre Esterie
  * @date 2025-01-24
  *
  */

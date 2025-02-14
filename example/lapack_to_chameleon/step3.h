@@ -14,6 +14,7 @@
  * @version 1.3.0
  * @author Florent Pruvost
  * @author Mathieu Faverge
+ * @author Pierre Esterie
  * @date 2025-01-29
  *
  */

@@ -11,6 +11,7 @@
  *
  * @version 1.3.0
  * @author Mathieu Faverge
+ * @author Philippe Virouleau
  * @date 2024-03-14
  *
  */

@@ -21,6 +21,7 @@
  * @author Lionel Eyraud-Dubois
  * @author Alycia Lisito
  * @author Xavier Lacoste
+ * @author Pierre Esterie
  * @date 2024-12-09
  *
  * @precisions normal z -> s d c

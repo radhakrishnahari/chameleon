@@ -17,6 +17,7 @@
  * @author Gregoire Pichon
  * @author Mathieu Faverge
  * @author Raphael Boucherie
+ * @author Pierre Esterie
  * @date 2024-11-13
  * @precisions normal z -> s d c
  *

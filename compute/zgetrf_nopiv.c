@@ -19,6 +19,7 @@
  * @author Florent Pruvost
  * @author Alycia Lisito
  * @author Matthieu Kuhn
+ * @author Pierre Esterie
  * @date 2024-11-13
  *
  * @precisions normal z -> s d c

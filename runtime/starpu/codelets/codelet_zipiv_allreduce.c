@@ -11,6 +11,7 @@
  *
  * @version 1.3.0
  * @author Alycia Lisito
+ * @author Pierre Esterie
  * @date 2025-01-29
  * @precisions normal z -> c d s
  *

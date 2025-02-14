@@ -19,6 +19,8 @@
  * @author Raphael Boucherie
  * @author Samuel Thibault
  * @author Lionel Eyraud-Dubois
+ * @author Alycia Lisito
+ * @author Pierre Esterie
  * @date 2024-11-13
  *
  ***

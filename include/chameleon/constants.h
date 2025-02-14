@@ -19,6 +19,7 @@
  * @author Alycia Lisito
  * @author Terry Cojean
  * @author Matthieu Kuhn
+ * @author Brieuc Nicolas
  * @date 2025-01-24
  *
  */

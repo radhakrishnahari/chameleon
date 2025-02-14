@@ -14,6 +14,7 @@
  * @author Florent Pruvost
  * @author Philippe Swartvagher
  * @author Lionel Eyraud-Dubois
+ * @author Pierre Esterie
  * @date 2024-11-13
  * @precisions normal z -> s d c z
  *

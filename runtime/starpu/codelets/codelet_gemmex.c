@@ -13,6 +13,7 @@
  *
  * @version 1.3.0
  * @author Mathieu Faverge
+ * @author Philippe Swartvagher
  * @date 2024-10-18
  *
  */

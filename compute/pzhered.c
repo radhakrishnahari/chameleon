@@ -14,6 +14,7 @@
  * @version 1.3.0
  * @author Mathieu Faverge
  * @author Ana Hourcau
+ * @author Pierre Esterie
  * @date 2025-01-24
  * @precisions normal z -> z d
  *

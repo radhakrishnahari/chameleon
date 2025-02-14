@@ -13,6 +13,7 @@
  * @version 1.3.0
  * @author Mathieu Faverge
  * @author Lionel Eyraud-Dubois
+ * @author Pierre Esterie
  * @date 2025-01-29
  * @precisions normal z -> s d c
  *

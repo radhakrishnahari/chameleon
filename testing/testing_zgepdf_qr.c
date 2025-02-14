@@ -14,6 +14,7 @@
  * @author Mathieu Faverge
  * @author Hatem Ltaief
  * @author Alycia Lisito
+ * @author Pierre Esterie
  * @date 2024-11-13
  * @precisions normal z -> c d s
  *

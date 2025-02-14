@@ -16,6 +16,7 @@
  * @author Mathieu Faverge
  * @author Florent Pruvost
  * @author Loris Lucido
+ * @author Philippe Swartvagher
  * @date 2024-09-17
  *
  */

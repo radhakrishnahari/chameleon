@@ -15,6 +15,8 @@
  * @author Florent Pruvost
  * @author Mathieu Faverge
  * @author Loris Lucido
+ * @author Matthieu Kuhn
+ * @author Xavier Lacoste
  * @date 2024-04-24
  * @precisions normal z -> c d s
  *

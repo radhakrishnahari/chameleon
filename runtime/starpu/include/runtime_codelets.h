@@ -17,6 +17,7 @@
  * @author Cedric Castagnede
  * @author Florent Pruvost
  * @author Loris Lucido
+ * @author Matthieu Kuhn
  * @date 2024-02-18
  *
  */

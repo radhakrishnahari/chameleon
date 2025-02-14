@@ -14,6 +14,7 @@
  * @author Matthieu Kuhn
  * @author Alycia Lisito
  * @author Florent Pruvost
+ * @author Pierre Esterie
  * @date 2024-12-18
  *
  */

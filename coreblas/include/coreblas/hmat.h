@@ -14,6 +14,7 @@
  * @version 1.3.0
  * @author Rocio Carratala-Saez
  * @author Mathieu Faverge
+ * @author Abel Calluaud
  * @date 2024-03-27
  *
  */

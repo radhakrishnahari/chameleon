@@ -13,6 +13,7 @@
  *
  * @version 1.3.0
  * @author Alycia Lisito
+ * @author Eyraud-Dubois Lionel
  * @date 2024-02-18
  * @precisions normal z -> s d c
  *

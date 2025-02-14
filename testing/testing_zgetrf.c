@@ -16,6 +16,7 @@
  * @author Matthieu Kuhn
  * @author Lionel Eyraud-Dubois
  * @author Xavier Lacoste
+ * @author Florent Pruvost
  * @date 2025-01-29
  * @precisions normal z -> c d s
  *

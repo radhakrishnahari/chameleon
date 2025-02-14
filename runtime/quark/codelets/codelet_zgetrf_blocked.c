@@ -13,6 +13,7 @@
  * @comment Codelets to perform panel factorization with partial pivoting
  *
  * @author Mathieu Faverge
+ * @author Alycia Lisito
  * @date 2024-03-29
  * @precisions normal z -> c d s
  *

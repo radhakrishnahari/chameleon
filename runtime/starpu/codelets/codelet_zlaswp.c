@@ -12,6 +12,7 @@
  * @version 1.3.0
  * @author Mathieu Faverge
  * @author Matthieu Kuhn
+ * @author Alycia Lisito
  * @date 2024-11-12
  * @precisions normal z -> c d s
  *

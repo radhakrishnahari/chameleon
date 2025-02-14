@@ -15,6 +15,7 @@
  * @author Romain Peressoni
  * @author Mathieu Faverge
  * @author Antoine Jego
+ * @author Florent Pruvost
  * @date 2025-01-29
  * @precisions normal z -> c d s
  *

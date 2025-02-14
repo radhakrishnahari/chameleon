@@ -20,6 +20,7 @@
  * @author Raphael Boucherie
  * @author Samuel Thibault
  * @author Lionel Eyraud-Dubois
+ * @author Alycia Lisito
  * @date 2025-01-24
  *
  * @addtogroup chameleon_descriptors

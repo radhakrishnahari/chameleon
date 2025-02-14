@@ -13,6 +13,7 @@
  * @author Mathieu Faverge
  * @author Florent Pruvost
  * @author Alycia Lisito
+ * @author Abel Calluaud
  * @date 2024-12-09
  * @precisions normal z -> c d s
  *

@@ -19,6 +19,7 @@
  * @author Raphael Boucherie
  * @author Samuel Thibault
  * @author Lionel Eyraud-Dubois
+ * @author Pierre Esterie
  * @date 2025-01-29
  *
  ***

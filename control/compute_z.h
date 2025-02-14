@@ -23,6 +23,7 @@
  * @author Matthieu Kuhn
  * @author Lionel Eyraud-Dubois
  * @author Ana Hourcau
+ * @author Pierre Esterie
  * @date 2024-12-09
  * @precisions normal z -> c d s
  *

@@ -12,6 +12,7 @@
  * @version 1.3.0
  * @author Florent Pruvost
  * @author Lionel Eyraud-Dubois
+ * @author Pierre Esterie
  * @date 2024-11-13
  * @precisions normal z -> s d c z
  *

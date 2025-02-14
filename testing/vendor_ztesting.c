@@ -15,6 +15,7 @@
  * @author Alycia Lisito
  * @author Lucas Nesi
  * @author Matthieu Kuhn
+ * @author Philippe Swartvagher
  * @date 2024-09-19
  * @precisions normal z -> c d s
  *

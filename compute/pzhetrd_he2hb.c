@@ -18,6 +18,7 @@
  * @author Samuel Thibault
  * @author Alycia Lisito
  * @author Lionel Eyraud-Dubois
+ * @author Pierre Esterie
  * @date 2025-01-24
  * @precisions normal z -> s d c
  *

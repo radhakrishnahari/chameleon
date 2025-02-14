@@ -12,6 +12,8 @@
  * @author Lucas Barros de Assis
  * @author Mathieu Faverge
  * @author Alycia Lisito
+ * @author Florent Pruvost
+ * @author Philippe Swartvagher
  * @date 2024-08-28
  *
  */
