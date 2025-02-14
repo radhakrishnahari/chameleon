@@ -2,7 +2,7 @@
  *
  * @file starpu/cham_tile_interface.c
  *
- * @copyright 2012-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2012-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  ***
@@ -15,7 +15,7 @@
  * @author Samuel Thibault
  * @author Abel Calluaud
  * @author Ana Hourcau
- * @date 2024-07-17
+ * @date 2024-09-17
  *
  */
 #include "chameleon_starpu_internal.h"

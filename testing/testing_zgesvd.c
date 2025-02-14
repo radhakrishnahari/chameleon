@@ -2,7 +2,7 @@
  *
  * @file testing_zgesvd.c
  *
- * @copyright 2019-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2019-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  ***
@@ -11,7 +11,7 @@
  *
  * @version 1.3.0
  * @author Alycia Lisito
- * @date 2023-07-05
+ * @date 2025-01-29
  * @precisions normal z -> c d s
  *
  */

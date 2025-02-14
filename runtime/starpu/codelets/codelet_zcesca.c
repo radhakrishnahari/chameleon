@@ -2,7 +2,7 @@
  *
  * @file starpu/codelet_zcesca.c
  *
- * @copyright 2012-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2012-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  ***

@@ -2,17 +2,17 @@
  *
  * @file lapack_api_common.h
  *
- * @copyright 2022-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2022-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  ***
  *
  * @brief Chameleon blas/lapack and cblas/lapack api common internal functions
  *
- * @version 1.2.0
+ * @version 1.3.0
  * @author Mathieu Faverge
  * @author Florent Pruvost
- * @date 2022-04-22
+ * @date 2024-02-18
  *
  */
 #ifndef _lapack_api_common_h_

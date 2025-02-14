@@ -4,7 +4,7 @@
  *
  * @copyright 2009-2014 The University of Tennessee and The University of
  *                      Tennessee Research Foundation. All rights reserved.
- * @copyright 2012-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2012-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  ***
@@ -16,7 +16,7 @@
  * @author Guillaume Sylvand
  * @author Mathieu Faverge
  * @author Philippe Virouleau
- * @date 2024-03-16
+ * @date 2025-01-29
  *
  */
 #include "step7.h"

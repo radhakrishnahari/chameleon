@@ -2,7 +2,7 @@
  *
  * @file testings.h
  *
- * @copyright 2019-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2019-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  ***
  *
@@ -14,7 +14,7 @@
  * @author Alycia Lisito
  * @author Florent Pruvost
  * @author Lionel Eyraud-Dubois
- * @date 2023-07-05
+ * @date 2024-03-21
  *
  */
 #ifndef _testings_h_

@@ -2,18 +2,18 @@
  *
  * @file openmp/codelet_zlacpy.c
  *
- * @copyright 2012-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2012-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  ***
  *
  * @brief Chameleon zlacpy OpenMP codelet
  *
- * @version 1.2.0
+ * @version 1.3.0
  * @author Philippe Virouleau
  * @author Mathieu Faverge
  * @author Alycia Lisito
- * @date 2022-02-22
+ * @date 2024-02-18
  * @precisions normal z -> c d s
  *
  */

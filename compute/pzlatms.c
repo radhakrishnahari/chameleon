@@ -2,7 +2,7 @@
  *
  * @file pzlatms.c
  *
- * @copyright 2012-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2012-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  * @copyright 2016-2020 KAUST. All rights reserved.
  *
@@ -13,7 +13,7 @@
  * @version 1.3.0
  * @author Mathieu Faverge
  * @author Lionel Eyraud-Dubois
- * @date 2024-03-14
+ * @date 2025-01-29
  * @precisions normal z -> s d c
  *
  */

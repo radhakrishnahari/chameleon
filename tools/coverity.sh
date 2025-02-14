@@ -2,12 +2,12 @@
 #
 # @file coverity.sh
 #
-# @copyright 2024-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+# @copyright 2024-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                      Univ. Bordeaux. All rights reserved.
 #
 # @version 1.3.0
 # @author Florent Pruvost
-# @date 2024-11-27
+# @date 2024-12-03
 #
 set -e
 set -x

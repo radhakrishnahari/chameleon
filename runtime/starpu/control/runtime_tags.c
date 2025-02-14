@@ -2,14 +2,14 @@
  *
  * @file starpu/runtime_tags.c
  *
- * @copyright 2017-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2017-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 1.3.0
  * @author Pierre Ramet
  * @author Mathieu Faverge
  * @author Florent Pruvost
- * @date 2024-03-16
+ * @date 2024-09-17
  *
  * Functions to manage the MPI data tags with StarPU (originated from PaStiX).
  *

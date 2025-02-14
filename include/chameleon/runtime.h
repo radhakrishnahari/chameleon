@@ -4,7 +4,7 @@
  *
  * @copyright 2009-2014 The University of Tennessee and The University of
  *                      Tennessee Research Foundation. All rights reserved.
- * @copyright 2012-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2012-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  ***
@@ -19,7 +19,7 @@
  * @author Philippe Swartvagher
  * @author Matthieu Kuhn
  * @author Alycia Lisito
- * @date 2024-03-16
+ * @date 2024-08-29
  *
  */
 #ifndef _chameleon_runtime_h_

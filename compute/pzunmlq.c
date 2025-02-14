@@ -4,14 +4,14 @@
  *
  * @copyright 2009-2014 The University of Tennessee and The University of
  *                      Tennessee Research Foundation. All rights reserved.
- * @copyright 2012-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2012-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  ***
  *
  * @brief Chameleon zunmlq parallel algorithm
  *
- * @version 1.2.0
+ * @version 1.3.0
  * @comment This file has been automatically generated
  *          from Plasma 2.5.0 for CHAMELEON 0.9.2
  * @author Hatem Ltaief
@@ -24,7 +24,7 @@
  * @author Raphael Boucherie
  * @author Samuel Thibault
  * @author Alycia Lisito
- * @date 2022-02-22
+ * @date 2025-01-24
  * @precisions normal z -> s d c
  *
  */

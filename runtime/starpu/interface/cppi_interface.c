@@ -2,7 +2,7 @@
  *
  * @file starpu/cppi_interface.c
  *
- * @copyright 2023-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2023-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  ***
@@ -13,7 +13,7 @@
  * @author Mathieu Faverge
  * @author Matthieu Kuhn
  * @author Alycia Lisito
- * @date 2024-10-18
+ * @date 2025-01-29
  *
  */
 #include "chameleon_starpu_internal.h"

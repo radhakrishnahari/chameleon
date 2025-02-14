@@ -2,7 +2,7 @@
  *
  * @file comm_split.h
  *
- * @copyright 2024-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2024-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  ***

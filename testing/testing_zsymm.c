@@ -2,7 +2,7 @@
  *
  * @file testing_zsymm.c
  *
- * @copyright 2019-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2019-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  ***
@@ -14,7 +14,7 @@
  * @author Florent Pruvost
  * @author Mathieu Faverge
  * @author Alycia Lisito
- * @date 2023-07-05
+ * @date 2025-01-29
  * @precisions normal z -> c d s
  *
  */

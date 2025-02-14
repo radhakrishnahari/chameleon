@@ -2,13 +2,13 @@
 #
 # @file find_sources.sh
 #
-# @copyright 2020-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+# @copyright 2020-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                      Univ. Bordeaux. All rights reserved.
 #
-# @version 1.2.0
+# @version 1.3.0
 # @author Mathieu Faverge
 # @author Florent Pruvost
-# @date 2022-02-22
+# @date 2024-12-03
 #
 #set -x
 

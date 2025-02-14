@@ -2,7 +2,7 @@
  *
  * @file starpu/codelet_map.c
  *
- * @copyright 2018-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2018-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  ***
@@ -12,7 +12,7 @@
  * @version 1.3.0
  * @author Mathieu Faverge
  * @author Florent Pruvost
- * @date 2024-10-18
+ * @date 2025-01-29
  *
  */
 #include "chameleon_starpu_internal.h"

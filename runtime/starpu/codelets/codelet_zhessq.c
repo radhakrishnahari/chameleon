@@ -4,19 +4,19 @@
  *
  * @copyright 2009-2014 The University of Tennessee and The University of
  *                      Tennessee Research Foundation. All rights reserved.
- * @copyright 2012-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2012-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  ***
  *
  * @brief Chameleon zhessq StarPU codelet
  *
- * @version 1.2.0
+ * @version 1.3.0
  * @comment This file has been automatically generated
  *          from Plasma 2.6.0 for CHAMELEON 0.9.2
  * @author Mathieu Faverge
  * @author Florent Pruvost
- * @date 2022-02-22
+ * @date 2024-09-17
  * @precisions normal z -> c
  *
  */

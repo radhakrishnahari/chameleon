@@ -4,7 +4,7 @@
  *
  * @copyright 2009-2014 The University of Tennessee and The University of
  *                      Tennessee Research Foundation. All rights reserved.
- * @copyright 2012-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2012-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  ***
@@ -19,7 +19,7 @@
  * @author Raphael Boucherie
  * @author Samuel Thibault
  * @author Lionel Eyraud-Dubois
- * @date 2024-10-18
+ * @date 2025-01-29
  *
  ***
  *

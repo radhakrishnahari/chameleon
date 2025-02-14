@@ -3,7 +3,7 @@
 
  Python Chameleon specific substitution rules for the Precision Generator script.
 
- @copyright 2019-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ @copyright 2019-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
  @version 1.3.0
@@ -11,7 +11,7 @@
  @author Florent Pruvost
  @author Nathalie Furmento
  @author Alycia Lisito
- @date 2023-07-06
+ @date 2024-11-14
 
 """
 _extra_blas = [

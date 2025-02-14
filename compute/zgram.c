@@ -2,7 +2,7 @@
  *
  * @file zgram.c
  *
- * @copyright 2012-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2012-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  ***
@@ -14,7 +14,7 @@
  * @author Florent Pruvost
  * @author Philippe Swartvagher
  * @author Lionel Eyraud-Dubois
- * @date 2023-07-05
+ * @date 2024-11-13
  * @precisions normal z -> s d c z
  *
  */

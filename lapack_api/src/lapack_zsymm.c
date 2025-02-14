@@ -2,17 +2,17 @@
  *
  * @file lapack_zsymm.c
  *
- * @copyright 2022-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2022-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  ***
  *
  * @brief Chameleon blas and cblas api for symm
  *
- * @version 1.2.0
+ * @version 1.3.0
  * @author Mathieu Faverge
  * @author Florent Pruvost
- * @date 2022-08-18
+ * @date 2024-11-14
  * @precisions normal z -> s d c
  *
  */

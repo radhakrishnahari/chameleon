@@ -4,7 +4,7 @@
 #
 # @copyright 2009-2015 The University of Tennessee and The University of
 #                      Tennessee Research Foundation. All rights reserved.
-# @copyright 2012-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+# @copyright 2012-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                      Univ. Bordeaux. All rights reserved.
 #
 ###
@@ -26,7 +26,7 @@
 #  @author Matthieu Kuhn
 #  @author Loris Lucido
 #  @author Terry Cojean
-#  @date 2023-08-22
+#  @date 2024-08-29
 #
 ###
 cmake_minimum_required(VERSION 3.5)

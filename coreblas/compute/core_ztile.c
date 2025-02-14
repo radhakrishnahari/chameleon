@@ -4,7 +4,7 @@
  *
  * @copyright 2009-2014 The University of Tennessee and The University of
  *                      Tennessee Research Foundation. All rights reserved.
- * @copyright 2012-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2012-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @brief Chameleon CPU kernel interface from CHAM_tile_t layout to the real one.
@@ -13,7 +13,7 @@
  * @author Mathieu Faverge
  * @author Florent Pruvost
  * @author Alycia Lisito
- * @date 2023-08-31
+ * @date 2024-12-09
  * @precisions normal z -> c d s
  *
  */

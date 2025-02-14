@@ -2,7 +2,7 @@
  *
  * @file link_chameleon.c
  *
- * @copyright 2024-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2024-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  ***
@@ -12,7 +12,7 @@
  * @version 1.3.0
  * @author Florent Pruvost
  * @author Mathieu Faverge
- * @date 2024-06-14
+ * @date 2024-06-17
  *
  */
 #include <chameleon.h>

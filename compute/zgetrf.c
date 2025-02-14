@@ -4,7 +4,7 @@
  *
  * @copyright 2009-2014 The University of Tennessee and The University of
  *                      Tennessee Research Foundation. All rights reserved.
- * @copyright 2012-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2012-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  ***
@@ -21,7 +21,7 @@
  * @author Lionel Eyraud-Dubois
  * @author Alycia Lisito
  * @author Xavier Lacoste
- * @date 2024-03-16
+ * @date 2024-12-09
  *
  * @precisions normal z -> s d c
  *

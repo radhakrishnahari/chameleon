@@ -2,13 +2,13 @@
 ###
 #
 #  @file link_pkgconfig.sh
-#  @copyright 2023-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+#  @copyright 2023-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
 #  @version 1.3.0
 #  @author Florent Pruvost
 #  @author Mathieu Faverge
-#  @date 2023-12-07
+#  @date 2024-06-17
 #
 # Check that linking with the project is ok when using pkg-config.
 #

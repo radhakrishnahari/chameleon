@@ -2,7 +2,7 @@
  *
  * @file testing_zgepdf_qr.c
  *
- * @copyright 2020-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2020-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  * @copyright 2020-2020 KAUST. All rights reserved.
  *
@@ -14,7 +14,7 @@
  * @author Mathieu Faverge
  * @author Hatem Ltaief
  * @author Alycia Lisito
- * @date 2023-07-05
+ * @date 2024-11-13
  * @precisions normal z -> c d s
  *
  */

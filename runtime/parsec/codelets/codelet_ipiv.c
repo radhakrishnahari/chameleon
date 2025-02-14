@@ -2,7 +2,7 @@
  *
  * @file parsec/codelet_ipiv.c
  *
- * @copyright 2023-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2023-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  ***
@@ -12,7 +12,7 @@
  * @version 1.3.0
  * @author Mathieu Faverge
  * @author Matthieu Kuhn
- * @date 2024-03-16
+ * @date 2024-08-29
  *
  */
 #include "chameleon_parsec.h"

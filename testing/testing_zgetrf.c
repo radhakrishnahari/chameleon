@@ -2,7 +2,7 @@
  *
  * @file testing_zgetrf.c
  *
- * @copyright 2019-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2019-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  ***
@@ -16,7 +16,7 @@
  * @author Matthieu Kuhn
  * @author Lionel Eyraud-Dubois
  * @author Xavier Lacoste
- * @date 2023-10-24
+ * @date 2025-01-29
  * @precisions normal z -> c d s
  *
  */

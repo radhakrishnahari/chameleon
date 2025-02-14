@@ -4,7 +4,7 @@
  *
  * @copyright 2023-2023 The University of Tennessee and The University of
  *                      Tennessee Research Foundation. All rights reserved.
- * @copyright 2023-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2023-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  ***
@@ -14,7 +14,7 @@
  * @version 1.3.0
  * @author Mark Gates
  * @author Mathieu Faverge
- * @date 2023-07-04
+ * @date 2024-02-18
  * @precisions mixed zc -> ds
  *
  * This file is an adaptation of the MAGMA zlag2c.cu and clag2z files.

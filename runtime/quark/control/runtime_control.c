@@ -4,14 +4,14 @@
  *
  * @copyright 2009-2014 The University of Tennessee and The University of
  *                      Tennessee Research Foundation. All rights reserved.
- * @copyright 2012-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2012-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  ***
  *
  * @brief Chameleon Quark control routines
  *
- * @version 1.2.0
+ * @version 1.3.0
  * @author Vijay Joshi
  * @author Cedric Castagnede
  * @author Florent Pruvost
@@ -19,7 +19,7 @@
  * @author Samuel Thibault
  * @author Philippe Swartvagher
  * @author Matthieu Kuhn
- * @date 2022-02-22
+ * @date 2024-02-18
  *
  */
 #include "chameleon_quark.h"

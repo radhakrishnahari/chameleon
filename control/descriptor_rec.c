@@ -4,7 +4,7 @@
  *
  * @copyright 2009-2014 The University of Tennessee and The University of
  *                      Tennessee Research Foundation. All rights reserved.
- * @copyright 2012-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2012-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  ***
@@ -15,7 +15,7 @@
  * @author Mathieu Faverge
  * @author Gwenole Lucas
  * @author Lionel Eyraud-Dubois
- * @date 2023-07-05
+ * @date 2025-01-24
  *
  */
 #include "control/common.h"

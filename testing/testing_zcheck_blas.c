@@ -2,20 +2,20 @@
  *
  * @file testing_zcheck_blas.c
  *
- * @copyright 2019-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2019-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  ***
  *
  * @brief Chameleon CHAMELEON_Complex64_t auxiliary testings routines
  *
- * @version 1.2.0
+ * @version 1.3.0
  * @author Lucas Barros de Assis
  * @author Florent Pruvost
  * @author Mathieu Faverge
  * @author Nathalie Furmento
  * @author Alycia Lisito
- * @date 2023-01-05
+ * @date 2025-01-29
  * @precisions normal z -> c d s
  *
  */

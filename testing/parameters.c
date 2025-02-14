@@ -2,7 +2,7 @@
  *
  * @file parameters.c
  *
- * @copyright 2019-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2019-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  ***
  *
@@ -14,7 +14,7 @@
  * @author Alycia Lisito
  * @author Lionel Eyraud-Dubois
  * @author Lucas Barros De Assis
- * @date 2023-07-05
+ * @date 2025-01-29
  *
  */
 #include "testings.h"

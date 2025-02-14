@@ -2,7 +2,7 @@
 #
 # @file ChameleonPkgConfig.cmake
 #
-# @copyright 2012-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+# @copyright 2012-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                      Univ. Bordeaux. All rights reserved.
 #
 ###
@@ -12,7 +12,7 @@
 #  @author Mathieu Faverge
 #  @author Florent Pruvost
 #  @author Abel Calluaud
-#  @date 2022-02-22
+#  @date 2024-12-16
 #
 ###
 include(GenPkgConfig)

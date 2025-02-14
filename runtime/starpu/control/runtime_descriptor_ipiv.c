@@ -2,7 +2,7 @@
  *
  * @file starpu/runtime_descriptor_ipiv.c
  *
- * @copyright 2022-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2022-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  ***
@@ -14,7 +14,7 @@
  * @author Matthieu Kuhn
  * @author Alycia Lisito
  * @author Florent Pruvost
- * @date 2024-03-16
+ * @date 2024-12-18
  *
  */
 #include "chameleon_starpu_internal.h"

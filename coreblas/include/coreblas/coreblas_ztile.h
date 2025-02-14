@@ -2,7 +2,7 @@
  *
  * @file coreblas_ztile.h
  *
- * @copyright 2019-2024 Bordeaux INP, CNRS (LaBRI UMR 5800 ), Inria,
+ * @copyright 2019-2025 Bordeaux INP, CNRS (LaBRI UMR 5800 ), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @brief Chameleon CPU kernel CHAM_tile_t interface
@@ -11,7 +11,7 @@
  * @author Mathieu Faverge
  * @author Florent Pruvost
  * @author Alycia Lisito
- * @date 2023-08-31
+ * @date 2024-02-18
  * @precisions normal z -> c d s
  *
  */

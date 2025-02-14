@@ -2,7 +2,7 @@
  *
  * @file core_zprint.c
  *
- * @copyright 2012-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2012-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  ***
@@ -12,7 +12,7 @@
  * @version 1.3.0
  * @author Mathieu Faverge
  * @author Florent Pruvost
- * @date 2023-07-05
+ * @date 2024-02-18
  * @precisions normal z -> c d s
  *
  */

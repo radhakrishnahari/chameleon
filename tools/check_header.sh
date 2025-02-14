@@ -1,13 +1,13 @@
 #
 #  @file check_header.sh
 #
-#  @copyright 2016-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+#  @copyright 2016-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
 #  @version 1.3.0
 #  @author Florent Pruvost
 #  @author Mathieu Faverge
-#  @date 2024-05-06
+#  @date 2024-09-17
 #
 # This script check that basic informations is present and correct in
 # headers of source files.

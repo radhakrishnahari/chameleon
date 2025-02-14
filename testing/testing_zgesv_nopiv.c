@@ -2,7 +2,7 @@
  *
  * @file testing_zgesv_nopiv.c
  *
- * @copyright 2019-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2019-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  ***
@@ -13,7 +13,7 @@
  * @author Lucas Barros de Assis
  * @author Mathieu Faverge
  * @author Alycia Lisito
- * @date 2024-10-17
+ * @date 2025-01-29
  * @precisions normal z -> c d s
  *
  */

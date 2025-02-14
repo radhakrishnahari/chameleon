@@ -2,7 +2,7 @@
  *
  * @file starpu/cppi_interface.h
  *
- * @copyright 2023-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2023-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  ***
@@ -13,7 +13,7 @@
  * @author Mathieu Faverge
  * @author Matthieu Kuhn
  * @author Alycia Lisito
- * @date 2023-08-22
+ * @date 2024-08-29
  *
  */
 #ifndef _cppi_interface_h_

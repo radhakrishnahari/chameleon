@@ -2,7 +2,7 @@
  *
  * @file pzgerst.c
  *
- * @copyright 2012-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2012-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  ***
@@ -11,7 +11,7 @@
  *
  * @version 1.3.0
  * @author Mathieu Faverge
- * @date 2023-07-06
+ * @date 2025-01-24
  * @precisions normal z -> d
  *
  */

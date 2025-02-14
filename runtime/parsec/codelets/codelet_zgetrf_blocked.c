@@ -2,7 +2,7 @@
  *
  * @file parsec/codelet_zgetrf_blocked.c
  *
- * @copyright 2023-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2023-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  ***
@@ -13,7 +13,7 @@
  * @comment Codelets to perform panel factorization with partial pivoting
  *
  * @author Mathieu Faverge
- * @date 2023-09-11
+ * @date 2024-03-29
  * @precisions normal z -> c d s
  *
  */

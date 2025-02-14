@@ -2,17 +2,17 @@
  *
  * @file testings.c
  *
- * @copyright 2019-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2019-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  ***
  *
  * @brief Chameleon auxiliary routines for testing structures
  *
- * @version 1.2.0
+ * @version 1.3.0
  * @author Lucas Barros de Assis
  * @author Mathieu Faverge
  * @author Alycia Lisito
- * @date 2023-01-05
+ * @date 2025-01-24
  *
  */
 #include "testings.h"
