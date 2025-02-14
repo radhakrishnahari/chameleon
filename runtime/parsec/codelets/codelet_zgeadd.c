@@ -96,7 +96,7 @@ CORE_zgeadd_parsec( parsec_execution_stream_t *context,
  *******************************************************************************
  *
  * @retval CHAMELEON_SUCCESS successful exit
- * @retval <0 if -i, the i-th argument had an illegal value
+ * @retval <0 if -i, the i-th argument had an illegal PARSEC_VALUE
  *
  */
 void INSERT_TASK_zgeadd( const RUNTIME_option_t *options,
@@ -108,17 +108,17 @@ void INSERT_TASK_zgeadd( const RUNTIME_option_t *options,
     CHAM_tile_t *tileA = A->get_blktile( A, Am, An );
     CHAM_tile_t *tileB = B->get_blktile( B, Bm, Bn );
 
-    parsec_dtd_taskpool_insert_task(
-        PARSEC_dtd_taskpool, CORE_zgeadd_parsec, options->priority, "geadd",
-        sizeof(cham_trans_t),        &trans, VALUE,
-        sizeof(int),               &m,     VALUE,
-        sizeof(int),               &n,     VALUE,
-        sizeof(CHAMELEON_Complex64_t), &alpha, VALUE,
-        PASSED_BY_REF,              RTBLKADDR( A, CHAMELEON_Complex64_t, Am, An ), chameleon_parsec_get_arena_index( A ) | INPUT,
-        sizeof(int), &(tileA->ld), VALUE,
-        sizeof(CHAMELEON_Complex64_t), &beta,  VALUE,
-        PASSED_BY_REF,              RTBLKADDR( B, CHAMELEON_Complex64_t, Bm, Bn ), chameleon_parsec_get_arena_index( B ) | INOUT | AFFINITY,
-        sizeof(int), &(tileB->ld), VALUE,
+    parsec_dtd_insert_task(
+        PARSEC_dtd_taskpool, CORE_zgeadd_parsec, options->priority, PARSEC_DEV_CPU, "geadd",
+        sizeof(cham_trans_t),        &trans, PARSEC_VALUE,
+        sizeof(int),               &m,     PARSEC_VALUE,
+        sizeof(int),               &n,     PARSEC_VALUE,
+        sizeof(CHAMELEON_Complex64_t), &alpha, PARSEC_VALUE,
+        PASSED_BY_REF,              RTBLKADDR( A, CHAMELEON_Complex64_t, Am, An ), chameleon_parsec_get_arena_index( A ) | PARSEC_INPUT,
+        sizeof(int), &(tileA->ld), PARSEC_VALUE,
+        sizeof(CHAMELEON_Complex64_t), &beta,  PARSEC_VALUE,
+        PASSED_BY_REF,              RTBLKADDR( B, CHAMELEON_Complex64_t, Bm, Bn ), chameleon_parsec_get_arena_index( B ) | PARSEC_INOUT | PARSEC_AFFINITY,
+        sizeof(int), &(tileB->ld), PARSEC_VALUE,
         PARSEC_DTD_ARG_END );
 
     (void)nb;

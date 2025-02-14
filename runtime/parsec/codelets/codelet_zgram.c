@@ -90,39 +90,39 @@ void INSERT_TASK_zgram( const RUNTIME_option_t *options,
 
     /*
      * Test if Di is Dj, when we are on the diagonal.
-     * This to avoid having the same data twice in inputs (not handled in parsec).
+     * This to avoid having the same data twice in PARSEC_INPUTs (not handled in parsec).
      */
     ptrDi = (double *)(RTBLKADDR( Di, double, Dim, Din ));
     ptrDj = (double *)(RTBLKADDR( Dj, double, Djm, Djn ));
     if (ptrDi == ptrDj) {
-        parsec_dtd_taskpool_insert_task(
-            PARSEC_dtd_taskpool, CORE_zsygram_parsec, options->priority, "sygram",
-            sizeof(cham_uplo_t),   &uplo, VALUE,
-            sizeof(int),   &m,    VALUE,
-            sizeof(int),   &n,    VALUE,
-            sizeof(int),   &mt,   VALUE,
-            sizeof(int),   &nt,   VALUE,
-            PASSED_BY_REF, RTBLKADDR( Di, double, Dim, Din ), chameleon_parsec_get_arena_index( Di ) | INPUT,
-            sizeof(int), &(tileDi->ld), VALUE,
-            PASSED_BY_REF, RTBLKADDR( D, double, Dm, Dn ), chameleon_parsec_get_arena_index( D ) | INPUT,
-            PASSED_BY_REF, RTBLKADDR( A, double, Am, An ), chameleon_parsec_get_arena_index( A ) | INOUT | AFFINITY,
-            sizeof(int), &(tileA->ld), VALUE,
+        parsec_dtd_insert_task(
+            PARSEC_dtd_taskpool, CORE_zsygram_parsec, options->priority, PARSEC_DEV_CPU, "sygram",
+            sizeof(cham_uplo_t),   &uplo, PARSEC_VALUE,
+            sizeof(int),   &m,    PARSEC_VALUE,
+            sizeof(int),   &n,    PARSEC_VALUE,
+            sizeof(int),   &mt,   PARSEC_VALUE,
+            sizeof(int),   &nt,   PARSEC_VALUE,
+            PASSED_BY_REF, RTBLKADDR( Di, double, Dim, Din ), chameleon_parsec_get_arena_index( Di ) | PARSEC_INPUT,
+            sizeof(int), &(tileDi->ld), PARSEC_VALUE,
+            PASSED_BY_REF, RTBLKADDR( D, double, Dm, Dn ), chameleon_parsec_get_arena_index( D ) | PARSEC_INPUT,
+            PASSED_BY_REF, RTBLKADDR( A, double, Am, An ), chameleon_parsec_get_arena_index( A ) | PARSEC_INOUT | PARSEC_AFFINITY,
+            sizeof(int), &(tileA->ld), PARSEC_VALUE,
             PARSEC_DTD_ARG_END );
     } else {
-        parsec_dtd_taskpool_insert_task(
-            PARSEC_dtd_taskpool, CORE_zgegram_parsec, options->priority, "gegram",
-            sizeof(cham_uplo_t),   &uplo, VALUE,
-            sizeof(int),   &m,    VALUE,
-            sizeof(int),   &n,    VALUE,
-            sizeof(int),   &mt,   VALUE,
-            sizeof(int),   &nt,   VALUE,
-            PASSED_BY_REF, RTBLKADDR( Di, double, Dim, Din ), chameleon_parsec_get_arena_index( Di ) | INPUT,
-            sizeof(int), &(tileDi->ld), VALUE,
-            PASSED_BY_REF, RTBLKADDR( Dj, double, Djm, Djn ), chameleon_parsec_get_arena_index( Dj ) | INPUT,
-            sizeof(int), &(tileDj->ld), VALUE,
-            PASSED_BY_REF, RTBLKADDR( D, double, Dm, Dn ), chameleon_parsec_get_arena_index( D ) | INPUT,
-            PASSED_BY_REF, RTBLKADDR( A, double, Am, An ), chameleon_parsec_get_arena_index( A ) | INOUT | AFFINITY,
-            sizeof(int), &(tileA->ld), VALUE,
+        parsec_dtd_insert_task(
+            PARSEC_dtd_taskpool, CORE_zgegram_parsec, options->priority, PARSEC_DEV_CPU, "gegram",
+            sizeof(cham_uplo_t),   &uplo, PARSEC_VALUE,
+            sizeof(int),   &m,    PARSEC_VALUE,
+            sizeof(int),   &n,    PARSEC_VALUE,
+            sizeof(int),   &mt,   PARSEC_VALUE,
+            sizeof(int),   &nt,   PARSEC_VALUE,
+            PASSED_BY_REF, RTBLKADDR( Di, double, Dim, Din ), chameleon_parsec_get_arena_index( Di ) | PARSEC_INPUT,
+            sizeof(int), &(tileDi->ld), PARSEC_VALUE,
+            PASSED_BY_REF, RTBLKADDR( Dj, double, Djm, Djn ), chameleon_parsec_get_arena_index( Dj ) | PARSEC_INPUT,
+            sizeof(int), &(tileDj->ld), PARSEC_VALUE,
+            PASSED_BY_REF, RTBLKADDR( D, double, Dm, Dn ), chameleon_parsec_get_arena_index( D ) | PARSEC_INPUT,
+            PASSED_BY_REF, RTBLKADDR( A, double, Am, An ), chameleon_parsec_get_arena_index( A ) | PARSEC_INOUT | PARSEC_AFFINITY,
+            sizeof(int), &(tileA->ld), PARSEC_VALUE,
             PARSEC_DTD_ARG_END );
     }
 

@@ -53,13 +53,13 @@ void INSERT_TASK_zlag2c( const RUNTIME_option_t *options,
     CHAM_tile_t *tileA = A->get_blktile( A, Am, An );
     CHAM_tile_t *tileB = B->get_blktile( B, Bm, Bn );
 
-    parsec_dtd_taskpool_insert_task(PARSEC_dtd_taskpool, CORE_zlag2c_parsec, "lag2c",
-        sizeof(int),                        &m,         VALUE,
-        sizeof(int),                        &n,         VALUE,
-        PASSED_BY_REF,         RTBLKADDR( A, CHAMELEON_Complex64_t, Am, An ), chameleon_parsec_get_arena_index( A ) | INPUT,
-        sizeof(int), &(tileA->ld), VALUE,
-        PASSED_BY_REF,         RTBLKADDR( B, CHAMELEON_Complex32_t, Bm, Bn ),     OUTPUT | AFFINITY,
-        sizeof(int), &(tileB->ld), VALUE,
+    parsec_dtd_insert_task(PARSEC_dtd_taskpool, CORE_zlag2c_parsec, options->priority, PARSEC_DEV_CPU, "lag2c",
+        sizeof(int),                        &m,         PARSEC_VALUE,
+        sizeof(int),                        &n,         PARSEC_VALUE,
+        PASSED_BY_REF,         RTBLKADDR( A, CHAMELEON_Complex64_t, Am, An ), chameleon_parsec_get_arena_index( A ) | PARSEC_INPUT,
+        sizeof(int), &(tileA->ld), PARSEC_VALUE,
+        PASSED_BY_REF,         RTBLKADDR( B, CHAMELEON_Complex32_t, Bm, Bn ),     PARSEC_OUTPUT | PARSEC_AFFINITY,
+        sizeof(int), &(tileB->ld), PARSEC_VALUE,
         PARSEC_DTD_ARG_END );
 }
 
@@ -97,13 +97,13 @@ void INSERT_TASK_clag2z( const RUNTIME_option_t *options,
     CHAM_tile_t *tileA = A->get_blktile( A, Am, An );
     CHAM_tile_t *tileB = B->get_blktile( B, Bm, Bn );
 
-    parsec_dtd_taskpool_insert_task(
-        PARSEC_dtd_taskpool, CORE_clag2z_parsec, options->priority, "lag2z",
-        sizeof(int),                        &m,         VALUE,
-        sizeof(int),                        &n,         VALUE,
-        PASSED_BY_REF,         RTBLKADDR( A, CHAMELEON_Complex32_t, Am, An ),     INPUT,
-        sizeof(int), &(tileA->ld), VALUE,
-        PASSED_BY_REF,         RTBLKADDR( B, CHAMELEON_Complex64_t, Bm, Bn ), chameleon_parsec_get_arena_index( B ) | OUTPUT | AFFINITY,
-        sizeof(int), &(tileB->ld), VALUE,
+    parsec_dtd_insert_task(
+        PARSEC_dtd_taskpool, CORE_clag2z_parsec, options->priority, PARSEC_DEV_CPU, "lag2z",
+        sizeof(int),                        &m,         PARSEC_VALUE,
+        sizeof(int),                        &n,         PARSEC_VALUE,
+        PASSED_BY_REF,         RTBLKADDR( A, CHAMELEON_Complex32_t, Am, An ),     PARSEC_INPUT,
+        sizeof(int), &(tileA->ld), PARSEC_VALUE,
+        PASSED_BY_REF,         RTBLKADDR( B, CHAMELEON_Complex64_t, Bm, Bn ), chameleon_parsec_get_arena_index( B ) | PARSEC_OUTPUT | PARSEC_AFFINITY,
+        sizeof(int), &(tileB->ld), PARSEC_VALUE,
         PARSEC_DTD_ARG_END );
 }

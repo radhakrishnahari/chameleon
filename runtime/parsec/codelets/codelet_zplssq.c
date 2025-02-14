@@ -49,13 +49,13 @@ void INSERT_TASK_zplssq( const RUNTIME_option_t *options,
 {
     parsec_taskpool_t* PARSEC_dtd_taskpool = (parsec_taskpool_t *)(options->sequence->schedopt);
 
-    parsec_dtd_taskpool_insert_task(
-        PARSEC_dtd_taskpool, CORE_zplssq_parsec, options->priority, "plssq",
-        sizeof(int),           &storev,                           VALUE,
-        sizeof(int),           &M,                                VALUE,
-        sizeof(int),           &N,                                VALUE,
-        PASSED_BY_REF,         RTBLKADDR( SCALESUMSQ, double, SCALESUMSQm, SCALESUMSQn ), chameleon_parsec_get_arena_index( SCALESUMSQ) | INPUT,
-        PASSED_BY_REF,         RTBLKADDR( SCLSSQ, double, SCLSSQm, SCLSSQn ), chameleon_parsec_get_arena_index( SCLSSQ) | INOUT | AFFINITY,
+    parsec_dtd_insert_task(
+        PARSEC_dtd_taskpool, CORE_zplssq_parsec, options->priority, PARSEC_DEV_CPU, "plssq",
+        sizeof(int),           &storev,                           PARSEC_VALUE,
+        sizeof(int),           &M,                                PARSEC_VALUE,
+        sizeof(int),           &N,                                PARSEC_VALUE,
+        PASSED_BY_REF,         RTBLKADDR( SCALESUMSQ, double, SCALESUMSQm, SCALESUMSQn ), chameleon_parsec_get_arena_index( SCALESUMSQ) | PARSEC_INPUT,
+        PASSED_BY_REF,         RTBLKADDR( SCLSSQ, double, SCLSSQm, SCLSSQn ), chameleon_parsec_get_arena_index( SCLSSQ) | PARSEC_INOUT | PARSEC_AFFINITY,
         PARSEC_DTD_ARG_END );
 }
 
@@ -80,9 +80,9 @@ void INSERT_TASK_zplssq2( const RUNTIME_option_t *options, int N,
 {
     parsec_taskpool_t* PARSEC_dtd_taskpool = (parsec_taskpool_t *)(options->sequence->schedopt);
 
-    parsec_dtd_taskpool_insert_task(
-        PARSEC_dtd_taskpool, CORE_zplssq2_parsec, options->priority, "plssq2",
-        sizeof(int),           &N,                                VALUE,
-        PASSED_BY_REF,         RTBLKADDR( RESULT, double, RESULTm, RESULTn ), chameleon_parsec_get_arena_index( RESULT) | INOUT | AFFINITY,
+    parsec_dtd_insert_task(
+        PARSEC_dtd_taskpool, CORE_zplssq2_parsec, options->priority, PARSEC_DEV_CPU, "plssq2",
+        sizeof(int),           &N,                                PARSEC_VALUE,
+        PASSED_BY_REF,         RTBLKADDR( RESULT, double, RESULTm, RESULTn ), chameleon_parsec_get_arena_index( RESULT) | PARSEC_INOUT | PARSEC_AFFINITY,
         PARSEC_DTD_ARG_END );
 }

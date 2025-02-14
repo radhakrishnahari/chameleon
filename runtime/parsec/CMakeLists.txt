@@ -156,9 +156,7 @@ target_link_libraries(chameleon_parsec PRIVATE MORSE::M)
 # necessary cause of include control/common.h which depends on hqr, mpi, cuda, ...
 # TODO: remove this dependency as soon as headers are clean
 target_link_libraries(chameleon_parsec PUBLIC hqr)
-if (CHAMELEON_USE_MPI)
-  target_link_libraries(chameleon_parsec PUBLIC MPI::MPI_C)
-endif()
+target_link_libraries(chameleon_parsec PUBLIC MPI::MPI_C)
 if (CHAMELEON_USE_CUDA)
   target_link_libraries(chameleon_parsec PUBLIC CUDA::CUBLAS)
 endif()

@@ -55,7 +55,7 @@
 #include <OpenCL/cl.h>
 #endif
 
-#if defined(CHAMELEON_USE_MPI)
+#if defined(CHAMELEON_USE_MPI) || defined(CHAMELEON_SCHED_PARSEC)
 #include <mpi.h>
 #endif
 

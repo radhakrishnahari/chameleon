@@ -52,15 +52,15 @@ void INSERT_TASK_zlanhe(const RUNTIME_option_t *options,
     CHAM_tile_t *tileA = A->get_blktile( A, Am, An );
     int szeW = chameleon_max( 1, N );
 
-    parsec_dtd_taskpool_insert_task(
-        PARSEC_dtd_taskpool, CORE_zlanhe_parsec, options->priority, "LANHE",
-        sizeof(cham_normtype_t),            &norm,          VALUE,
-        sizeof(cham_uplo_t),            &uplo,          VALUE,
-        sizeof(int),                   &N,             VALUE,
-        PASSED_BY_REF,         RTBLKADDR( A, CHAMELEON_Complex64_t, Am, An ), chameleon_parsec_get_arena_index( A ) | INPUT,
-        sizeof(int), &(tileA->ld),           VALUE,
-        sizeof(double)*szeW,           NULL,           SCRATCH,
-        PASSED_BY_REF,         RTBLKADDR( B, double, Bm, Bn ),            OUTPUT | AFFINITY,
+    parsec_dtd_insert_task(
+        PARSEC_dtd_taskpool, CORE_zlanhe_parsec, options->priority, PARSEC_DEV_CPU, "LANHE",
+        sizeof(cham_normtype_t),            &norm,          PARSEC_VALUE,
+        sizeof(cham_uplo_t),            &uplo,          PARSEC_VALUE,
+        sizeof(int),                   &N,             PARSEC_VALUE,
+        PASSED_BY_REF,         RTBLKADDR( A, CHAMELEON_Complex64_t, Am, An ), chameleon_parsec_get_arena_index( A ) | PARSEC_INPUT,
+        sizeof(int), &(tileA->ld),           PARSEC_VALUE,
+        sizeof(double)*szeW,           NULL,           PARSEC_SCRATCH,
+        PASSED_BY_REF,         RTBLKADDR( B, double, Bm, Bn ),            PARSEC_OUTPUT | PARSEC_AFFINITY,
         PARSEC_DTD_ARG_END );
 
     (void)NB;

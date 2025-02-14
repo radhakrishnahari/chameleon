@@ -547,7 +547,7 @@ if(NOT CHAMELEON_SIMULATION)
 
     # CHAMELEON depends on MPI
     #-------------------------
-    if (CHAMELEON_USE_MPI)
+    if (CHAMELEON_USE_MPI OR CHAMELEON_SCHED_PARSEC)
 
         # allows to use an external mpi compilation by setting compilers with
         # -DMPI_C_COMPILER=path/to/mpicc -DMPI_Fortran_COMPILER=path/to/mpif90
@@ -564,12 +564,7 @@ if(NOT CHAMELEON_SIMULATION)
 
         morse_export_imported_target(MPI MPI_C mpi chameleon)
 
-        if (CHAMELEON_SCHED STREQUAL "PARSEC")
-          message(FATAL_ERROR "CHAMELEON does not support PARSEC with MPI."
-          " To use PARSEC set CHAMELEON_USE_MPI=OFF.")
-        endif()
-
-    endif (CHAMELEON_USE_MPI)
+    endif (CHAMELEON_USE_MPI OR CHAMELEON_SCHED_PARSEC)
 
 else (NOT CHAMELEON_SIMULATION)
 
@@ -614,7 +609,7 @@ else (NOT CHAMELEON_SIMULATION)
 
     # CHAMELEON depends on MPI
     #-------------------------
-    if (CHAMELEON_USE_MPI)
+    if (CHAMELEON_USE_MPI OR CHAMELEON_SCHED_PARSEC)
 
         # allows to use an external mpi compilation by setting compilers with
         # -DMPI_C_COMPILER=path/to/mpicc -DMPI_Fortran_COMPILER=path/to/mpif90
@@ -658,7 +653,7 @@ else (NOT CHAMELEON_SIMULATION)
 
         morse_export_imported_target(MPI MPI_C mpi chameleon)
 
-    endif (CHAMELEON_USE_MPI)
+    endif (CHAMELEON_USE_MPI OR CHAMELEON_SCHED_PARSEC)
 
 endif(NOT CHAMELEON_SIMULATION)
 

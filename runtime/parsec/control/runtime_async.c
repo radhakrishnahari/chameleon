@@ -64,7 +64,7 @@ int RUNTIME_sequence_wait( CHAM_context_t  *chamctxt,
     parsec_taskpool_t *parsec_dtd_tp = (parsec_taskpool_t *) sequence->schedopt;
 
     assert( parsec_dtd_tp );
-    parsec_dtd_taskpool_wait( parsec, parsec_dtd_tp );
+    parsec_taskpool_wait( parsec_dtd_tp );
 
     return CHAMELEON_SUCCESS;
 }

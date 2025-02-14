@@ -41,17 +41,17 @@ void INSERT_TASK_zlaswp_get( const RUNTIME_option_t *options,
     CHAM_tile_t *tileA = A->get_blktile( A, Am, An );
     CHAM_tile_t *tileU = U->get_blktile( U, Um, Un );
 
-    parsec_dtd_taskpool_insert_task(
-        PARSEC_dtd_taskpool, CORE_zlaswp_get_parsec, options->priority, "laswp_get",
-        sizeof(int),          &m0,         VALUE,
-        sizeof(int),          &(tileA->m), VALUE,
-        sizeof(int),          &(tileA->n), VALUE,
-        sizeof(int),          &k,          VALUE,
-        PASSED_BY_REF, RTBLKADDR(A, ChamComplexDouble, Am, An), chameleon_parsec_get_arena_index( A ) | INPUT,
-        sizeof(int),         &(tileA->ld), VALUE,
-        PASSED_BY_REF, RTBLKADDR(U, ChamComplexDouble, Um, Un), chameleon_parsec_get_arena_index( U ) | INOUT,
-        sizeof(int),         &(tileU->ld), VALUE,
-        PASSED_BY_REF, RUNTIME_perm_getaddr( ipiv, ipivk ),     chameleon_parsec_get_arena_index_perm( ipiv ) | INPUT,
+    parsec_dtd_insert_task(
+        PARSEC_dtd_taskpool, CORE_zlaswp_get_parsec, options->priority, PARSEC_DEV_CPU, "laswp_get",
+        sizeof(int),          &m0,         PARSEC_VALUE,
+        sizeof(int),          &(tileA->m), PARSEC_VALUE,
+        sizeof(int),          &(tileA->n), PARSEC_VALUE,
+        sizeof(int),          &k,          PARSEC_VALUE,
+        PASSED_BY_REF, RTBLKADDR(A, ChamComplexDouble, Am, An), chameleon_parsec_get_arena_index( A ) | PARSEC_INPUT,
+        sizeof(int),         &(tileA->ld), PARSEC_VALUE,
+        PASSED_BY_REF, RTBLKADDR(U, ChamComplexDouble, Um, Un), chameleon_parsec_get_arena_index( U ) | PARSEC_INOUT,
+        sizeof(int),         &(tileU->ld), PARSEC_VALUE,
+        PASSED_BY_REF, RUNTIME_perm_getaddr( ipiv, ipivk ),     chameleon_parsec_get_arena_index_perm( ipiv ) | PARSEC_INPUT,
         PARSEC_DTD_ARG_END );
 }
 
@@ -77,16 +77,16 @@ void INSERT_TASK_zlaswp_set( const RUNTIME_option_t *options,
     CHAM_tile_t *tileA = A->get_blktile( A, Am, An );
     CHAM_tile_t *tileB = B->get_blktile( B, Bm, Bn );
 
-    parsec_dtd_taskpool_insert_task(
-        PARSEC_dtd_taskpool, CORE_zlaswp_set_parsec, options->priority, "laswp_set",
-        sizeof(int),          &m0,         VALUE,
-        sizeof(int),          &(tileB->m), VALUE,
-        sizeof(int),          &(tileB->n), VALUE,
-        sizeof(int),          &k,          VALUE,
-        PASSED_BY_REF, RTBLKADDR(A, ChamComplexDouble, Am, An), chameleon_parsec_get_arena_index( A ) | INPUT,
-        sizeof(int),         &(tileA->ld), VALUE,
-        PASSED_BY_REF, RTBLKADDR(B, ChamComplexDouble, Bm, Bn), chameleon_parsec_get_arena_index( B ) | INOUT,
-        sizeof(int),         &(tileB->ld), VALUE,
-        PASSED_BY_REF, RUNTIME_invp_getaddr( ipiv, ipivk ),     chameleon_parsec_get_arena_index_invp( ipiv ) | INPUT,
+    parsec_dtd_insert_task(
+        PARSEC_dtd_taskpool, CORE_zlaswp_set_parsec, options->priority, PARSEC_DEV_CPU, "laswp_set",
+        sizeof(int),          &m0,         PARSEC_VALUE,
+        sizeof(int),          &(tileB->m), PARSEC_VALUE,
+        sizeof(int),          &(tileB->n), PARSEC_VALUE,
+        sizeof(int),          &k,          PARSEC_VALUE,
+        PASSED_BY_REF, RTBLKADDR(A, ChamComplexDouble, Am, An), chameleon_parsec_get_arena_index( A ) | PARSEC_INPUT,
+        sizeof(int),         &(tileA->ld), PARSEC_VALUE,
+        PASSED_BY_REF, RTBLKADDR(B, ChamComplexDouble, Bm, Bn), chameleon_parsec_get_arena_index( B ) | PARSEC_INOUT,
+        sizeof(int),         &(tileB->ld), PARSEC_VALUE,
+        PASSED_BY_REF, RUNTIME_invp_getaddr( ipiv, ipivk ),     chameleon_parsec_get_arena_index_invp( ipiv ) | PARSEC_INPUT,
         PARSEC_DTD_ARG_END );
 }

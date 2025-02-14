@@ -64,7 +64,7 @@
  *******************************************************************************
  *
  * @retval CHAMELEON_SUCCESS successful exit
- * @retval <0 if INFO = -k, the k-th argument had an illegal value
+ * @retval <0 if INFO = -k, the k-th argument had an illegal PARSEC_VALUE
  *
  */
 static inline int
@@ -103,19 +103,19 @@ void INSERT_TASK_zgessm(const RUNTIME_option_t *options,
     CHAM_tile_t *tileD = D->get_blktile( D, Dm, Dn );
     CHAM_tile_t *tileA = A->get_blktile( A, Am, An );
 
-    parsec_dtd_taskpool_insert_task(
-        PARSEC_dtd_taskpool, CORE_zgessm_parsec, options->priority, "gessm",
-        sizeof(int),           &m,                                VALUE,
-        sizeof(int),           &n,                                VALUE,
-        sizeof(int),           &k,                                VALUE,
-        sizeof(int),           &ib,                               VALUE,
-        sizeof(int*),          &IPIV,                             VALUE,
-        PASSED_BY_REF,         RTBLKADDR( L, CHAMELEON_Complex64_t, Lm, Ln ), chameleon_parsec_get_arena_index( L ) | INPUT,
-        sizeof(int), &(tileL->ld), VALUE,
-        PASSED_BY_REF,         RTBLKADDR( D, CHAMELEON_Complex64_t, Dm, Dn ), chameleon_parsec_get_arena_index( D ) | INPUT,
-        sizeof(int), &(tileD->ld), VALUE,
-        PASSED_BY_REF,         RTBLKADDR( A, CHAMELEON_Complex64_t, Am, An ), chameleon_parsec_get_arena_index( A ) | INOUT | AFFINITY,
-        sizeof(int), &(tileA->ld), VALUE,
+    parsec_dtd_insert_task(
+        PARSEC_dtd_taskpool, CORE_zgessm_parsec, options->priority, PARSEC_DEV_CPU, "gessm",
+        sizeof(int),           &m,                                PARSEC_VALUE,
+        sizeof(int),           &n,                                PARSEC_VALUE,
+        sizeof(int),           &k,                                PARSEC_VALUE,
+        sizeof(int),           &ib,                               PARSEC_VALUE,
+        sizeof(int*),          &IPIV,                             PARSEC_VALUE,
+        PASSED_BY_REF,         RTBLKADDR( L, CHAMELEON_Complex64_t, Lm, Ln ), chameleon_parsec_get_arena_index( L ) | PARSEC_INPUT,
+        sizeof(int), &(tileL->ld), PARSEC_VALUE,
+        PASSED_BY_REF,         RTBLKADDR( D, CHAMELEON_Complex64_t, Dm, Dn ), chameleon_parsec_get_arena_index( D ) | PARSEC_INPUT,
+        sizeof(int), &(tileD->ld), PARSEC_VALUE,
+        PASSED_BY_REF,         RTBLKADDR( A, CHAMELEON_Complex64_t, Am, An ), chameleon_parsec_get_arena_index( A ) | PARSEC_INOUT | PARSEC_AFFINITY,
+        sizeof(int), &(tileA->ld), PARSEC_VALUE,
         PARSEC_DTD_ARG_END );
 
     (void)nb;

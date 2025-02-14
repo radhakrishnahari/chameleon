@@ -25,8 +25,11 @@
 #include "control/common.h"
 
 #include <parsec.h>
-#include <parsec/interfaces/superscalar/insert_function.h>
+#include <parsec/interfaces/dtd/insert_function.h>
 #include <parsec/data_dist/matrix/matrix.h>
+#include <parsec/execution_stream.h>
+#include <parsec/parsec_internal.h>
+#include <parsec/utils/zone_malloc.h>
 
 struct chameleon_parsec_desc_s {
     parsec_data_collection_t super;
@@ -62,12 +65,12 @@ chameleon_parsec_get_arena_index_invp( const CHAM_ipiv_t *ipiv ) {
 
 static inline int cham_to_parsec_access( cham_access_t accessA ) {
     if ( accessA == ChamR ) {
-        return INPUT;
+        return PARSEC_INPUT;
     }
     if ( accessA == ChamW ) {
-        return OUTPUT;
+        return PARSEC_OUTPUT;
     }
-    return INOUT;
+    return PARSEC_INOUT;
 }
 
 /*

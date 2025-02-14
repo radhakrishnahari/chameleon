@@ -55,16 +55,16 @@ void INSERT_TASK_zgelqt(const RUNTIME_option_t *options,
     CHAM_tile_t *tileA = A->get_blktile( A, Am, An );
     CHAM_tile_t *tileT = T->get_blktile( T, Tm, Tn );
 
-    parsec_dtd_taskpool_insert_task(
-        PARSEC_dtd_taskpool, CORE_zgelqt_parsec, options->priority, "gelqt",
-        sizeof(int),                        &m,     VALUE,
-        sizeof(int),                        &n,     VALUE,
-        sizeof(int),                        &ib,    VALUE,
-        PASSED_BY_REF,         RTBLKADDR( A, CHAMELEON_Complex64_t, Am, An ), chameleon_parsec_get_arena_index( A ) | INOUT | AFFINITY,
-        sizeof(int), &(tileA->ld), VALUE,
-        PASSED_BY_REF,         RTBLKADDR( T, CHAMELEON_Complex64_t, Tm, Tn ), chameleon_parsec_get_arena_index( T ) | OUTPUT,
-        sizeof(int), &(tileT->ld), VALUE,
-        sizeof(CHAMELEON_Complex64_t)*nb,       NULL,   SCRATCH,
-        sizeof(CHAMELEON_Complex64_t)*ib*nb,    NULL,   SCRATCH,
+    parsec_dtd_insert_task(
+        PARSEC_dtd_taskpool, CORE_zgelqt_parsec, options->priority, PARSEC_DEV_CPU, "gelqt",
+        sizeof(int),                        &m,     PARSEC_VALUE,
+        sizeof(int),                        &n,     PARSEC_VALUE,
+        sizeof(int),                        &ib,    PARSEC_VALUE,
+        PASSED_BY_REF,         RTBLKADDR( A, CHAMELEON_Complex64_t, Am, An ), chameleon_parsec_get_arena_index( A ) | PARSEC_INOUT | PARSEC_AFFINITY,
+        sizeof(int), &(tileA->ld), PARSEC_VALUE,
+        PASSED_BY_REF,         RTBLKADDR( T, CHAMELEON_Complex64_t, Tm, Tn ), chameleon_parsec_get_arena_index( T ) | PARSEC_OUTPUT,
+        sizeof(int), &(tileT->ld), PARSEC_VALUE,
+        sizeof(CHAMELEON_Complex64_t)*nb,       NULL,   PARSEC_SCRATCH,
+        sizeof(CHAMELEON_Complex64_t)*ib*nb,    NULL,   PARSEC_SCRATCH,
         PARSEC_DTD_ARG_END );
 }
