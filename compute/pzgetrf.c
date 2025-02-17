@@ -662,7 +662,7 @@ chameleon_pzgetrf_panel_update( struct chameleon_pzgetrf_s *ws,
     const CHAMELEON_Complex64_t mzone = (CHAMELEON_Complex64_t)-1.0;
     CHAM_context_t  *chamctxt = chameleon_context_self();
 
-    int m, tempkm, tempmm, tempnn, rankAmn, p;
+    int m, tempkm, tempmm, tempnn, rankAmn;
 
     int lookahead = chamctxt->lookahead;
     int myq       = A->myrank % chameleon_desc_datadist_get_iparam(A, 1);
@@ -721,7 +721,7 @@ void chameleon_pzgetrf( struct chameleon_pzgetrf_s *ws,
     CHAM_context_t  *chamctxt;
     RUNTIME_option_t options;
 
-    int k, m, n, tempkm, tempnn;
+    int k, m, n;
     int min_mnt = chameleon_min( A->mt, A->nt );
 
     chamctxt = chameleon_context_self();
