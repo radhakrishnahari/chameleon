@@ -31,12 +31,12 @@ function gen_changelog()
     #echo $lastline
 
     changelog="Changes:\n"
-    for i in `seq $firstline $lastline`
-    do
-        local line=$( head -n $i ChangeLog | tail -n 1 )
-        changelog="$changelog$line\\n"
-        #echo $line
-    done
+    #for i in `seq $firstline $lastline`
+    #do
+    #    local line=$( head -n $i ChangeLog | tail -n 1 )
+    #    changelog="$changelog$line\\n"
+    #    #echo $line
+    #done
 
     changelog="$changelog\nWARNING: Download the source archive by clicking on the link __Download release__ above, please do not consider the automatic Source code links as they are missing the submodules.\nVisit the [documentation](https://solverstack.gitlabpages.inria.fr/chameleon/#quickstart-install) to see how to install Chameleon."
 }
