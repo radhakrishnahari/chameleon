@@ -25,23 +25,27 @@
 #include "chameleon_starpu_internal.h"
 #include "runtime_codelet_z.h"
 
+struct cl_zgeadd_args_s {
+    cham_trans_t          trans;
+    int                   m;
+    int                   n;
+    CHAMELEON_Complex64_t alpha;
+    CHAMELEON_Complex64_t beta;
+};
+
 #if !defined(CHAMELEON_SIMULATION)
 static void
 cl_zgeadd_cpu_func( void *descr[], void *cl_arg )
 {
-    cham_trans_t          trans;
-    int                   M;
-    int                   N;
-    CHAMELEON_Complex64_t alpha;
-    CHAM_tile_t          *tileA;
-    CHAMELEON_Complex64_t beta;
-    CHAM_tile_t          *tileB;
+    struct cl_zgeadd_args_s *clargs = (struct cl_zgeadd_args_s *)cl_arg;
+    CHAM_tile_t *tileA;
+    CHAM_tile_t *tileB;
 
     tileA = cti_interface_get(descr[0]);
     tileB = cti_interface_get(descr[1]);
 
-    starpu_codelet_unpack_args( cl_arg, &trans, &M, &N, &alpha, &beta );
-    TCORE_zgeadd( trans, M, N, alpha, tileA, beta, tileB );
+    TCORE_zgeadd( clargs->trans, clargs->m, clargs->n,
+                  clargs->alpha, tileA, clargs->beta, tileB );
 
     return;
 }
@@ -50,22 +54,17 @@ cl_zgeadd_cpu_func( void *descr[], void *cl_arg )
 static void
 cl_zgeadd_cuda_func( void *descr[], void *cl_arg )
 {
-    cublasHandle_t  handle = starpu_cublas_get_local_handle();
-    cham_trans_t    trans;
-    int             M;
-    int             N;
-    cuDoubleComplex alpha;
-    CHAM_tile_t    *tileA;
-    cuDoubleComplex beta;
-    CHAM_tile_t    *tileB;
+    struct cl_zgeadd_args_s *clargs = (struct cl_zgeadd_args_s *)cl_arg;
+    cublasHandle_t handle = starpu_cublas_get_local_handle();
+    CHAM_tile_t   *tileA;
+    CHAM_tile_t   *tileB;
 
     tileA = cti_interface_get( descr[0] );
     tileB = cti_interface_get( descr[1] );
-    starpu_codelet_unpack_args( cl_arg, &trans, &M, &N, &alpha, &beta );
 
-    CUDA_zgeadd( trans, M, N,
-                 &alpha, tileA->mat, tileA->ld,
-                 &beta,  tileB->mat, tileB->ld,
+    CUDA_zgeadd( clargs->trans, clargs->m, clargs->n,
+                 (cuDoubleComplex*)&(clargs->alpha), tileA->mat, tileA->ld,
+                 (cuDoubleComplex*)&(clargs->beta),  tileB->mat, tileB->ld,
                  handle );
 
     return;
@@ -78,6 +77,7 @@ cl_zgeadd_cuda_func( void *descr[], void *cl_arg )
  */
 CODELETS( zgeadd, cl_zgeadd_cpu_func, cl_zgeadd_cuda_func, STARPU_CUDA_ASYNC )
 
+#if defined(CHAMELEON_STARPU_USE_INSERT)
 void INSERT_TASK_zgeadd( const RUNTIME_option_t *options,
                          cham_trans_t trans, int m, int n, int nb,
                          CHAMELEON_Complex64_t alpha, const CHAM_desc_t *A, int Am, int An,
@@ -89,28 +89,124 @@ void INSERT_TASK_zgeadd( const RUNTIME_option_t *options,
         return;
     }
 
-    struct starpu_codelet *codelet = &cl_zgeadd;
-    void (*callback)(void*) = options->profiling ? cl_zgeadd_callback : NULL;
-    int accessB = ( beta == 0. ) ? STARPU_W : STARPU_RW;
+    void (*callback)(void*);
+    struct cl_zgeadd_args_s *clargs  = NULL;
+    int                      exec    = 0;
+    const char              *cl_name = "zgeadd";
+    int                      accessB;
 
     CHAMELEON_BEGIN_ACCESS_DECLARATION;
     CHAMELEON_ACCESS_R(A, Am, An);
     CHAMELEON_ACCESS_RW(B, Bm, Bn);
+    exec = __chameleon_need_exec;
     CHAMELEON_END_ACCESS_DECLARATION;
 
+    if ( exec ) {
+        clargs = malloc( sizeof( struct cl_zgeadd_args_s ) );
+        clargs->trans = trans;
+        clargs->m     = m;
+        clargs->n     = n;
+        clargs->alpha = alpha;
+        clargs->beta  = beta;
+    }
+
+    /* Callback fro profiling information */
+    callback = options->profiling ? cl_zgeadd_callback : NULL;
+
+    /* Reduce the B access if needed */
+    accessB = ( beta == 0. ) ? STARPU_W : STARPU_RW;
+
     rt_starpu_insert_task(
-        codelet,
-        STARPU_VALUE,    &trans,              sizeof(int),
-        STARPU_VALUE,    &m,                  sizeof(int),
-        STARPU_VALUE,    &n,                  sizeof(int),
-        STARPU_VALUE,    &alpha,              sizeof(CHAMELEON_Complex64_t),
-        STARPU_R,         RTBLKADDR(A, ChamComplexDouble, Am, An),
-        STARPU_VALUE,    &beta,               sizeof(CHAMELEON_Complex64_t),
-        accessB,          RTBLKADDR(B, ChamComplexDouble, Bm, Bn),
-        STARPU_PRIORITY,  options->priority,
-        STARPU_CALLBACK,  callback,
+        &cl_zgeadd,
+        /* Task codelet arguments */
+        STARPU_CL_ARGS, clargs, sizeof(struct cl_zgeadd_args_s),
+        STARPU_R,      RTBLKADDR(A, ChamComplexDouble, Am, An),
+        accessB,       RTBLKADDR(B, ChamComplexDouble, Bm, Bn),
+
+        /* Common task arguments */
+        STARPU_PRIORITY,          options->priority,
+        STARPU_CALLBACK,          callback,
         STARPU_EXECUTE_ON_WORKER, options->workerid,
+        STARPU_NAME,              cl_name,
         0 );
 
     (void)nb;
 }
+
+#else
+
+void INSERT_TASK_zgeadd( const RUNTIME_option_t *options,
+                         cham_trans_t trans, int m, int n, int nb,
+                         CHAMELEON_Complex64_t alpha, const CHAM_desc_t *A, int Am, int An,
+                         CHAMELEON_Complex64_t beta,  const CHAM_desc_t *B, int Bm, int Bn )
+{
+    if ( alpha == 0. ) {
+        INSERT_TASK_zlascal( options, ChamUpperLower, m, n, nb,
+                             beta, B, Bm, Bn );
+        return;
+    }
+
+    INSERT_TASK_COMMON_PARAMETERS( zgeadd, 2 );
+    int accessB;
+
+    /* Reduce the B access if needed */
+    accessB = ( beta == 0. ) ? STARPU_W : STARPU_RW;
+
+    /*
+     * Set the data handles and initialize exchanges if needed
+     */
+    starpu_cham_exchange_init_params( options, &params, B->get_rankof( B, Bm, Bn ) );
+    starpu_cham_exchange_data_before_execution( options, params, &nbdata, descrs, A, Am, An, STARPU_R );
+    starpu_cham_exchange_data_before_execution( options, params, &nbdata, descrs, B, Bm, Bn, accessB  );
+
+    /*
+     * Not involved, let's return
+     */
+    if ( nbdata == 0 ) {
+        return;
+    }
+
+    if ( params.do_execute )
+    {
+        int ret;
+        struct starpu_task *task = starpu_task_create();
+        task->cl = cl;
+
+        /* Set codelet parameters */
+        clargs = malloc( sizeof( struct cl_zgeadd_args_s ) );
+        clargs->trans = trans;
+        clargs->m     = m;
+        clargs->n     = n;
+        clargs->alpha = alpha;
+        clargs->beta  = beta;
+
+        task->cl_arg      = clargs;
+        task->cl_arg_size = sizeof( struct cl_zgeadd_args_s );
+        task->cl_arg_free = 1;
+
+        /* Set common parameters */
+        starpu_cham_task_set_options( options, task, nbdata, descrs, cl_zgeadd_callback );
+
+        /* Flops */
+        //task->flops = flops_zgeadd( m, n );
+
+        /* Refine name */
+        task->name = chameleon_codelet_name( cl_name, 2,
+                                             A->get_blktile( A, Am, An ),
+                                             B->get_blktile( B, Bm, Bn ) );
+
+        ret = starpu_task_submit( task );
+        if ( ret == -ENODEV ) {
+            task->destroy = 0;
+            starpu_task_destroy( task );
+            chameleon_error( "INSERT_TASK_zgeadd", "Failed to submit the task to StarPU" );
+            return;
+        }
+    }
+
+    starpu_cham_task_exchange_data_after_execution( options, params, nbdata, descrs );
+
+    (void)nb;
+}
+
+#endif
