@@ -24,10 +24,10 @@
 #include "runtime_codelet_z.h"
 
 struct cl_ztradd_args_s {
-    cham_uplo_t uplo;
-    cham_trans_t trans;
-    int m;
-    int n;
+    cham_uplo_t           uplo;
+    cham_trans_t          trans;
+    int                   m;
+    int                   n;
     CHAMELEON_Complex64_t alpha;
     CHAMELEON_Complex64_t beta;
 };
@@ -53,6 +53,7 @@ cl_ztradd_cpu_func(void *descr[], void *cl_arg)
  */
 CODELETS_CPU( ztradd, cl_ztradd_cpu_func )
 
+#if defined(CHAMELEON_STARPU_USE_INSERT)
 void INSERT_TASK_ztradd( const RUNTIME_option_t *options,
                          cham_uplo_t uplo, cham_trans_t trans, int m, int n, int nb,
                          CHAMELEON_Complex64_t alpha, const CHAM_desc_t *A, int Am, int An,
@@ -64,11 +65,11 @@ void INSERT_TASK_ztradd( const RUNTIME_option_t *options,
         return;
     }
 
-    struct cl_ztradd_args_s *clargs = NULL;
     void (*callback)(void*);
-    int                      accessB;
-    int                      exec = 0;
+    struct cl_ztradd_args_s *clargs  = NULL;
+    int                      exec    = 0;
     const char              *cl_name = "ztradd";
+    int                      accessB;
 
     /* Handle cache */
     CHAMELEON_BEGIN_ACCESS_DECLARATION;
@@ -110,3 +111,83 @@ void INSERT_TASK_ztradd( const RUNTIME_option_t *options,
 
     (void)nb;
 }
+
+#else
+
+void INSERT_TASK_ztradd( const RUNTIME_option_t *options,
+                         cham_uplo_t uplo, cham_trans_t trans, int m, int n, int nb,
+                         CHAMELEON_Complex64_t alpha, const CHAM_desc_t *A, int Am, int An,
+                         CHAMELEON_Complex64_t beta,  const CHAM_desc_t *B, int Bm, int Bn )
+{
+    if ( alpha == 0. ) {
+        INSERT_TASK_zlascal( options, uplo, m, n, nb,
+                             beta, B, Bm, Bn );
+        return;
+    }
+
+    INSERT_TASK_COMMON_PARAMETERS( ztradd, 2 );
+    int accessB;
+
+
+    /* Reduce the B access if needed */
+    accessB = ( beta == 0. ) ? STARPU_W : STARPU_RW;
+
+    /*
+     * Set the data handles and initialize exchanges if needed
+     */
+    starpu_cham_exchange_init_params( options, &params, B->get_rankof( B, Bm, Bn ) );
+    starpu_cham_exchange_data_before_execution( options, params, &nbdata, descrs, A, Am, An, STARPU_R );
+    starpu_cham_exchange_data_before_execution( options, params, &nbdata, descrs, B, Bm, Bn, accessB  );
+
+    /*
+     * Not involved, let's return
+     */
+    if ( nbdata == 0 ) {
+        return;
+    }
+
+    if ( params.do_execute )
+    {
+        int ret;
+        struct starpu_task *task = starpu_task_create();
+        task->cl = cl;
+
+        /* Set codelet parameters */
+        clargs = malloc( sizeof( struct cl_ztradd_args_s ) );
+        clargs->uplo  = uplo;
+        clargs->trans = trans;
+        clargs->m     = m;
+        clargs->n     = n;
+        clargs->alpha = alpha;
+        clargs->beta  = beta;
+
+        task->cl_arg      = clargs;
+        task->cl_arg_size = sizeof( struct cl_ztradd_args_s );
+        task->cl_arg_free = 1;
+
+        /* Set common parameters */
+        starpu_cham_task_set_options( options, task, nbdata, descrs, cl_ztradd_callback );
+
+        /* Flops */
+        //task->flops = flops_ztradd( m, n );
+
+        /* Refine name */
+        task->name = chameleon_codelet_name( cl_name, 2,
+                                             A->get_blktile( A, Am, An ),
+                                             B->get_blktile( B, Bm, Bn ) );
+
+        ret = starpu_task_submit( task );
+        if ( ret == -ENODEV ) {
+            task->destroy = 0;
+            starpu_task_destroy( task );
+            chameleon_error( "INSERT_TASK_ztradd", "Failed to submit the task to StarPU" );
+            return;
+        }
+    }
+
+    starpu_cham_task_exchange_data_after_execution( options, params, nbdata, descrs );
+
+    (void)nb;
+}
+
+#endif
