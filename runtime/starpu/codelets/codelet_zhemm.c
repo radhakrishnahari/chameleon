@@ -28,10 +28,10 @@
 #include "runtime_codelet_z.h"
 
 struct cl_zhemm_args_s {
-    cham_side_t side;
-    cham_uplo_t uplo;
-    int m;
-    int n;
+    cham_side_t           side;
+    cham_uplo_t           uplo;
+    int                   m;
+    int                   n;
     CHAMELEON_Complex64_t alpha;
     CHAMELEON_Complex64_t beta;
 };
@@ -125,6 +125,7 @@ CODELETS_GPU( zhemm, cl_zhemm_cpu_func, cl_zhemm_hip_func, STARPU_HIP_ASYNC )
 CODELETS( zhemm, cl_zhemm_cpu_func, cl_zhemm_cuda_func, STARPU_CUDA_ASYNC )
 #endif
 
+#if defined(CHAMELEON_STARPU_USE_INSERT)
 void INSERT_TASK_zhemm_Astat( const RUNTIME_option_t *options,
                               cham_side_t side, cham_uplo_t uplo,
                               int m, int n, int nb,
@@ -138,11 +139,11 @@ void INSERT_TASK_zhemm_Astat( const RUNTIME_option_t *options,
         return;
     }
 
-    struct cl_zhemm_args_s  *clargs = NULL;
     void (*callback)(void*);
-    int                      accessC;
+    struct cl_zhemm_args_s  *clargs  = NULL;
     int                      exec    = 0;
     const char              *cl_name = "zhemm_Astat";
+    int                      accessC;
 
     /* Handle cache */
     CHAMELEON_BEGIN_ACCESS_DECLARATION;
@@ -272,3 +273,122 @@ void INSERT_TASK_zhemm( const RUNTIME_option_t *options,
         STARPU_NAME,              cl_name,
         0 );
 }
+
+#else
+
+void __INSERT_TASK_zhemm( const RUNTIME_option_t *options,
+                          cham_side_t side, cham_uplo_t uplo,
+                          int m, int n, int nb, int xrank, int accessC,
+                          CHAMELEON_Complex64_t alpha, const CHAM_desc_t *A, int Am, int An,
+                                                       const CHAM_desc_t *B, int Bm, int Bn,
+                          CHAMELEON_Complex64_t beta,  const CHAM_desc_t *C, int Cm, int Cn )
+{
+    if ( alpha == (CHAMELEON_Complex64_t)0. ) {
+        INSERT_TASK_zlascal( options, ChamUpperLower, m, n, nb,
+                             beta, C, Cm, Cn );
+        return;
+    }
+
+    INSERT_TASK_COMMON_PARAMETERS( zhemm, 3 );
+
+    /*
+     * Set the data handles and initialize exchanges if needed
+     */
+    starpu_cham_exchange_init_params( options, &params, xrank );
+    starpu_cham_exchange_data_before_execution( options, params, &nbdata, descrs, A, Am, An, STARPU_R );
+    starpu_cham_exchange_data_before_execution( options, params, &nbdata, descrs, B, Bm, Bn, STARPU_R );
+    starpu_cham_exchange_data_before_execution( options, params, &nbdata, descrs, C, Cm, Cn, accessC  );
+
+    /*
+     * Not involved, let's return
+     */
+    if ( nbdata == 0 ) {
+        return;
+    }
+
+    if ( params.do_execute )
+    {
+        int ret;
+        struct starpu_task *task = starpu_task_create();
+        task->cl = cl;
+
+        /* Set codelet parameters */
+        clargs = malloc( sizeof( struct cl_zhemm_args_s ) );
+        clargs->side  = side;
+        clargs->uplo  = uplo;
+        clargs->m     = m;
+        clargs->n     = n;
+        clargs->alpha = alpha;
+        clargs->beta  = beta;
+
+        task->cl_arg      = clargs;
+        task->cl_arg_size = sizeof( struct cl_zhemm_args_s );
+        task->cl_arg_free = 1;
+
+        /* Set common parameters */
+        starpu_cham_task_set_options( options, task, nbdata, descrs, cl_zhemm_callback );
+
+        /* Flops */
+        task->flops = flops_zhemm( side, m, n );
+
+        /* Refine name */
+        task->name = chameleon_codelet_name( cl_name, 3,
+                                             A->get_blktile( A, Am, An ),
+                                             B->get_blktile( B, Bm, Bn ),
+                                             C->get_blktile( C, Cm, Cn ) );
+
+        ret = starpu_task_submit( task );
+        if ( ret == -ENODEV ) {
+            task->destroy = 0;
+            starpu_task_destroy( task );
+            chameleon_error( "INSERT_TASK_zpotrf", "Failed to submit the task to StarPU" );
+            return;
+        }
+    }
+
+    starpu_cham_task_exchange_data_after_execution( options, params, nbdata, descrs );
+
+    (void)nb;
+}
+
+void INSERT_TASK_zhemm_Astat( const RUNTIME_option_t *options,
+                              cham_side_t side, cham_uplo_t uplo,
+                              int m, int n, int nb,
+                              CHAMELEON_Complex64_t alpha, const CHAM_desc_t *A, int Am, int An,
+                                                           const CHAM_desc_t *B, int Bm, int Bn,
+                              CHAMELEON_Complex64_t beta,  const CHAM_desc_t *C, int Cm, int Cn )
+{
+    /* Reduce the C access if needed */
+    int accessC = ( beta == (CHAMELEON_Complex64_t)0. ) ? STARPU_W : STARPU_RW;
+
+#if defined(HAVE_STARPU_MPI_REDUX)
+    if ( beta == (CHAMELEON_Complex64_t)1. ) {
+        accessC = STARPU_MPI_REDUX;
+    }
+#endif
+
+    __INSERT_TASK_zhemm( options, side, uplo, m, n, nb,
+                         A->get_rankof( A, Am, An ), accessC,
+                         alpha, A, Am, An,
+                                B, Bm, Bn,
+                         beta,  C, Cm, Cn );
+}
+
+void INSERT_TASK_zhemm( const RUNTIME_option_t *options,
+                        cham_side_t side, cham_uplo_t uplo,
+                        int m, int n, int nb,
+                        CHAMELEON_Complex64_t alpha, const CHAM_desc_t *A, int Am, int An,
+                                                     const CHAM_desc_t *B, int Bm, int Bn,
+                        CHAMELEON_Complex64_t beta,  const CHAM_desc_t *C, int Cm, int Cn )
+{
+    /* Reduce the C access if needed */
+    int accessC = ( beta == (CHAMELEON_Complex64_t)0. ) ? STARPU_W :
+        (STARPU_RW | ((beta == (CHAMELEON_Complex64_t)1.) ? STARPU_COMMUTE : 0));
+
+    __INSERT_TASK_zhemm( options, side, uplo, m, n, nb,
+                         C->get_rankof( C, Cm, Cn ), accessC,
+                         alpha, A, Am, An,
+                                B, Bm, Bn,
+                         beta,  C, Cm, Cn );
+}
+#endif
