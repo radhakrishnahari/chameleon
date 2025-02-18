@@ -570,14 +570,15 @@ chameleon_pzgetrf_panel_permute_backward( struct chameleon_pzgetrf_s *ws,
     (void)reduce;
 }
 
+#if defined(CHAMELEON_USE_MPI)
 static inline void
 chameleon_pzgetrf_panel_update_ws( struct chameleon_pzgetrf_s *ws,
                                    CHAM_desc_t                *A,
                                    int                         k,
                                    RUNTIME_option_t           *options )
 {
-    CHAM_context_t *chamctxt = chameleon_context_self();
-    int m, tempmm, tempkn, tempkm, q;
+    CHAM_context_t  *chamctxt = chameleon_context_self();
+    int m, n, tempmm, tempkn, tempkm, p, q, involved, np;
     int lookahead = chamctxt->lookahead;
     int P         = chameleon_desc_datadist_get_iparam(A, 0);
     int Q         = chameleon_desc_datadist_get_iparam(A, 1);
@@ -624,48 +625,40 @@ chameleon_pzgetrf_panel_update_ws( struct chameleon_pzgetrf_s *ws,
     }
 
     tempkm = A->get_blkdim( A, k, DIM_m, A->m );
-#if defined(CHAMELEON_USE_MPI)
-    {
-        int n, p, involved;
-        int np = chameleon_desc_datadist_get_iparam(A, 1)
-            *    chameleon_desc_datadist_get_iparam(A, 0);
+    np = chameleon_desc_datadist_get_iparam(A, 1) * chameleon_desc_datadist_get_iparam(A, 0);
 
-        /* Send Akk for replicated trsm */
-        if ( A->myrank == chameleon_getrankof_2d( A, k, k ) ) {
-            for ( p = 0; p < np; p++ ) {
-                involved = 0;
-                for ( n = k+1; n < A->nt; n++ ) {
-                    if ( chameleon_p_involved_in_panelk_2dbc( A, n, p ) ) {
-                        involved = 1;
-                        break;
-                    }
-                }
-                if ( involved ) {
-                    INSERT_TASK_zlacpy( options, ChamUpperLower, tempkm, tempkn,
-                                        A(k, k), Wu(p, k) );
-                }
-            }
-        }
-        else {
+    /* Send Akk for replicated trsm */
+    if ( A->myrank == chameleon_getrankof_2d( A, k, k ) ) {
+        for ( p = 0; p < np; p++ ) {
             involved = 0;
             for ( n = k+1; n < A->nt; n++ ) {
-                if ( chameleon_involved_in_panelk_2dbc( A, n ) ) {
+                if ( chameleon_p_involved_in_panelk_2dbc( A, n, p ) ) {
                     involved = 1;
                     break;
                 }
             }
             if ( involved ) {
                 INSERT_TASK_zlacpy( options, ChamUpperLower, tempkm, tempkn,
-                                    A(k, k), Wu(A->myrank, k) );
+                                    A(k, k), Wu(p, k) );
             }
         }
     }
-#else
-    INSERT_TASK_zlacpy( options, ChamUpperLower, tempkm, tempkn,
-                        A(k, k), Wu(A->myrank, k) );
-#endif
+    else {
+        involved = 0;
+        for ( n = k+1; n < A->nt; n++ ) {
+            if ( chameleon_involved_in_panelk_2dbc( A, n ) ) {
+                involved = 1;
+                break;
+            }
+        }
+        if ( involved ) {
+            INSERT_TASK_zlacpy( options, ChamUpperLower, tempkm, tempkn,
+                                A(k, k), Wu(A->myrank, k) );
+        }
+    }
     RUNTIME_data_flush( options->sequence, A(k, k) );
 }
+#endif
 
 static inline void
 chameleon_pzgetrf_panel_update( struct chameleon_pzgetrf_s *ws,
@@ -680,11 +673,7 @@ chameleon_pzgetrf_panel_update( struct chameleon_pzgetrf_s *ws,
     CHAM_context_t             *chamctxt = chameleon_context_self();
     CHAM_reduce_t              *reduce   = &(ws->laswp->reduce);
 
-    int m, tempkm, tempmm, tempnn, rankAmn;
-
-    int lookahead = chamctxt->lookahead;
-    int myq       = A->myrank % chameleon_desc_datadist_get_iparam(A, 1);
-    int lq        = (k % lookahead) * chameleon_desc_datadist_get_iparam(A, 1);
+    int m, tempkm, tempmm, tempnn;
 
     tempkm = A->get_blkdim( A, k, DIM_m, A->m );
     tempnn = A->get_blkdim( A, n, DIM_n, A->n );
@@ -692,9 +681,12 @@ chameleon_pzgetrf_panel_update( struct chameleon_pzgetrf_s *ws,
     chameleon_pzgetrf_panel_permute_forward( ws, A, ipiv, k, n, options );
 
 #if defined(CHAMELEON_USE_MPI)
-    if ( reduce->involved )
-#endif
-    {
+    int rankAmn;
+    int lookahead = chamctxt->lookahead;
+    int myq       = A->myrank % chameleon_desc_datadist_get_iparam(A, 1);
+    int lq        = (k % lookahead) * chameleon_desc_datadist_get_iparam(A, 1);
+
+    if ( reduce->involved ) {
         INSERT_TASK_ztrsm(
             options,
             ChamLeft, ChamLower, ChamNoTrans, ChamUnit,
@@ -722,10 +714,36 @@ chameleon_pzgetrf_panel_update( struct chameleon_pzgetrf_s *ws,
         INSERT_TASK_zlacpy( options, ChamUpperLower, tempkm, tempnn,
                             Wu(A->myrank, n), A(k, n) );
     }
+#else
+    INSERT_TASK_ztrsm(
+        options,
+        ChamLeft, ChamLower, ChamNoTrans, ChamUnit,
+        tempkm, tempnn, A->mb,
+        zone, A( k, k ),
+              Wu( A->myrank, n ) );
+
+
+    for (m = k+1; m < A->mt; m++) {
+        tempmm = A->get_blkdim( A, m, DIM_m, A->m );
+
+        INSERT_TASK_zgemm(
+            options,
+            ChamNoTrans, ChamNoTrans,
+            tempmm, tempnn, A->mb, A->mb,
+            mzone, A( m, k ),
+                   Wu( A->myrank, n ),
+            zone,  A( m, n ) );
+    }
+
+    INSERT_TASK_zlacpy( options, ChamUpperLower, tempkm, tempnn,
+                        Wu(A->myrank, n), A(k, n) );
+
+#endif
 
     RUNTIME_data_flush( options->sequence, Wu(A->myrank, n) );
     RUNTIME_data_flush( options->sequence, A(k, n) );
     (void)reduce;
+    (void)chamctxt;
 }
 
 /**
@@ -764,7 +782,9 @@ void chameleon_pzgetrf( struct chameleon_pzgetrf_s *ws,
         }
         options.forcesub = 0;
 
+#if defined(CHAMELEON_USE_MPI)
         chameleon_pzgetrf_panel_update_ws( ws, A, k, &options );
+#endif
 
         for (n = k+1; n < A->nt; n++) {
             options.priority = A->nt-n;
