@@ -109,6 +109,8 @@ typedef int8_t cham_bool_t;
  */
 #if defined(__cplusplus) && defined(CHAMELEON_USE_CUDA) && (CUDA_VERSION >= 7500)
 typedef __half CHAMELEON_Real16_t;
+#elif defined(CHAMELEON_USE_HIP) && defined(__HIP__)
+typedef hipblasHalf CHAMELEON_Real16_t;
 #else
 /* use short for cuda older than 7.5 and non-cuda files
  * corresponding routines would not work anyway since there is no half precision */
