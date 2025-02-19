@@ -1,3 +1,6 @@
+chameleon-1.4.0
+------------------------------------------------------------------------
+
 chameleon-1.3.0
 ------------------------------------------------------------------------
  - mixed-precision: introduce descriptor with precision adapted to local norms
