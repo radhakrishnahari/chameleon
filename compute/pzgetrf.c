@@ -564,8 +564,8 @@ chameleon_pzgetrf_panel_update_ws( struct chameleon_pzgetrf_s *ws,
                                    int                         k,
                                    RUNTIME_option_t           *options )
 {
-    CHAM_context_t  *chamctxt = chameleon_context_self();
-    int m, n, tempmm, tempkn, tempkm, p, q, involved, np;
+    CHAM_context_t *chamctxt = chameleon_context_self();
+    int m, tempmm, tempkn, tempkm, q;
     int lookahead = chamctxt->lookahead;
     int P         = chameleon_desc_datadist_get_iparam(A, 0);
     int Q         = chameleon_desc_datadist_get_iparam(A, 1);
@@ -612,35 +612,40 @@ chameleon_pzgetrf_panel_update_ws( struct chameleon_pzgetrf_s *ws,
     }
 
     tempkm = A->get_blkdim( A, k, DIM_m, A->m );
-    np = chameleon_desc_datadist_get_iparam(A, 1) * chameleon_desc_datadist_get_iparam(A, 0);
 #if defined(CHAMELEON_USE_MPI)
-    /* Send Akk for replicated trsm */
-    if ( A->myrank == chameleon_getrankof_2d( A, k, k ) ) {
-        for ( p = 0; p < np; p++ ) {
+    {
+        int n, p, involved;
+        int np = chameleon_desc_datadist_get_iparam(A, 1)
+            *    chameleon_desc_datadist_get_iparam(A, 0);
+
+        /* Send Akk for replicated trsm */
+        if ( A->myrank == chameleon_getrankof_2d( A, k, k ) ) {
+            for ( p = 0; p < np; p++ ) {
+                involved = 0;
+                for ( n = k+1; n < A->nt; n++ ) {
+                    if ( chameleon_p_involved_in_panelk_2dbc( A, n, p ) ) {
+                        involved = 1;
+                        break;
+                    }
+                }
+                if ( involved ) {
+                    INSERT_TASK_zlacpy( options, ChamUpperLower, tempkm, tempkn,
+                                        A(k, k), Wu(p, k) );
+                }
+            }
+        }
+        else {
             involved = 0;
             for ( n = k+1; n < A->nt; n++ ) {
-                if ( chameleon_p_involved_in_panelk_2dbc( A, n, p ) ) {
+                if ( chameleon_involved_in_panelk_2dbc( A, n ) ) {
                     involved = 1;
                     break;
                 }
             }
             if ( involved ) {
                 INSERT_TASK_zlacpy( options, ChamUpperLower, tempkm, tempkn,
-                                    A(k, k), Wu(p, k) );
+                                    A(k, k), Wu(A->myrank, k) );
             }
-        }
-    }
-    else {
-        involved = 0;
-        for ( n = k+1; n < A->nt; n++ ) {
-            if ( chameleon_involved_in_panelk_2dbc( A, n ) ) {
-                involved = 1;
-                break;
-            }
-        }
-        if ( involved ) {
-            INSERT_TASK_zlacpy( options, ChamUpperLower, tempkm, tempkn,
-                                A(k, k), Wu(A->myrank, k) );
         }
     }
 #else
