@@ -409,7 +409,7 @@ void *RUNTIME_data_getaddr( const CHAM_desc_t *A, int m, int n )
 
 #if defined(CHAMELEON_KERNELS_TRACE)
     fprintf( stderr, "%s - %p registered with tag %ld\n",
-             tile->name, *ptrtile, A->mpitag + A->lmt * nn + mm );
+             tile->name, (void*)(*ptrtile), A->mpitag + A->lmt * nn + mm );
 #endif
     assert( *ptrtile );
     return (void*)(*ptrtile);
@@ -486,7 +486,7 @@ void *RUNTIME_data_getaddr_withconversion( const RUNTIME_option_t *options,
 
 #if defined(CHAMELEON_KERNELS_TRACE)
     fprintf( stderr, "%s - %p registered with tag %ld\n",
-             tile->name, *ptrtile, A->mpitag + shift );
+             tile->name, (void*)(*ptrtile), A->mpitag + shift );
 #endif
     assert( *ptrtile );
 
