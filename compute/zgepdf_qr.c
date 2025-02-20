@@ -85,8 +85,11 @@ int CHAMELEON_zgepdf_qr_Tile( int doqr, int optid,
     CHAM_context_t     *chamctxt;
     RUNTIME_sequence_t *sequence = NULL;
     RUNTIME_request_t   request = RUNTIME_REQUEST_INITIALIZER;
-    CHAM_desc_t         D1, *D1ptr = NULL;
-    CHAM_desc_t         D2, *D2ptr = NULL;
+#if defined(CHAMELEON_COPY_DIAG)
+    CHAM_desc_t         D1, D2;
+#endif
+    CHAM_desc_t        *D1ptr = NULL;
+    CHAM_desc_t        *D2ptr = NULL;
     int                 status;
 
     chamctxt = chameleon_context_self();
