@@ -280,9 +280,9 @@ void INSERT_TASK_zgetrf_blocked_offdiag( const RUNTIME_option_t *options,
         0 );
 }
 
-static const CHAMELEON_Complex64_t zone  = (CHAMELEON_Complex64_t)1.0;
-
 #if !defined(CHAMELEON_SIMULATION)
+static const CHAMELEON_Complex64_t zone = (CHAMELEON_Complex64_t)1.0;
+
 static void cl_zgetrf_blocked_trsm_cpu_func(void *descr[], void *cl_arg)
 {
     int                    m, n, h, ib;

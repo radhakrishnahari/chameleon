@@ -355,7 +355,9 @@ struct starpu_data_interface_ops cppi_ops =
 };
 
 
-static int compare_pivots( cham_flttype_t type, int h, void * redux, void * input ){
+#if !defined(CHAMELEON_SIMULATION)
+static inline int
+compare_pivots( cham_flttype_t type, int h, void * redux, void * input ){
     if ( type == ChamRealFloat )
     {
         float *valredux = redux;
@@ -439,12 +441,14 @@ cl_cppi_redux_cpu_func(void *descr[], void *cl_arg)
 
     return;
 }
+#endif
 
 /*
  * Codelet definition
  */
 CODELETS_CPU(cppi_redux, cl_cppi_redux_cpu_func)
 
+#if !defined(CHAMELEON_SIMULATION)
 static void
 cl_cppi_init_redux_cpu_func( void *descr[], void *cl_arg )
 {
@@ -460,6 +464,7 @@ cl_cppi_init_redux_cpu_func( void *descr[], void *cl_arg )
     memset( cppi_redux->pivot.pivrow,  0, size );
     memset( cppi_redux->pivot.diagrow, 0, size );
 }
+#endif
 
 /*
  * Codelet definition

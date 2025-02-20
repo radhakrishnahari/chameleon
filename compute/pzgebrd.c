@@ -178,8 +178,11 @@ chameleon_pzgebrd_gb2bd( cham_job_t jobu, cham_job_t jobvt, CHAM_desc_t *A,
     CHAM_desc_t descAB;
     cham_uplo_t uplo;
     int M, N, MINMN, NB, LDAB, ABn;
+#if !defined(CHAMELEON_SIMULATION)
     int info;
     int KL, KU;
+    char gbbrd_vect;
+#endif
 
     chamctxt = chameleon_context_self();
     if ( sequence->status != CHAMELEON_SUCCESS ) {
@@ -205,13 +208,13 @@ chameleon_pzgebrd_gb2bd( cham_job_t jobu, cham_job_t jobvt, CHAM_desc_t *A,
     /* Convert matrix to band form */
     chameleon_pztile2band( uplo, A, &descAB, sequence, request );
 
+#if !defined(CHAMELEON_SIMULATION)
     /* NCC = 0, C = NULL, we do not update any matrix with new singular vectors */
     /* On exit, AB = U (S +~ E) VT */
     KL = uplo == ChamUpper ? 0  : NB;
     KU = uplo == ChamUpper ? NB : 0;
 
     /* Manage the case where only singular values are required */
-    char gbbrd_vect;
     if ( jobu == ChamNoVec ) {
         if ( jobvt == ChamNoVec ) {
             gbbrd_vect = 'N';
@@ -228,6 +231,7 @@ chameleon_pzgebrd_gb2bd( cham_job_t jobu, cham_job_t jobvt, CHAM_desc_t *A,
             gbbrd_vect = 'B';
         }
     }
+#endif
 
     CHAMELEON_Desc_Flush( A, sequence );
     CHAMELEON_Desc_Flush( &descAB, sequence );
