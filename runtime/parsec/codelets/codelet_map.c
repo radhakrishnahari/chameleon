@@ -47,6 +47,9 @@ CORE_map_one_parsec( parsec_execution_stream_t *context,
                              descA, &tileA );
 
     free( pargs );
+
+    (void)context;
+    return PARSEC_HOOK_RETURN_DONE;
 }
 
 static inline int
@@ -79,6 +82,9 @@ CORE_map_two_parsec( parsec_execution_stream_t *context,
                              descA, &tileA, descB, &tileB );
 
     free( pargs );
+
+    (void)context;
+    return PARSEC_HOOK_RETURN_DONE;
 }
 
 static inline int
@@ -119,6 +125,9 @@ CORE_map_three_parsec( parsec_execution_stream_t *context,
                              descA, &tileA, descB, &tileB, descC, &tileC );
 
     free( pargs );
+
+    (void)context;
+    return PARSEC_HOOK_RETURN_DONE;
 }
 
 void INSERT_TASK_map( const RUNTIME_option_t *options,
