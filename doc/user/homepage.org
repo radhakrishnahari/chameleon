@@ -58,35 +58,34 @@
   propose several solutions.
   1) You just want to have a try, to see if it can be installed well
      on your system, what are the performances on simple cases, run
-     the examples, or simply use the last stable version: we recommand
-     to use one of our packages, .deb ones for those who work on a
-     Linux Debian or Ubuntu distribution, Guix or Spack on other Linux
-     systems, Brew on macOS.
+     the examples, or simply use the last stable version: we recommend
+     to use one of our packages, Guix or Spack on Linux systems, Brew on
+     macOS.
   2) You want to use it but you need a change somewhere in the stack
      like considering another version (git branch), change the default
      BLAS/LAPACK or MPI, use your favorite compiler, modify some
      sources: you may try with Guix or Spack because these package
      managers allow to build from sources and thus many options can be
      changed dynamically (command line), or directly build from source
-     with the native build system of the library (Makefile, GNU
-     autotools, CMake) following the procedures described in the
-     installation guide of the library, cf. [[sec:quickstartguide]].
+     with CMake following the procedures described in the installation guide of
+     the library, cf. [[sec:quickstartguide]].
   3) You need a tool for reproducibility of your experiments: Guix is
      recommended.
 
   #+ATTR_HTML: :alt Table of download materials image :title Table of download materials :align center
-  | Git       | Release source | Debian/Ubuntu | [[https://brew.sh/][Brew]] (Mac) | [[https://guix.gnu.org/en/][Guix]] (Linux) | [[https://spack.readthedocs.io/en/latest/][Spack]] (Linux/Mac) |
+  | Git       | Release source | [[https://brew.sh/][Brew]] (Mac) | [[https://guix.gnu.org/en/][Guix]] (Linux) | [[https://spack.readthedocs.io/en/latest/][Spack]] (Linux/Mac) |
   |-----------+----------------+---------------+------------+--------------+-------------------|
-  | [[https://gitlab.inria.fr/solverstack/chameleon][Chameleon]] | [[https://gitlab.inria.fr/api/v4/projects/616/packages/generic/source/v1.2.0/chameleon-1.2.0.tar.gz][1.2.0]]          | [[https://gitlab.inria.fr/solverstack/chameleon/-/packages][packages]]      | [[https://gitlab.inria.fr/solverstack/brew-repo][brew-repo]]  | [[https://gitlab.inria.fr/guix-hpc/guix-hpc-non-free][guix-repo]]    | [[https://github.com/spack/spack][spack-repo]]        |
+  | [[https://gitlab.inria.fr/solverstack/chameleon][Chameleon]] | [[https://gitlab.inria.fr/api/v4/projects/616/packages/generic/source/v1.3.0/chameleon-1.3.0.tar.gz][v1.3.0]] | [[https://gitlab.inria.fr/solverstack/brew-repo][brew-repo]] | [[https://gitlab.inria.fr/guix-hpc/guix-hpc-non-free][guix-repo]] | [[https://github.com/spack/spack][spack-repo]] |
 
   Some packages are part of the official distribution and we just
   provide the package name. For others we provide links where you can
   find either a file to install or a package recipe that can be used
   with Brew, Guix, Spack. If there are no package available for your
-  distribution please [[sec:contact][contact us]] and we will try to find a solution.
+  distribution please [[sec:contact][contact us]] and we will try to find a
+  solution.
 
   All these packages have been successfully installed and tested on
-  Unix systems: *Linux* (Debian testing, Ubuntu 22.04 LTS) and *macOS*
+  Unix systems: *Linux* (Debian testing, Ubuntu 22.04 and 24.04 LTS) and *macOS*
   (Catalina).
 
 * Quick start guide
@@ -108,7 +107,7 @@
 :PROPERTIES:
 :CUSTOM_ID: quickstart-install-cmake
 :END:
-**** Linux Ubuntu 22.04
+**** Linux Ubuntu
 :PROPERTIES:
 :CUSTOM_ID: quickstart-install-cmake-ubuntu
 :END:
@@ -135,14 +134,14 @@
 
      Then to install Chameleon from sources with CMake, proceed as follows
      #+begin_src sh :eval never-export
-     wget https://gitlab.inria.fr/api/v4/projects/616/packages/generic/source/v1.2.0/chameleon-1.2.0.tar.gz
-     tar xvf chameleon-1.2.0.tar.gz
-     cd chameleon-1.2.0
+     wget https://gitlab.inria.fr/api/v4/projects/616/packages/generic/source/v1.3.0/chameleon-1.3.0.tar.gz
+     tar xvf chameleon-1.3.0.tar.gz
+     cd chameleon-1.3.0
      # or clone the master branch from the git repository to get the last version
      # git clone --recursive https://gitlab.inria.fr/solverstack/chameleon.git && cd chameleon
-     mkdir build && cd build
-     cmake .. -DCHAMELEON_USE_MPI=ON -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=$PWD/install
-     make -j5 install
+     cmake -B build -DCHAMELEON_USE_MPI=ON -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=$PWD/install
+     cmake --build build/ -j5
+     cmake --install build/
      #+end_src
 
      See more examples in the [[sec:ug:cmake][user's guide]].
@@ -157,9 +156,9 @@
      /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
      # install compiler and tools
-     brew install htop tmux gcc automake autoconf libtool doxygen emacs zlib bzip2 bison hwloc pkgconfig openblas openmpi
+     brew install htop tmux gcc llvm automake autoconf libtool doxygen emacs zlib bzip2 bison hwloc pkgconfig openblas openmpi
 
-     # gcc and g++ are missing (avoid to use clang version in /usr/bin)
+     # gcc and g++ are missing (avoid to use clang version in /usr/bin or use the clang from brew, see package llvm, e.g. clang-17)
      ln -sf /usr/local/bin/gcc-11 /usr/local/bin/gcc
      ln -sf /usr/local/bin/g++-11 /usr/local/bin/g++
 
@@ -169,15 +168,14 @@
      # cmake checks blas.pc not openblas.pc
      sudo cp /usr/local/opt/openblas/lib/pkgconfig/openblas.pc /usr/local/opt/openblas/lib/pkgconfig/blas.pc
      #+end_src
-     - CBLAS/LAPACKE is required (OpenBLAS or Intel MKL)
-     - we recommend to install StarPU as runtime system with MPI
-       enabled
+     - CBLAS/LAPACKE is required (OpenBLAS or Intel MKL or Reference Lapack)
+     - we recommend to install StarPU as runtime system with MPI enabled
      #+begin_src sh :eval never-export
      # install last starpu release
      cd $HOME
-     wget https://files.inria.fr/starpu/starpu-1.3.10/starpu-1.3.10.tar.gz
-     tar xvf starpu-1.3.10.tar.gz
-     cd starpu-1.3.10
+     wget https://files.inria.fr/starpu/starpu-1.4.7/starpu-1.4.7.tar.gz
+     tar xvf starpu-1.4.7.tar.gz
+     cd starpu-1.4.7
      ./configure
      make -j5
      sudo make install
@@ -185,31 +183,15 @@
 
      Then to install Chameleon from sources with CMake, proceed as follows
      #+begin_src sh :eval never-export
-     wget https://gitlab.inria.fr/api/v4/projects/616/packages/generic/source/v1.2.0/chameleon-1.2.0.tar.gz
-     tar xvf chameleon-1.2.0.tar.gz
-     cd chameleon-1.2.0
+     wget https://gitlab.inria.fr/api/v4/projects/616/packages/generic/source/v1.3.0/chameleon-1.3.0.tar.gz
+     tar xvf chameleon-1.3.0.tar.gz
+     cd chameleon-1.3.0
      # or clone from git repository
      # git clone --recursive https://gitlab.inria.fr/solverstack/chameleon.git && cd chameleon
-     mkdir build && cd build
-     cmake .. -DCHAMELEON_USE_MPI=ON -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=$PWD/install
-     make -j5 install
+     cmake -B build -DCHAMELEON_USE_MPI=ON -DBLA_PREFER_PKGCONFIG=ON -DBUILD_SHARED_LIBS=ON
+     cmake --build build -j5
+     sudo cmake --install build
      #+end_src
-*** Debian/Ubuntu packages
-:PROPERTIES:
-:CUSTOM_ID: quickstart-install-debian-ubuntu
-:END:
-    Visit the [[https://gitlab.inria.fr/solverstack/chameleon/-/packages][packages]] page and download the appropriate file for your
-    system. Then in a shell terminal
-    #+begin_src sh :eval never-export
-    # to install one of our non offical package, for example on Ubuntu 22.04
-    wget https://gitlab.inria.fr/api/v4/projects/616/packages/generic/ubuntu_22.04/1.2.0/chameleon_1.2.0-1_amd64.deb
-    sudo apt-get install -y ./chameleon_1.2.0-1_amd64.deb
-    // and to uninstall use
-    // sudo apt-get autoremove -y chameleon
-    mpiexec -n 2 chameleon_dtesting -o potrf -t 2 -n 3200 --nowarmup
-    #+end_src
-    If there are no package available for your Debian/Ubuntu
-    distribution please [[sec:contact][contact us]] and we will try to provide one.
 
 *** Brew packages
 :PROPERTIES:
@@ -238,11 +220,6 @@
     wget https://git.savannah.gnu.org/cgit/guix.git/plain/etc/guix-install.sh
     chmod +x guix-install.sh
     sudo ./guix-install.sh
-    #+end_src
-
-    or on Debian
-    #+begin_src sh :eval never-export
-    sudo apt install guix
     #+end_src
 
     Guix packages are stored in our [[https://gitlab.inria.fr/guix-hpc/guix-hpc][guix-hpc]], and [[https://gitlab.inria.fr/guix-hpc/guix-hpc-non-free][guix-hpc-non-free]]
@@ -283,10 +260,8 @@
     Examples:
     #+begin_src sh :eval never-export
     # please read https://spack.readthedocs.io/en/latest/getting_started.html
-    git clone https://github.com/spack/spack.git
+    git clone -c feature.manyFiles=true --depth=2 https://github.com/spack/spack.git
     . spack/share/spack/setup-env.sh
-    cd spack
-    git checkout v0.19.1
     spack install chameleon
     # chameleon is installed here:
     spack location -i chameleon
@@ -318,18 +293,14 @@
    the ~CMAKE_PREFIX_PATH~
    (https://cmake.org/cmake/help/latest/envvar/CMAKE_PREFIX_PATH.html)
    as environment variable or CMake variable to give the root
-   installation directory where Chameleon is installed or use the
-   ~CHAMELEON_ROOT~ environment variable. Example of ~CMakeLists.txt~ for
-   Chameleon
+   installation directory where Chameleon is installed.
+   Example of ~CMakeLists.txt~ for project using Chameleon
    #+begin_src :eval never-export
    project(CHAMELEON_EXAMPLE C Fortran)
 
-   # to be able to use CHAMELEON_ROOT env. var.
-   cmake_policy(SET CMP0074 NEW)
-
    # look for CHAMELEON on the system
-   # Hint: use CHAMELEON_ROOT (env. var. or cmake var.) to the installation directory of
-   # CHAMELEON if not installed in a standard path
+   # Hint if not installed in a standard system directory:
+   # add chameleon installation directory in the CMAKE_PREFIX_PATH (env. var. or cmake var.)
 
    find_package(CHAMELEON REQUIRED)
 
