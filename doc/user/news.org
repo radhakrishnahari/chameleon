@@ -1,3 +1,4 @@
++ [2025-02-19] *Release 1.3.0* available, see [[https://gitlab.inria.fr/solverstack/chameleon/-/releases/v1.3.0][changes]], [[https://gitlab.inria.fr/api/v4/projects/616/packages/generic/source/v1.3.0/chameleon-1.3.0.tar.gz][download source tarball]].
 + [2023-07-04] *Release 1.2.0* available, see [[https://gitlab.inria.fr/solverstack/chameleon/-/releases/v1.2.0][changes]], [[https://gitlab.inria.fr/api/v4/projects/616/packages/generic/source/v1.2.0/chameleon-1.2.0.tar.gz][download source tarball]].
 + [2023-02-08] *Added support for HIP and hipblas (CUDA and ROC backend)*, see [[https://gitlab.inria.fr/solverstack/chameleon/-/merge_requests/355][MR 355]].
 + [2023-01-18] *Add parallel kernels support*, see [[https://gitlab.inria.fr/solverstack/chameleon/-/merge_requests/206][MR 206]].

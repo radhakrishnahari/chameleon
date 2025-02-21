@@ -3,13 +3,14 @@ libraries that must be installed on the system.
 # , it provides an interface to be called from Fortran
 
 Chameleon can be built and installed on UNIX systems (Linux) by the
-standard means of [[http://www.cmake.org/][CMake]].  General information about CMake, as well as
-installation binaries and CMake source code are available from [[http://www.cmake.org/cmake/resources/software.html][here]].
+standard means of [[http://www.cmake.org/][CMake]].
+General information about CMake, as well as installation binaries and CMake
+source code are available from
+[[http://www.cmake.org/cmake/resources/software.html][here]].
 
 To get support to install a full distribution Chameleon + dependencies
-we encourage users to use [[sec:ug:guix][GNU Guix]] or [[sec:ug:spack][Spack]].
-
-Finally some packages or also available for [[sec:ug:debian][Debian/Ubuntu]] and [[sec:ug:brew][MacOSX]].
+we encourage users to use [[sec:ug:guix][GNU Guix]] or [[sec:ug:spack][Spack]]
+and [[sec:ug:brew][Brew]] on macOS.
 
 *** Getting Chameleon
 :PROPERTIES:
@@ -90,9 +91,9 @@ Finally some packages or also available for [[sec:ug:debian][Debian/Ubuntu]] and
     # Install StarPU (with MPI and FxT enabled)
     mkdir -p $HOME/install
     cd $HOME/install
-    wget https://files.inria.fr/starpu/starpu-1.3.10/starpu-1.3.10.tar.gz
-    tar xvzf starpu-1.3.10.tar.gz
-    cd starpu-1.3.10/
+    wget https://files.inria.fr/starpu/starpu-1.4.7/starpu-1.4.7.tar.gz
+    tar xvf starpu-1.4.7.tar.gz
+    cd starpu-1.4.7
     ./configure --prefix=/usr/local --with-fxt=/usr/lib/x86_64-linux-gnu/
     make -j5
     sudo make install
@@ -203,8 +204,8 @@ Finally some packages or also available for [[sec:ug:debian][Debian/Ubuntu]] and
       StarPU can be used to benefit from GPUs and distributed-memory
       environment. Note StarPU is enabled by default.
 
-      *Caution about the compatibility:* Chameleon has been mainly tested
-      with StarPU-1.1, 1.2 and 1.3 releases.
+      *Caution about the compatibility:* current Chameleon has been mainly tested
+      with StarPU-1.4 releases.
 ***** PaRSEC
       [[http://icl.utk.edu/parsec/][PaRSEC]] is a generic framework for architecture aware scheduling
       and management of micro-tasks on distributed many-core
@@ -462,40 +463,6 @@ Finally some packages or also available for [[sec:ug:debian][Debian/Ubuntu]] and
      The [[https://cmake.org/cmake/help/latest/variable/CMAKE_PREFIX_PATH.html#variable:CMAKE_PREFIX_PATH][CMAKE_PREFIX_PATH]]
      can be used to indicate where dependencies are installed.
 
-*** Distribution Debian
-:PROPERTIES:
-:CUSTOM_ID: doc-install-debian
-:END:
-    <<sec:ug:debian>>
-    Download one of the available package for your distribution here
-    https://gitlab.inria.fr/solverstack/chameleon/-/packages, then
-    install as follows
-    #+begin_src sh
-    sudo apt-get install ./chameleon_1.2.0-1_amd64.deb -y
-    // and to uninstall use
-    // sudo apt-get autoremove -y chameleon
-    #+end_src
-    Chameleon will be installed on your system meaning you can use
-    drivers for performance tests
-    #+begin_src sh
-    export OPENBLAS_NUM_THREADS=1
-    mpiexec -n 2 chameleon_stesting -o gemm -n 6400
-    #+end_src
-    and use Chameleon library in your own project
-    #+begin_src sh
-    # example usage: use chameleon library in your own cmake project (we provide a CHAMELEONConfig.cmake)
-    git clone https://gitlab.inria.fr/solverstack/distrib.git
-    cd distrib/cmake/test/chameleon && mkdir build && cd build && cmake .. && make && ./test_chameleon
-
-    # example usage: use chameleon library in your own not cmake project
-    # use pkg-config to get compiler flags and linking
-    pkg-config --cflags chameleon
-    pkg-config --libs chameleon
-    # if there are static libraries use the --static option of pkg-config
-    #+end_src
-
-    Do not hesitate to send an [[mailto:florent.pruvost@inria.fr][email]] if you need a package for your
-    Debian distribution.
 *** Distribution of Chameleon using GNU Guix
 :PROPERTIES:
 :CUSTOM_ID: doc-install-guix
@@ -503,7 +470,7 @@ Finally some packages or also available for [[sec:ug:debian][Debian/Ubuntu]] and
     <<sec:ug:guix>>
 
     We provide [[http://guix.gnu.org/][Guix]] packages to install Chameleon with its dependencies
-    in a reproducible way on GNU/Linux systems. For MacOSX please refer
+    in a reproducible way on GNU/Linux systems. For macOS please refer
     to the next sections about Brew or Spack packaging.
 
     If you are "root" on the system you can install Guix and directly
@@ -521,11 +488,6 @@ Finally some packages or also available for [[sec:ug:debian][Debian/Ubuntu]] and
      wget https://git.savannah.gnu.org/cgit/guix.git/plain/etc/guix-install.sh
      chmod +x guix-install.sh
      sudo ./guix-install.sh
-     #+end_src
-
-     or on Debian
-     #+begin_src sh :eval never-export
-     sudo apt install guix
      #+end_src
 
      The Chameleon packages are not official Guix packages. It is then
@@ -574,12 +536,18 @@ Finally some packages or also available for [[sec:ug:debian][Debian/Ubuntu]] and
 
      Notice that there exist several build variants
      - chameleon (default) : with starpu - with mpi - with OpenBlas
+     - chameleon-aocl : with starpu - with mpi - with FLAME/BLIS from AMD
+     - chameleon-mkl : default version but with Intel MKL sequential to replace OpenBlas
      - chameleon-mkl-mt : default version but with Intel MKL multithreaded to replace OpenBlas
-     - chameleon-mkl-mt-wompi : with Intel MKL multithreaded and without mpi
-     - chameleon-cuda : with starpu - with mpi - with cuda
-     - chameleon-cuda-wompi : with starpu - without mpi - with cuda
-     - chameleon-cuda-mkl-mt : with starpu - with mpi - with cuda - with Intel MKL multithreaded to replace OpenBlas
-     - chameleon-cuda-mkl-mt-wompi : with starpu - without mpi - with cuda - with Intel MKL multithreaded to replace OpenBlas
+     - chameleon-mkl-mt-nompi : with Intel MKL multithreaded and without mpi
+     - chameleon-cuda : with starpu - with cuda - with OpenBlas - with mpi
+     - chameleon-cuda-nompi : with starpu - with cuda - with OpenBlas - without mpi
+     - chameleon-cuda-mkl-mt : with starpu - with cuda - with Intel MKL multithreaded - with mpi
+     - chameleon-cuda-mkl-mt-nompi : with starpu - with cuda - with Intel MKL multithreaded - without mpi
+     - chameleon-hip : with starpu - with hip - with OpenBlas - with mpi
+     - chameleon-hip-nompi : with starpu - with hip - with OpenBlas - without mpi
+     - chameleon-hip-mkl-mt : with starpu - with hip - with Intel MKL multithreaded - with mpi
+     - chameleon-hip-mkl-mt-nompi : with starpu - with hip - with Intel MKL multithreaded - without mpi
      - chameleon-simgrid : with starpu - with mpi - with simgrid
      - chameleon-openmp : with openmp - without mpi
      - chameleon-parsec : with parsec - without mpi
@@ -599,7 +567,7 @@ Finally some packages or also available for [[sec:ug:debian][Debian/Ubuntu]] and
      Change some dependencies
      #+begin_src sh
      # install chameleon with intel mkl to replace openblas, nmad to replace openmpi and starpu with fxt
-     guix install chameleon --with-input=openblas=mkl --with-input=openmpi=nmad --with-input=starpu=starpu-fxt
+     guix install chameleon --with-input=openblas=intel-oneapi-mkl --with-input=openmpi=nmad --with-input=starpu=starpu-fxt
      #+end_src
 
 **** Generate a Chameleon Docker image with Guix
@@ -607,7 +575,7 @@ Finally some packages or also available for [[sec:ug:debian][Debian/Ubuntu]] and
      To install Chameleon and its dependencies within a docker image
      (OpenMPI stack)
      #+begin_src sh
-     docker_chameleon=`guix pack -f docker chameleon chameleon --with-branch=chameleon=master --with-input=openblas=mkl mkl starpu hwloc openmpi openssh slurm bash coreutils inetutils util-linux procps git grep tar sed gzip which gawk perl emacs-minimal vim gcc-toolchain make cmake pkg-config -S /bin=bin --entry-point=/bin/bash`
+     docker_chameleon=`guix pack -f docker chameleon chameleon --with-branch=chameleon=master --with-input=openblas=intel-oneapi-mkl intel-oneapi-mkl starpu hwloc openmpi@4 openssh slurm bash coreutils inetutils util-linux procps git grep tar sed gzip which gawk perl emacs-minimal vim gcc-toolchain pkg-config -S /bin=bin --entry-point=/bin/bash`
      # Load the generated tarball as a docker image
      docker_chameleon_tag=`docker load --input $docker_chameleon | grep "Loaded image: " | cut -d " " -f 3-`
      # Change tag name, see the existing image name with "docker images" command, then change to a more simple name
@@ -656,7 +624,7 @@ Finally some packages or also available for [[sec:ug:debian][Debian/Ubuntu]] and
      #+begin_src sh
      # define reproducible guix environment
      guix describe -f channels > guix-channels.scm
-     guix shell --export-manifest chameleon-cuda --with-branch=chameleon=master --with-input=openblas=mkl bash coreutils emacs gawk grep inetutils openmpi openssh procps sed time util-linux vim which > guix-manifests.scm
+     guix shell --export-manifest chameleon-cuda --with-branch=chameleon=master --with-input=openblas=intel-oneapi-mkl bash coreutils emacs gawk grep inetutils openmpi@4 openssh procps sed time util-linux vim which > guix-manifests.scm
      SINGULARITY_IMAGE=`guix time-machine -C guix-channels.scm -- pack -f squashfs -m guix-manifests.scm -S /bin=bin --entry-point=/bin/bash`
      cp $SINGULARITY_IMAGE chameleon-cuda.gz.sif
 
@@ -682,7 +650,7 @@ Finally some packages or also available for [[sec:ug:debian][Debian/Ubuntu]] and
      One can generate a tar.gz archive the same way as the singularity image
      #+begin_src sh
      guix describe -f channels > guix-channels.scm
-     guix shell --export-manifest chameleon-cuda --with-branch=chameleon=master --with-input=openblas=mkl bash coreutils emacs gawk grep inetutils openmpi openssh procps sed time util-linux vim which > guix-manifests.scm
+     guix shell --export-manifest chameleon-cuda --with-branch=chameleon=master --with-input=openblas=intel-oneapi-mkl bash coreutils emacs gawk grep inetutils openmpi openssh procps sed time util-linux vim which > guix-manifests.scm
      PACKRR=`guix time-machine --channels=guix-channels.scm -- pack -RR --manifest=guix-manifests.scm -S /bin=bin`
      cp $PACKRR chameleon-cuda.tar.gz
      # copy the archive on the supercomputer, e.g. 'supercomputer'
@@ -716,7 +684,6 @@ Finally some packages or also available for [[sec:ug:debian][Debian/Ubuntu]] and
      git clone https://github.com/spack/spack.git
      . spack/share/spack/setup-env.sh
      cd spack
-     git checkout v0.19.1
      #+end_src
 
      Chameleon is then available
