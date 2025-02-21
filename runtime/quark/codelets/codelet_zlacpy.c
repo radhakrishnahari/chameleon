@@ -31,7 +31,6 @@ static inline void CORE_zlacpy_quark(Quark *quark)
 {
     cham_uplo_t uplo;
     int M, N;
-    int LDA, LDB;
     CHAM_tile_t *tileA, *tileB;
 
     quark_unpack_args_5(quark, uplo, M, N, tileA, tileB);

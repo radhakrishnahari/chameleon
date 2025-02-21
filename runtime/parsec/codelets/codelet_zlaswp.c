@@ -26,9 +26,10 @@ CORE_zlaswp_get_parsec( parsec_execution_stream_t *context,
     int          m0, m, n, k, lda, ldb, *perm;
     CHAMELEON_Complex64_t *A, *B;
 
-    parsec_dtd_unpack_args( this_task, &m0, &m, &n, &k, &A, lda, &B, ldb, &perm );
+    parsec_dtd_unpack_args( this_task, &m0, &m, &n, &k, &A, &lda, &B, &ldb, &perm );
 
     CORE_zlaswp_get( m0, m, n, k, A, lda, B, ldb, perm );
+    return PARSEC_HOOK_RETURN_DONE;
 }
 
 void INSERT_TASK_zlaswp_get( const RUNTIME_option_t *options,
@@ -62,9 +63,10 @@ CORE_zlaswp_set_parsec( parsec_execution_stream_t *context,
     int          m0, m, n, k, lda, ldb, *invp;
     CHAMELEON_Complex64_t *A, *B;
 
-    parsec_dtd_unpack_args( this_task, &m0, &m, &n, &k, &A, lda, &B, ldb, &invp );
+    parsec_dtd_unpack_args( this_task, &m0, &m, &n, &k, &A, &lda, &B, &ldb, &invp );
 
     CORE_zlaswp_set( m0, m, n, k, A, lda, B, ldb, invp );
+    return PARSEC_HOOK_RETURN_DONE;
 }
 
 void INSERT_TASK_zlaswp_set( const RUNTIME_option_t *options,

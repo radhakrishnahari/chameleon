@@ -21,16 +21,14 @@
 
 static void cl_ipiv_init_cpu_func(void *descr[], void *cl_arg)
 {
-    int *ipiv = (int *)STARPU_VECTOR_GET_PTR(descr[0]);
-
 #if !defined(CHAMELEON_SIMULATION)
-    {
-        int i, m0, n;
-        starpu_codelet_unpack_args( cl_arg, &m0, &n );
+    int *ipiv = (int *)STARPU_VECTOR_GET_PTR(descr[0]);
+    int i, m0, n;
 
-        for( i=0; i<n; i++ ) {
-            ipiv[i] = m0 + i + 1;
-        }
+    starpu_codelet_unpack_args( cl_arg, &m0, &n );
+
+    for( i=0; i<n; i++ ) {
+        ipiv[i] = m0 + i + 1;
     }
 #endif
 }

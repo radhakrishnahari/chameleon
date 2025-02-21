@@ -2,7 +2,11 @@ set(BUILD_SHARED_LIBS "ON" CACHE BOOL "")
 set(CMAKE_INSTALL_PREFIX "$ENV{PWD}/install-$ENV{VERSION}" CACHE PATH "")
 set(CMAKE_VERBOSE_MAKEFILE "ON" CACHE BOOL "")
 
-set(CMAKE_C_FLAGS "-Werror")
+if(CMAKE_C_FLAGS)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror" CACHE STRING "")
+else()
+  set(CMAKE_C_FLAGS "-Werror" CACHE STRING "")
+endif()
 
 option(MORSE_ENABLE_WARNING  "Enable warning messages"        ON)
 option(MORSE_ENABLE_COVERAGE "Enable flags for coverage test" ON)

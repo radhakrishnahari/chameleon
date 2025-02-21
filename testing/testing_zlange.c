@@ -121,7 +121,9 @@ testing_zlange_std( run_arg_list_t *args, int check )
     int        hres      = 0;
 
     /* Read arguments */
+#if !defined(CHAMELEON_TESTINGS_VENDOR)
     int             api       = parameters_getvalue_int( "api" );
+#endif
     int             nb        = run_arg_get_nb( args );
     cham_normtype_t norm_type = run_arg_get_ntype( args, "norm", ChamMaxNorm );
     int             N         = run_arg_get_int( args, "N", 1000 );

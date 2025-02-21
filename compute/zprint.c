@@ -26,6 +26,7 @@ struct zprint_args_s {
     const char *header;
 };
 
+#if !defined(CHAMELEON_SIMULATION)
 static inline int
 zprint_cpu( void *op_args,
             cham_uplo_t uplo, int m, int n, int ndata,
@@ -43,17 +44,20 @@ zprint_cpu( void *op_args,
     }
     assert( tileA->format & CHAMELEON_TILE_FULLRANK );
 
-#if !defined(CHAMELEON_SIMULATION)
     CORE_zprint( options->file, options->header, uplo,
                  tempmm, tempnn, m, n, A, lda );
-#endif
 
     return 0;
 }
+#endif
 
 static cham_map_operator_t zprint_map = {
     .name     = "zprint",
+#if !defined(CHAMELEON_SIMULATION)
     .cpufunc  = zprint_cpu,
+#else
+    .cpufunc  = NULL,
+#endif
     .cudafunc = NULL,
     .hipfunc  = NULL,
 };

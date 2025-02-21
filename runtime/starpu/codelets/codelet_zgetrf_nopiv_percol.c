@@ -23,10 +23,10 @@
 CHAMELEON_CL_CB( zgetrf_nopiv_percol_diag, cti_handle_get_m(task->handles[0]), 0, 0, M )
 CHAMELEON_CL_CB( zgetrf_nopiv_percol_trsm, cti_handle_get_m(task->handles[0]), 0, 0, M )
 
+#if !defined(CHAMELEON_SIMULATION)
 static const CHAMELEON_Complex64_t zone  = (CHAMELEON_Complex64_t) 1.0;
 static const CHAMELEON_Complex64_t mzone = (CHAMELEON_Complex64_t)-1.0;
 
-#if !defined(CHAMELEON_SIMULATION)
 static void cl_zgetrf_nopiv_percol_diag_cpu_func( void *descr[], void *cl_arg )
 {
     CHAM_tile_t           *tileA, *tileU;

@@ -53,7 +53,8 @@ void INSERT_TASK_zlag2c( const RUNTIME_option_t *options,
     CHAM_tile_t *tileA = A->get_blktile( A, Am, An );
     CHAM_tile_t *tileB = B->get_blktile( B, Bm, Bn );
 
-    parsec_dtd_taskpool_insert_task(PARSEC_dtd_taskpool, CORE_zlag2c_parsec, "lag2c",
+    parsec_dtd_taskpool_insert_task(
+        PARSEC_dtd_taskpool, CORE_zlag2c_parsec, options->priority, "lag2c",
         sizeof(int),                        &m,         VALUE,
         sizeof(int),                        &n,         VALUE,
         PASSED_BY_REF,         RTBLKADDR( A, CHAMELEON_Complex64_t, Am, An ), chameleon_parsec_get_arena_index( A ) | INPUT,

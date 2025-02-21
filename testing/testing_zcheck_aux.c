@@ -631,7 +631,7 @@ int check_zscale_std( run_arg_list_t *args, cham_uplo_t uplo, int M, int N, CHAM
  */
 int check_zscale( run_arg_list_t *args, cham_uplo_t uplo, CHAMELEON_Complex64_t alpha, CHAM_desc_t *descAinit, CHAM_desc_t *descA )
 {
-    int info_solution;
+    int info_solution            = 0;
     int M                        = descA->m;
     int N                        = descA->n;
     int LDA                      = M;

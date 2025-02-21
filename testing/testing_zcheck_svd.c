@@ -227,7 +227,7 @@ int check_zgesvd_std( run_arg_list_t *args, cham_job_t jobu, cham_job_t jobvt, i
 int check_zgesvd( run_arg_list_t *args, cham_job_t jobu, cham_job_t jobvt, CHAM_desc_t *descAinit, CHAM_desc_t *descA,
                   double *Sinit, double *S, CHAMELEON_Complex64_t *U, int LDU, CHAMELEON_Complex64_t *Vt, int LDVt )
 {
-    int info_solution;
+    int info_solution = 0;
     int rank = CHAMELEON_Comm_rank();
     CHAMELEON_Complex64_t *Ainit = NULL;
     CHAMELEON_Complex64_t *A     = NULL;

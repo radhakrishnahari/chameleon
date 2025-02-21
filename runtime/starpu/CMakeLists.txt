@@ -39,6 +39,17 @@ include(CheckCSourceRuns)
 set(CHAMELEON_STARPU_VERSION "1.3" CACHE STRING "necessary STARPU API version")
 
 find_package(STARPU ${CHAMELEON_STARPU_VERSION} REQUIRED)
+
+# Bug fix of hip defining to null the variable in the perl script used
+# by starpu, and to 1 in the cmake targe file used by chameleon
+# -------------------------------------------------------------
+get_target_property(_DEFS MORSE::STARPU INTERFACE_COMPILE_OPTIONS)
+if (_DEFS)
+  list(TRANSFORM _DEFS REPLACE "-D__HIP_PLATFORM_AMD__=" "-D__HIP_PLATFORM_AMD__=1" )
+  set_target_properties(MORSE::STARPU PROPERTIES INTERFACE_COMPILE_OPTIONS "${_DEFS}")
+endif()
+# -------------------------------------------------------------
+
 morse_export_imported_target(MORSE STARPU starpu chameleon)
 
 # check available functions

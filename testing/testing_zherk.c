@@ -120,7 +120,9 @@ testing_zherk_std( run_arg_list_t *args, int check )
     int        hres      = 0;
 
     /* Read arguments */
+#if !defined(CHAMELEON_TESTINGS_VENDOR)
     int          api   = parameters_getvalue_int( "api" );
+#endif
     int          nb    = run_arg_get_nb( args );
     cham_trans_t trans = run_arg_get_trans( args, "trans", ChamNoTrans );
     cham_uplo_t  uplo  = run_arg_get_uplo( args, "uplo", ChamUpper );

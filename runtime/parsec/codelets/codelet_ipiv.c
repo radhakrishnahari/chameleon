@@ -50,6 +50,9 @@ CORE_ipiv_to_perm_parsec( parsec_execution_stream_t *context,
         this_task, &m0, &m, &k, &ipiv, &perm, &invp );
 
     CORE_ipiv_to_perm( m0, m, k, ipiv, perm, invp );
+
+    (void)context;
+    return PARSEC_HOOK_RETURN_DONE;
 }
 
 void INSERT_TASK_ipiv_to_perm( const RUNTIME_option_t *options,

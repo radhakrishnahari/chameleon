@@ -62,11 +62,11 @@ BEGIN_C_DECLS
 
 int HIP_hgemm( cham_trans_t transa, cham_trans_t transb,
                int m, int n, int k,
-               const CHAMELEON_Real16_t *alpha,
-               const CHAMELEON_Real16_t *A, int lda,
-               const CHAMELEON_Real16_t *B, int ldb,
-               const CHAMELEON_Real16_t *beta,
-               CHAMELEON_Real16_t *C, int ldc,
+               const hipblasHalf *alpha,
+               const hipblasHalf *A, int lda,
+               const hipblasHalf *B, int ldb,
+               const hipblasHalf *beta,
+               hipblasHalf *C, int ldc,
                hipblasHandle_t handle );
 
 END_C_DECLS
