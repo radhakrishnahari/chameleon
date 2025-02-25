@@ -126,6 +126,7 @@ CODELETS_GPU( zgemm, cl_zgemm_cpu_func, cl_zgemm_hip_func, STARPU_HIP_ASYNC )
 CODELETS( zgemm, cl_zgemm_cpu_func, cl_zgemm_cuda_func, STARPU_CUDA_ASYNC )
 #endif
 
+#if defined(CHAMELEON_STARPU_USE_INSERT)
 void INSERT_TASK_zgemm_Astat( const RUNTIME_option_t *options,
                               cham_trans_t transA, cham_trans_t transB,
                               int m, int n, int k, int nb,
@@ -139,12 +140,12 @@ void INSERT_TASK_zgemm_Astat( const RUNTIME_option_t *options,
         return;
     }
 
-    struct cl_zgemm_args_s  *clargs = NULL;
     void (*callback)(void*);
-    int                      accessC;
+    struct cl_zgemm_args_s  *clargs  = NULL;
     int                      exec    = 0;
     const char              *cl_name = "zgemm_Astat";
     uint32_t                 where   = cl_zgemm.where;
+    int                      accessC;
 
     /* Handle cache */
     CHAMELEON_BEGIN_ACCESS_DECLARATION;
@@ -229,12 +230,12 @@ void INSERT_TASK_zgemm( const RUNTIME_option_t *options,
         return;
     }
 
-    struct cl_zgemm_args_s  *clargs = NULL;
     void (*callback)(void*);
-    int                      accessC;
-    int                      exec = 0;
+    struct cl_zgemm_args_s  *clargs  = NULL;
+    int                      exec    = 0;
     const char              *cl_name = "zgemm";
     uint32_t                 where   = cl_zgemm.where;
+    int                      accessC;
 
     /* Handle cache */
     CHAMELEON_BEGIN_ACCESS_DECLARATION;
@@ -295,3 +296,133 @@ void INSERT_TASK_zgemm( const RUNTIME_option_t *options,
         STARPU_EXECUTE_WHERE,     where,
         0 );
 }
+
+#else
+
+void __INSERT_TASK_zgemm( const RUNTIME_option_t *options,
+                          int xrank, int accessC,
+                          cham_trans_t transA, cham_trans_t transB,
+                          int m, int n, int k, int nb,
+                          CHAMELEON_Complex64_t alpha, const CHAM_desc_t *A, int Am, int An,
+                                                       const CHAM_desc_t *B, int Bm, int Bn,
+                          CHAMELEON_Complex64_t beta,  const CHAM_desc_t *C, int Cm, int Cn )
+{
+    if ( alpha == (CHAMELEON_Complex64_t)0. ) {
+        INSERT_TASK_zlascal( options, ChamUpperLower, m, n, nb,
+                             beta, C, Cm, Cn );
+        return;
+    }
+
+    INSERT_TASK_COMMON_PARAMETERS( zgemm, 3 );
+
+    /*
+     * Register the data handles and initialize exchanges if needed
+     */
+    starpu_cham_exchange_init_params( options, &params, xrank );
+    starpu_cham_exchange_data_before_execution( options, params, &nbdata, descrs, A, Am, An, STARPU_R );
+    starpu_cham_exchange_data_before_execution( options, params, &nbdata, descrs, B, Bm, Bn, STARPU_R );
+    starpu_cham_exchange_data_before_execution( options, params, &nbdata, descrs, C, Cm, Cn, accessC  );
+
+    /*
+     * Not involved, let's return
+     */
+    if ( nbdata == 0 ) {
+        return;
+    }
+
+    if ( params.do_execute )
+    {
+        int ret;
+        struct starpu_task *task = starpu_task_create();
+        task->cl = cl;
+
+        /* WARNING: CUDA 12.3 has an issue when k=1 in complex, thus we disable gemm on gpu in these cases */
+#if defined(PRECISION_z) || defined(PRECISION_c)
+        if ( k == 1 ) {
+            task->where = STARPU_CPU;
+        }
+#endif
+
+        /* Set codelet parameters */
+        clargs = malloc( sizeof( struct cl_zgemm_args_s ) );
+        clargs->transA = transA;
+        clargs->transB = transB;
+        clargs->m      = m;
+        clargs->n      = n;
+        clargs->k      = k;
+        clargs->alpha  = alpha;
+        clargs->beta   = beta;
+
+        task->cl_arg      = clargs;
+        task->cl_arg_size = sizeof( struct cl_zgemm_args_s );
+        task->cl_arg_free = 1;
+
+        /* Set common parameters */
+        starpu_cham_task_set_options( options, task, nbdata, descrs, cl_zgemm_callback );
+
+        /* Flops */
+        task->flops = flops_zgemm( m, n, k );
+
+        /* Refine name */
+        task->name = chameleon_codelet_name( cl_name, 3,
+                                             A->get_blktile( A, Am, An ),
+                                             B->get_blktile( B, Bm, Bn ),
+                                             C->get_blktile( C, Cm, Cn ) );
+
+        ret = starpu_task_submit( task );
+        if ( ret == -ENODEV ) {
+            task->destroy = 0;
+            starpu_task_destroy( task );
+            chameleon_error( "INSERT_TASK_zpotrf", "Failed to submit the task to StarPU" );
+            return;
+        }
+    }
+
+    starpu_cham_task_exchange_data_after_execution( options, params, nbdata, descrs );
+
+    (void)nb;
+}
+
+void INSERT_TASK_zgemm_Astat( const RUNTIME_option_t *options,
+                              cham_trans_t transA, cham_trans_t transB,
+                              int m, int n, int k, int nb,
+                              CHAMELEON_Complex64_t alpha, const CHAM_desc_t *A, int Am, int An,
+                                                           const CHAM_desc_t *B, int Bm, int Bn,
+                              CHAMELEON_Complex64_t beta,  const CHAM_desc_t *C, int Cm, int Cn )
+{
+    /* Reduce the C access if needed */
+    int accessC = ( beta == (CHAMELEON_Complex64_t)0. ) ? STARPU_W : STARPU_RW;
+
+#if defined(HAVE_STARPU_MPI_REDUX)
+    if ( beta == (CHAMELEON_Complex64_t)1. ) {
+        accessC = STARPU_MPI_REDUX;
+    }
+#endif
+
+    __INSERT_TASK_zgemm( options,
+                         A->get_rankof( A, Am, An ), accessC,
+                         transA, transB, m, n, k, nb,
+                         alpha, A, Am, An,
+                                B, Bm, Bn,
+                         beta,  C, Cm, Cn );
+}
+
+void INSERT_TASK_zgemm( const RUNTIME_option_t *options,
+                        cham_trans_t transA, cham_trans_t transB,
+                        int m, int n, int k, int nb,
+                        CHAMELEON_Complex64_t alpha, const CHAM_desc_t *A, int Am, int An,
+                                                     const CHAM_desc_t *B, int Bm, int Bn,
+                        CHAMELEON_Complex64_t beta,  const CHAM_desc_t *C, int Cm, int Cn )
+{
+    /* Reduce the C access if needed */
+    int accessC = ( beta == (CHAMELEON_Complex64_t)0. ) ? STARPU_W :
+        (STARPU_RW | ((beta == (CHAMELEON_Complex64_t)1.) ? STARPU_COMMUTE : 0));
+
+    __INSERT_TASK_zgemm( options,
+                         C->get_rankof( C, Cm, Cn ), accessC,
+                         transA, transB, m, n, k, nb,
+                         alpha, A, Am, An,
+                                B, Bm, Bn,
+                         beta,  C, Cm, Cn );
+}
+#endif

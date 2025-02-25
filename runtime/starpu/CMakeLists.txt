@@ -180,6 +180,19 @@ int main() {
     if ( HAVE_STARPU_MPI_DATA_CPY_PRIORITY )
       message("-- ${Blue}Add definition HAVE_STARPU_MPI_DATA_CPY_PRIORITY${ColourReset}")
     endif()
+
+    check_function_exists(starpu_mpi_exchange_data_before_execution HAVE_STARPU_MPI_EXCHANGE_DATA_BEFORE_EXECUTION)
+    if ( HAVE_STARPU_MPI_EXCHANGE_DATA_BEFORE_EXECUTION )
+      message("-- ${Blue}Add definition HAVE_STARPU_MPI_EXCHANGE_DATA_BEFORE_EXECUTION${ColourReset}")
+    endif()
+
+  endif()
+
+  if ( CHAMELEON_USE_MPI AND NOT HAVE_STARPU_MPI_EXCHANGE_DATA_BEFORE_EXECUTION )
+    set( CHAMELEON_STARPU_USE_INSERT ON CACHE BOOL "Enable the task insert interface instead of the task submit" FORCE)
+  else()
+    option( CHAMELEON_STARPU_USE_INSERT
+      "Enable the task insert interface instead of the task submit" OFF )
   endif()
 
   if (CHAMELEON_USE_CUDA AND NOT CHAMELEON_SIMULATION)

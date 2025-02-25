@@ -24,11 +24,10 @@
 /**
  *  Create a sequence
  */
-int RUNTIME_sequence_create( CHAM_context_t  *chamctxt,
+int RUNTIME_sequence_create( CHAM_context_t     *chamctxt,
                              RUNTIME_sequence_t *sequence )
 {
     (void)chamctxt;
-    sequence->comm = chamctxt->comm;
     return CHAMELEON_SUCCESS;
 }
 

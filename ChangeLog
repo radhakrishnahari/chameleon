@@ -1,5 +1,8 @@
 chameleon-1.4.0
 ------------------------------------------------------------------------
+ - StarPU: When using starpu > 1.4.8, use the new distributed submit interface in the codelets instead of the classical insert task interface.
+ - ci: use -Werror to prevent from adding warning to the code
+ - Fix: all warning reported by the switch to -Werror
 
 chameleon-1.3.0
 ------------------------------------------------------------------------
