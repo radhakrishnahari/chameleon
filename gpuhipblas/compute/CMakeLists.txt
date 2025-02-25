@@ -71,7 +71,7 @@ target_include_directories(gpuhipblas PUBLIC
 set_property(TARGET gpuhipblas PROPERTY INSTALL_NAME_DIR "${CMAKE_INSTALL_PREFIX}/lib")
 
 target_link_libraries(gpuhipblas PRIVATE coreblas)
-target_link_libraries(gpuhipblas PUBLIC HIP::HIPBLAS)
+target_link_libraries(gpuhipblas PUBLIC roc::hipblas)
 target_link_libraries(gpuhipblas PUBLIC MORSE::M)
 
 # export target coreblas

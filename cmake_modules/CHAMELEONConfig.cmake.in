@@ -9,6 +9,9 @@ set_and_check(CHAMELEON_LIB_DIR "@PACKAGE_LIB_INSTALL_DIR@")
 
 check_required_components(CHAMELEON)
 
+# propagate the CMAKE_PREFIX_PATH informations used during chameleon installation to give paths to dependencies
+list(APPEND CMAKE_PREFIX_PATH "@PACKAGE_PREFIX_PATH@")
+
 # dependencies of CHAMELEON
 include("${CMAKE_CURRENT_LIST_DIR}/mTargets.cmake")
 if (EXISTS "${CMAKE_CURRENT_LIST_DIR}/threadsTargets.cmake")
@@ -38,13 +41,13 @@ if (@CHAMELEON_USE_CUDA@ AND NOT @CHAMELEON_SIMULATION@)
   include("${CMAKE_CURRENT_LIST_DIR}/cublasTargets.cmake")
 endif()
 if (@CHAMELEON_USE_HIP@ AND NOT @CHAMELEON_SIMULATION@)
-  include("${CMAKE_CURRENT_LIST_DIR}/hipTargets.cmake")
-  include("${CMAKE_CURRENT_LIST_DIR}/hipblasTargets.cmake")
   if (@CHAMELEON_USE_HIP_ROC@)
-    include("${CMAKE_CURRENT_LIST_DIR}/rochipblasTargets.cmake")
-    include("${CMAKE_CURRENT_LIST_DIR}/hiphostTargets.cmake")
-    include("${CMAKE_CURRENT_LIST_DIR}/hipdeviceTargets.cmake")
-    include("${CMAKE_CURRENT_LIST_DIR}/hipamdhip64Targets.cmake")
+    include(CMakeFindDependencyMacro)
+    find_dependency(hip REQUIRED)
+    find_dependency(hipblas REQUIRED)
+  else ()
+    include("${CMAKE_CURRENT_LIST_DIR}/hipTargets.cmake")
+    include("${CMAKE_CURRENT_LIST_DIR}/hipblasTargets.cmake")
   endif()
 endif()
 

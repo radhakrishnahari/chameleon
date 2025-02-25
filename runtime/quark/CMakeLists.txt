@@ -29,7 +29,7 @@
 cmake_minimum_required(VERSION 3.5)
 
 find_package( QUARK REQUIRED COMPONENTS HWLOC )
-morse_export_imported_target(MORSE QUARK quark chameleon)
+morse_export_imported_target(MORSE::QUARK quark chameleon)
 
 # Add definition and include_dir if found
 if(QUARK_FOUND)
