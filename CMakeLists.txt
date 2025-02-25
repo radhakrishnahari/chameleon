@@ -349,7 +349,7 @@ endif()
 # Add math library (libm), searched with MORSE module FindM.cmake
 # it normally exists on all common systems provided with a C compiler
 find_package(M REQUIRED)
-morse_export_imported_target(MORSE M m chameleon)
+morse_export_imported_target(MORSE::M m chameleon)
 
 # If simulation we don't enter in kernel functions so that we don't need to link
 # with concerned libraries
@@ -366,12 +366,12 @@ if(NOT CHAMELEON_SIMULATION)
     # CHAMELEON depends on CBLAS
     #---------------------------
     find_package(CBLAS REQUIRED)
-    morse_export_imported_target(MORSE CBLAS cblas chameleon)
+    morse_export_imported_target(MORSE::CBLAS cblas chameleon)
 
     # CHAMELEON depends on LAPACKE
     #-----------------------------
     find_package(LAPACKE REQUIRED)
-    morse_export_imported_target(MORSE LAPACKE lapacke chameleon)
+    morse_export_imported_target(MORSE::LAPACKE lapacke chameleon)
 
     # CHAMELEON depends on CUDA/CUBLAS
     #----------------------------------
@@ -418,8 +418,8 @@ if(NOT CHAMELEON_SIMULATION)
                 "\n   CUDA_LIBRARIES to be found. Be sure you have"
                 "\n   libcuda with your distribution of CUDA.")
             endif()
-            morse_export_imported_target(CUDA CUDA cuda chameleon)
-            morse_export_imported_target(CUDA CUBLAS cublas chameleon)
+            morse_export_imported_target(CUDA::CUDA cuda chameleon)
+            morse_export_imported_target(CUDA::CUBLAS cublas chameleon)
         endif (CUDA_FOUND)
 
     endif(CHAMELEON_USE_CUDA)
@@ -531,13 +531,13 @@ if(NOT CHAMELEON_SIMULATION)
             message("-- HIPBLAS include path:  ${HIPBLAS_INCLUDE_DIRS}")
             message("-- HIPBLAS libraries:     ${HIPBLAS_LIBRARIES}")
 
-            morse_export_imported_target(HIP HIP hip chameleon)
-            morse_export_imported_target(HIP HIPBLAS hipblas chameleon)
+            morse_export_imported_target(HIP::HIP hip chameleon)
+            morse_export_imported_target(HIP::HIPBLAS hipblas chameleon)
             if (CHAMELEON_USE_HIP_ROC)
-                morse_export_imported_target(roc hipblas rochipblas chameleon)
-                morse_export_imported_target(hip host hiphost chameleon)
-                morse_export_imported_target(hip device hipdevice chameleon)
-                morse_export_imported_target(hip amdhip64 hipamdhip64 chameleon)
+                morse_export_imported_target(roc::hipblas rochipblas chameleon)
+                morse_export_imported_target(hip::host hiphost chameleon)
+                morse_export_imported_target(hip::device hipdevice chameleon)
+                morse_export_imported_target(hip::amdhip64 hipamdhip64 chameleon)
             endif()
         else(HIP_FOUND)
             message(FATAL_ERROR "CHAMELEON_USE_HIP requires HIP to be found")
@@ -562,7 +562,7 @@ if(NOT CHAMELEON_SIMULATION)
             " - Activate MPI in Chameleon${ColourReset}")
         endif (MPI_C_FOUND)
 
-        morse_export_imported_target(MPI MPI_C mpi chameleon)
+        morse_export_imported_target(MPI::MPI_C mpi chameleon)
 
         if (CHAMELEON_SCHED STREQUAL "PARSEC")
           message(FATAL_ERROR "CHAMELEON does not support PARSEC with MPI."
@@ -656,7 +656,7 @@ else (NOT CHAMELEON_SIMULATION)
             " - Activate MPI in Chameleon${ColourReset}")
         endif (MPI_C_FOUND)
 
-        morse_export_imported_target(MPI MPI_C mpi chameleon)
+        morse_export_imported_target(MPI::MPI_C mpi chameleon)
 
     endif (CHAMELEON_USE_MPI)
 
@@ -791,7 +791,7 @@ endif()
 # Threads::Threads may be a dependency of BLAS/LAPACK and CUDA
 # the target may be required for cmake users linking with CHAMELEONconfig.cmake
 if (TARGET Threads::Threads)
-    morse_export_imported_target(Threads Threads threads chameleon)
+    morse_export_imported_target(Threads::Threads threads chameleon)
 endif()
 
 # see https://cmake.org/cmake/help/latest/module/CMakePackageConfigHelpers.html
