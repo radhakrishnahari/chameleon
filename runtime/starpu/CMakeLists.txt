@@ -405,7 +405,7 @@ if (NOT CHAMELEON_SIMULATION)
     target_link_libraries(chameleon_starpu PUBLIC CUDA::CUBLAS)
   endif()
   if (CHAMELEON_USE_HIP)
-    target_link_libraries(chameleon_starpu PUBLIC HIP::HIPBLAS)
+    target_link_libraries(chameleon_starpu PUBLIC roc::hipblas)
   endif()
 endif()
 

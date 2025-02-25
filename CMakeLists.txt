@@ -427,10 +427,16 @@ if(NOT CHAMELEON_SIMULATION)
     # CHAMELEON depends on HIP/HIPBLAS
     #----------------------------------
     if (CHAMELEON_USE_HIP)
+
         if (CHAMELEON_USE_HIP_ROC)
 
-            find_package(HIP REQUIRED)
-            find_package(hipblas REQUIRED)
+            # should define targets: hip::host, hip::device
+            find_package(hip REQUIRED CONFIG)
+            message(STATUS "hip target found")
+
+            # should define targets: roc::hipblas
+            find_package(hipblas REQUIRED CONFIG)
+            message(STATUS "hipblas target found")
 
         elseif(CHAMELEON_USE_HIP_CUDA)
 
@@ -466,56 +472,49 @@ if(NOT CHAMELEON_SIMULATION)
             if(CHAMELEON_HIPBLAS_PATH)
                 list(APPEND HIPBLAS_INCLUDE_DIRS "${CHAMELEON_HIPBLAS_PATH}/include")
                 list(APPEND HIPBLAS_LIBRARIES "${CHAMELEON_HIPBLAS_PATH}/lib/libhipblas.so")
+                message(STATUS "HIPBLAS_INCLUDE_DIRS: ${HIP_INCLUDE_DIRS}")
+                message(STATUS "HIPBLAS_LIBRARIES: ${HIPBLAS_LIBRARIES}")
             else()
                 message(FATAL_ERROR "Please set CHAMELEON_HIPBLAS_PATH to your HIPBLAS installation.")
             endif()
-        endif()
 
-        if (HIP_FOUND)
-            message("-- ${Blue}Add definition CHAMELEON_USE_HIP"
-                " - Activate HIP in Chameleon${ColourReset}")
             # create imported target because not provided with old cmake
-            add_library(HIP::HIP INTERFACE IMPORTED)
-            add_library(HIP::HIPBLAS INTERFACE IMPORTED)
-
-            if (CHAMELEON_USE_HIP_CUDA)
-                target_compile_definitions(HIP::HIP INTERFACE "__HIP_PLATFORM_NVIDIA__")
-                set(HIP_INCLUDE_DIRS "${HIP_INCLUDE_DIRS};${CUDA_INCLUDE_DIRS}")
-                set(HIP_LIBRARIES "${HIP_LIBRARIES};${CUDA_LIBRARIES}")
-            endif()
+            add_library(hip::hip INTERFACE IMPORTED)
+            add_library(roc::hipblas INTERFACE IMPORTED)
+            target_compile_definitions(hip::hip INTERFACE "__HIP_PLATFORM_NVIDIA__")
+            set(HIP_INCLUDE_DIRS "${HIP_INCLUDE_DIRS};${CUDA_INCLUDE_DIRS}")
+            set(HIP_LIBRARIES "${HIP_LIBRARIES};${CUDA_LIBRARIES}")
 
             if (HIP_INCLUDE_DIRS)
-                set_target_properties(HIP::HIP PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${HIP_INCLUDE_DIRS}")
+                set_target_properties(hip::hip PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${HIP_INCLUDE_DIRS}")
                 if (HIPBLAS_INCLUDE_DIRS)
-                    set_target_properties(HIP::HIPBLAS PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${HIPBLAS_INCLUDE_DIRS}")
+                    set_target_properties(roc::hipblas PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${HIPBLAS_INCLUDE_DIRS}")
                 else()
-                    message(WARNING "CHAMELEON_USE_HIP requires"
+                    message(WARNING "CHAMELEON_USE_HIP_CUDA requires"
                         "\n   HIPBLAS_INCLUDE_DIRS to be found. Be sure you have"
                         "\n   hipblas headers with your distribution of HIP.")
                 endif()
             else()
-                message(WARNING "CHAMELEON_USE_HIP requires"
+                message(WARNING "CHAMELEON_USE_HIP_CUDA requires"
                     "\n   HIP_INCLUDE_DIRS to be found. Be sure you have"
                     "\n   hip headers with your distribution of HIP.")
             endif()
             if (HIP_LIBRARIES)
-                set_target_properties(HIP::HIP PROPERTIES INTERFACE_LINK_LIBRARIES "${HIP_LIBRARIES}")
+                set_target_properties(hip::hip PROPERTIES INTERFACE_LINK_LIBRARIES "${HIP_LIBRARIES}")
                 if (HIPBLAS_LIBRARIES)
-                    set_target_properties(HIP::HIPBLAS PROPERTIES INTERFACE_LINK_LIBRARIES "${HIPBLAS_LIBRARIES}")
-                    target_link_libraries(HIP::HIPBLAS INTERFACE HIP::HIP)
-                    message("-- ${Blue}Add definition CHAMELEON_USE_HIPBLAS"
-                        " - Use GPU kernels from hipblas${ColourReset}")
+                    set_target_properties(roc::hipblas PROPERTIES INTERFACE_LINK_LIBRARIES "${HIPBLAS_LIBRARIES}")
+                    target_link_libraries(roc::hipblas INTERFACE hip::hip)
                 else()
-                    message(FATAL_ERROR "CHAMELEON_USE_HIP requires"
+                    message(FATAL_ERROR "CHAMELEON_USE_HIP_CUDA requires"
                         "\n   HIPBLAS_LIBRARIES to be found. Be sure you have"
                         "\n   libhipblas with your distribution of HIP.")
                 endif()
             else()
-                message(FATAL_ERROR "CHAMELEON_USE_HIP requires"
+                message(FATAL_ERROR "CHAMELEON_USE_HIP_CUDA requires"
                     "\n   HIP_LIBRARIES to be found. Be sure you have"
                     "\n   libamdhip64 with your distribution of ROCm.")
             endif()
-            if (CHAMELEON_USE_HIP_CUDA AND NOT CUDA_LIBRARIES)
+            if (NOT CUDA_LIBRARIES)
                 message(FATAL_ERROR "CHAMELEON_USE_HIP_CUDA requires"
                 "\n   CUDA_LIBRARIES to be found. Be sure you have"
                 "\n   libcuda with your distribution of CUDA.")
@@ -531,17 +530,13 @@ if(NOT CHAMELEON_SIMULATION)
             message("-- HIPBLAS include path:  ${HIPBLAS_INCLUDE_DIRS}")
             message("-- HIPBLAS libraries:     ${HIPBLAS_LIBRARIES}")
 
-            morse_export_imported_target(HIP::HIP hip chameleon)
-            morse_export_imported_target(HIP::HIPBLAS hipblas chameleon)
-            if (CHAMELEON_USE_HIP_ROC)
-                morse_export_imported_target(roc::hipblas rochipblas chameleon)
-                morse_export_imported_target(hip::host hiphost chameleon)
-                morse_export_imported_target(hip::device hipdevice chameleon)
-                morse_export_imported_target(hip::amdhip64 hipamdhip64 chameleon)
-            endif()
-        else(HIP_FOUND)
-            message(FATAL_ERROR "CHAMELEON_USE_HIP requires HIP to be found")
-        endif (HIP_FOUND)
+            morse_export_imported_target(hip::hip hip chameleon)
+            morse_export_imported_target(roc::hipblas hipblas chameleon)
+
+        endif()
+
+        message("-- ${Blue}Add definition CHAMELEON_USE_HIP"
+        " - Activate HIP in Chameleon${ColourReset}")
 
     endif(CHAMELEON_USE_HIP)
 
@@ -801,10 +796,19 @@ set(BIN_INSTALL_DIR "bin/" CACHE STRING "where to install executables relative t
 set(INC_INSTALL_DIR "include/" CACHE STRING "where to install headers relative to prefix" )
 set(LIB_INSTALL_DIR "lib/" CACHE STRING "where to install libraries relative to prefix" )
 
+if (CMAKE_PREFIX_PATH)
+  list(APPEND PREFIX_PATH ${CMAKE_PREFIX_PATH})
+endif()
+if (DEFINED ENV{CMAKE_PREFIX_PATH})
+  set(ENV_PREFIX_PATH $ENV{CMAKE_PREFIX_PATH})
+  string(REGEX REPLACE ":" ";" ENV_PREFIX_PATH "${ENV_PREFIX_PATH}" )
+  list(APPEND PREFIX_PATH ${ENV_PREFIX_PATH})
+endif()
+
 configure_package_config_file(cmake_modules/CHAMELEONConfig.cmake.in
                               ${CMAKE_CURRENT_BINARY_DIR}/CHAMELEONConfig.cmake
                               INSTALL_DESTINATION ${LIB_INSTALL_DIR}/cmake/chameleon
-                              PATH_VARS BIN_INSTALL_DIR INC_INSTALL_DIR LIB_INSTALL_DIR)
+                              PATH_VARS BIN_INSTALL_DIR INC_INSTALL_DIR LIB_INSTALL_DIR PREFIX_PATH)
 write_basic_package_version_file(CHAMELEONConfigVersion.cmake
                                  VERSION ${CHAMELEON_VERSION}
                                  COMPATIBILITY AnyNewerVersion)
