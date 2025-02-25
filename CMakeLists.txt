@@ -796,6 +796,7 @@ set(BIN_INSTALL_DIR "bin/" CACHE STRING "where to install executables relative t
 set(INC_INSTALL_DIR "include/" CACHE STRING "where to install headers relative to prefix" )
 set(LIB_INSTALL_DIR "lib/" CACHE STRING "where to install libraries relative to prefix" )
 
+set(PREFIX_PATH "")
 if (CMAKE_PREFIX_PATH)
   list(APPEND PREFIX_PATH ${CMAKE_PREFIX_PATH})
 endif()
