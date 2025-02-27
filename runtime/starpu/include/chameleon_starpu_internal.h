@@ -294,10 +294,11 @@ starpu_cham_exchange_init_params( const RUNTIME_option_t                 *option
                                   struct starpu_mpi_task_exchange_params *params,
                                   int                                     xrank )
 {
-    params->me         = options->sequence->myrank;
-    params->xrank      = xrank;
-    params->priority   = options->priority;
-    params->do_execute = ( xrank == STARPU_MPI_PER_NODE ) || ( xrank == params->me );
+    params->me              = options->sequence->myrank;
+    params->xrank           = xrank;
+    params->priority        = options->priority;
+    params->do_execute      = ( xrank == STARPU_MPI_PER_NODE ) || ( xrank == params->me );
+    params->exchange_needed = 0;
 }
 
 /**
