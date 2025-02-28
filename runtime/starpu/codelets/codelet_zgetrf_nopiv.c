@@ -26,28 +26,31 @@
 #include "chameleon_starpu_internal.h"
 #include "runtime_codelet_z.h"
 
+struct cl_zgetrf_nopiv_args_s {
+    int                 m;
+    int                 n;
+    int                 ib;
+    int                 iinfo;
+    RUNTIME_sequence_t *sequence;
+    RUNTIME_request_t  *request;
+};
+
 /*
  * Codelet CPU
  */
 #if !defined(CHAMELEON_SIMULATION)
 static void cl_zgetrf_nopiv_cpu_func(void *descr[], void *cl_arg)
 {
-    int m;
-    int n;
-    int ib;
+    struct cl_zgetrf_nopiv_args_s *clargs = (struct cl_zgetrf_nopiv_args_s *)cl_arg;
     CHAM_tile_t *tileA;
-    int iinfo;
-    RUNTIME_sequence_t *sequence;
-    RUNTIME_request_t *request;
     int info = 0;
 
     tileA = cti_interface_get(descr[0]);
 
-    starpu_codelet_unpack_args(cl_arg, &m, &n, &ib, &iinfo, &sequence, &request);
-    TCORE_zgetrf_nopiv(m, n, ib, tileA, &info);
+    TCORE_zgetrf_nopiv( clargs->m, clargs->n, clargs->ib, tileA, &info );
 
-    if ( (sequence->status == CHAMELEON_SUCCESS) && (info != 0) ) {
-        RUNTIME_sequence_flush( NULL, sequence, request, iinfo+info );
+    if ( (clargs->sequence->status == CHAMELEON_SUCCESS) && (info != 0) ) {
+        RUNTIME_sequence_flush( NULL, clargs->sequence, clargs->request, clargs->iinfo+info );
     }
 }
 #endif /* !defined(CHAMELEON_SIMULATION) */
@@ -57,30 +60,121 @@ static void cl_zgetrf_nopiv_cpu_func(void *descr[], void *cl_arg)
  */
 CODELETS_CPU(zgetrf_nopiv, cl_zgetrf_nopiv_cpu_func)
 
+#if defined(CHAMELEON_STARPU_USE_INSERT)
+
 void INSERT_TASK_zgetrf_nopiv(const RUNTIME_option_t *options,
                               int m, int n, int ib, int nb,
                               const CHAM_desc_t *A, int Am, int An,
                               int iinfo)
 {
-    (void)nb;
-    struct starpu_codelet *codelet = &cl_zgetrf_nopiv;
-    void (*callback)(void*) = options->profiling ? cl_zgetrf_nopiv_callback : NULL;
+    void (*callback)(void*);
+    struct cl_zgetrf_nopiv_args_s *clargs  = NULL;
+    int                            exec    = 0;
+    const char                    *cl_name = "zgetrf_nopiv";
 
+    /* Handle cache */
     CHAMELEON_BEGIN_ACCESS_DECLARATION;
     CHAMELEON_ACCESS_RW(A, Am, An);
+    exec = __chameleon_need_exec;
     CHAMELEON_END_ACCESS_DECLARATION;
 
+    /* Set codelet parameters */
+    if ( exec ) {
+        clargs = malloc( sizeof( struct cl_zgetrf_nopiv_args_s ) );
+        clargs->m        = m;
+        clargs->n        = n;
+        clargs->ib       = ib;
+        clargs->iinfo    = iinfo;
+        clargs->sequence = options->sequence;
+        clargs->request  = options->request;
+    }
+
+    /* Callback for profiling information */
+    callback = options->profiling ? cl_zgetrf_nopiv_callback : NULL;
+
+    /* Refine name */
+    cl_name = chameleon_codelet_name( cl_name, 1,
+                                      A->get_blktile( A, Am, An ) );
+
     rt_starpu_insert_task(
-        codelet,
-        STARPU_VALUE,    &m,                         sizeof(int),
-        STARPU_VALUE,    &n,                         sizeof(int),
-        STARPU_VALUE,    &ib,                        sizeof(int),
-        STARPU_RW,        RTBLKADDR(A, ChamComplexDouble, Am, An),
-        STARPU_VALUE,    &iinfo,                     sizeof(int),
-        STARPU_VALUE,    &(options->sequence),       sizeof(RUNTIME_sequence_t*),
-        STARPU_VALUE,    &(options->request),        sizeof(RUNTIME_request_t*),
-        STARPU_PRIORITY,  options->priority,
-        STARPU_CALLBACK,  callback,
+        &cl_zgetrf_nopiv,
+        /* Task codelet arguments */
+        STARPU_CL_ARGS,           clargs, sizeof(struct cl_zgetrf_nopiv_args_s),
+        STARPU_RW,                RTBLKADDR(A, ChamComplexDouble, Am, An),
+
+        /* Common task arguments */
+        STARPU_PRIORITY,          options->priority,
+        STARPU_CALLBACK,          callback,
         STARPU_EXECUTE_ON_WORKER, options->workerid,
+        STARPU_NAME,              cl_name,
         0 );
+
+    (void)nb;
 }
+
+#else /* defined(CHAMELEON_STARPU_USE_INSERT) */
+
+void INSERT_TASK_zgetrf_nopiv(const RUNTIME_option_t *options,
+                              int m, int n, int ib, int nb,
+                              const CHAM_desc_t *A, int Am, int An,
+                              int iinfo)
+{
+    INSERT_TASK_COMMON_PARAMETERS( zgetrf_nopiv, 1 );
+
+    /*
+     * Register the data handles and initialize exchanges if needed
+     */
+    starpu_cham_exchange_init_params( options, &params, A->get_rankof( A, Am, An ) );
+    starpu_cham_exchange_tile_before_execution( options, &params, &nbdata, descrs, A, Am, An, STARPU_RW );
+
+    /*
+     * Not involved, let's return
+     */
+    if ( nbdata == 0 ) {
+        return;
+    }
+
+    if ( params.do_execute )
+    {
+        int ret;
+        struct starpu_task *task = starpu_task_create();
+        task->cl = cl;
+
+        /* Set codelet parameters */
+        clargs = malloc( sizeof( struct cl_zgetrf_nopiv_args_s ) );
+        clargs->m        = m;
+        clargs->n        = n;
+        clargs->ib       = ib;
+        clargs->iinfo    = iinfo;
+        clargs->sequence = options->sequence;
+        clargs->request  = options->request;
+
+        task->cl_arg      = clargs;
+        task->cl_arg_size = sizeof( struct cl_zgetrf_nopiv_args_s );
+        task->cl_arg_free = 1;
+
+        /* Set common parameters */
+        starpu_cham_task_set_options( options, task, nbdata, descrs, cl_zgetrf_nopiv_callback );
+
+        /* Flops */
+        task->flops = flops_zgetrf( m, n );
+
+        /* Refine name */
+        task->name = chameleon_codelet_name( cl_name, 1,
+                                             A->get_blktile( A, Am, An ) );
+
+        ret = starpu_task_submit( task );
+        if ( ret == -ENODEV ) {
+            task->destroy = 0;
+            starpu_task_destroy( task );
+            chameleon_error( "INSERT_TASK_zgetrf_nopiv", "Failed to submit the task to StarPU" );
+            return;
+        }
+    }
+
+    starpu_cham_task_exchange_data_after_execution( options, params, nbdata, descrs );
+
+    (void)nb;
+}
+
+#endif /* defined(CHAMELEON_STARPU_USE_INSERT) */
