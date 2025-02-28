@@ -342,7 +342,7 @@ void __INSERT_TASK_zsymm( const RUNTIME_option_t *options,
         if ( ret == -ENODEV ) {
             task->destroy = 0;
             starpu_task_destroy( task );
-            chameleon_error( "INSERT_TASK_zpotrf", "Failed to submit the task to StarPU" );
+            chameleon_error( "INSERT_TASK_zsymm", "Failed to submit the task to StarPU" );
             return;
         }
     }

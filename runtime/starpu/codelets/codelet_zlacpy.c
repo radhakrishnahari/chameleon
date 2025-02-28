@@ -106,7 +106,7 @@ insert_task_zlacpy_on_local_node( const RUNTIME_option_t *options,
                                   starpu_data_handle_t handleA,
                                   starpu_data_handle_t handleB )
 {
-    void (*callback)(void*) = options->profiling ? cl_zlacpy_callback : NULL;
+    void (*callback)(void*) = NULL; // options->profiling ? cl_zlacpy_callback : NULL;
 #if defined(CHAMELEON_RUNTIME_SYNC)
     starpu_data_cpy_priority( handleB, handleA, 0, callback, NULL, options->priority );
 #else
@@ -120,7 +120,7 @@ insert_task_zlacpy_on_remote_node( const RUNTIME_option_t *options,
                                    starpu_data_handle_t handleA,
                                    starpu_data_handle_t handleB )
 {
-    void (*callback)(void*) = options->profiling ? cl_zlacpy_callback : NULL;
+    void (*callback)(void*) = NULL; // options->profiling ? cl_zlacpy_callback : NULL;
 #if defined(CHAMELEON_RUNTIME_SYNC)
     starpu_mpi_data_cpy_priority( handleB, handleA, options->sequence->comm, 0, callback, NULL, options->priority );
 #else
