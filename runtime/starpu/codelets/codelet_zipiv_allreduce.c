@@ -20,7 +20,7 @@
 #include "runtime_codelet_z.h"
 
 #if defined(CHAMELEON_USE_MPI)
-struct cl_redux_args_t {
+struct cl_redux_args_s {
     int h;
     int n;
 };
@@ -65,13 +65,15 @@ zipiv_allreduce_cpu_func( cppi_interface_t *cppi_me,
 static void
 cl_zipiv_allreduce_cpu_func( void *descr[], void *cl_arg )
 {
-    struct cl_redux_args_t *clargs   = (struct cl_redux_args_t *) cl_arg;
+    struct cl_redux_args_s *clargs   = (struct cl_redux_args_s *) cl_arg;
     cppi_interface_t       *cppi_me  = ((cppi_interface_t *) descr[0]);
     cppi_interface_t       *cppi_src = ((cppi_interface_t *) descr[1]);
     zipiv_allreduce_cpu_func(  cppi_me, cppi_src, clargs->h, clargs->n );
 }
 
 CODELETS_CPU( zipiv_allreduce, cl_zipiv_allreduce_cpu_func )
+
+#if defined(CHAMELEON_STARPU_USE_INSERT) /* defined(CHAMELEON_STARPU_USE_INSERT) */
 
 static void
 INSERT_TASK_zipiv_allreduce_send( const RUNTIME_option_t *options,
@@ -98,14 +100,14 @@ INSERT_TASK_zipiv_allreduce_recv( const RUNTIME_option_t *options,
                                   int                     h,
                                   int                     n )
 {
-    struct cl_redux_args_t *clargs;
-    clargs    = malloc( sizeof( struct cl_redux_args_t ) );
+    struct cl_redux_args_s *clargs;
+    clargs    = malloc( sizeof( struct cl_redux_args_s ) );
     clargs->h = h;
     clargs->n = n;
 
     rt_starpu_insert_task(
         &cl_zipiv_allreduce,
-        STARPU_CL_ARGS,           clargs, sizeof(struct cl_redux_args_t),
+        STARPU_CL_ARGS,           clargs, sizeof(struct cl_redux_args_s),
         STARPU_RW,                RUNTIME_pivot_getaddr( ipiv, me,  k, h ),
         STARPU_R,                 RUNTIME_pivot_getaddr( ipiv, src, k, h ),
         STARPU_EXECUTE_ON_NODE,   me,
@@ -114,6 +116,83 @@ INSERT_TASK_zipiv_allreduce_recv( const RUNTIME_option_t *options,
         0 );
     starpu_mpi_cache_flush( options->sequence->comm, RUNTIME_pivot_getaddr( ipiv, src, k, h ) );
 }
+
+#else /* defined(CHAMELEON_STARPU_USE_INSERT) */
+
+static void
+INSERT_TASK_zipiv_allreduce_send( const RUNTIME_option_t *options,
+                                  CHAM_ipiv_t            *ipiv,
+                                  int                     me,
+                                  int                     dst,
+                                  int                     k,
+                                  int                     h )
+{
+    INSERT_TASK_COMMON_PARAMETERS_CLNULL( zipiv_allreduce_send, 1 )
+
+    starpu_cham_exchange_init_params( options, &params, dst );
+    starpu_cham_exchange_handle_before_execution( options, &params, &nbdata, descrs,
+                                                  RUNTIME_pivot_getaddr( ipiv, me, k, h ),
+                                                  STARPU_R );
+    starpu_cham_task_exchange_data_after_execution( options, params, nbdata, descrs );
+    (void)cl;
+    (void)cl_name;
+}
+
+static void
+INSERT_TASK_zipiv_allreduce_recv( const RUNTIME_option_t *options,
+                                  CHAM_ipiv_t            *ipiv,
+                                  int                     me,
+                                  int                     src,
+                                  int                     k,
+                                  int                     h,
+                                  int                     n )
+{
+    int ret;
+    struct starpu_task *task;
+    INSERT_TASK_COMMON_PARAMETERS_EXTENDED( zipiv_allreduce_recv, zipiv_allreduce, redux, 2 )
+
+    starpu_cham_exchange_init_params( options, &params, me );
+    starpu_cham_exchange_handle_before_execution( options, &params, &nbdata, descrs,
+                                                  RUNTIME_pivot_getaddr( ipiv, me,  k, h ),
+                                                  STARPU_RW );
+    starpu_cham_exchange_handle_before_execution( options, &params, &nbdata, descrs,
+                                                  RUNTIME_pivot_getaddr( ipiv, src, k, h ),
+                                                  STARPU_R );
+
+    task = starpu_task_create();
+    task->cl = cl;
+
+    /* Set codelet parameters */
+    clargs    = malloc( sizeof( struct cl_redux_args_s ) );
+    clargs->h = h;
+    clargs->n = n;
+
+    task->cl_arg      = clargs;
+    task->cl_arg_size = sizeof( struct cl_redux_args_s );
+    task->cl_arg_free = 1;
+
+    /* Set common parameters */
+    starpu_cham_task_set_options( options, task, nbdata, descrs, NULL );
+
+    /* Flops */
+    task->flops = 0.;
+
+    /* Refine name */
+    task->name = cl_name;
+
+    ret = starpu_task_submit( task );
+    if ( ret == -ENODEV ) {
+        task->destroy = 0;
+        starpu_task_destroy( task );
+        chameleon_error( "INSERT_TASK_zipiv_allreduce", "Failed to submit the task to StarPU" );
+        return;
+    }
+
+    starpu_cham_task_exchange_data_after_execution( options, params, nbdata, descrs );
+    starpu_mpi_cache_flush( options->sequence->comm, RUNTIME_pivot_getaddr( ipiv, src, k, h ) );
+}
+
+#endif /* defined(CHAMELEON_STARPU_USE_INSERT) */
 
 static void
 zipiv_allreduce_chameleon_starpu_task( const RUNTIME_option_t *options,
