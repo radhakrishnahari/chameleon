@@ -226,11 +226,65 @@ chameleon_starpu_data_iscached(const CHAM_desc_t *A, int m, int n)
     const char                  *cl_name = #_name_;             \
     int                          nbdata  = 0;
 
+#define INSERT_TASK_COMMON_PARAMETERS_EXTENDED( _name_task_, _name_cl_, _name_arg_, _nbuffer_ ) \
+    struct starpu_data_descr descrs[_nbuffer_];                                                 \
+    struct starpu_mpi_task_exchange_params params;                                              \
+    struct cl_##_name_arg_##_args_s *clargs  = NULL;                                            \
+    struct starpu_codelet           *cl      = &cl_##_name_cl_;                                 \
+    const char                      *cl_name = #_name_task_;                                    \
+    int                              nbdata  = 0;
+
+#define INSERT_TASK_COMMON_PARAMETERS_CLNULL( _name_, _nbuffer_ ) \
+    struct starpu_data_descr descrs[_nbuffer_];                   \
+    struct starpu_mpi_task_exchange_params params;                \
+    struct starpu_codelet           *cl      = NULL;              \
+    const char                      *cl_name = #_name_;           \
+    int                              nbdata  = 0;
+
 /**
  * This section defines the codelet functions to manage MPI cache and data
  * echanges before and after submitting tasks
  */
 #if !defined(CHAMELEON_STARPU_USE_INSERT)
+
+/**
+ * @brief Internal function to initialize the StarPU paramas structure.
+ *
+ * @param[in,out] nbdata
+ *          On entry the number of data already registered in descrs. On exist,
+ *          the counter is updated if the next handle is registered in the
+ *          structure.
+ *
+ * @param[in,out] descrs
+ *          The array of starpu data descriptors (handle + mode). On entry, it
+ *          is allcoated to the maximum number of data for the task, and
+ *          contains the already registered nbdata handles and their associated
+ *          modes. On exit, it is updated with the new handle if needed.
+ *
+ * @param[in] handle
+ *          The data handle
+ *
+ * @param[in] mode
+ *          The access mode
+ *
+ */
+static inline void
+starpu_cham_register_descr( int                          *nbdata,
+                            struct starpu_data_descr     *descrs,
+                            starpu_data_handle_t          handle,
+                            enum starpu_data_access_mode  mode )
+{
+    if ( mode & STARPU_NONE ) {
+        return;
+    }
+
+    descrs[*nbdata].handle = handle;
+    descrs[*nbdata].mode   = mode;
+
+    (*nbdata)++;
+    return;
+}
+
 #if !defined(CHAMELEON_USE_MPI)
 
 /**
@@ -251,6 +305,21 @@ starpu_cham_exchange_init_params( const RUNTIME_option_t                 *option
 }
 
 static inline void
+starpu_cham_exchange_handle_before_execution( const RUNTIME_option_t                 *options,
+                                              struct starpu_mpi_task_exchange_params *params,
+                                              int                                    *nbdata,
+                                              struct starpu_data_descr               *descrs,
+                                              starpu_data_handle_t                    handle,
+                                              enum starpu_data_access_mode            mode )
+{
+    starpu_cham_register_descr( nbdata, descrs, handle, mode );
+
+    (void)options;
+    (void)params;
+    return;
+}
+
+static inline void
 starpu_cham_exchange_data_before_execution( const RUNTIME_option_t                 *options,
                                             struct starpu_mpi_task_exchange_params *params,
                                             int                                    *nbdata,
@@ -260,9 +329,7 @@ starpu_cham_exchange_data_before_execution( const RUNTIME_option_t              
                                             int                                     An,
                                             enum starpu_data_access_mode            mode )
 {
-    descrs[*nbdata].handle = RTBLKADDR( A, ChamComplexDouble, Am, An );
-    descrs[*nbdata].mode   = mode;
-    (*nbdata)++;
+    starpu_cham_register_descr( nbdata, descrs, RTBLKADDR( A, ChamComplexDouble, Am, An ), mode );
 
     (void)options;
     (void)params;
@@ -299,6 +366,56 @@ starpu_cham_exchange_init_params( const RUNTIME_option_t                 *option
     params->priority        = options->priority;
     params->do_execute      = ( xrank == STARPU_MPI_PER_NODE ) || ( xrank == params->me );
     params->exchange_needed = 0;
+}
+
+/**
+ * @brief Internal wrapper to starpu_mpi_task_exchange_data_before_execution(),
+ * that also perform the cache operation done in the CAHMELEON_ACCESS_X() macros
+ * in other runtimes.
+ *
+ * @param[in] options
+ *          The options to parameterize the task
+ *
+ * @param[in] params
+ *          The starpu parameters for the exchange functions. Needs to be
+ *          initialized by starpu_cham_init_exchange_param() function.
+ *
+ * @param[in,out] nbdata
+ *          On entry the number of data already registered in descrs. On exist,
+ *          the counter is updated if the next handle is registered in the
+ *          structure.
+ *
+ * @param[in,out] descrs
+ *          The array of starpu data descriptors (handle + mode). On entry, it
+ *          is allcoated to the maximum number of data for the task, and
+ *          contains the already registered nbdata handles and their associated
+ *          modes. On exit, it is updated with the new handle if needed.
+ *
+ * @param[in] handle
+ *          The data handle
+ *
+ * @param[in] mode
+ *          The access mode
+ *
+ */
+static inline void
+starpu_cham_exchange_handle_before_execution( const RUNTIME_option_t                 *options,
+                                              struct starpu_mpi_task_exchange_params *params,
+                                              int                                    *nbdata,
+                                              struct starpu_data_descr               *descrs,
+                                              starpu_data_handle_t                    handle,
+                                              enum starpu_data_access_mode            mode )
+{
+    if ( mode & STARPU_NONE ) {
+        return;
+    }
+
+    starpu_cham_register_descr( nbdata, descrs, handle, mode );
+
+    starpu_mpi_exchange_data_before_execution( options->sequence->comm,
+                                               handle, mode, params );
+
+    return;
 }
 
 /**
@@ -377,13 +494,8 @@ starpu_cham_exchange_data_before_execution( const RUNTIME_option_t              
      * If we need to submit, let's create the data handle and ask StarPU to perform
      * the necessary communications
      */
-    descrs[*nbdata].handle = RTBLKADDR( A, ChamComplexDouble, Am, An );
-    descrs[*nbdata].mode   = mode;
-
-    starpu_mpi_exchange_data_before_execution(
-        options->sequence->comm, descrs[*nbdata].handle, mode, params );
-
-    (*nbdata)++;
+    starpu_cham_exchange_handle_before_execution( options, params, nbdata, descrs,
+                                                  RTBLKADDR( A, ChamComplexDouble, Am, An ), mode );
     return;
 }
 
