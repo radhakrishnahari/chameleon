@@ -477,10 +477,6 @@ starpu_cham_task_set_options( const RUNTIME_option_t   *options,
         enum starpu_data_access_mode mode = descrs[i].mode;
         assert( descrs[i].handle );
 
-        if ( mode & STARPU_MPI_REDUX ) {
-            mode = STARPU_RW | STARPU_COMMUTE;
-        }
-
         STARPU_TASK_SET_HANDLE( task, descrs[i].handle, i );
         STARPU_TASK_SET_MODE( task, mode, i );
     }
