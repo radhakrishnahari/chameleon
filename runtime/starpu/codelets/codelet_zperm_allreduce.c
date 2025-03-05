@@ -21,7 +21,7 @@
 #include <coreblas/cblas_wrapper.h>
 
 #if defined(CHAMELEON_USE_MPI)
-struct cl_redux_args_t {
+struct cl_redux_args_s {
     int tempmm;
     int n;
     int p;
@@ -35,7 +35,7 @@ struct cl_redux_args_t {
 static void
 cl_zperm_allreduce_cpu_func( void *descr[], void *cl_arg )
 {
-    struct cl_redux_args_t      *clargs     = (struct cl_redux_args_t *) cl_arg;
+    struct cl_redux_args_s      *clargs     = (struct cl_redux_args_s *) cl_arg;
     const CHAM_tile_t           *tileUinout = cti_interface_get( descr[0] );
     const CHAM_tile_t           *tileUin    = cti_interface_get( descr[1] );
     const int                   *perm       = (int *)STARPU_VECTOR_GET_PTR( descr[2] );
@@ -71,6 +71,8 @@ cl_zperm_allreduce_cpu_func( void *descr[], void *cl_arg )
 
 CODELETS_CPU( zperm_allreduce, cl_zperm_allreduce_cpu_func )
 
+#if defined(CHAMELEON_STARPU_USE_INSERT)
+
 static void
 INSERT_TASK_zperm_allreduce_send( const RUNTIME_option_t *options,
                                   CHAM_desc_t            *U,
@@ -101,8 +103,8 @@ INSERT_TASK_zperm_allreduce_recv( const RUNTIME_option_t *options,
                                   int                     np,
                                   int                     p_first )
 {
-    struct cl_redux_args_t *clargs;
-    clargs = malloc( sizeof( struct cl_redux_args_t ) );
+    struct cl_redux_args_s *clargs;
+    clargs = malloc( sizeof( struct cl_redux_args_s ) );
     clargs->tempmm  = tempmm;
     clargs->n       = n;
     clargs->p       = p;
@@ -114,7 +116,7 @@ INSERT_TASK_zperm_allreduce_recv( const RUNTIME_option_t *options,
 
     rt_starpu_insert_task(
         &cl_zperm_allreduce,
-        STARPU_CL_ARGS,           clargs, sizeof(struct cl_redux_args_t),
+        STARPU_CL_ARGS,           clargs, sizeof(struct cl_redux_args_s),
         STARPU_RW,                RTBLKADDR(U, CHAMELEON_Complex64_t, me,  n),
         STARPU_R,                 RTBLKADDR(U, CHAMELEON_Complex64_t, src, n),
         STARPU_R,                 RUNTIME_perm_getaddr( ipiv, ipivk ),
@@ -124,6 +126,95 @@ INSERT_TASK_zperm_allreduce_recv( const RUNTIME_option_t *options,
         0 );
     starpu_mpi_cache_flush( options->sequence->comm, RTBLKADDR(U, CHAMELEON_Complex64_t, src, n) );
 }
+
+#else /* defined(CHAMELEON_STARPU_USE_INSERT) */
+
+static void
+INSERT_TASK_zperm_allreduce_send( const RUNTIME_option_t *options,
+                                  CHAM_desc_t            *U,
+                                  int                     me,
+                                  int                     dst,
+                                  int                     n )
+{
+    INSERT_TASK_COMMON_PARAMETERS_CLNULL( zperm_allreduce_send, 1 );
+
+    starpu_cham_exchange_init_params( options, &params, dst );
+    starpu_cham_exchange_handle_before_execution( options, &params, &nbdata, descrs,
+                                                  RTBLKADDR( U, ChamComplexDouble, me, n ),
+                                                  STARPU_R );
+    starpu_cham_task_exchange_data_after_execution( options, params, nbdata, descrs );
+    (void)cl;
+    (void)cl_name;
+}
+
+static void
+INSERT_TASK_zperm_allreduce_recv( const RUNTIME_option_t *options,
+                                  CHAM_desc_t            *U,
+                                  CHAM_ipiv_t            *ipiv,
+                                  int                     ipivk,
+                                  int                     me,
+                                  int                     src,
+                                  int                     n,
+                                  int                     tempmm,
+                                  int                     p,
+                                  int                     q,
+                                  int                     shift,
+                                  int                     np,
+                                  int                     p_first )
+{
+    int ret;
+    struct starpu_task *task;
+
+    INSERT_TASK_COMMON_PARAMETERS_EXTENDED( zperm_allreduce_send, zperm_allreduce, redux, 3 );
+
+    starpu_cham_exchange_init_params( options, &params, me );
+    starpu_cham_exchange_handle_before_execution( options, &params, &nbdata, descrs,
+                                                  RTBLKADDR( U, ChamComplexDouble, me, n ),
+                                                  STARPU_RW );
+    starpu_cham_exchange_handle_before_execution( options, &params, &nbdata, descrs,
+                                                  RTBLKADDR( U, ChamComplexDouble, src, n ),
+                                                  STARPU_R );
+    starpu_cham_register_descr( &nbdata, descrs, RUNTIME_perm_getaddr( ipiv, ipivk ), STARPU_R );
+
+    task = starpu_task_create();
+    task->cl = cl;
+
+    /* Set codelet parameters */
+    clargs = malloc( sizeof( struct cl_redux_args_s ) );
+    clargs->tempmm  = tempmm;
+    clargs->n       = n;
+    clargs->p       = p;
+    clargs->q       = q;
+    clargs->p_first = p_first;
+    clargs->me      = me;
+    clargs->shift   = shift;
+    clargs->np_inv  = np;
+
+    task->cl_arg      = clargs;
+    task->cl_arg_size = sizeof( struct cl_redux_args_s );
+    task->cl_arg_free = 1;
+
+    /* Set common parameters */
+    starpu_cham_task_set_options( options, task, nbdata, descrs, NULL );
+
+    /* Flops */
+    task->flops = 0.;
+
+    /* Refine name */
+    task->name = cl_name;
+
+    ret = starpu_task_submit( task );
+    if ( ret == -ENODEV ) {
+        task->destroy = 0;
+        starpu_task_destroy( task );
+        chameleon_error( "INSERT_TASK_zperm_allreduce", "Failed to submit the task to StarPU" );
+        return;
+    }
+    starpu_cham_task_exchange_data_after_execution( options, params, nbdata, descrs );
+    starpu_mpi_cache_flush( options->sequence->comm, RTBLKADDR(U, CHAMELEON_Complex64_t, src, n) );
+}
+
+#endif /* defined(CHAMELEON_STARPU_USE_INSERT) */
 
 static void
 zperm_allreduce_chameleon_starpu_task( const RUNTIME_option_t     *options,
