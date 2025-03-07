@@ -200,8 +200,8 @@ void INSERT_TASK_zsyrk( const RUNTIME_option_t *options,
      * Set the data handles and initialize exchanges if needed
      */
     starpu_cham_exchange_init_params( options, &params, C->get_rankof( C, Cm, Cn ) );
-    starpu_cham_exchange_data_before_execution( options, params, &nbdata, descrs, A, Am, An, STARPU_R );
-    starpu_cham_exchange_data_before_execution( options, params, &nbdata, descrs, C, Cm, Cn, accessC  );
+    starpu_cham_exchange_data_before_execution( options, &params, &nbdata, descrs, A, Am, An, STARPU_R );
+    starpu_cham_exchange_data_before_execution( options, &params, &nbdata, descrs, C, Cm, Cn, accessC  );
 
     /*
      * Not involved, let's return

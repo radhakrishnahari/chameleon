@@ -251,14 +251,14 @@ starpu_cham_exchange_init_params( const RUNTIME_option_t                 *option
 }
 
 static inline void
-starpu_cham_exchange_data_before_execution( const RUNTIME_option_t                *options,
-                                            struct starpu_mpi_task_exchange_params params,
-                                            int                                   *nbdata,
-                                            struct starpu_data_descr              *descrs,
-                                            const CHAM_desc_t                     *A,
-                                            int                                    Am,
-                                            int                                    An,
-                                            enum starpu_data_access_mode           mode )
+starpu_cham_exchange_data_before_execution( const RUNTIME_option_t                 *options,
+                                            struct starpu_mpi_task_exchange_params *params,
+                                            int                                    *nbdata,
+                                            struct starpu_data_descr               *descrs,
+                                            const CHAM_desc_t                      *A,
+                                            int                                     Am,
+                                            int                                     An,
+                                            enum starpu_data_access_mode            mode )
 {
     descrs[*nbdata].handle = RTBLKADDR( A, ChamComplexDouble, Am, An );
     descrs[*nbdata].mode   = mode;
@@ -338,14 +338,14 @@ starpu_cham_exchange_init_params( const RUNTIME_option_t                 *option
  *
  */
 static inline void
-starpu_cham_exchange_data_before_execution( const RUNTIME_option_t                *options,
-                                            struct starpu_mpi_task_exchange_params params,
-                                            int                                   *nbdata,
-                                            struct starpu_data_descr              *descrs,
-                                            const CHAM_desc_t                     *A,
-                                            int                                    Am,
-                                            int                                    An,
-                                            enum starpu_data_access_mode           mode )
+starpu_cham_exchange_data_before_execution( const RUNTIME_option_t                 *options,
+                                            struct starpu_mpi_task_exchange_params *params,
+                                            int                                    *nbdata,
+                                            struct starpu_data_descr               *descrs,
+                                            const CHAM_desc_t                      *A,
+                                            int                                     Am,
+                                            int                                     An,
+                                            enum starpu_data_access_mode            mode )
 {
     unsigned              need_submit = 0;
     starpu_data_handle_t *ptrtile     = chameleon_starpu_data_gethandle( A, Am, An );
@@ -369,7 +369,7 @@ starpu_cham_exchange_data_before_execution( const RUNTIME_option_t              
         need_submit = 1;
     }
 
-    if ( !need_submit && !params.do_execute ) {
+    if ( !need_submit && !params->do_execute ) {
         return;
     }
 

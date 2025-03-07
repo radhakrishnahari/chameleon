@@ -136,8 +136,8 @@ void INSERT_TASK_ztradd( const RUNTIME_option_t *options,
      * Set the data handles and initialize exchanges if needed
      */
     starpu_cham_exchange_init_params( options, &params, B->get_rankof( B, Bm, Bn ) );
-    starpu_cham_exchange_data_before_execution( options, params, &nbdata, descrs, A, Am, An, STARPU_R );
-    starpu_cham_exchange_data_before_execution( options, params, &nbdata, descrs, B, Bm, Bn, accessB  );
+    starpu_cham_exchange_data_before_execution( options, &params, &nbdata, descrs, A, Am, An, STARPU_R );
+    starpu_cham_exchange_data_before_execution( options, &params, &nbdata, descrs, B, Bm, Bn, accessB  );
 
     /*
      * Not involved, let's return

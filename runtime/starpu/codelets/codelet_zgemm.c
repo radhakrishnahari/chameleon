@@ -319,9 +319,9 @@ void __INSERT_TASK_zgemm( const RUNTIME_option_t *options,
      * Register the data handles and initialize exchanges if needed
      */
     starpu_cham_exchange_init_params( options, &params, xrank );
-    starpu_cham_exchange_data_before_execution( options, params, &nbdata, descrs, A, Am, An, STARPU_R );
-    starpu_cham_exchange_data_before_execution( options, params, &nbdata, descrs, B, Bm, Bn, STARPU_R );
-    starpu_cham_exchange_data_before_execution( options, params, &nbdata, descrs, C, Cm, Cn, accessC  );
+    starpu_cham_exchange_data_before_execution( options, &params, &nbdata, descrs, A, Am, An, STARPU_R );
+    starpu_cham_exchange_data_before_execution( options, &params, &nbdata, descrs, B, Bm, Bn, STARPU_R );
+    starpu_cham_exchange_data_before_execution( options, &params, &nbdata, descrs, C, Cm, Cn, accessC  );
 
     /*
      * Not involved, let's return
