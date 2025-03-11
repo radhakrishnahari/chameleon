@@ -54,7 +54,7 @@
 #if defined(CHAMELEON_USE_CUDA)
 #define CODELET_GPU_FIELDS( gpu_func_name, gpu_flags )                 \
         CODELET_CUDA_FLAGS( gpu_flags )                                \
-        .cuda_func = ((gpu_func_name)),
+        .cuda_funcs = {(gpu_func_name)},
 #elif defined(CHAMELEON_USE_HIP)
 #define CODELET_GPU_FIELDS( gpu_func_name, gpu_flags )                 \
         CODELET_HIP_FLAGS( gpu_flags )                                 \
@@ -71,7 +71,7 @@
                                                                         \
     struct starpu_codelet cl_##cl_name = {                              \
         .where     = (_original_location_),                             \
-        .cpu_func  = ((cpu_func_name)),                                 \
+        .cpu_funcs = {(cpu_func_name)},                                 \
         CODELET_GPU_FIELDS( gpu_func_name, gpu_flags )                  \
         .nbuffers  = STARPU_VARIABLE_NBUFFERS,                          \
         .model     = &cl_##cl_name##_model,                             \
