@@ -347,7 +347,7 @@ starpu_cham_exchange_data_before_execution( const RUNTIME_option_t              
                                             int                                     An,
                                             enum starpu_data_access_mode            mode )
 {
-    unsigned              need_submit = 0;
+    unsigned              need_submit = params.do_execute;
     starpu_data_handle_t *ptrtile     = chameleon_starpu_data_gethandle( A, Am, An );
 
     /*
@@ -369,7 +369,7 @@ starpu_cham_exchange_data_before_execution( const RUNTIME_option_t              
         need_submit = 1;
     }
 
-    if ( !need_submit && !params->do_execute ) {
+    if ( !need_submit ) {
         return;
     }
 
