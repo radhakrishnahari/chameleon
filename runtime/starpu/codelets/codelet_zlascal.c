@@ -50,6 +50,7 @@ cl_zlascal_cpu_func( void *descr[], void *cl_arg )
 CODELETS_CPU( zlascal, cl_zlascal_cpu_func )
 
 #if defined(CHAMELEON_STARPU_USE_INSERT)
+
 void INSERT_TASK_zlascal( const RUNTIME_option_t *options,
                           cham_uplo_t uplo,
                           int m, int n, int nb,
@@ -104,7 +105,7 @@ void INSERT_TASK_zlascal( const RUNTIME_option_t *options,
     (void)nb;
 }
 
-#else
+#else /* defined(CHAMELEON_STARPU_USE_INSERT) */
 
 void INSERT_TASK_zlascal( const RUNTIME_option_t *options,
                           cham_uplo_t uplo,
@@ -127,7 +128,7 @@ void INSERT_TASK_zlascal( const RUNTIME_option_t *options,
      * Set the data handles and initialize exchanges if needed
      */
     starpu_cham_exchange_init_params( options, &params, A->get_rankof( A, Am, An ) );
-    starpu_cham_exchange_data_before_execution( options, &params, &nbdata, descrs, A, Am, An, STARPU_RW );
+    starpu_cham_exchange_tile_before_execution( options, &params, &nbdata, descrs, A, Am, An, STARPU_RW );
 
     /*
      * Not involved, let's return
@@ -177,4 +178,4 @@ void INSERT_TASK_zlascal( const RUNTIME_option_t *options,
     (void)nb;
 }
 
-#endif
+#endif /* defined(CHAMELEON_STARPU_USE_INSERT) */

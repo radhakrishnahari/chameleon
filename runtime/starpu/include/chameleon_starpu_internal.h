@@ -320,7 +320,7 @@ starpu_cham_exchange_handle_before_execution( const RUNTIME_option_t            
 }
 
 static inline void
-starpu_cham_exchange_data_before_execution( const RUNTIME_option_t                 *options,
+starpu_cham_exchange_tile_before_execution( const RUNTIME_option_t                 *options,
                                             struct starpu_mpi_task_exchange_params *params,
                                             int                                    *nbdata,
                                             struct starpu_data_descr               *descrs,
@@ -455,7 +455,7 @@ starpu_cham_exchange_handle_before_execution( const RUNTIME_option_t            
  *
  */
 static inline void
-starpu_cham_exchange_data_before_execution( const RUNTIME_option_t                 *options,
+starpu_cham_exchange_tile_before_execution( const RUNTIME_option_t                 *options,
                                             struct starpu_mpi_task_exchange_params *params,
                                             int                                    *nbdata,
                                             struct starpu_data_descr               *descrs,
