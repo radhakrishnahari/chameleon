@@ -447,6 +447,7 @@ starpu_cham_task_set_options( const RUNTIME_option_t   *options,
                               struct starpu_data_descr *descrs,
                               callback_fct_t            callback )
 {
+    int allocated_buffers = 0;
     int i;
 
     task->priority = options->priority;
@@ -473,6 +474,10 @@ starpu_cham_task_set_options( const RUNTIME_option_t   *options,
     // task->where; /* Do restriction here */
 
     task->nbuffers = nbdata;
+
+    /* Dynamic handles */
+    starpu_task_insert_data_make_room( task->cl, task, &allocated_buffers, 0, task->nbuffers );
+
     for ( i = 0; i < task->nbuffers; i++ ) {
         enum starpu_data_access_mode mode = descrs[i].mode;
         assert( descrs[i].handle );
