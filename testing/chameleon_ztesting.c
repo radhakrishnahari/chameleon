@@ -133,6 +133,10 @@ parameter_t parameters[] = {
     { NULL, "SVD parameters", 0, PARAM_OPTION, 0, 0, 0, {0}, NULL, NULL, NULL },
     { "jobu",  "Value of the jobu parameter ('NoVec', 'Vec', 'Ivec', 'AllVec', 'SVec', 'OVec')",  -50, PARAM_OPTION | PARAM_INPUT | PARAM_OUTPUT, 2, 4, TestJob, {0}, NULL, pread_job, sprint_job },
     { "jobvt", "Value of the jobvt parameter ('NoVec', 'Vec', 'Ivec', 'AllVec', 'SVec', 'OVec')", -51, PARAM_OPTION | PARAM_INPUT | PARAM_OUTPUT, 2, 5, TestJob, {0}, NULL, pread_job, sprint_job },
+
+    { NULL, "LASWP parameters", 0, PARAM_OPTION, 0, 0, 0, {0}, NULL, NULL, NULL },
+    { "k1",    "Index of the first element to permute",             -70, PARAM_OPTION | PARAM_INPUT | PARAM_OUTPUT, 2, 3, TestValInt, {0}, NULL, pread_int, sprint_int },
+    { "k2",    "Index of the last element to permute",              -71, PARAM_OPTION | PARAM_INPUT | PARAM_OUTPUT, 2, 3, TestValInt, {0}, NULL, pread_int, sprint_int },
 #endif
 
     { "tsub",          "Graph submission time in s",             999, PARAM_OUTPUT, 2, 13, TestValFixdbl, {0}, NULL, pread_fixdbl, sprint_fixdbl },

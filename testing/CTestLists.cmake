@@ -110,8 +110,10 @@ if (NOT CHAMELEON_SIMULATION)
                 add_test( test_${cat}_${prec}getrf_ppivblocked_batch ${PREFIX} ${CMD} -c -t ${THREADS} -g ${gpus} -P 1 -f input/getrf.in )
                 set_tests_properties( test_${cat}_${prec}getrf_ppivblocked_batch
                                       PROPERTIES ENVIRONMENT "CHAMELEON_GETRF_ALGO=ppiv;CHAMELEON_GETRF_BATCH_SIZE=3" )
+                add_test( test_${cat}_${prec}laswp ${PREFIX} ${CMD} -c -t ${THREADS} -g ${gpus} -P 1 -f input/laswp.in )
 
                 if ( ${cat} STREQUAL "mpi" )
+                    add_test( test_${cat}_${prec}laswp_ppiv_comm_with_task ${PREFIX} ${CMD} -c -t ${THREADS} -g ${gpus} -P ${NP} -f input/laswp.in )
                     add_test( test_${cat}_${prec}getrf_ppiv_comm_with_task ${PREFIX} ${CMD} -c -t ${THREADS} -g ${gpus} -P ${NP} -f input/getrf.in )
                     set_tests_properties( test_${cat}_${prec}getrf_ppiv_comm_with_task
                                           PROPERTIES ENVIRONMENT "CHAMELEON_GETRF_ALGO=ppiv;CHAMELEON_GETRF_BATCH_SIZE=0;CHAMELEON_GETRF_ALL_REDUCE=cham_spu_tasks" )

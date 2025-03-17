@@ -237,7 +237,7 @@ set(ZSRC
     #zhegv.c
     #zhegvd.c
     zhetrd.c
-    #zlaswp.c
+    zlaswp.c
     #zlaswpc.c
     #ztrsmrv.c
     ##################
