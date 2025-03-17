@@ -28,7 +28,7 @@
 #  @author Loris Lucido
 #  @author Matthieu Kuhn
 #  @author Ana Hourcau
-#  @date 2024-09-18
+#  @date 2025-03-24
 #
 ###
 
@@ -219,7 +219,7 @@ set(ZSRC
     #pzhetrd_hb2ht.c
     pzhetrd_he2hb.c
     #pzlarft_blgtrd.c
-    #pzlaswp.c
+    pzlaswp.c
     #pzlaswpc.c
     #pztrsmrv.c
     #pzunmqr_blgtrd.c
