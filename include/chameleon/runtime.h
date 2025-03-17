@@ -700,8 +700,8 @@ void   RUNTIME_schedprofile_display ();
 void   RUNTIME_kernelprofile_display();
 double RUNTIME_get_time();
 
-void  RUNTIME_iteration_push     (CHAM_context_t*, unsigned long iteration);
-void  RUNTIME_iteration_pop      (CHAM_context_t*);
+void  RUNTIME_iteration_push     (CHAM_context_t *ctxt, unsigned long iteration);
+void  RUNTIME_iteration_pop      (CHAM_context_t *ctxt);
 
 void RUNTIME_start_profiling();
 void RUNTIME_stop_profiling();
