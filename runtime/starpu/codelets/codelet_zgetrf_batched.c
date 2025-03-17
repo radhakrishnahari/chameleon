@@ -36,6 +36,29 @@ struct cl_zgetrf_batched_args_s {
     struct starpu_data_descr handle_mode[CHAMELEON_BATCH_SIZE];
 };
 
+static inline double flops_zgetrf_percol_batched( int *m, int *n, int h, int t )
+{
+    double flops = 0.;
+    int k;
+    for ( k = 0; k < t; k ++ ) {
+        flops += flops_zgetrf_percol_offdiag( m[k], n[k], h );
+    }
+    return flops;
+}
+
+static inline double flops_zgetrf_blocked_batched( int *m, int *n, int h, int ib, int d, int t )
+{
+    double flops = 0.;
+    int k;
+    if ( d == 1 ) {
+        flops += flops_zgetrf_blocked_diag( m[0]-h, n[0], h, ib );
+    }
+    for ( k = d; k < t; k ++ ) {
+        flops += flops_zgetrf_blocked_offdiag( m[k]-h, n[k], h, ib );
+    }
+    return flops;
+}
+
 #if !defined(CHAMELEON_SIMULATION)
 static void
 cl_zgetrf_panel_offdiag_batched_cpu_func( void *descr[],
@@ -201,7 +224,7 @@ INSERT_TASK_zgetrf_panel_offdiag_batched_flush( const RUNTIME_option_t *options,
     starpu_cham_task_set_options( options, task, nbdata, descrs, NULL );
 
     /* Flops */
-    // task->flops = TODO;
+    task->flops = flops_zgetrf_percol_batched( myclargs->m, myclargs->n, myclargs->h, myclargs->tasks_nbr );
 
     ret = starpu_task_submit( task );
     if ( ret == -ENODEV ) {
@@ -482,7 +505,8 @@ INSERT_TASK_zgetrf_panel_blocked_batched_flush( const RUNTIME_option_t *options,
     starpu_cham_task_set_options( options, task, nbdata, descrs, NULL );
 
     /* Flops */
-    // task->flops = TODO;
+    task->flops = flops_zgetrf_blocked_batched( myclargs->m, myclargs->n, myclargs->h, myclargs->ib,
+                                                myclargs->diag, myclargs->tasks_nbr );
 
     ret = starpu_task_submit( task );
     if ( ret == -ENODEV ) {

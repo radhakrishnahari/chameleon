@@ -71,9 +71,11 @@
 #define FMULS_TRMM_2(__m, __n) (0.5 * (double)(__n) * (double)(__m) * ((double)(__m)+1.))
 #define FADDS_TRMM_2(__m, __n) (0.5 * (double)(__n) * (double)(__m) * ((double)(__m)-1.))
 
-
 #define FMULS_TRMM(__side, __m, __n) ( ( (__side) == ChamLeft ) ? FMULS_TRMM_2((__m), (__n)) : FMULS_TRMM_2((__n), (__m)) )
 #define FADDS_TRMM(__side, __m, __n) ( ( (__side) == ChamLeft ) ? FADDS_TRMM_2((__m), (__n)) : FADDS_TRMM_2((__n), (__m)) )
+
+#define FMULS_TRSM_UNIT_2(__m, __n) (0.5 * (double)(__n) * (double)(__m) * ((double)(__m)-1.))
+#define FMULS_TRSM_UNIT(__side, __m, __n) ( ( (__side) == ChamLeft ) ? FMULS_TRSM_UNIT_2((__m), (__n)) : FMULS_TRSM_UNIT_2((__n), (__m)) )
 
 #define FMULS_TRSM FMULS_TRMM
 #define FADDS_TRSM FADDS_TRMM
@@ -236,6 +238,11 @@ static inline double flops_ctrsm( cham_side_t __side, double __m, double __n) { 
 static inline double flops_dtrsm( cham_side_t __side, double __m, double __n) { double flops =  (     FMULS_TRSM(__side, (__m), (__n)) +       FADDS_TRSM(__side, (__m), (__n)) ); return flops; }
 static inline double flops_strsm( cham_side_t __side, double __m, double __n) { double flops =  (     FMULS_TRSM(__side, (__m), (__n)) +       FADDS_TRSM(__side, (__m), (__n)) ); return flops; }
 
+static inline double flops_ztrsm_unit( cham_side_t __side, double __m, double __n) { double flops =  (6. * FMULS_TRSM_UNIT(__side, (__m), (__n)) + 2.0 * FADDS_TRSM(__side, (__m), (__n)) ); return flops; }
+static inline double flops_ctrsm_unit( cham_side_t __side, double __m, double __n) { double flops =  (6. * FMULS_TRSM_UNIT(__side, (__m), (__n)) + 2.0 * FADDS_TRSM(__side, (__m), (__n)) ); return flops; }
+static inline double flops_dtrsm_unit( cham_side_t __side, double __m, double __n) { double flops =  (     FMULS_TRSM_UNIT(__side, (__m), (__n)) +       FADDS_TRSM(__side, (__m), (__n)) ); return flops; }
+static inline double flops_strsm_unit( cham_side_t __side, double __m, double __n) { double flops =  (     FMULS_TRSM_UNIT(__side, (__m), (__n)) +       FADDS_TRSM(__side, (__m), (__n)) ); return flops; }
+
 /*
  * Lapack
  */
@@ -347,10 +354,68 @@ static inline double flops_cgebrd( double __m, double __n) { double flops =  (6.
 static inline double flops_dgebrd( double __m, double __n) { double flops =  (     FMULS_GEBRD((__m), (__n)) +       FADDS_GEBRD((__m), (__n)) ); return flops; }
 static inline double flops_sgebrd( double __m, double __n) { double flops =  (     FMULS_GEBRD((__m), (__n)) +       FADDS_GEBRD((__m), (__n)) ); return flops; }
 
+static inline double flops_zscal( double __m ) { double flops =  (6. * (double)(__m)); return flops; }
+static inline double flops_cscal( double __m ) { double flops =  (6. * (double)(__m)); return flops; }
+static inline double flops_dscal( double __m ) { double flops =  (     (double)(__m)); return flops; }
+static inline double flops_sscal( double __m ) { double flops =  (     (double)(__m)); return flops; }
+
 /*
  * Norms
  */
 #define FMULS_LANGE(__m, __n) ((double)(__m) * (double)(__n))
 #define FADDS_LANGE(__m, __n) ((double)(__m) * (double)(__n))
+
+/*
+ * Getrf with partial pivoting
+ */
+#define FLOPS_GETRF_BLOCKED_OFFDIAG( _prec_ )                           \
+    static inline double flops_##_prec_##getrf_blocked_offdiag( int m, int n, int h, int ib ) \
+    {                                                                   \
+        double flops = 0.;                                              \
+        int kk, nn;                                                     \
+        if ( h == 0 ) {                                                 \
+            return 0.;                                                  \
+        }                                                               \
+        /* scal */                                                      \
+        flops += flops_##_prec_##scal( m );                             \
+        /* blas 3 gemm */                                               \
+        if ( h % ib == 0 ) {                                            \
+            kk = ib;                                                    \
+            nn = n - h;                                                 \
+        }                                                               \
+        /* blas 2 geru */                                               \
+        else {                                                          \
+            kk = 1;                                                     \
+            nn = ib - h % ib;                                           \
+        }                                                               \
+        flops += flops_##_prec_##gemm( m, nn, kk );                     \
+        return flops;                                                   \
+    }
+
+FLOPS_GETRF_BLOCKED_OFFDIAG( z )
+FLOPS_GETRF_BLOCKED_OFFDIAG( c )
+FLOPS_GETRF_BLOCKED_OFFDIAG( d )
+FLOPS_GETRF_BLOCKED_OFFDIAG( s )
+
+/* +1 for the 1/pivot */
+static inline double flops_zgetrf_blocked_diag( int m, int n, int h, int ib ){ return flops_zgetrf_blocked_offdiag( m-h, n, h, ib ) + 1. * 6.; }
+static inline double flops_cgetrf_blocked_diag( int m, int n, int h, int ib ){ return flops_cgetrf_blocked_offdiag( m-h, n, h, ib ) + 1. * 6.; }
+static inline double flops_dgetrf_blocked_diag( int m, int n, int h, int ib ){ return flops_dgetrf_blocked_offdiag( m-h, n, h, ib ) + 1.; }
+static inline double flops_sgetrf_blocked_diag( int m, int n, int h, int ib ){ return flops_sgetrf_blocked_offdiag( m-h, n, h, ib ) + 1.; }
+
+static inline double flops_zgetrf_percol_diag( int m, int n, int h ){ return flops_zgetrf_blocked_offdiag( m-h, n, h, n ) + 1. * 6.; }
+static inline double flops_cgetrf_percol_diag( int m, int n, int h ){ return flops_cgetrf_blocked_offdiag( m-h, n, h, n ) + 1. * 6.; }
+static inline double flops_dgetrf_percol_diag( int m, int n, int h ){ return flops_dgetrf_blocked_offdiag( m-h, n, h, n ) + 1.; }
+static inline double flops_sgetrf_percol_diag( int m, int n, int h ){ return flops_sgetrf_blocked_offdiag( m-h, n, h, n ) + 1.; }
+
+static inline double flops_zgetrf_percol_offdiag( int m, int n, int h ){ return flops_zgetrf_blocked_offdiag( m, n, h, n ); }
+static inline double flops_cgetrf_percol_offdiag( int m, int n, int h ){ return flops_cgetrf_blocked_offdiag( m, n, h, n ); }
+static inline double flops_dgetrf_percol_offdiag( int m, int n, int h ){ return flops_dgetrf_blocked_offdiag( m, n, h, n ); }
+static inline double flops_sgetrf_percol_offdiag( int m, int n, int h ){ return flops_sgetrf_blocked_offdiag( m, n, h, n ); }
+
+static inline double flops_zgetrf_trsm( int m, int n, int h, int ib ){ return ( n - h ) > 0 ? flops_ztrsm_unit( ChamLeft, ib, n-h ) : 0.; }
+static inline double flops_cgetrf_trsm( int m, int n, int h, int ib ){ return ( n - h ) > 0 ? flops_ctrsm_unit( ChamLeft, ib, n-h ) : 0.; }
+static inline double flops_dgetrf_trsm( int m, int n, int h, int ib ){ return ( n - h ) > 0 ? flops_dtrsm_unit( ChamLeft, ib, n-h ) : 0.; }
+static inline double flops_sgetrf_trsm( int m, int n, int h, int ib ){ return ( n - h ) > 0 ? flops_strsm_unit( ChamLeft, ib, n-h ) : 0.; }
 
 #endif /* _flops_h_ */

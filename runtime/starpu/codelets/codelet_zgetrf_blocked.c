@@ -245,7 +245,7 @@ void INSERT_TASK_zgetrf_blocked_diag( const RUNTIME_option_t *options,
     starpu_cham_task_set_options( options, task, nbdata, descrs, cl_zgetrf_blocked_diag_callback );
 
     /* Flops */
-    // task->flops = TODO;
+    task->flops = flops_zgetrf_blocked_diag( m, n, h, ib );
 
     /* Refine name */
     task->name = chameleon_codelet_name( cl_name, 1, A->get_blktile( A, Am, An ) );
@@ -450,7 +450,7 @@ void INSERT_TASK_zgetrf_blocked_offdiag( const RUNTIME_option_t *options,
     starpu_cham_task_set_options( options, task, nbdata, descrs, cl_zgetrf_blocked_offdiag_callback );
 
     /* Flops */
-    // task->flops = TODO;
+    task->flops = flops_zgetrf_blocked_offdiag( m, n, h, ib );
 
     /* Refine name */
     task->name = chameleon_codelet_name( cl_name, 1, A->get_blktile( A, Am, An ) );
@@ -596,7 +596,7 @@ void INSERT_TASK_zgetrf_blocked_trsm( const RUNTIME_option_t *options,
     starpu_cham_task_set_options( options, task, nbdata, descrs, cl_zgetrf_blocked_trsm_callback );
 
     /* Flops */
-    // task->flops = TODO;
+    task->flops = flops_zgetrf_trsm( m, n, h, ib );
 
     /* Refine name */
     task->name = chameleon_codelet_name( cl_name, 1, U->get_blktile( U, Um, Un ) );

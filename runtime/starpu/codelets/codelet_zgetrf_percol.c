@@ -193,7 +193,7 @@ void INSERT_TASK_zgetrf_percol_diag( const RUNTIME_option_t *options,
     starpu_cham_task_set_options( options, task, nbdata, descrs, cl_zgetrf_percol_diag_callback );
 
     /* Flops */
-    // task->flops = TODO;
+    task->flops = flops_zgetrf_percol_diag( m, n, h );
 
     /* Refine name */
     task->name = chameleon_codelet_name( cl_name, 1, A->get_blktile( A, Am, An ) );
@@ -343,7 +343,7 @@ void INSERT_TASK_zgetrf_percol_offdiag( const RUNTIME_option_t *options,
     starpu_cham_task_set_options( options, task, nbdata, descrs, cl_zgetrf_percol_offdiag_callback );
 
     /* Flops */
-    // task->flops = TODO;
+    task->flops = flops_zgetrf_percol_offdiag( m, n, h );
 
     /* Refine name */
     task->name = chameleon_codelet_name( cl_name, 1, A->get_blktile( A, Am, An ) );
