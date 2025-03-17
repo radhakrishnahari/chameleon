@@ -12,7 +12,7 @@
  * @version 1.3.0
  * @author Alycia Lisito
  * @author Pierre Esterie
- * @date 2024-11-14
+ * @date 2025-03-24
  * @precisions normal z -> c d s
  *
  */
@@ -21,6 +21,7 @@
 #include <coreblas/cblas_wrapper.h>
 
 #if defined(CHAMELEON_USE_MPI)
+
 struct cl_redux_args_s {
     int tempmm;
     int mb;
@@ -91,6 +92,7 @@ INSERT_TASK_zperm_allreduce_send( const RUNTIME_option_t *options,
 
 static void
 INSERT_TASK_zperm_allreduce_recv( const RUNTIME_option_t *options,
+                                  cham_dir_t              dir,
                                   CHAM_desc_t            *U,
                                   CHAM_ipiv_t            *ipiv,
                                   int                     ipivk,
@@ -105,6 +107,15 @@ INSERT_TASK_zperm_allreduce_recv( const RUNTIME_option_t *options,
                                   int                     p_first )
 {
     struct cl_redux_args_s *clargs;
+    void                   *ipiv_handle;
+
+    if ( dir == ChamDirForward ) {
+        ipiv_handle = RUNTIME_perm_getaddr( ipiv, ipivk );
+    }
+    else {
+        ipiv_handle = RUNTIME_invp_getaddr( ipiv, ipivk );
+    }
+
     clargs = malloc( sizeof( struct cl_redux_args_s ) );
     clargs->tempmm  = tempmm;
     clargs->mb      = U->mb;
@@ -121,7 +132,7 @@ INSERT_TASK_zperm_allreduce_recv( const RUNTIME_option_t *options,
         STARPU_CL_ARGS,           clargs, sizeof(struct cl_redux_args_s),
         STARPU_RW,                RTBLKADDR(U, CHAMELEON_Complex64_t, me,  n),
         STARPU_R,                 RTBLKADDR(U, CHAMELEON_Complex64_t, src, n),
-        STARPU_R,                 RUNTIME_perm_getaddr( ipiv, ipivk ),
+        STARPU_R,                 ipiv_handle,
         STARPU_EXECUTE_ON_NODE,   me,
         STARPU_EXECUTE_ON_WORKER, options->workerid,
         STARPU_PRIORITY,          options->priority,
@@ -151,6 +162,7 @@ INSERT_TASK_zperm_allreduce_send( const RUNTIME_option_t *options,
 
 static void
 INSERT_TASK_zperm_allreduce_recv( const RUNTIME_option_t *options,
+                                  cham_dir_t              dir,
                                   CHAM_desc_t            *U,
                                   CHAM_ipiv_t            *ipiv,
                                   int                     ipivk,
@@ -164,8 +176,16 @@ INSERT_TASK_zperm_allreduce_recv( const RUNTIME_option_t *options,
                                   int                     np,
                                   int                     p_first )
 {
-    int ret;
+    int                 ret;
     struct starpu_task *task;
+    void               *ipiv_handle
+
+    if ( dir == ChamDirForward ) {
+        ipiv_handle = RUNTIME_perm_getaddr( ipiv, ipivk );
+    }
+    else {
+        ipiv_handle = RUNTIME_invp_getaddr( ipiv, ipivk );
+    }
 
     INSERT_TASK_COMMON_PARAMETERS_EXTENDED( zperm_allreduce_send, zperm_allreduce, redux, 3 );
 
@@ -176,7 +196,7 @@ INSERT_TASK_zperm_allreduce_recv( const RUNTIME_option_t *options,
     starpu_cham_exchange_handle_before_execution( options, &params, &nbdata, descrs,
                                                   RTBLKADDR( U, ChamComplexDouble, src, n ),
                                                   STARPU_R );
-    starpu_cham_register_descr( &nbdata, descrs, RUNTIME_perm_getaddr( ipiv, ipivk ), STARPU_R );
+    starpu_cham_register_descr( &nbdata, descrs, ipiv_handle, STARPU_R );
 
     task = starpu_task_create();
     task->cl = cl;
@@ -221,6 +241,7 @@ INSERT_TASK_zperm_allreduce_recv( const RUNTIME_option_t *options,
 
 static void
 zperm_allreduce_chameleon_starpu_task( const RUNTIME_option_t     *options,
+                                       cham_dir_t                  dir,
                                        const CHAM_desc_t          *A,
                                        CHAM_desc_t                *U,
                                        int                         Um,
@@ -229,10 +250,10 @@ zperm_allreduce_chameleon_starpu_task( const RUNTIME_option_t     *options,
                                        int                         ipivk,
                                        int                         k,
                                        int                         n,
-                                       struct chameleon_pzgetrf_s *ws)
+                                       struct chameleon_pzgetrf_s *ws )
 {
     int *proc_involved = ws->proc_involved;
-    int  np_involved   = chameleon_min( chameleon_desc_datadist_get_iparam(A, 0), A->mt - k);
+    int  np_involved   = chameleon_min( chameleon_desc_datadist_get_iparam(A, 0), A->mt - k );
     int  np_iter       = np_involved;
     int  p_recv, p_send, me, p_first;
     int  shift = 1;
@@ -253,9 +274,11 @@ zperm_allreduce_chameleon_starpu_task( const RUNTIME_option_t     *options,
             p_recv = proc_involved[ ( me - shift + np_involved ) % np_involved ];
 
             INSERT_TASK_zperm_allreduce_send( options, U, A->myrank, p_send, n );
-            INSERT_TASK_zperm_allreduce_recv( options, U, ipiv, ipivk, A->myrank, p_recv,
+            INSERT_TASK_zperm_allreduce_recv( options, dir, U, ipiv, ipivk, A->myrank, p_recv,
                                               n, k == (A->mt-1) ? A->m - k * A->mb : A->mb,
-                                              chameleon_desc_datadist_get_iparam(A, 0), chameleon_desc_datadist_get_iparam(A, 1), shift, np_involved, p_first );
+                                              chameleon_desc_datadist_get_iparam(A, 0),
+                                              chameleon_desc_datadist_get_iparam(A, 1),
+                                              shift, np_involved, p_first );
 
             shift   = shift << 1;
             np_iter = chameleon_ceil( np_iter, 2 );
@@ -265,6 +288,7 @@ zperm_allreduce_chameleon_starpu_task( const RUNTIME_option_t     *options,
 
 void
 INSERT_TASK_zperm_allreduce( const RUNTIME_option_t *options,
+                             cham_dir_t              dir,
                              const CHAM_desc_t      *A,
                              CHAM_desc_t            *U,
                              int                     Um,
@@ -280,7 +304,7 @@ INSERT_TASK_zperm_allreduce( const RUNTIME_option_t *options,
     switch( alg ) {
     case ChamStarPUTasks:
     default:
-        zperm_allreduce_chameleon_starpu_task( options, A, U, Um, Un, ipiv, ipivk, k, n, tmp );
+        zperm_allreduce_chameleon_starpu_task( options, dir, A, U, Um, Un, ipiv, ipivk, k, n, tmp );
     }
 }
 
@@ -307,33 +331,51 @@ INSERT_TASK_zperm_allreduce_send_A( const RUNTIME_option_t *options,
 
 void
 INSERT_TASK_zperm_allreduce_send_perm( const RUNTIME_option_t *options,
+                                       cham_dir_t              dir,
                                        CHAM_ipiv_t            *ipiv,
                                        int                     ipivk,
                                        int                     myrank,
                                        int                     np,
                                        int                    *proc_involved )
 {
-    int p;
+    int   p;
+    void *ipiv_handle;
+
+    if ( dir == ChamDirForward ) {
+        ipiv_handle = RUNTIME_perm_getaddr( ipiv, ipivk );
+    }
+    else {
+        ipiv_handle = RUNTIME_invp_getaddr( ipiv, ipivk );
+    }
 
     for ( p = 0; p < np; p++ ) {
         if ( proc_involved[ p ] == myrank ) {
             continue;
         }
         starpu_mpi_get_data_on_node_detached( options->sequence->comm,
-                                              RUNTIME_perm_getaddr( ipiv, ipivk ),
+                                              ipiv_handle,
                                               proc_involved[ p ], NULL, NULL );
     }
 }
 
 void
 INSERT_TASK_zperm_allreduce_send_invp( const RUNTIME_option_t *options,
+                                       cham_dir_t              dir,
                                        CHAM_ipiv_t            *ipiv,
                                        int                     ipivk,
                                        const CHAM_desc_t      *A,
                                        int                     k,
                                        int                     n )
 {
-    int b, rank;
+    int   b, rank;
+    void *ipiv_handle;
+
+    if ( dir == ChamDirForward ) {
+        ipiv_handle = RUNTIME_invp_getaddr( ipiv, ipivk );
+    }
+    else {
+        ipiv_handle = RUNTIME_perm_getaddr( ipiv, ipivk );
+    }
 
     for ( b = k+1; (b < A->mt) && ((b-(k+1)) < chameleon_desc_datadist_get_iparam(A, 0)); b ++ ) {
         rank = A->get_rankof( A, b, n );
@@ -341,10 +383,11 @@ INSERT_TASK_zperm_allreduce_send_invp( const RUNTIME_option_t *options,
             continue;
         }
         starpu_mpi_get_data_on_node_detached( options->sequence->comm,
-                                              RUNTIME_invp_getaddr( ipiv, ipivk ),
+                                              ipiv_handle,
                                               rank, NULL, NULL );
     }
 }
+
 #else
 void
 INSERT_TASK_zperm_allreduce_send_A( const RUNTIME_option_t *options,
@@ -353,7 +396,7 @@ INSERT_TASK_zperm_allreduce_send_A( const RUNTIME_option_t *options,
                                     int                     An,
                                     int                     myrank,
                                     int                     np,
-                                    int                    *proc_involved  )
+                                    int                    *proc_involved )
 {
     (void)options;
     (void)A;
@@ -366,11 +409,12 @@ INSERT_TASK_zperm_allreduce_send_A( const RUNTIME_option_t *options,
 
 void
 INSERT_TASK_zperm_allreduce_send_perm( const RUNTIME_option_t *options,
+                                       cham_dir_t              dir,
                                        CHAM_ipiv_t            *ipiv,
                                        int                     ipivk,
                                        int                     myrank,
                                        int                     np,
-                                       int                    *proc_involved  )
+                                       int                    *proc_involved )
 {
     (void)options;
     (void)ipiv;
@@ -382,6 +426,7 @@ INSERT_TASK_zperm_allreduce_send_perm( const RUNTIME_option_t *options,
 
 void
 INSERT_TASK_zperm_allreduce_send_invp( const RUNTIME_option_t *options,
+                                       cham_dir_t              dir,
                                        CHAM_ipiv_t            *ipiv,
                                        int                     ipivk,
                                        const CHAM_desc_t      *A,
@@ -398,6 +443,7 @@ INSERT_TASK_zperm_allreduce_send_invp( const RUNTIME_option_t *options,
 
 void
 INSERT_TASK_zperm_allreduce( const RUNTIME_option_t *options,
+                             cham_dir_t              dir,
                              const CHAM_desc_t      *A,
                              CHAM_desc_t            *U,
                              int                     Um,
@@ -419,4 +465,5 @@ INSERT_TASK_zperm_allreduce( const RUNTIME_option_t *options,
     (void)n;
     (void)ws;
 }
+
 #endif

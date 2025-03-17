@@ -11,7 +11,7 @@
  *
  * @version 1.3.0
  * @author Mathieu Faverge
- * @date 2024-02-18
+ * @date 2025-03-24
  * @precisions normal z -> c d s
  *
  */
@@ -20,7 +20,7 @@
 #include "coreblas/coreblas_ztile.h"
 
 void INSERT_TASK_zlaswp_get( const RUNTIME_option_t *options,
-                             int m0, int k,
+                             cham_dir_t dir, int m0, int k,
                              const CHAM_ipiv_t *ipiv, int ipivk,
                              const CHAM_desc_t *A, int Am, int An,
                              const CHAM_desc_t *U, int Um, int Un )
@@ -38,10 +38,11 @@ void INSERT_TASK_zlaswp_get( const RUNTIME_option_t *options,
     }
 
     (void)options;
+    (void)dir;
 }
 
 void INSERT_TASK_zlaswp_set( const RUNTIME_option_t *options,
-                             int m0, int k,
+                             cham_dir_t dir, int m0, int k,
                              const CHAM_ipiv_t *ipiv, int ipivk,
                              const CHAM_desc_t *A, int Am, int An,
                              const CHAM_desc_t *B, int Bm, int Bn )
@@ -59,4 +60,5 @@ void INSERT_TASK_zlaswp_set( const RUNTIME_option_t *options,
     }
 
     (void)options;
+    (void)dir;
 }

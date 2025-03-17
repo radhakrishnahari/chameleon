@@ -11,7 +11,7 @@
  *
  * @version 1.3.0
  * @author Mathieu Faverge
- * @date 2024-02-18
+ * @date 2025-03-24
  * @precisions normal z -> c d s
  *
  */
@@ -33,7 +33,7 @@ CORE_zlaswp_get_parsec( parsec_execution_stream_t *context,
 }
 
 void INSERT_TASK_zlaswp_get( const RUNTIME_option_t *options,
-                             int m0, int k,
+                             cham_dir_t dir, int m0, int k,
                              const CHAM_ipiv_t *ipiv, int ipivk,
                              const CHAM_desc_t *A, int Am, int An,
                              const CHAM_desc_t *U, int Um, int Un )
@@ -54,6 +54,8 @@ void INSERT_TASK_zlaswp_get( const RUNTIME_option_t *options,
         sizeof(int),         &(tileU->ld), VALUE,
         PASSED_BY_REF, RUNTIME_perm_getaddr( ipiv, ipivk ),     chameleon_parsec_get_arena_index_perm( ipiv ) | INPUT,
         PARSEC_DTD_ARG_END );
+
+    (void)dir;
 }
 
 static inline int
@@ -70,7 +72,7 @@ CORE_zlaswp_set_parsec( parsec_execution_stream_t *context,
 }
 
 void INSERT_TASK_zlaswp_set( const RUNTIME_option_t *options,
-                             int m0, int k,
+                             cham_dir_t dir, int m0, int k,
                              const CHAM_ipiv_t *ipiv, int ipivk,
                              const CHAM_desc_t *A, int Am, int An,
                              const CHAM_desc_t *B, int Bm, int Bn )
@@ -91,4 +93,6 @@ void INSERT_TASK_zlaswp_set( const RUNTIME_option_t *options,
         sizeof(int),         &(tileB->ld), VALUE,
         PASSED_BY_REF, RUNTIME_invp_getaddr( ipiv, ipivk ),     chameleon_parsec_get_arena_index_invp( ipiv ) | INPUT,
         PARSEC_DTD_ARG_END );
+
+    (void)dir;
 }
