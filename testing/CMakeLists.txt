@@ -53,6 +53,7 @@ set(ZSRC_W_STDAPI
   testing_zlantr.c
   testing_zgemm.c
   testing_zgetrf.c
+  testing_zgesv.c
   testing_zgetrs.c
   testing_zhemm.c
   testing_zherk.c

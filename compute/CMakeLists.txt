@@ -151,7 +151,7 @@ set(ZSRC
     zgepdf_qr.c
     zgeqrs.c
     zgeqrs_param.c
-    #zgesv.c
+    zgesv.c
     zgesv_incpiv.c
     zgesv_nopiv.c
     #zgetrf.c
