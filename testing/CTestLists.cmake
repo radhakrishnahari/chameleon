@@ -94,26 +94,28 @@ if (NOT CHAMELEON_SIMULATION)
         endforeach()
 
         if ( CHAMELEON_SCHED_STARPU )
-            add_test( test_${cat}_${prec}getrf_nopivpercol ${PREFIX} ${CMD} -c -t ${THREADS} -g ${gpus} -P 1 --diag=ChamUnit -f input/getrf_nopiv.in )
-            set_tests_properties( test_${cat}_${prec}getrf_nopivpercol
-                                  PROPERTIES ENVIRONMENT "CHAMELEON_GETRF_ALGO=nopivpercolumn;CHAMELEON_GETRF_BATCH_SIZE=0" )
-
             if ( HAVE_STARPU_NONE_NONZERO )
-                add_test( test_${cat}_${prec}getrf_ppivpercol ${PREFIX} ${CMD} -c -t ${THREADS} -g ${gpus} -P 1 -f input/getrf_nopiv.in )
+                add_test( test_${cat}_${prec}getrf_ppivpercol ${PREFIX} ${CMD} -c -t ${THREADS} -g ${gpus} -P 1 -f input/getrf.in )
                 set_tests_properties( test_${cat}_${prec}getrf_ppivpercol
-                                    PROPERTIES ENVIRONMENT "CHAMELEON_GETRF_ALGO=ppivpercolumn;CHAMELEON_GETRF_BATCH_SIZE=0" )
+                                      PROPERTIES ENVIRONMENT "CHAMELEON_GETRF_ALGO=ppivpercolumn;CHAMELEON_GETRF_BATCH_SIZE=0" )
 
-                add_test( test_${cat}_${prec}getrf_ppivpercol_batch ${PREFIX} ${CMD} -c -t ${THREADS} -g ${gpus} -P 1 -f input/getrf_nopiv.in )
+                add_test( test_${cat}_${prec}getrf_ppivpercol_batch ${PREFIX} ${CMD} -c -t ${THREADS} -g ${gpus} -P 1 -f input/getrf.in )
                 set_tests_properties( test_${cat}_${prec}getrf_ppivpercol_batch
-                                    PROPERTIES ENVIRONMENT "CHAMELEON_GETRF_ALGO=ppivpercolumn;CHAMELEON_GETRF_BATCH_SIZE=6" )
+                                      PROPERTIES ENVIRONMENT "CHAMELEON_GETRF_ALGO=ppivpercolumn;CHAMELEON_GETRF_BATCH_SIZE=3" )
 
-                add_test( test_${cat}_${prec}getrf_ppiv ${PREFIX} ${CMD} -c -t ${THREADS} -g ${gpus} -P 1 -f input/getrf.in )
-                set_tests_properties( test_${cat}_${prec}getrf_ppiv
-                                    PROPERTIES ENVIRONMENT "CHAMELEON_GETRF_ALGO=ppiv;CHAMELEON_GETRF_BATCH_SIZE=0" )
+                add_test( test_${cat}_${prec}getrf_ppivblocked ${PREFIX} ${CMD} -c -t ${THREADS} -g ${gpus} -P 1 -f input/getrf.in )
+                set_tests_properties( test_${cat}_${prec}getrf_ppivblocked
+                                      PROPERTIES ENVIRONMENT "CHAMELEON_GETRF_ALGO=ppiv;CHAMELEON_GETRF_BATCH_SIZE=0" )
 
-                add_test( test_${cat}_${prec}getrf_ppiv_batch ${PREFIX} ${CMD} -c -t ${THREADS} -g ${gpus} -P 1 -f input/getrf.in )
-                set_tests_properties( test_${cat}_${prec}getrf_ppiv_batch
-                                    PROPERTIES ENVIRONMENT "CHAMELEON_GETRF_ALGO=ppiv;CHAMELEON_GETRF_BATCH_SIZE=6" )
+                add_test( test_${cat}_${prec}getrf_ppivblocked_batch ${PREFIX} ${CMD} -c -t ${THREADS} -g ${gpus} -P 1 -f input/getrf.in )
+                set_tests_properties( test_${cat}_${prec}getrf_ppivblocked_batch
+                                      PROPERTIES ENVIRONMENT "CHAMELEON_GETRF_ALGO=ppiv;CHAMELEON_GETRF_BATCH_SIZE=3" )
+
+                if ( ${cat} STREQUAL "mpi" )
+                    add_test( test_${cat}_${prec}getrf_ppiv_comm_with_task ${PREFIX} ${CMD} -c -t ${THREADS} -g ${gpus} -P ${NP} -f input/getrf.in )
+                    set_tests_properties( test_${cat}_${prec}getrf_ppiv_comm_with_task
+                                          PROPERTIES ENVIRONMENT "CHAMELEON_GETRF_ALGO=ppiv;CHAMELEON_GETRF_BATCH_SIZE=0;CHAMELEON_GETRF_ALL_REDUCE=cham_spu_tasks" )
+                endif()
             endif()
         endif()
 
