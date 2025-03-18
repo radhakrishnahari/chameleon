@@ -5,7 +5,6 @@ test_hmat:
     - .only-master-mr
   needs: [build_hmat]
   variables:
-    SYSTEM: linux
     VERSION: hmat
     CATEGORY: none
     PRECISION: all

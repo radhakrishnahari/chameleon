@@ -1,6 +1,7 @@
 ---
 .docker_script_common:
   stage: docker
+  tags: ['ci.inria.fr', 'linux']
   image: docker
   when: manual
   before_script:
