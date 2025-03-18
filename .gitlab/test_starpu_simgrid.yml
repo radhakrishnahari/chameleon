@@ -7,7 +7,6 @@ test_starpu_simgrid_simu_all:
   variables:
     STARPU_WORKERS_NOBIND: 1
     CHAM_CI_ENV_ARG: simgrid
-    SYSTEM: linux
     VERSION: starpu_simgrid
     CATEGORY: simu
     PRECISION: all

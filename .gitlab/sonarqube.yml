@@ -1,7 +1,9 @@
 ---
 .sonarqube:
   stage: analyze
+  tags: ['ci.inria.fr', 'linux']
   variables:
+    GIT_CLONE_PATH: $CI_BUILDS_DIR/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME
     GIT_CONFIG_COUNT: 1
     GIT_CONFIG_KEY_0: "safe.directory"
     GIT_CONFIG_VALUE_0: "*"

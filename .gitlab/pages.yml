@@ -1,6 +1,7 @@
 ---
 pages:
   stage: deploy
+  tags: ['ci.inria.fr', 'linux']
   image: $CI_REGISTRY_IMAGE/pages
   extends: .only-master
   needs: [coverage_master]

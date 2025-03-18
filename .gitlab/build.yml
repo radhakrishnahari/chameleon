@@ -12,7 +12,9 @@
 
 .build_script_linux:
   extends: .build_script_common
+  tags: ['ci.inria.fr', 'linux']
   variables:
+    GIT_CLONE_PATH: $CI_BUILDS_DIR/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME
     SYSTEM: linux
   script:
     - bash .gitlab/build.sh | tee ${LOGNAME}.log
@@ -20,7 +22,6 @@
 build_hmat:
   extends: .build_script_linux
   variables:
-    SYSTEM: linux
     VERSION: hmat
     LOGNAME: "chameleon-build-${SYSTEM}-${VERSION}"
     BUILD_OPTIONS: "-DCHAMELEON_USE_CUDA=OFF -DCHAMELEON_USE_MPI=ON -DCHAMELEON_USE_HMATOSS=ON"
@@ -28,7 +29,6 @@ build_hmat:
 build_openmp:
   extends: .build_script_linux
   variables:
-    SYSTEM: linux
     VERSION: openmp
     LOGNAME: "chameleon-build-${SYSTEM}-${VERSION}"
     BUILD_OPTIONS: "-DCHAMELEON_SCHED=OPENMP"
@@ -36,7 +36,6 @@ build_openmp:
 build_parsec:
   extends: .build_script_linux
   variables:
-    SYSTEM: linux
     VERSION: parsec
     LOGNAME: "chameleon-build-${SYSTEM}-${VERSION}"
     BUILD_OPTIONS: "-DCHAMELEON_SCHED=PARSEC"
@@ -44,7 +43,6 @@ build_parsec:
 build_quark:
   extends: .build_script_linux
   variables:
-    SYSTEM: linux
     VERSION: quark
     LOGNAME: "chameleon-build-${SYSTEM}-${VERSION}"
     BUILD_OPTIONS: "-DCHAMELEON_SCHED=QUARK"
@@ -52,7 +50,6 @@ build_quark:
 build_starpu:
   extends: .build_script_linux
   variables:
-    SYSTEM: linux
     VERSION: starpu
     LOGNAME: "chameleon-build-${SYSTEM}-${VERSION}"
     BUILD_OPTIONS: "-DCHAMELEON_USE_CUDA=OFF -DCHAMELEON_USE_MPI=ON"
@@ -89,7 +86,6 @@ build_starpu_hip:
 build_starpu_simgrid:
   extends: .build_script_linux
   variables:
-    SYSTEM: linux
     VERSION: starpu_simgrid
     LOGNAME: "chameleon-build-${SYSTEM}-${VERSION}"
     CHAM_CI_ENV_ARG: simgrid

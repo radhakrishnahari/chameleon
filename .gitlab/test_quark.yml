@@ -3,7 +3,6 @@
   extends: .test_script_linux
   needs: [build_quark]
   variables:
-    SYSTEM: linux
     VERSION: quark
     CATEGORY: shm
     LOGNAME: "chameleon-test-${SYSTEM}-${VERSION}-${CATEGORY}-${PRECISION}"

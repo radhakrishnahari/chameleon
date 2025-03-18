@@ -4,7 +4,6 @@
 ---
 default:
   image: $CI_REGISTRY_IMAGE
-  tags: ['ci.inria.fr', 'linux', 'large'] # gitlab instance runner (i.e. docker on linux)
   interruptible: true
 
 variables:
@@ -31,6 +30,10 @@ variables:
 
 .test_script_linux:
   stage: test
+  tags: ['ci.inria.fr', 'linux', 'large']
+  variables:
+    GIT_CLONE_PATH: $CI_BUILDS_DIR/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME
+    SYSTEM: linux
   script:
     - bash .gitlab/test.sh | tee ${LOGNAME}.log
   artifacts:
