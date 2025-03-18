@@ -55,7 +55,11 @@ zipiv_allreduce_cpu_func( cppi_interface_t *cppi_me,
          ( cppi_me->has_diag  == -1 ) )
     {
         cblas_zcopy( n, nextpiv_src->diagrow, 1, nextpiv_me->diagrow, 1 );
-        assert( cppi_src->arraysize == sizeof(CHAMELEON_Complex64_t) * n );
+        /*
+         * The interface of the pivot is registered once in starpu so
+         * the arraysize is not always correct
+         */
+        assert( cppi_src->arraysize >= sizeof(CHAMELEON_Complex64_t) * n );
         cppi_me->has_diag = 1;
     }
 

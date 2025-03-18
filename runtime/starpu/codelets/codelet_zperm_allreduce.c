@@ -23,6 +23,7 @@
 #if defined(CHAMELEON_USE_MPI)
 struct cl_redux_args_s {
     int tempmm;
+    int mb;
     int n;
     int p;
     int q;
@@ -43,6 +44,7 @@ cl_zperm_allreduce_cpu_func( void *descr[], void *cl_arg )
     const CHAMELEON_Complex64_t *Uin        = CHAM_tile_get_ptr( tileUin );
 
     int tempmm  = clargs->tempmm;
+    int mb      = clargs->mb;
     int n       = clargs->n;
     int p       = clargs->p;
     int q       = clargs->q;
@@ -51,7 +53,6 @@ cl_zperm_allreduce_cpu_func( void *descr[], void *cl_arg )
     int np      = clargs->np_inv;
     int me      = ( p <= np ) ? clargs->me / q : ( ( clargs->me / q ) - p_first + p ) % p;
     int nb      = tileUinout->n;
-    int mb      = tileUinout->m;
     int first   = me - 2 * shift + 1;
     int last    = me -     shift;
     int i, m, ownerp;
@@ -106,6 +107,7 @@ INSERT_TASK_zperm_allreduce_recv( const RUNTIME_option_t *options,
     struct cl_redux_args_s *clargs;
     clargs = malloc( sizeof( struct cl_redux_args_s ) );
     clargs->tempmm  = tempmm;
+    clargs->mb      = U->mb;
     clargs->n       = n;
     clargs->p       = p;
     clargs->q       = q;
@@ -182,6 +184,7 @@ INSERT_TASK_zperm_allreduce_recv( const RUNTIME_option_t *options,
     /* Set codelet parameters */
     clargs = malloc( sizeof( struct cl_redux_args_s ) );
     clargs->tempmm  = tempmm;
+    clargs->mb      = U->mb;
     clargs->n       = n;
     clargs->p       = p;
     clargs->q       = q;
