@@ -17,7 +17,8 @@
  * @author Emmanuel Agullo
  * @author Matthieu Kuhn
  * @author Alycia Lisito
- * @date 2025-01-24
+ * @author Matteo Marcos
+ * @date 2025-03-24
  * @precisions normal z -> s d c
  *
  */
@@ -154,7 +155,7 @@ chameleon_pzgetrf_panel_facto_percol( struct chameleon_pzgetrf_s *ws,
     }
 
     /* Flush temporary data used for the pivoting */
-    INSERT_TASK_ipiv_to_perm( options, k * A->mb, tempkm, minmn, ipiv, k );
+    INSERT_TASK_ipiv_to_perm( options, k * A->mb, tempkm, minmn, 0, A->m, ipiv, k );
     RUNTIME_ipiv_flushk( options->sequence, ipiv, A->myrank );
 }
 
@@ -202,7 +203,7 @@ chameleon_pzgetrf_panel_facto_percol_batched( struct chameleon_pzgetrf_s *ws,
     free( clargs );
 
     /* Flush temporary data used for the pivoting */
-    INSERT_TASK_ipiv_to_perm( options, k * A->mb, tempkm, minmn, ipiv, k );
+    INSERT_TASK_ipiv_to_perm( options, k * A->mb, tempkm, minmn, 0, A->m, ipiv, k );
     RUNTIME_ipiv_flushk( options->sequence, ipiv, A->myrank );
 }
 
@@ -264,7 +265,7 @@ chameleon_pzgetrf_panel_facto_blocked( struct chameleon_pzgetrf_s *ws,
     RUNTIME_data_flush( options->sequence, Up(k, k) );
 
     /* Flush temporary data used for the pivoting */
-    INSERT_TASK_ipiv_to_perm( options, k * A->mb, tempkm, minmn, ipiv, k );
+    INSERT_TASK_ipiv_to_perm( options, k * A->mb, tempkm, minmn, 0, A->m, ipiv, k );
     RUNTIME_ipiv_flushk( options->sequence, ipiv, A->myrank );
 }
 
@@ -327,7 +328,7 @@ chameleon_pzgetrf_panel_facto_blocked_batched( struct chameleon_pzgetrf_s *ws,
     free( clargs );
 
     /* Flush temporary data used for the pivoting */
-    INSERT_TASK_ipiv_to_perm( options, k * A->mb, tempkm, minmn, ipiv, k );
+    INSERT_TASK_ipiv_to_perm( options, k * A->mb, tempkm, minmn, 0, A->m, ipiv, k );
     RUNTIME_ipiv_flushk( options->sequence, ipiv, A->myrank );
 }
 
@@ -410,19 +411,19 @@ chameleon_pzgetrf_panel_permute( struct chameleon_pzgetrf_s *ws,
          * perm array is made of size tempkm for the first row especially.
          * Otherwise, the final copy back to the tile may copy only a partial tile
          */
-        INSERT_TASK_zlaswp_get( options, k*A->mb, tempkm,
+        INSERT_TASK_zlaswp_get( options, ChamDirForward, k*A->mb, tempkm,
                                 ipiv, k, A(k, n), Wu(A->myrank, n) );
 
         for(m=k+1; m<A->mt; m++){
             /* Extract selected rows into A(k, n) */
-            INSERT_TASK_zlaswp_get( options, m*A->mb, minmn,
+            INSERT_TASK_zlaswp_get( options, ChamDirForward, m*A->mb, minmn,
                                     ipiv, k, A(m, n), Wu(A->myrank, n) );
             /* Copy rows from A(k,n) into their final position */
-            INSERT_TASK_zlaswp_set( options, m*A->mb, minmn,
+            INSERT_TASK_zlaswp_set( options, ChamDirForward, m*A->mb, minmn,
                                     ipiv, k, A(k, n), A(m, n) );
         }
 
-        INSERT_TASK_zperm_allreduce( options, A, Wu(A->myrank, n), ipiv, k, k, n, ws );
+        INSERT_TASK_zperm_allreduce( options, ChamDirForward, A, Wu(A->myrank, n), ipiv, k, k, n, ws );
     }
     break;
     default:
@@ -465,7 +466,7 @@ chameleon_pzgetrf_panel_permute_batched( struct chameleon_pzgetrf_s *ws,
          * perm array is made of size tempkm for the first row especially.
          * Otherwise, the final copy back to the tile may copy only a partial tile
          */
-        INSERT_TASK_zlaswp_get( options, k*A->mb, tempkm,
+        INSERT_TASK_zlaswp_get( options, ChamDirForward, k*A->mb, tempkm,
                                 ipiv, k, A(k, n), Wu(A->myrank, n) );
 
         for(m=k+1; m<A->mt; m++){
@@ -474,7 +475,7 @@ chameleon_pzgetrf_panel_permute_batched( struct chameleon_pzgetrf_s *ws,
         }
         INSERT_TASK_zlaswp_batched_flush( options, ipiv, k, A(k, n), Wu(A->myrank, n), clargs );
 
-        INSERT_TASK_zperm_allreduce( options, A, Wu(A->myrank, n), ipiv, k, k, n, ws );
+        INSERT_TASK_zperm_allreduce( options, ChamDirForward, A, Wu(A->myrank, n), ipiv, k, k, n, ws );
 
         free( clargs );
     }
@@ -495,8 +496,8 @@ chameleon_pzgetrf_panel_permute_forward( struct chameleon_pzgetrf_s *ws,
 #if defined(CHAMELEON_USE_MPI)
     chameleon_get_proc_involved_in_panelk_2dbc( A, k, n, ws );
     if ( A->myrank == chameleon_getrankof_2d( A, k, k ) ) {
-        INSERT_TASK_zperm_allreduce_send_perm( options, ipiv, k, A->myrank, ws->np_involved, ws->proc_involved );
-        INSERT_TASK_zperm_allreduce_send_invp( options, ipiv, k, A, k, n );
+        INSERT_TASK_zperm_allreduce_send_perm( options, ChamDirForward, ipiv, k, A->myrank, ws->np_involved, ws->proc_involved );
+        INSERT_TASK_zperm_allreduce_send_invp( options, ChamDirForward, ipiv, k, A, k, n );
     }
     if ( A->myrank == chameleon_getrankof_2d( A, k, n ) ) {
         INSERT_TASK_zperm_allreduce_send_A( options, A, k, n, A->myrank, ws->np_involved, ws->proc_involved );
@@ -529,8 +530,8 @@ chameleon_pzgetrf_panel_permute_backward( struct chameleon_pzgetrf_s *ws,
 #if defined(CHAMELEON_USE_MPI)
     chameleon_get_proc_involved_in_panelk_2dbc( A, k, n, ws );
     if ( A->myrank == chameleon_getrankof_2d( A, k, k ) ) {
-        INSERT_TASK_zperm_allreduce_send_perm( options, ipiv, k, A->myrank, ws->np_involved, ws->proc_involved );
-        INSERT_TASK_zperm_allreduce_send_invp( options, ipiv, k, A, k, n );
+        INSERT_TASK_zperm_allreduce_send_perm( options, ChamDirForward, ipiv, k, A->myrank, ws->np_involved, ws->proc_involved );
+        INSERT_TASK_zperm_allreduce_send_invp( options, ChamDirForward, ipiv, k, A, k, n );
     }
     if ( A->myrank == chameleon_getrankof_2d( A, k, n ) ) {
         INSERT_TASK_zperm_allreduce_send_A( options, A, k, n, A->myrank, ws->np_involved, ws->proc_involved );
