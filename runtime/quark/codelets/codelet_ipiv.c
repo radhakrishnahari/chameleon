@@ -13,7 +13,8 @@
  * @author Mathieu Faverge
  * @author Matthieu Kuhn
  * @author Alycia Lisito
- * @date 2024-08-29
+ * @author Matteo Marcos
+ * @date 2025-03-24
  *
  */
 #include "chameleon_quark.h"
@@ -22,6 +23,14 @@
 
 void INSERT_TASK_ipiv_init( const RUNTIME_option_t *options,
                             CHAM_ipiv_t *ipiv )
+{
+    assert( 0 );
+    (void)options;
+    (void)ipiv;
+}
+
+void INSERT_TASK_ipiv_init_data( const RUNTIME_option_t *options,
+                                 CHAM_ipiv_t            *ipiv )
 {
     assert( 0 );
     (void)options;
@@ -47,11 +56,11 @@ CORE_ipiv_to_perm_quark( Quark *quark )
 
     quark_unpack_args_6( quark, m0, m, k, ipiv, perm, invp );
 
-    CORE_ipiv_to_perm( m0, m, k, ipiv, perm, invp );
+    CORE_ipiv_to_perm( m0, m, k, 1, m, ipiv, perm, invp );
 }
 
 void INSERT_TASK_ipiv_to_perm( const RUNTIME_option_t *options,
-                               int m0, int m, int k,
+                               int m0, int m, int k, int K1, int K2,
                                const CHAM_ipiv_t *ipivdesc, int ipivk )
 {
     quark_option_t *opt = (quark_option_t*)(options->schedopt);
@@ -65,4 +74,7 @@ void INSERT_TASK_ipiv_to_perm( const RUNTIME_option_t *options,
         sizeof(int*), RUNTIME_perm_getaddr( ipivdesc, ipivk ), OUTPUT,
         sizeof(int*), RUNTIME_invp_getaddr( ipivdesc, ipivk ), OUTPUT,
         0 );
+
+    (void)K1;
+    (void)K2;
 }

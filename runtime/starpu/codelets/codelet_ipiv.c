@@ -13,7 +13,8 @@
  * @author Mathieu Faverge
  * @author Matthieu Kuhn
  * @author Alycia Lisito
- * @date 2024-09-17
+ * @author Matteo Marcos
+ * @date 2025-03-24
  *
  */
 #include "chameleon_starpu_internal.h"
@@ -86,16 +87,16 @@ void INSERT_TASK_ipiv_reducek( const RUNTIME_option_t *options,
 #if !defined(CHAMELEON_SIMULATION)
 static void cl_ipiv_to_perm_cpu_func( void *descr[], void *cl_arg )
 {
-    int m0, m, k;
+    int  m0, m, k, K1, K2;
     int *ipiv, *perm, *invp;
 
-    starpu_codelet_unpack_args( cl_arg, &m0, &m, &k );
+    starpu_codelet_unpack_args( cl_arg, &m0, &m, &k, &K1, &K2 );
 
     ipiv = (int*)STARPU_VECTOR_GET_PTR(descr[0]);
     perm = (int*)STARPU_VECTOR_GET_PTR(descr[1]);
     invp = (int*)STARPU_VECTOR_GET_PTR(descr[2]);
 
-    CORE_ipiv_to_perm( m0, m, k, ipiv, perm, invp );
+    CORE_ipiv_to_perm( m0, m, k, K1, K2, ipiv, perm, invp );
 }
 #endif /* !defined(CHAMELEON_SIMULATION) */
 
@@ -115,7 +116,7 @@ static struct starpu_codelet cl_ipiv_to_perm = {
 };
 
 void INSERT_TASK_ipiv_to_perm( const RUNTIME_option_t *options,
-                               int m0, int m, int k,
+                               int m0, int m, int k, int K1, int K2,
                                const CHAM_ipiv_t *ipivdesc, int ipivk )
 {
     struct starpu_codelet *codelet = &cl_ipiv_to_perm;
@@ -125,6 +126,8 @@ void INSERT_TASK_ipiv_to_perm( const RUNTIME_option_t *options,
         STARPU_VALUE,             &m0,  sizeof(int),
         STARPU_VALUE,             &m,   sizeof(int),
         STARPU_VALUE,             &k,   sizeof(int),
+        STARPU_VALUE,             &K1,  sizeof(int),
+        STARPU_VALUE,             &K2,  sizeof(int),
         STARPU_R,                 RUNTIME_ipiv_getaddr( ipivdesc, ipivk ),
         STARPU_W,                 RUNTIME_perm_getaddr( ipivdesc, ipivk ),
         STARPU_W,                 RUNTIME_invp_getaddr( ipivdesc, ipivk ),

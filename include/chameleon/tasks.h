@@ -17,7 +17,8 @@
  * @author Florent Pruvost
  * @author Matthieu Kuhn
  * @author Alycia Lisito
- * @date 2024-09-06
+ * @author Matteo Marcos
+ * @date 2025-03-24
  *
  */
 #ifndef _chameleon_tasks_h_
@@ -172,7 +173,7 @@ void INSERT_TASK_ipiv_init   ( const RUNTIME_option_t *options,
 void INSERT_TASK_ipiv_reducek( const RUNTIME_option_t *options,
                                CHAM_ipiv_t *ws, int k, int h, int rank );
 void INSERT_TASK_ipiv_to_perm( const RUNTIME_option_t *options,
-                               int m0, int m, int k,
+                               int m0, int m, int k, int K1, int K2,
                                const CHAM_ipiv_t *ipivdesc, int ipivk );
 
 #include "chameleon/tasks_z.h"
