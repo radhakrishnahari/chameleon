@@ -464,7 +464,7 @@ starpu_cham_exchange_tile_before_execution( const RUNTIME_option_t              
                                             int                                     An,
                                             enum starpu_data_access_mode            mode )
 {
-    unsigned              need_submit = params.do_execute;
+    unsigned              need_submit = params->do_execute;
     starpu_data_handle_t *ptrtile     = chameleon_starpu_data_gethandle( A, Am, An );
 
     /*
