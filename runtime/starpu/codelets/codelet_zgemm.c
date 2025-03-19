@@ -127,6 +127,7 @@ CODELETS( zgemm, cl_zgemm_cpu_func, cl_zgemm_cuda_func, STARPU_CUDA_ASYNC )
 #endif
 
 #if defined(CHAMELEON_STARPU_USE_INSERT)
+
 void INSERT_TASK_zgemm_Astat( const RUNTIME_option_t *options,
                               cham_trans_t transA, cham_trans_t transB,
                               int m, int n, int k, int nb,
@@ -297,7 +298,7 @@ void INSERT_TASK_zgemm( const RUNTIME_option_t *options,
         0 );
 }
 
-#else
+#else /* defined(CHAMELEON_STARPU_USE_INSERT) */
 
 void __INSERT_TASK_zgemm( const RUNTIME_option_t *options,
                           int xrank, int accessC,
@@ -319,9 +320,9 @@ void __INSERT_TASK_zgemm( const RUNTIME_option_t *options,
      * Register the data handles and initialize exchanges if needed
      */
     starpu_cham_exchange_init_params( options, &params, xrank );
-    starpu_cham_exchange_data_before_execution( options, &params, &nbdata, descrs, A, Am, An, STARPU_R );
-    starpu_cham_exchange_data_before_execution( options, &params, &nbdata, descrs, B, Bm, Bn, STARPU_R );
-    starpu_cham_exchange_data_before_execution( options, &params, &nbdata, descrs, C, Cm, Cn, accessC  );
+    starpu_cham_exchange_tile_before_execution( options, &params, &nbdata, descrs, A, Am, An, STARPU_R );
+    starpu_cham_exchange_tile_before_execution( options, &params, &nbdata, descrs, B, Bm, Bn, STARPU_R );
+    starpu_cham_exchange_tile_before_execution( options, &params, &nbdata, descrs, C, Cm, Cn, accessC  );
 
     /*
      * Not involved, let's return
@@ -425,4 +426,5 @@ void INSERT_TASK_zgemm( const RUNTIME_option_t *options,
                                 B, Bm, Bn,
                          beta,  C, Cm, Cn );
 }
-#endif
+
+#endif /* defined(CHAMELEON_STARPU_USE_INSERT) */

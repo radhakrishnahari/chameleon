@@ -54,6 +54,7 @@ cl_ztradd_cpu_func(void *descr[], void *cl_arg)
 CODELETS_CPU( ztradd, cl_ztradd_cpu_func )
 
 #if defined(CHAMELEON_STARPU_USE_INSERT)
+
 void INSERT_TASK_ztradd( const RUNTIME_option_t *options,
                          cham_uplo_t uplo, cham_trans_t trans, int m, int n, int nb,
                          CHAMELEON_Complex64_t alpha, const CHAM_desc_t *A, int Am, int An,
@@ -112,7 +113,7 @@ void INSERT_TASK_ztradd( const RUNTIME_option_t *options,
     (void)nb;
 }
 
-#else
+#else /* defined(CHAMELEON_STARPU_USE_INSERT) */
 
 void INSERT_TASK_ztradd( const RUNTIME_option_t *options,
                          cham_uplo_t uplo, cham_trans_t trans, int m, int n, int nb,
@@ -136,8 +137,8 @@ void INSERT_TASK_ztradd( const RUNTIME_option_t *options,
      * Set the data handles and initialize exchanges if needed
      */
     starpu_cham_exchange_init_params( options, &params, B->get_rankof( B, Bm, Bn ) );
-    starpu_cham_exchange_data_before_execution( options, &params, &nbdata, descrs, A, Am, An, STARPU_R );
-    starpu_cham_exchange_data_before_execution( options, &params, &nbdata, descrs, B, Bm, Bn, accessB  );
+    starpu_cham_exchange_tile_before_execution( options, &params, &nbdata, descrs, A, Am, An, STARPU_R );
+    starpu_cham_exchange_tile_before_execution( options, &params, &nbdata, descrs, B, Bm, Bn, accessB  );
 
     /*
      * Not involved, let's return
@@ -190,4 +191,4 @@ void INSERT_TASK_ztradd( const RUNTIME_option_t *options,
     (void)nb;
 }
 
-#endif
+#endif /* defined(CHAMELEON_STARPU_USE_INSERT) */

@@ -20,19 +20,23 @@
 #include "chameleon_starpu_internal.h"
 #include "runtime_codelet_z.h"
 
+struct cl_zlaswp_args_s {
+    int m0;
+    int k;
+};
+
 #if !defined(CHAMELEON_SIMULATION)
 static void cl_zlaswp_get_cpu_func( void *descr[], void *cl_arg )
 {
-    int          m0, k, *perm;
+    struct cl_zlaswp_args_s *clargs = (struct cl_zlaswp_args_s *)cl_arg;
+    int         *perm;
     CHAM_tile_t *A, *B;
-
-    starpu_codelet_unpack_args( cl_arg, &m0, &k );
 
     perm = (int *)STARPU_VECTOR_GET_PTR( descr[0] );
     A    = (CHAM_tile_t *) cti_interface_get( descr[1] );
     B    = (CHAM_tile_t *) cti_interface_get( descr[2] );
 
-    TCORE_zlaswp_get( m0, A->m, A->n, k, A, B, perm );
+    TCORE_zlaswp_get( clargs->m0, A->m, A->n, clargs->k, A, B, perm );
 }
 #endif
 
@@ -40,6 +44,8 @@ static void cl_zlaswp_get_cpu_func( void *descr[], void *cl_arg )
  * Codelet definition
  */
 CODELETS_CPU( zlaswp_get, cl_zlaswp_get_cpu_func )
+
+#if defined(CHAMELEON_STARPU_USE_INSERT)
 
 void INSERT_TASK_zlaswp_get( const RUNTIME_option_t *options,
                              int m0, int k,
@@ -52,12 +58,16 @@ void INSERT_TASK_zlaswp_get( const RUNTIME_option_t *options,
         return;
     }
 
+    struct cl_zlaswp_args_s *clargs;
+    clargs = malloc( sizeof( struct cl_zlaswp_args_s ) );
+    clargs->m0 = m0;
+    clargs->k  = k;
+
     //void (*callback)(void*) = options->profiling ? cl_zlaswp_get_callback : NULL;
 
     rt_starpu_insert_task(
         codelet,
-        STARPU_VALUE,               &m0, sizeof(int),
-        STARPU_VALUE,               &k,  sizeof(int),
+        STARPU_CL_ARGS,             clargs, sizeof(struct cl_zlaswp_args_s),
         STARPU_R,                   RUNTIME_perm_getaddr( ipiv, ipivk ),
         STARPU_R,                   RTBLKADDR(A, ChamComplexDouble, Am, An),
         STARPU_RW | STARPU_COMMUTE, RTBLKADDR(U, ChamComplexDouble, Um, Un),
@@ -67,19 +77,77 @@ void INSERT_TASK_zlaswp_get( const RUNTIME_option_t *options,
         0 );
 }
 
+#else /* defined(CHAMELEON_STARPU_USE_INSERT) */
+
+void INSERT_TASK_zlaswp_get( const RUNTIME_option_t *options,
+                             int m0, int k,
+                             const CHAM_ipiv_t *ipiv, int ipivk,
+                             const CHAM_desc_t *A, int Am, int An,
+                             const CHAM_desc_t *U, int Um, int Un )
+{
+    int ret;
+    struct starpu_task *task;
+
+    if ( A->get_rankof( A, Am, An) != A->myrank ) {
+        return;
+    }
+
+    INSERT_TASK_COMMON_PARAMETERS_EXTENDED( zlaswp_get, zlaswp_get, zlaswp, 3);
+
+    /*
+     * Register the data handles, might need to receive perm and invp
+     */
+    starpu_cham_exchange_init_params( options, &params, U->get_rankof( U, Um, Un ) );
+    starpu_cham_exchange_handle_before_execution( options, &params, &nbdata, descrs,
+                                                  RUNTIME_perm_getaddr( ipiv, ipivk ),
+                                                  STARPU_R );
+    starpu_cham_register_descr( &nbdata, descrs, RTBLKADDR( A, ChamComplexDouble, Am, An ), STARPU_R );
+    starpu_cham_register_descr( &nbdata, descrs, RTBLKADDR( U, ChamComplexDouble, Um, Un ),
+                                STARPU_RW | STARPU_COMMUTE );
+
+    task = starpu_task_create();
+    task->cl = cl;
+
+    clargs = malloc( sizeof( struct cl_zlaswp_args_s ) );
+    clargs->m0 = m0;
+    clargs->k  = k;
+
+    task->cl_arg      = clargs;
+    task->cl_arg_size = sizeof( struct cl_zlaswp_args_s );
+    task->cl_arg_free = 1;
+
+    starpu_cham_task_set_options( options, task, nbdata, descrs, NULL );
+
+    /* Flops */
+    task->flops = 0.;
+
+    /* Refine name */
+    task->name = cl_name;
+
+    ret = starpu_task_submit( task );
+    if ( ret == -ENODEV ) {
+        task->destroy = 0;
+        starpu_task_destroy( task );
+        chameleon_error( "INSERT_TASK_zlaswp_get", "Failed to submit the task to StarPU" );
+        return;
+    }
+    starpu_cham_task_exchange_data_after_execution( options, params, nbdata, descrs );
+}
+
+#endif /* defined(CHAMELEON_STARPU_USE_INSERT) */
+
 #if !defined(CHAMELEON_SIMULATION)
 static void cl_zlaswp_set_cpu_func( void *descr[], void *cl_arg )
 {
-    int          m0, k, *invp;
+    struct cl_zlaswp_args_s *clargs = (struct cl_zlaswp_args_s *)cl_arg;
+    int         *invp;
     CHAM_tile_t *A, *B;
-
-    starpu_codelet_unpack_args( cl_arg, &m0, &k );
 
     invp = (int *)STARPU_VECTOR_GET_PTR( descr[0] );
     A    = (CHAM_tile_t *) cti_interface_get( descr[1] );
     B    = (CHAM_tile_t *) cti_interface_get( descr[2] );
 
-    TCORE_zlaswp_set( m0, B->m, B->n, k, A, B, invp );
+    TCORE_zlaswp_set( clargs->m0, B->m, B->n, clargs->k, A, B, invp );
 }
 #endif
 
@@ -88,6 +156,7 @@ static void cl_zlaswp_set_cpu_func( void *descr[], void *cl_arg )
  */
 CODELETS_CPU( zlaswp_set, cl_zlaswp_set_cpu_func )
 
+#if defined(CHAMELEON_STARPU_USE_INSERT)
 void INSERT_TASK_zlaswp_set( const RUNTIME_option_t *options,
                              int m0, int k,
                              const CHAM_ipiv_t *ipiv, int ipivk,
@@ -95,16 +164,20 @@ void INSERT_TASK_zlaswp_set( const RUNTIME_option_t *options,
                              const CHAM_desc_t *B, int Bm, int Bn )
 {
     struct starpu_codelet *codelet = &cl_zlaswp_set;
-    if ( A->get_rankof( B, Bm, Bn) != A->myrank ) {
+    if ( B->get_rankof( B, Bm, Bn) != A->myrank ) {
         return;
     }
+
+    struct cl_zlaswp_args_s *clargs;
+    clargs = malloc( sizeof( struct cl_zlaswp_args_s ) );
+    clargs->m0 = m0;
+    clargs->k  = k;
 
     //void (*callback)(void*) = options->profiling ? cl_zlaswp_set_callback : NULL;
 
     rt_starpu_insert_task(
         codelet,
-        STARPU_VALUE,             &m0, sizeof(int),
-        STARPU_VALUE,             &k,  sizeof(int),
+        STARPU_CL_ARGS,           clargs, sizeof(struct cl_zlaswp_args_s),
         STARPU_R,                 RUNTIME_invp_getaddr( ipiv, ipivk ),
         STARPU_R,                 RTBLKADDR(A, ChamComplexDouble, Am, An),
         STARPU_RW,                RTBLKADDR(B, ChamComplexDouble, Bm, Bn),
@@ -113,3 +186,60 @@ void INSERT_TASK_zlaswp_set( const RUNTIME_option_t *options,
         STARPU_EXECUTE_ON_WORKER, options->workerid,
         0 );
 }
+#else
+void INSERT_TASK_zlaswp_set( const RUNTIME_option_t *options,
+                             int m0, int k,
+                             const CHAM_ipiv_t *ipiv, int ipivk,
+                             const CHAM_desc_t *A, int Am, int An,
+                             const CHAM_desc_t *B, int Bm, int Bn )
+{
+    int ret;
+    struct starpu_task *task;
+
+    if ( B->get_rankof( B, Bm, Bn) != A->myrank ) {
+        return;
+    }
+
+    INSERT_TASK_COMMON_PARAMETERS_EXTENDED( zlaswp_set, zlaswp_set, zlaswp, 3);
+
+    /*
+     * Register the data handles, might need to receive perm and invp
+     */
+    starpu_cham_exchange_init_params( options, &params, B->get_rankof( B, Bm, Bn ) );
+    starpu_cham_exchange_handle_before_execution( options, &params, &nbdata, descrs,
+                                                  RUNTIME_invp_getaddr( ipiv, ipivk ),
+                                                  STARPU_R );
+    starpu_cham_register_descr( &nbdata, descrs, RTBLKADDR( A, ChamComplexDouble, Am, An ), STARPU_R );
+    starpu_cham_register_descr( &nbdata, descrs, RTBLKADDR( B, ChamComplexDouble, Bm, Bn ), STARPU_RW );
+
+    task = starpu_task_create();
+    task->cl = cl;
+
+    /* Set codelet parameters */
+    clargs = malloc( sizeof( struct cl_zlaswp_args_s ) );
+    clargs->m0 = m0;
+    clargs->k  = k;
+
+    task->cl_arg      = clargs;
+    task->cl_arg_size = sizeof( struct cl_zlaswp_args_s );
+    task->cl_arg_free = 1;
+
+    /* Set common parameters */
+    starpu_cham_task_set_options( options, task, nbdata, descrs, NULL );
+
+    /* Flops */
+    task->flops = 0.;
+
+    /* Refine name */
+    task->name = cl_name;
+
+    ret = starpu_task_submit( task );
+    if ( ret == -ENODEV ) {
+        task->destroy = 0;
+        starpu_task_destroy( task );
+        chameleon_error( "INSERT_TASK_zlaswp_set", "Failed to submit the task to StarPU" );
+        return;
+    }
+    starpu_cham_task_exchange_data_after_execution( options, params, nbdata, descrs );
+}
+#endif
