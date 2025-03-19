@@ -36,7 +36,7 @@ include(CheckSymbolExists)
 include(CheckStructHasMember)
 include(CheckCSourceRuns)
 
-set(CHAMELEON_STARPU_VERSION "1.3" CACHE STRING "necessary STARPU API version")
+set(CHAMELEON_STARPU_VERSION "1.4" CACHE STRING "necessary STARPU API version")
 
 find_package(STARPU ${CHAMELEON_STARPU_VERSION} REQUIRED)
 

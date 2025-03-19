@@ -73,7 +73,6 @@
 
 #define CHAMELEON_CL_CB_HEADER(name)                    \
     extern struct starpu_perfmodel*cl_##name##_save;    \
-    extern struct starpu_perfmodel cl_##name##_fake;    \
     void cl_##name##_callback();                        \
     void profiling_display_##name##_info(void)
 

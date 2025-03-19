@@ -54,7 +54,7 @@
 #if defined(CHAMELEON_USE_CUDA)
 #define CODELET_GPU_FIELDS( gpu_func_name, gpu_flags )                 \
         CODELET_CUDA_FLAGS( gpu_flags )                                \
-        .cuda_func = ((gpu_func_name)),
+        .cuda_funcs = {(gpu_func_name)},
 #elif defined(CHAMELEON_USE_HIP)
 #define CODELET_GPU_FIELDS( gpu_func_name, gpu_flags )                 \
         CODELET_HIP_FLAGS( gpu_flags )                                 \
@@ -64,11 +64,6 @@
 #endif
 
 #define CODELETS_ALL(cl_name, cpu_func_name, gpu_func_name, _original_location_, gpu_flags) \
-    struct starpu_perfmodel cl_##cl_name##_fake = {                     \
-        .type   = STARPU_HISTORY_BASED,                                 \
-        .symbol = "fake_"#cl_name                                       \
-    };                                                                  \
-                                                                        \
     struct starpu_perfmodel cl_##cl_name##_model = {                    \
         .type   = STARPU_HISTORY_BASED,                                 \
         .symbol = ""#cl_name                                            \
@@ -76,7 +71,7 @@
                                                                         \
     struct starpu_codelet cl_##cl_name = {                              \
         .where     = (_original_location_),                             \
-        .cpu_func  = ((cpu_func_name)),                                 \
+        .cpu_funcs = {(cpu_func_name)},                                 \
         CODELET_GPU_FIELDS( gpu_func_name, gpu_flags )                  \
         .nbuffers  = STARPU_VARIABLE_NBUFFERS,                          \
         .model     = &cl_##cl_name##_model,                             \
@@ -92,11 +87,6 @@
     void cl_##cl_name##_restore_where(void)                             \
     {                                                                   \
         cl_##cl_name.where = (_original_location_);                     \
-    }                                                                   \
-                                                                        \
-    void cl_##cl_name##_restore_model(void)                             \
-    {                                                                   \
-        cl_##cl_name.model = &cl_##cl_name##_model;                     \
     }
 
 #if defined(CHAMELEON_SIMULATION)
@@ -117,8 +107,6 @@
 
 #define CODELETS_ALL_HEADER(name)                            \
      CHAMELEON_CL_CB_HEADER(name);                           \
-     void cl_##name##_load_fake_model(void);                 \
-     void cl_##name##_restore_model(void);                   \
      extern struct starpu_codelet cl_##name;                 \
      void cl_##name##_restrict_where(uint32_t where);        \
      void cl_##name##_restore_where(void)

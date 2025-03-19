@@ -43,14 +43,4 @@ void RUNTIME_profiling_cdisplay_all(void);
 void RUNTIME_profiling_ddisplay_all(void);
 void RUNTIME_profiling_sdisplay_all(void);
 
-void CHAMELEON_zload_FakeModel();
-void CHAMELEON_cload_FakeModel();
-void CHAMELEON_dload_FakeModel();
-void CHAMELEON_sload_FakeModel();
-
-void CHAMELEON_zrestore_Model();
-void CHAMELEON_crestore_Model();
-void CHAMELEON_drestore_Model();
-void CHAMELEON_srestore_Model();
-
 #endif /* _runtime_profiling_h_ */
