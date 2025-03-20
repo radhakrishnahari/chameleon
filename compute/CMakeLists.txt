@@ -28,6 +28,7 @@
 #  @author Loris Lucido
 #  @author Matthieu Kuhn
 #  @author Ana Hourcau
+#  @author Matteo Marcos
 #  @date 2025-03-24
 #
 ###
@@ -159,6 +160,7 @@ set(ZSRC
     zgetrf.c
     zgetrs_incpiv.c
     zgetrs_nopiv.c
+    zgetrs.c
     zlacpy.c
     zlange.c
     zlanhe.c

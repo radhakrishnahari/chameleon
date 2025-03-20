@@ -26,6 +26,7 @@
 #  @author Alycia Lisito
 #  @author Matthieu Kuhn
 #  @author Abel Calluaud
+#  @author Matteo Marcos
 #  @date 2025-03-24
 #
 ###
@@ -52,6 +53,7 @@ set(ZSRC_W_STDAPI
   testing_zlantr.c
   testing_zgemm.c
   testing_zgetrf.c
+  testing_zgetrs.c
   testing_zhemm.c
   testing_zherk.c
   testing_zher2k.c
