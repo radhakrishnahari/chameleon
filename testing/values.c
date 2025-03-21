@@ -14,7 +14,8 @@
  * @author Alycia Lisito
  * @author Florent Pruvost
  * @author Philippe Swartvagher
- * @date 2024-08-28
+ * @author Matteo Marcos
+ * @date 2025-03-24
  *
  */
 #include "testings.h"
@@ -261,6 +262,41 @@ val_t pread_side( const char *str )
         }
         else {
             val.side = ChamLeft;
+        }
+    }
+    return val;
+}
+
+
+/**
+ * @brief Convert the input string to a cham_dir_t
+ * @param[in] str
+ *    The input string
+ * @return The cham_dir_t read.
+ */
+val_t pread_dir( const char *str )
+{
+    val_t val;
+    val.dir = ChamDirForward;
+
+    /* Keep in sync with help documentation in testing/{chameleon,vendor}_ztesting.c */
+    if ( ( strcasecmp( "ChamDirForward", str ) == 0 ) ||
+         ( strcasecmp( "Forward",        str ) == 0 ) )
+    {
+        val.dir = ChamDirForward;
+    }
+    else if ( ( strcasecmp( "ChamDirBackward", str ) == 0 ) ||
+              ( strcasecmp( "Backward",        str ) == 0 ) )
+    {
+        val.dir = ChamDirBackward;
+    }
+    else {
+        int v = atoi( str );
+        if ( ( v == ChamDirForward ) || ( v == ( ChamDirForward - ChamDirBackward ) ) ) {
+            val.dir = ChamDirForward;
+        }
+        else {
+            val.dir = ChamDirBackward;
         }
     }
     return val;
@@ -578,6 +614,25 @@ char *sprint_side( val_t val, int human, int nbchar, char *str_in )
     }
     else {
         rc = sprintf( str_in, ";%d", val.side );
+    }
+    return str_in+rc;
+}
+
+/**
+ * @brief Convert the input string to a cham_dir_t
+ * @param[in] str
+ *    The input string
+ * @return The cham_dir_t read.
+ */
+char *sprint_dir( val_t val, int human, int nbchar, char *str_in )
+{
+    int rc;
+    if ( human ) {
+        rc = sprintf( str_in, " %-*s", nbchar,
+                      (val.dir == ChamDirForward) ? "Forward" : "Backward" );
+    }
+    else {
+        rc = sprintf( str_in, ";%d", val.dir );
     }
     return str_in+rc;
 }

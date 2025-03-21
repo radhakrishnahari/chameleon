@@ -13,7 +13,8 @@
  * @author Mathieu Faverge
  * @author Philippe Swartvagher
  * @author Alycia Lisito
- * @date 2024-02-18
+ * @author Matteo Marcos
+ * @date 2025-03-24
  *
  */
 #include "testings.h"
@@ -440,6 +441,32 @@ run_arg_get_side( run_arg_list_t *arglist, const char *name, cham_side_t defval 
     val.side = defval;
     rval = run_arg_get( arglist, name, val );
     return rval.side;
+}
+
+/**
+ * @brief Searches for a cham_dir_t value by its name.
+ *
+ * @param[inout] arglist
+ *          The list of arguments.
+ *          On exit, if the argument was not in the list, the default value is
+ *          stored in it.
+ *
+ * @param[in] name
+ *          The name of the argument to look for.
+ *
+ * @param[in] defval
+ *          The default value if no argument is found with this name. This value
+ *          is added to the list if not found.
+ *
+ * @retval The value of the argument _name_.
+ */
+cham_dir_t
+run_arg_get_dir( run_arg_list_t *arglist, const char *name, cham_dir_t defval )
+{
+    val_t val, rval;
+    val.dir = defval;
+    rval = run_arg_get( arglist, name, val );
+    return rval.dir;
 }
 
 /**

@@ -14,7 +14,8 @@
  * @author Alycia Lisito
  * @author Florent Pruvost
  * @author Lionel Eyraud-Dubois
- * @date 2024-03-21
+ * @author Matteo Marcos
+ * @date 2025-03-24
  *
  */
 #ifndef _testings_h_
@@ -45,6 +46,7 @@ typedef enum valtype_ {
     TestUplo,
     TestDiag,
     TestSide,
+    TestDir,
     TestJob,
     TestNormtype,
     TestString,
@@ -59,6 +61,7 @@ union val_u {
     cham_uplo_t           uplo;
     cham_diag_t           diag;
     cham_side_t           side;
+    cham_dir_t            dir;
     cham_job_t            job;
     cham_normtype_t       ntype;
     CHAMELEON_Complex64_t zval;
@@ -168,6 +171,7 @@ val_t pread_trans    ( const char *str );
 val_t pread_uplo     ( const char *str );
 val_t pread_diag     ( const char *str );
 val_t pread_side     ( const char *str );
+val_t pread_dir      ( const char *str );
 val_t pread_job      ( const char *str );
 val_t pread_norm     ( const char *str );
 val_t pread_string   ( const char *str );
@@ -185,6 +189,7 @@ char *sprint_trans    ( val_t val, int human, int nbchar, char *str_in );
 char *sprint_uplo     ( val_t val, int human, int nbchar, char *str_in );
 char *sprint_diag     ( val_t val, int human, int nbchar, char *str_in );
 char *sprint_side     ( val_t val, int human, int nbchar, char *str_in );
+char *sprint_dir      ( val_t val, int human, int nbchar, char *str_in );
 char *sprint_job      ( val_t val, int human, int nbchar, char *str_in );
 char *sprint_norm     ( val_t val, int human, int nbchar, char *str_in );
 char *sprint_string   ( val_t val, int human, int nbchar, char *str_in );
@@ -209,6 +214,7 @@ cham_trans_t          run_arg_get_trans    ( run_arg_list_t *arglist, const char
 cham_uplo_t           run_arg_get_uplo     ( run_arg_list_t *arglist, const char *name, cham_uplo_t           defval );
 cham_diag_t           run_arg_get_diag     ( run_arg_list_t *arglist, const char *name, cham_diag_t           defval );
 cham_side_t           run_arg_get_side     ( run_arg_list_t *arglist, const char *name, cham_side_t           defval );
+cham_dir_t            run_arg_get_dir      ( run_arg_list_t *arglist, const char *name, cham_dir_t            defval );
 cham_job_t            run_arg_get_job      ( run_arg_list_t *arglist, const char *name, cham_job_t            defval );
 cham_normtype_t       run_arg_get_ntype    ( run_arg_list_t *arglist, const char *name, cham_normtype_t       defval );
 int                   run_arg_get_ib       ( run_arg_list_t *arglist );
