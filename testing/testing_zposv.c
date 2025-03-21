@@ -14,7 +14,7 @@
  * @author Florent Pruvost
  * @author Mathieu Faverge
  * @author Alycia Lisito
- * @date 2025-01-29
+ * @date 2025-03-21
  * @precisions normal z -> c d s
  *
  */
@@ -80,7 +80,7 @@ testing_zposv_desc( run_arg_list_t *args, int check )
     test_data.hres = hres;
     testing_stop( &test_data, flops_zposv( N, NRHS ) );
 
-    /* Checks the factorisation and residue */
+    /* Checks the factorisation and the residual */
     if ( check ) {
         CHAM_desc_t *descA0, *descB;
 
@@ -167,7 +167,7 @@ testing_zposv_std( run_arg_list_t *args, int check )
     test_data.hres = hres;
     testing_stop( &test_data, flops_zposv( N, NRHS ) );
 
-    /* Checks the factorisation and residue */
+    /* Checks the factorisation and residual */
     if ( check ) {
         CHAMELEON_Complex64_t *A0 = malloc( sizeof(CHAMELEON_Complex64_t) * LDA*N );
         CHAMELEON_Complex64_t *B  = malloc( sizeof(CHAMELEON_Complex64_t) * LDB*NRHS );
