@@ -13,21 +13,28 @@
  * @author Mathieu Faverge
  * @author Matthieu Kuhn
  * @author Alycia Lisito
- * @date 2024-09-17
+ * @author Matteo Marcos
+ * @date 2025-03-24
  *
  */
 #include "chameleon_starpu_internal.h"
-#include "runtime_codelets.h"
 
-static void cl_ipiv_init_cpu_func(void *descr[], void *cl_arg)
+struct cl_laswp_args_s {
+    int   m0;
+    int   n;
+    int   m;
+    int  *data;
+};
+
+static void cl_ipiv_init_cpu_func( void *descr[], void *cl_arg )
 {
 #if !defined(CHAMELEON_SIMULATION)
-    int *ipiv = (int *)STARPU_VECTOR_GET_PTR(descr[0]);
+    int *ipiv = (int *)STARPU_VECTOR_GET_PTR( descr[0] );
     int i, m0, n;
 
     starpu_codelet_unpack_args( cl_arg, &m0, &n );
 
-    for( i=0; i<n; i++ ) {
+    for( i = 0; i < n; i++ ) {
         ipiv[i] = m0 + i + 1;
     }
 #endif
@@ -46,16 +53,72 @@ void INSERT_TASK_ipiv_init( const RUNTIME_option_t *options,
     int64_t mb = ipiv->mb;
     int     m;
 
-    for (m = 0; m < mt; m++) {
+    for ( m = 0; m < mt; m++ ) {
         starpu_data_handle_t ipiv_src = RUNTIME_ipiv_getaddr( ipiv, m );
         int m0 = m * mb;
-        int n  = (m == (mt-1)) ? ipiv->m - m0 : mb;
+        int n  = ( m == ( mt - 1 ) ) ? ipiv->m - m0 : mb;
 
         rt_starpu_insert_task(
             &cl_ipiv_init,
             STARPU_VALUE, &m0, sizeof(int),
             STARPU_VALUE, &n,  sizeof(int),
             STARPU_W, ipiv_src,
+            0);
+    }
+}
+
+static void cl_ipiv_init_data_cpu_func( void *descr[], void *cl_arg )
+{
+#if !defined(CHAMELEON_SIMULATION)
+    struct cl_laswp_args_s *clargs = (struct cl_laswp_args_s *) cl_arg;
+
+    int *ipiv = (int *)STARPU_VECTOR_GET_PTR( descr[0] );
+    int  n    = clargs->n;
+    int  i;
+
+    for( i = 0; i < n; i++ ) {
+        ipiv[i] = clargs->data[i];
+    }
+#endif
+}
+
+struct starpu_codelet cl_ipiv_init_data = {
+    .where     = STARPU_CPU,
+    .cpu_func  = cl_ipiv_init_data_cpu_func,
+    .nbuffers  = 1,
+};
+
+void INSERT_TASK_ipiv_init_data( const RUNTIME_option_t *options,
+                                 CHAM_ipiv_t            *ipiv )
+{
+
+    int64_t mt   = ipiv->mt;
+    int64_t mb   = ipiv->mb;
+    int     m;
+
+    if ( ipiv->data == NULL ) {
+        return;
+    }
+
+    for ( m = 0; m < mt; m++ ) {
+        starpu_data_handle_t    ipiv_src = RUNTIME_ipiv_getaddr( ipiv, m );
+        struct cl_laswp_args_s *cl_args;
+        int                     m0, n;
+
+        m0 = m * mb;
+        n = ( m == ( mt-1 ) ) ? ipiv->m - m0 : mb;
+
+        cl_args     = malloc( sizeof(struct cl_laswp_args_s) );
+        cl_args->m0 = m0;
+        cl_args->n  = n;
+        cl_args->m  = ipiv->desc->m;
+
+        cl_args->data = ipiv->data + m0;
+
+        rt_starpu_insert_task(
+            &cl_ipiv_init_data,
+            STARPU_CL_ARGS, cl_args, sizeof(struct cl_laswp_args_s),
+            STARPU_W,       ipiv_src,
             0);
     }
 }
@@ -67,7 +130,7 @@ void INSERT_TASK_ipiv_reducek( const RUNTIME_option_t *options,
 
 #if defined(HAVE_STARPU_MPI_REDUX) && defined(CHAMELEON_USE_MPI)
 #if !defined(HAVE_STARPU_MPI_REDUX_WRAPUP)
-    starpu_data_handle_t nextpiv = RUNTIME_pivot_getaddr( ipiv, rank, k, h   );
+    starpu_data_handle_t nextpiv = RUNTIME_pivot_getaddr( ipiv, rank, k, h );
     if ( h < ipiv->n ) {
         starpu_mpi_redux_data_prio_tree( options->sequence->comm, nextpiv,
                                          options->priority, 2 /* Binary tree */ );
@@ -86,16 +149,16 @@ void INSERT_TASK_ipiv_reducek( const RUNTIME_option_t *options,
 #if !defined(CHAMELEON_SIMULATION)
 static void cl_ipiv_to_perm_cpu_func( void *descr[], void *cl_arg )
 {
-    int m0, m, k;
+    int  m0, m, k, K1, K2;
     int *ipiv, *perm, *invp;
 
-    starpu_codelet_unpack_args( cl_arg, &m0, &m, &k );
+    starpu_codelet_unpack_args( cl_arg, &m0, &m, &k, &K1, &K2 );
 
     ipiv = (int*)STARPU_VECTOR_GET_PTR(descr[0]);
     perm = (int*)STARPU_VECTOR_GET_PTR(descr[1]);
     invp = (int*)STARPU_VECTOR_GET_PTR(descr[2]);
 
-    CORE_ipiv_to_perm( m0, m, k, ipiv, perm, invp );
+    CORE_ipiv_to_perm( m0, m, k, K1, K2, ipiv, perm, invp );
 }
 #endif /* !defined(CHAMELEON_SIMULATION) */
 
@@ -115,7 +178,7 @@ static struct starpu_codelet cl_ipiv_to_perm = {
 };
 
 void INSERT_TASK_ipiv_to_perm( const RUNTIME_option_t *options,
-                               int m0, int m, int k,
+                               int m0, int m, int k, int K1, int K2,
                                const CHAM_ipiv_t *ipivdesc, int ipivk )
 {
     struct starpu_codelet *codelet = &cl_ipiv_to_perm;
@@ -125,6 +188,8 @@ void INSERT_TASK_ipiv_to_perm( const RUNTIME_option_t *options,
         STARPU_VALUE,             &m0,  sizeof(int),
         STARPU_VALUE,             &m,   sizeof(int),
         STARPU_VALUE,             &k,   sizeof(int),
+        STARPU_VALUE,             &K1,  sizeof(int),
+        STARPU_VALUE,             &K2,  sizeof(int),
         STARPU_R,                 RUNTIME_ipiv_getaddr( ipivdesc, ipivk ),
         STARPU_W,                 RUNTIME_perm_getaddr( ipivdesc, ipivk ),
         STARPU_W,                 RUNTIME_invp_getaddr( ipivdesc, ipivk ),
@@ -132,3 +197,4 @@ void INSERT_TASK_ipiv_to_perm( const RUNTIME_option_t *options,
         STARPU_EXECUTE_ON_WORKER, options->workerid,
         0 );
 }
+

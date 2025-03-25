@@ -25,7 +25,7 @@
  * @author Romain Peressoni
  * @author Matthieu Kuhn
  * @author Ana Hourcau
- * @date 2024-11-12
+ * @date 2025-03-24
  * @precisions normal z -> c d s
  *
  */
@@ -188,12 +188,12 @@ void INSERT_TASK_zlaset( const RUNTIME_option_t *options,
 void INSERT_TASK_zlaset2( const RUNTIME_option_t *options,
                           cham_uplo_t uplo, int n1, int n2, CHAMELEON_Complex64_t alpha,
                           const CHAM_desc_t *tileA, int tileAm, int tileAn );
-void INSERT_TASK_zlaswp_get( const RUNTIME_option_t *options,
+void INSERT_TASK_zlaswp_get( const RUNTIME_option_t *options, cham_dir_t dir,
                              int m0, int k,
                              const CHAM_ipiv_t *tIPIV, int tIPIVk,
                              const CHAM_desc_t *tileA, int tileAm, int tileAn,
                              const CHAM_desc_t *tileB, int tileBm, int tileBn );
-void INSERT_TASK_zlaswp_set( const RUNTIME_option_t *options,
+void INSERT_TASK_zlaswp_set( const RUNTIME_option_t *options, cham_dir_t dir,
                              int m0, int k,
                              const CHAM_ipiv_t *tIPIV, int tIPIVk,
                              const CHAM_desc_t *tileA, int tileAm, int tileAn,
@@ -588,14 +588,19 @@ void INSERT_TASK_zipiv_allreduce( const RUNTIME_option_t *options,
  *
  * @ingroup CHAMELEON_Complex64_t
  *
- *  INSERT_TASK_zperm_allreduce - Perfoms an allreduce operation on the tile
- * U(Um, Un) according to the permutation ipiv. This task is used in the LU
- * factorization with partial pivoting.
+ *  @brief Perfoms an allreduce operation on the tile
+ *  U(Um, Un) according to the permutation ipiv. This task is used in the LU
+ *  factorization with partial pivoting.
  *
  *******************************************************************************
  *
  * @param[in] options
  *          The runtime options data structure to pass through all insert_task calls.
+ *
+ * @param[in] dir
+ *          Specifies the order of the permutation.
+ *          = ChamDirForward:  Natural order
+ *          = ChamDirBackward: Reverse order
  *
  * @param[in] A
  *          The descriptor of the matrix A.
@@ -630,6 +635,7 @@ void INSERT_TASK_zipiv_allreduce( const RUNTIME_option_t *options,
  *******************************************************************************
  */
 void INSERT_TASK_zperm_allreduce( const RUNTIME_option_t *options,
+                                  cham_dir_t              dir,
                                   const CHAM_desc_t      *A,
                                   CHAM_desc_t            *U,
                                   int                     Um,
@@ -645,9 +651,9 @@ void INSERT_TASK_zperm_allreduce( const RUNTIME_option_t *options,
  *
  * @ingroup CHAMELEON_Complex64_t
  *
- *  INSERT_TASK_zperm_allreduce_send_A - Sends the tile A(Am, An) to the processus
- * involved in the permutation. This task is used in the LU factorization with
- * partial pivoting.
+ *  @brief Sends the tile A(Am, An) to the processus
+ *  involved in the permutation. This task is used in the LU factorization with
+ *  partial pivoting.
  *
  *******************************************************************************
  *
@@ -687,14 +693,19 @@ void INSERT_TASK_zperm_allreduce_send_A( const RUNTIME_option_t *options,
  *
  * @ingroup CHAMELEON_Complex64_t
  *
- *  INSERT_TASK_zperm_allreduce_send_perm - Sends the permutation ipivk to the
- * processus involved in the permutation. This task is used in the LU
- * factorization with partial pivoting.
+ *  @brief - Sends the permutation ipivk to the
+ *  processus involved in the permutation. This task is used in the LU
+ *  factorization with partial pivoting.
  *
  *******************************************************************************
  *
  * @param[in] options
  *          The runtime options data structure to pass through all insert_task calls.
+ *
+ * @param[in] dir
+ *          Specifies the order of the permutation.
+ *          = ChamDirForward:  Natural order
+ *          = ChamDirBackward: Reverse order
  *
  * @param[in] ipiv
  *          The pivot structure that contains the informations for the LU
@@ -715,6 +726,7 @@ void INSERT_TASK_zperm_allreduce_send_A( const RUNTIME_option_t *options,
  *******************************************************************************
  */
 void INSERT_TASK_zperm_allreduce_send_perm( const RUNTIME_option_t *options,
+                                            cham_dir_t              dir,
                                             CHAM_ipiv_t            *ipiv,
                                             int                     ipivk,
                                             int                     myrank,
@@ -726,14 +738,19 @@ void INSERT_TASK_zperm_allreduce_send_perm( const RUNTIME_option_t *options,
  *
  * @ingroup CHAMELEON_Complex64_t
  *
- *  INSERT_TASK_zperm_allreduce_send_invp - Sends the inverse permutation ipivk
- * to the processus involved in the permutation. This task is used in the LU
- * factorization with partial pivoting.
+ *  @brief Sends the inverse permutation ipivk
+ *  to the processus involved in the permutation. This task is used in the LU
+ *  factorization with partial pivoting.
  *
  *******************************************************************************
  *
  * @param[in] options
  *          The runtime options data structure to pass through all insert_task calls.
+ *
+ * @param[in] dir
+ *          Specifies the order of the permutation.
+ *          = ChamDirForward:  Natural order
+ *          = ChamDirBackward: Reverse order
  *
  * @param[in] ipiv
  *          The pivot structure that contains the informations for the LU
@@ -754,6 +771,7 @@ void INSERT_TASK_zperm_allreduce_send_perm( const RUNTIME_option_t *options,
  *******************************************************************************
  */
 void INSERT_TASK_zperm_allreduce_send_invp( const RUNTIME_option_t *options,
+                                            cham_dir_t              dir,
                                             CHAM_ipiv_t            *ipiv,
                                             int                     ipivk,
                                             const CHAM_desc_t      *A,
@@ -761,3 +779,4 @@ void INSERT_TASK_zperm_allreduce_send_invp( const RUNTIME_option_t *options,
                                             int                     n );
 
 #endif /* _chameleon_tasks_z_h_ */
+

@@ -13,7 +13,8 @@
  * @author Mathieu Faverge
  * @author Matthieu Kuhn
  * @author Alycia Lisito
- * @date 2024-08-29
+ * @author Matteo Marcos
+ * @date 2025-03-24
  *
  */
 #include "chameleon_parsec.h"
@@ -22,6 +23,14 @@
 
 void INSERT_TASK_ipiv_init( const RUNTIME_option_t *options,
                             CHAM_ipiv_t *ipiv )
+{
+    assert( 0 );
+    (void)options;
+    (void)ipiv;
+}
+
+void INSERT_TASK_ipiv_init_data( const RUNTIME_option_t *options,
+                                 CHAM_ipiv_t *ipiv )
 {
     assert( 0 );
     (void)options;
@@ -49,14 +58,14 @@ CORE_ipiv_to_perm_parsec( parsec_execution_stream_t *context,
     parsec_dtd_unpack_args(
         this_task, &m0, &m, &k, &ipiv, &perm, &invp );
 
-    CORE_ipiv_to_perm( m0, m, k, ipiv, perm, invp );
+    CORE_ipiv_to_perm( m0, m, k, 1, m, ipiv, perm, invp );
 
     (void)context;
     return PARSEC_HOOK_RETURN_DONE;
 }
 
 void INSERT_TASK_ipiv_to_perm( const RUNTIME_option_t *options,
-                               int m0, int m, int k,
+                               int m0, int m, int k, int K1, int K2,
                                const CHAM_ipiv_t *ipivdesc, int ipivk )
 {
     parsec_taskpool_t* PARSEC_dtd_taskpool = (parsec_taskpool_t *)(options->sequence->schedopt);
@@ -70,4 +79,7 @@ void INSERT_TASK_ipiv_to_perm( const RUNTIME_option_t *options,
         PASSED_BY_REF, RUNTIME_perm_getaddr( ipivdesc, ipivk ), chameleon_parsec_get_arena_index_perm( ipivdesc ) | OUTPUT,
         PASSED_BY_REF, RUNTIME_invp_getaddr( ipivdesc, ipivk ), chameleon_parsec_get_arena_index_invp( ipivdesc ) | OUTPUT,
         PARSEC_DTD_ARG_END );
+
+    (void)K1;
+    (void)K2;
 }

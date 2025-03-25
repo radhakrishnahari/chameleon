@@ -13,7 +13,7 @@
  * @author Mathieu Faverge
  * @author Matthieu Kuhn
  * @author Alycia Lisito
- * @date 2024-11-12
+ * @date 2025-03-24
  * @precisions normal z -> c d s
  *
  */
@@ -48,11 +48,12 @@ CODELETS_CPU( zlaswp_get, cl_zlaswp_get_cpu_func )
 #if defined(CHAMELEON_STARPU_USE_INSERT)
 
 void INSERT_TASK_zlaswp_get( const RUNTIME_option_t *options,
-                             int m0, int k,
+                             cham_dir_t dir, int m0, int k,
                              const CHAM_ipiv_t *ipiv, int ipivk,
                              const CHAM_desc_t *A, int Am, int An,
                              const CHAM_desc_t *U, int Um, int Un )
 {
+    void                  *ipiv_handle;
     struct starpu_codelet *codelet = &cl_zlaswp_get;
     if ( A->get_rankof( A, Am, An) != A->myrank ) {
         return;
@@ -63,12 +64,18 @@ void INSERT_TASK_zlaswp_get( const RUNTIME_option_t *options,
     clargs->m0 = m0;
     clargs->k  = k;
 
+    if ( dir == ChamDirForward ) {
+        ipiv_handle = RUNTIME_perm_getaddr( ipiv, ipivk );
+    }
+    else {
+        ipiv_handle = RUNTIME_invp_getaddr( ipiv, ipivk );
+    }
     //void (*callback)(void*) = options->profiling ? cl_zlaswp_get_callback : NULL;
 
     rt_starpu_insert_task(
         codelet,
         STARPU_CL_ARGS,             clargs, sizeof(struct cl_zlaswp_args_s),
-        STARPU_R,                   RUNTIME_perm_getaddr( ipiv, ipivk ),
+        STARPU_R,                   ipiv_handle,
         STARPU_R,                   RTBLKADDR(A, ChamComplexDouble, Am, An),
         STARPU_RW | STARPU_COMMUTE, RTBLKADDR(U, ChamComplexDouble, Um, Un),
         STARPU_PRIORITY,            options->priority,
@@ -80,16 +87,24 @@ void INSERT_TASK_zlaswp_get( const RUNTIME_option_t *options,
 #else /* defined(CHAMELEON_STARPU_USE_INSERT) */
 
 void INSERT_TASK_zlaswp_get( const RUNTIME_option_t *options,
-                             int m0, int k,
+                             cham_dir_t dir, int m0, int k,
                              const CHAM_ipiv_t *ipiv, int ipivk,
                              const CHAM_desc_t *A, int Am, int An,
                              const CHAM_desc_t *U, int Um, int Un )
 {
-    int ret;
+    int                 ret;
     struct starpu_task *task;
+    void               *ipiv_handle;
 
     if ( A->get_rankof( A, Am, An) != A->myrank ) {
         return;
+    }
+
+    if ( dir == ChamDirForward ) {
+        ipiv_handle = RUNTIME_perm_getaddr( ipiv, ipivk );
+    }
+    else {
+        ipiv_handle = RUNTIME_invp_getaddr( ipiv, ipivk );
     }
 
     INSERT_TASK_COMMON_PARAMETERS_EXTENDED( zlaswp_get, zlaswp_get, zlaswp, 3);
@@ -99,8 +114,7 @@ void INSERT_TASK_zlaswp_get( const RUNTIME_option_t *options,
      */
     starpu_cham_exchange_init_params( options, &params, U->get_rankof( U, Um, Un ) );
     starpu_cham_exchange_handle_before_execution( options, &params, &nbdata, descrs,
-                                                  RUNTIME_perm_getaddr( ipiv, ipivk ),
-                                                  STARPU_R );
+                                                  ipiv_handle, STARPU_R );
     starpu_cham_register_descr( &nbdata, descrs, RTBLKADDR( A, ChamComplexDouble, Am, An ), STARPU_R );
     starpu_cham_register_descr( &nbdata, descrs, RTBLKADDR( U, ChamComplexDouble, Um, Un ),
                                 STARPU_RW | STARPU_COMMUTE );
@@ -157,12 +171,14 @@ static void cl_zlaswp_set_cpu_func( void *descr[], void *cl_arg )
 CODELETS_CPU( zlaswp_set, cl_zlaswp_set_cpu_func )
 
 #if defined(CHAMELEON_STARPU_USE_INSERT)
+
 void INSERT_TASK_zlaswp_set( const RUNTIME_option_t *options,
-                             int m0, int k,
+                             cham_dir_t dir, int m0, int k,
                              const CHAM_ipiv_t *ipiv, int ipivk,
                              const CHAM_desc_t *A, int Am, int An,
                              const CHAM_desc_t *B, int Bm, int Bn )
 {
+    void                  *ipiv_handle;
     struct starpu_codelet *codelet = &cl_zlaswp_set;
     if ( B->get_rankof( B, Bm, Bn) != A->myrank ) {
         return;
@@ -173,12 +189,19 @@ void INSERT_TASK_zlaswp_set( const RUNTIME_option_t *options,
     clargs->m0 = m0;
     clargs->k  = k;
 
+    if ( dir == ChamDirForward ) {
+        ipiv_handle = RUNTIME_invp_getaddr( ipiv, ipivk );
+    }
+    else {
+        ipiv_handle = RUNTIME_perm_getaddr( ipiv, ipivk );
+    }
+
     //void (*callback)(void*) = options->profiling ? cl_zlaswp_set_callback : NULL;
 
     rt_starpu_insert_task(
         codelet,
         STARPU_CL_ARGS,           clargs, sizeof(struct cl_zlaswp_args_s),
-        STARPU_R,                 RUNTIME_invp_getaddr( ipiv, ipivk ),
+        STARPU_R,                 ipiv_handle,
         STARPU_R,                 RTBLKADDR(A, ChamComplexDouble, Am, An),
         STARPU_RW,                RTBLKADDR(B, ChamComplexDouble, Bm, Bn),
         STARPU_PRIORITY,          options->priority,
@@ -186,18 +209,28 @@ void INSERT_TASK_zlaswp_set( const RUNTIME_option_t *options,
         STARPU_EXECUTE_ON_WORKER, options->workerid,
         0 );
 }
-#else
+
+#else /* defined(CHAMELEON_STARPU_USE_INSERT) */
+
 void INSERT_TASK_zlaswp_set( const RUNTIME_option_t *options,
-                             int m0, int k,
+                             cham_dir_t dir, int m0, int k,
                              const CHAM_ipiv_t *ipiv, int ipivk,
                              const CHAM_desc_t *A, int Am, int An,
                              const CHAM_desc_t *B, int Bm, int Bn )
 {
-    int ret;
+    int                 ret;
     struct starpu_task *task;
+    void               *ipiv_handle;
 
     if ( B->get_rankof( B, Bm, Bn) != A->myrank ) {
         return;
+    }
+
+    if( dir == ChamDirForward ) {
+        ipiv_handle = RUNTIME_invp_getaddr( ipiv, ipivk );
+    }
+    else {
+        ipiv_handle = RUNTIME_perm_getaddr( ipiv, ipivk );
     }
 
     INSERT_TASK_COMMON_PARAMETERS_EXTENDED( zlaswp_set, zlaswp_set, zlaswp, 3);
@@ -207,8 +240,7 @@ void INSERT_TASK_zlaswp_set( const RUNTIME_option_t *options,
      */
     starpu_cham_exchange_init_params( options, &params, B->get_rankof( B, Bm, Bn ) );
     starpu_cham_exchange_handle_before_execution( options, &params, &nbdata, descrs,
-                                                  RUNTIME_invp_getaddr( ipiv, ipivk ),
-                                                  STARPU_R );
+                                                  ipiv_handle, STARPU_R );
     starpu_cham_register_descr( &nbdata, descrs, RTBLKADDR( A, ChamComplexDouble, Am, An ), STARPU_R );
     starpu_cham_register_descr( &nbdata, descrs, RTBLKADDR( B, ChamComplexDouble, Bm, Bn ), STARPU_RW );
 
@@ -242,4 +274,5 @@ void INSERT_TASK_zlaswp_set( const RUNTIME_option_t *options,
     }
     starpu_cham_task_exchange_data_after_execution( options, params, nbdata, descrs );
 }
-#endif
+#endif /* defined(CHAMELEON_STARPU_USE_INSERT) */
+

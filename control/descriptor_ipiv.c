@@ -14,7 +14,7 @@
  * @author Matthieu Kuhn
  * @author Alycia Lisito
  * @author Florent Pruvost
- * @date 2024-08-29
+ * @date 2025-03-24
  *
  ***
  *
@@ -146,6 +146,45 @@ int CHAMELEON_Ipiv_Create( CHAM_ipiv_t **ipivptr, const CHAM_desc_t *desc, void 
 
     *ipivptr = ipiv;
     return CHAMELEON_SUCCESS;
+}
+
+/**
+ ********************************************************************************
+ *
+ * @ingroup CHAMELEON_Complex64_t
+ *
+ *  @brief initialize the IPIV descriptor.
+ *
+ *******************************************************************************
+ *
+ * @param[in] descA
+ *          Descriptor of the matrix A.
+ *
+ * @param[in,out] descIPIV
+ *          Descriptor of the pivot array. Should be initialized using
+ *          CHAMELEON_Ipiv_Create() with data filled with the vector of pivot.
+ *
+ *******************************************************************************
+ *
+ *
+ */
+void CHAMELEON_Ipiv_Init( const CHAM_desc_t *descA,
+                          CHAM_ipiv_t       *descIPIV )
+{
+
+    RUNTIME_option_t    options;
+    RUNTIME_request_t   request  = RUNTIME_REQUEST_INITIALIZER;
+    RUNTIME_sequence_t *sequence = NULL;
+    CHAM_context_t     *chamctxt;
+
+    chamctxt = chameleon_context_self();
+    chameleon_sequence_create( chamctxt, &sequence );
+    RUNTIME_options_init( &options, chamctxt, sequence, &request );
+
+    INSERT_TASK_ipiv_init_data( &options, descIPIV );
+
+    chameleon_sequence_wait( chamctxt, sequence );
+    chameleon_sequence_destroy( chamctxt, sequence );
 }
 
 /**

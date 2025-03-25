@@ -13,7 +13,8 @@
  * @author Mathieu Faverge
  * @author Matthieu Kuhn
  * @author Alycia Lisito
- * @date 2024-08-29
+ * @author Matteo Marcos
+ * @date 2025-03-24
  *
  */
 #include "chameleon_openmp.h"
@@ -22,6 +23,14 @@
 
 void INSERT_TASK_ipiv_init( const RUNTIME_option_t *options,
                             CHAM_ipiv_t *ipiv )
+{
+    assert( 0 );
+    (void)options;
+    (void)ipiv;
+}
+
+void INSERT_TASK_ipiv_init_data( const RUNTIME_option_t *options,
+                                 CHAM_ipiv_t *ipiv )
 {
     assert( 0 );
     (void)options;
@@ -40,7 +49,7 @@ void INSERT_TASK_ipiv_reducek( const RUNTIME_option_t *options,
 }
 
 void INSERT_TASK_ipiv_to_perm( const RUNTIME_option_t *options,
-                               int m0, int m, int k,
+                               int m0, int m, int k, int K1, int K2,
                                const CHAM_ipiv_t *ipivdesc, int ipivk )
 {
     int *ipiv = NULL; // get pointer from ipivdesc
@@ -49,9 +58,11 @@ void INSERT_TASK_ipiv_to_perm( const RUNTIME_option_t *options,
 
 #pragma omp task firstprivate( m0, m, k ) depend( in:ipiv[0] ) depend( inout:perm[0] ) depend( inout:invp[0] )
     {
-        CORE_ipiv_to_perm( m0, m, k, ipiv, perm, invp );
+        CORE_ipiv_to_perm( m0, m, k, 1, m, ipiv, perm, invp );
     }
 
     (void)options;
+    (void)K1;
+    (void)K2;
     (void)ipivk;
 }

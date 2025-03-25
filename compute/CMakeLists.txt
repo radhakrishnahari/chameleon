@@ -28,7 +28,8 @@
 #  @author Loris Lucido
 #  @author Matthieu Kuhn
 #  @author Ana Hourcau
-#  @date 2024-09-18
+#  @author Matteo Marcos
+#  @date 2025-03-24
 #
 ###
 
@@ -150,7 +151,7 @@ set(ZSRC
     zgepdf_qr.c
     zgeqrs.c
     zgeqrs_param.c
-    #zgesv.c
+    zgesv.c
     zgesv_incpiv.c
     zgesv_nopiv.c
     #zgetrf.c
@@ -159,6 +160,7 @@ set(ZSRC
     zgetrf.c
     zgetrs_incpiv.c
     zgetrs_nopiv.c
+    zgetrs.c
     zlacpy.c
     zlange.c
     zlanhe.c
@@ -219,7 +221,7 @@ set(ZSRC
     #pzhetrd_hb2ht.c
     pzhetrd_he2hb.c
     #pzlarft_blgtrd.c
-    #pzlaswp.c
+    pzlaswp.c
     #pzlaswpc.c
     #pztrsmrv.c
     #pzunmqr_blgtrd.c
@@ -237,7 +239,7 @@ set(ZSRC
     #zhegv.c
     #zhegvd.c
     zhetrd.c
-    #zlaswp.c
+    zlaswp.c
     #zlaswpc.c
     #ztrsmrv.c
     ##################

@@ -22,7 +22,8 @@
  * @author Lucas Nesi
  * @author Matthieu Kuhn
  * @author Lionel Eyraud-Dubois
- * @date 2025-01-15
+ * @author Matteo Marcos
+ * @date 2025-03-24
  * @precisions normal z -> c d s
  *
  */
@@ -111,10 +112,11 @@ parameter_t parameters[] = {
     { "trans",  "Value of the trans parameter ('ConjTrans', 'Trans', 'NoTrans')",  -11, PARAM_OPTION | PARAM_INPUT | PARAM_OUTPUT, 2, 9, TestTrans,    {0}, NULL, pread_trans, sprint_trans },
     { "transA", "Value of the transA parameter ('ConjTrans', 'Trans', 'NoTrans')", -12, PARAM_OPTION | PARAM_INPUT | PARAM_OUTPUT, 2, 9, TestTrans,    {0}, NULL, pread_trans, sprint_trans },
     { "transB", "Value of the transB parameter ('ConjTrans', 'Trans', 'NoTrans')", -13, PARAM_OPTION | PARAM_INPUT | PARAM_OUTPUT, 2, 9, TestTrans,    {0}, NULL, pread_trans, sprint_trans },
-    { "uplo",   "Value of the uplo parameter ('Upper', 'Lower', 'UpperLower')",   -14, PARAM_OPTION | PARAM_INPUT | PARAM_OUTPUT, 2, 7, TestUplo,     {0}, NULL, pread_uplo,  sprint_uplo  },
-    { "diag",   "Value of the diag parameter ('NonUnit', 'Unit')",   -15, PARAM_OPTION | PARAM_INPUT | PARAM_OUTPUT, 2, 7, TestDiag,     {0}, NULL, pread_diag,  sprint_diag  },
-    { "side",   "Value of the side parameter ('Left', 'Right')",   -16, PARAM_OPTION | PARAM_INPUT | PARAM_OUTPUT, 2, 5, TestSide,     {0}, NULL, pread_side,  sprint_side  },
-    { "norm",   "Value of the norm parameter ('One', 'Frobenius', 'Inf', 'Max')",   -17, PARAM_OPTION | PARAM_INPUT | PARAM_OUTPUT, 2, 4, TestNormtype, {0}, NULL, pread_norm,  sprint_norm  },
+    { "uplo",   "Value of the uplo parameter ('Upper', 'Lower', 'UpperLower')",    -14, PARAM_OPTION | PARAM_INPUT | PARAM_OUTPUT, 2, 7, TestUplo,     {0}, NULL, pread_uplo,  sprint_uplo  },
+    { "diag",   "Value of the diag parameter ('NonUnit', 'Unit')",                 -15, PARAM_OPTION | PARAM_INPUT | PARAM_OUTPUT, 2, 7, TestDiag,     {0}, NULL, pread_diag,  sprint_diag  },
+    { "side",   "Value of the side parameter ('Left', 'Right')",                   -16, PARAM_OPTION | PARAM_INPUT | PARAM_OUTPUT, 2, 5, TestSide,     {0}, NULL, pread_side,  sprint_side  },
+    { "norm",   "Value of the norm parameter ('One', 'Frobenius', 'Inf', 'Max')",  -17, PARAM_OPTION | PARAM_INPUT | PARAM_OUTPUT, 2, 4, TestNormtype, {0}, NULL, pread_norm,  sprint_norm  },
+    { "dir",    "Value of the dir parameter ('Forward', 'Backward')",              -18, PARAM_OPTION | PARAM_INPUT | PARAM_OUTPUT, 2, 7, TestDir,      {0}, NULL, pread_dir,   sprint_dir   },
 
     { NULL, "Operation specific scalar", 0, PARAM_OPTION, 0, 0, 0, {0}, NULL, NULL, NULL },
     { "alpha", "Value of the scalar alpha",                       'x', PARAM_OPTION | PARAM_INPUT | PARAM_OUTPUT, 2, 13, TestValComplex64, {0}, NULL, pread_complex64, sprint_complex64 },
@@ -131,6 +133,10 @@ parameter_t parameters[] = {
     { NULL, "SVD parameters", 0, PARAM_OPTION, 0, 0, 0, {0}, NULL, NULL, NULL },
     { "jobu",  "Value of the jobu parameter ('NoVec', 'Vec', 'Ivec', 'AllVec', 'SVec', 'OVec')",  -50, PARAM_OPTION | PARAM_INPUT | PARAM_OUTPUT, 2, 4, TestJob, {0}, NULL, pread_job, sprint_job },
     { "jobvt", "Value of the jobvt parameter ('NoVec', 'Vec', 'Ivec', 'AllVec', 'SVec', 'OVec')", -51, PARAM_OPTION | PARAM_INPUT | PARAM_OUTPUT, 2, 5, TestJob, {0}, NULL, pread_job, sprint_job },
+
+    { NULL, "LASWP parameters", 0, PARAM_OPTION, 0, 0, 0, {0}, NULL, NULL, NULL },
+    { "k1",    "Index of the first element to permute",             -70, PARAM_OPTION | PARAM_INPUT | PARAM_OUTPUT, 2, 3, TestValInt, {0}, NULL, pread_int, sprint_int },
+    { "k2",    "Index of the last element to permute",              -71, PARAM_OPTION | PARAM_INPUT | PARAM_OUTPUT, 2, 3, TestValInt, {0}, NULL, pread_int, sprint_int },
 #endif
 
     { "tsub",          "Graph submission time in s",             999, PARAM_OUTPUT, 2, 13, TestValFixdbl, {0}, NULL, pread_fixdbl, sprint_fixdbl },

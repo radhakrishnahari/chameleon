@@ -11,7 +11,7 @@
  *
  * @version 1.3.0
  * @author Alycia Lisito
- * @date 2024-11-12
+ * @date 2025-03-24
  * @precisions normal z -> c d s
  *
  */
@@ -38,6 +38,7 @@ INSERT_TASK_zperm_allreduce_send_A( const RUNTIME_option_t *options,
 
 void
 INSERT_TASK_zperm_allreduce_send_perm( const RUNTIME_option_t *options,
+                                       cham_dir_t              dir,
                                        CHAM_ipiv_t            *ipiv,
                                        int                     ipivk,
                                        int                     myrank,
@@ -45,6 +46,7 @@ INSERT_TASK_zperm_allreduce_send_perm( const RUNTIME_option_t *options,
                                        int                    *proc_involved  )
 {
     (void)options;
+    (void)dir;
     (void)ipiv;
     (void)ipivk;
     (void)myrank;
@@ -54,6 +56,7 @@ INSERT_TASK_zperm_allreduce_send_perm( const RUNTIME_option_t *options,
 
 void
 INSERT_TASK_zperm_allreduce_send_invp( const RUNTIME_option_t *options,
+                                       cham_dir_t              dir,
                                        CHAM_ipiv_t            *ipiv,
                                        int                     ipivk,
                                        const CHAM_desc_t      *A,
@@ -61,6 +64,7 @@ INSERT_TASK_zperm_allreduce_send_invp( const RUNTIME_option_t *options,
                                        int                     n )
 {
     (void)options;
+    (void)dir;
     (void)ipiv;
     (void)ipivk;
     (void)A;
@@ -70,6 +74,7 @@ INSERT_TASK_zperm_allreduce_send_invp( const RUNTIME_option_t *options,
 
 void
 INSERT_TASK_zperm_allreduce( const RUNTIME_option_t *options,
+                             cham_dir_t              dir,
                              const CHAM_desc_t      *A,
                              CHAM_desc_t            *U,
                              int                     Um,
@@ -81,6 +86,7 @@ INSERT_TASK_zperm_allreduce( const RUNTIME_option_t *options,
                              void                   *ws )
 {
     (void)options;
+    (void)dir;
     (void)A;
     (void)U;
     (void)Um;

@@ -11,7 +11,7 @@
  *
  * @version 1.3.0
  * @author Mathieu Faverge
- * @date 2024-02-18
+ * @date 2025-03-24
  * @precisions normal z -> c d s
  *
  */
@@ -30,7 +30,7 @@ static void CORE_zlaswp_get_quark( Quark *quark )
 }
 
 void INSERT_TASK_zlaswp_get( const RUNTIME_option_t *options,
-                             int m0, int k,
+                             cham_dir_t dir, int m0, int k,
                              const CHAM_ipiv_t *ipiv, int ipivk,
                              const CHAM_desc_t *A, int Am, int An,
                              const CHAM_desc_t *U, int Um, int Un )
@@ -46,6 +46,8 @@ void INSERT_TASK_zlaswp_get( const RUNTIME_option_t *options,
         sizeof(CHAM_tile_t*), RTBLKADDR(A, ChamComplexDouble, Am, An), INPUT,
         sizeof(CHAM_tile_t*), RTBLKADDR(U, ChamComplexDouble, Um, Un), INOUT,
         0 );
+
+    (void)dir;
 }
 
 static void CORE_zlaswp_set_quark( Quark *quark )
@@ -59,7 +61,7 @@ static void CORE_zlaswp_set_quark( Quark *quark )
 }
 
 void INSERT_TASK_zlaswp_set( const RUNTIME_option_t *options,
-                             int m0, int k,
+                             cham_dir_t dir, int m0, int k,
                              const CHAM_ipiv_t *ipiv, int ipivk,
                              const CHAM_desc_t *A, int Am, int An,
                              const CHAM_desc_t *B, int Bm, int Bn )
@@ -75,4 +77,6 @@ void INSERT_TASK_zlaswp_set( const RUNTIME_option_t *options,
         sizeof(CHAM_tile_t*), RTBLKADDR(A, ChamComplexDouble, Am, An), INPUT,
         sizeof(CHAM_tile_t*), RTBLKADDR(B, ChamComplexDouble, Bm, Bn), INOUT,
         0 );
+
+    (void)dir;
 }

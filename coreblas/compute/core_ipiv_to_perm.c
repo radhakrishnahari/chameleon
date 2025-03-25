@@ -11,7 +11,8 @@
  *
  * @version 1.3.0
  * @author Mathieu Faverge
- * @date 2024-02-18
+ * @author Matteo Marcos
+ * @date 2025-03-24
  */
 #include "coreblas.h"
 
@@ -44,6 +45,14 @@
  * @param[in] k
  *          The number of elements in ipiv. k >= 0.
  *
+ * @param[in] K1
+ *          The first element of IPIV for which an interchange will
+ *          be done.
+ *
+ * @param[in] K2
+ *          The last element of ipiv for which an interchange will
+ *          be done.
+ *
  * @param[in] ipiv
  *          The pivot array of size n. This is a (m0+1)-based indices array to follow
  *          the Fortran standard.
@@ -55,7 +64,7 @@
  *          The permutation array of the origin row indices (m0-based) of the [1,n] set of rows.
  *
  */
-void CORE_ipiv_to_perm( int m0, int m, int k, int *ipiv, int *perm, int *invp )
+void CORE_ipiv_to_perm( int m0, int m, int k, int K1, int K2, int *ipiv, int *perm, int *invp )
 {
     int i, j, ip;
     int i_1, ip_1;
@@ -66,6 +75,9 @@ void CORE_ipiv_to_perm( int m0, int m, int k, int *ipiv, int *perm, int *invp )
     }
 
     for(i = 0; i < k; i++) {
+        if ( ( i + m0 < K1 ) || ( i + m0 > K2 ) ) {
+            continue;
+        }
         ip = ipiv[i]-1;
         assert( ip - m0 >= i );
 

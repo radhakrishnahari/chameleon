@@ -24,7 +24,8 @@
  * @author Alycia Lisito
  * @author Matthieu Kuhn
  * @author Ana Hourcau
- * @date 2024-10-17
+ * @author Matteo Marcos
+ * @date 2025-03-24
  * @precisions normal z -> c d s
  *
  */
@@ -48,7 +49,7 @@ int CHAMELEON_zgemm(cham_trans_t transA, cham_trans_t transB, int M, int N, int 
 int CHAMELEON_zgepdf_qdwh( int M, int N, CHAMELEON_Complex64_t *A, int LDA, CHAMELEON_Complex64_t *H, int LDH, gepdf_info_t *info );
 int CHAMELEON_zgeqrf(int M, int N, CHAMELEON_Complex64_t *A, int LDA, CHAM_desc_t *descT);
 int CHAMELEON_zgeqrs(int M, int N, int NRHS, CHAMELEON_Complex64_t *A, int LDA, CHAM_desc_t *descT, CHAMELEON_Complex64_t *B, int LDB);
-//int CHAMELEON_zgesv(int N, int NRHS, CHAMELEON_Complex64_t *A, int LDA, int *IPIV, CHAMELEON_Complex64_t *B, int LDB);
+int CHAMELEON_zgesv(int N, int NRHS, CHAMELEON_Complex64_t *A, int LDA, int *IPIV, CHAMELEON_Complex64_t *B, int LDB);
 int CHAMELEON_zgesv_incpiv(int N, int NRHS, CHAMELEON_Complex64_t *A, int LDA, CHAM_desc_t *descL, int *IPIV, CHAMELEON_Complex64_t *B, int LDB);
 int CHAMELEON_zgesv_nopiv(int N, int NRHS, CHAMELEON_Complex64_t *A, int LDA, CHAMELEON_Complex64_t *B, int LDB);
 int CHAMELEON_zgesvd(cham_job_t jobu, cham_job_t jobvt, int M, int N, CHAMELEON_Complex64_t *A, int LDA, double *S, CHAM_desc_t *descT, CHAMELEON_Complex64_t *U, int LDU, CHAMELEON_Complex64_t *VT, int LDVT);
@@ -57,7 +58,7 @@ int CHAMELEON_zgetrf_incpiv(int M, int N, CHAMELEON_Complex64_t *A, int LDA, CHA
 int CHAMELEON_zgetrf_nopiv(int M, int N, CHAMELEON_Complex64_t *A, int LDA);
 int CHAMELEON_zgetrf( int M, int N, CHAMELEON_Complex64_t *A, int LDA, int *IPIV );
 //int CHAMELEON_zgetri(int N, CHAMELEON_Complex64_t *A, int LDA, int *IPIV);
-//int CHAMELEON_zgetrs(cham_trans_t trans, int N, int NRHS, CHAMELEON_Complex64_t *A, int LDA, int *IPIV, CHAMELEON_Complex64_t *B, int LDB);
+int CHAMELEON_zgetrs(cham_trans_t trans, int N, int NRHS, CHAMELEON_Complex64_t *A, int LDA, int *IPIV, CHAMELEON_Complex64_t *B, int LDB);
 int CHAMELEON_zgetrs_incpiv(cham_trans_t trans, int N, int NRHS, CHAMELEON_Complex64_t *A, int LDA, CHAM_desc_t *descL, int *IPIV, CHAMELEON_Complex64_t *B, int LDB);
 int CHAMELEON_zgetrs_nopiv(cham_trans_t trans, int N, int NRHS, CHAMELEON_Complex64_t *A, int LDA, CHAMELEON_Complex64_t *B, int LDB);
 int CHAMELEON_zhemm(cham_side_t side, cham_uplo_t uplo, int M, int N, CHAMELEON_Complex64_t alpha, CHAMELEON_Complex64_t *A, int LDA, CHAMELEON_Complex64_t *B, int LDB, CHAMELEON_Complex64_t beta, CHAMELEON_Complex64_t *C, int LDC);
@@ -76,8 +77,7 @@ double CHAMELEON_zlansy(cham_normtype_t norm, cham_uplo_t uplo, int N, CHAMELEON
 double CHAMELEON_zlantr(cham_normtype_t norm, cham_uplo_t uplo, cham_diag_t diag, int M, int N, CHAMELEON_Complex64_t *A, int LDA);
 int CHAMELEON_zlascal(cham_uplo_t uplo, int M, int N, CHAMELEON_Complex64_t alpha, CHAMELEON_Complex64_t *A, int LDA);
 int CHAMELEON_zlaset(cham_uplo_t uplo, int M, int N, CHAMELEON_Complex64_t alpha, CHAMELEON_Complex64_t beta, CHAMELEON_Complex64_t *A, int LDA);
-//int CHAMELEON_zlaswp(int N, CHAMELEON_Complex64_t *A, int LDA, int K1, int K2, int *IPIV, int INCX);
-//int CHAMELEON_zlaswpc(int N, CHAMELEON_Complex64_t *A, int LDA, int K1, int K2, int *IPIV, int INCX);
+int CHAMELEON_zlaswp( cham_side_t side, cham_dir_t dir, int M, int N, CHAMELEON_Complex64_t *A, int LDA, int K1, int K2, int *IPIV );
 int CHAMELEON_zlatms( int M, int N, cham_dist_t idist, unsigned long long int seed, cham_sym_t sym, double *D, int mode, double cond, double dmax, CHAMELEON_Complex64_t *A, int LDA );
 int CHAMELEON_zlauum(cham_uplo_t uplo, int N, CHAMELEON_Complex64_t *A, int LDA);
 int CHAMELEON_zplghe( double bump, cham_uplo_t uplo, int N, CHAMELEON_Complex64_t *A, int LDA, unsigned long long int seed );
@@ -129,7 +129,7 @@ int CHAMELEON_zgepdf_qdwh_Tile( CHAM_desc_t *A, CHAM_desc_t *H, gepdf_info_t *in
 int CHAMELEON_zgepdf_qr_Tile( int doqr, int optid, const libhqr_tree_t *qrtreeT, const libhqr_tree_t *qrtreeB, CHAM_desc_t *A1, CHAM_desc_t *TS1, CHAM_desc_t *TT1, CHAM_desc_t *Q1, CHAM_desc_t *A2, CHAM_desc_t *TS2, CHAM_desc_t *TT2, CHAM_desc_t *Q2 );
 int CHAMELEON_zgeqrf_Tile(CHAM_desc_t *A, CHAM_desc_t *T);
 int CHAMELEON_zgeqrs_Tile(CHAM_desc_t *A, CHAM_desc_t *T, CHAM_desc_t *B);
-//int CHAMELEON_zgesv_Tile(CHAM_desc_t *A, int *IPIV, CHAM_desc_t *B);
+int CHAMELEON_zgesv_Tile(CHAM_desc_t *A, CHAM_ipiv_t *IPIV, CHAM_desc_t *B);
 int CHAMELEON_zgesv_incpiv_Tile(CHAM_desc_t *A, CHAM_desc_t *L, int *IPIV, CHAM_desc_t *B);
 int CHAMELEON_zgesv_nopiv_Tile(CHAM_desc_t *A, CHAM_desc_t *B);
 int CHAMELEON_zgesvd_Tile(cham_job_t jobu, cham_job_t jobvt, CHAM_desc_t *A, double *S, CHAM_desc_t *T, CHAMELEON_Complex64_t *U, int LDU, CHAMELEON_Complex64_t *VT, int LDVT);
@@ -138,7 +138,7 @@ int CHAMELEON_zgetrf_incpiv_Tile(CHAM_desc_t *A, CHAM_desc_t *L, int *IPIV);
 int CHAMELEON_zgetrf_nopiv_Tile(CHAM_desc_t *A);
 int CHAMELEON_zgetrf_Tile( CHAM_desc_t *A, CHAM_ipiv_t *IPIV );
 //int CHAMELEON_zgetri_Tile(CHAM_desc_t *A, int *IPIV);
-//int CHAMELEON_zgetrs_Tile(cham_trans_t trans, CHAM_desc_t *A, int *IPIV, CHAM_desc_t *B);
+int CHAMELEON_zgetrs_Tile(cham_trans_t trans, CHAM_desc_t *A, CHAM_ipiv_t *IPIV, CHAM_desc_t *B);
 int CHAMELEON_zgetrs_incpiv_Tile(CHAM_desc_t *A, CHAM_desc_t *L, int *IPIV, CHAM_desc_t *B);
 int CHAMELEON_zgetrs_nopiv_Tile(CHAM_desc_t *A, CHAM_desc_t *B);
 int CHAMELEON_zhemm_Tile(cham_side_t side, cham_uplo_t uplo, CHAMELEON_Complex64_t alpha, CHAM_desc_t *A, CHAM_desc_t *B, CHAMELEON_Complex64_t beta, CHAM_desc_t *C);
@@ -157,8 +157,7 @@ double CHAMELEON_zlansy_Tile(cham_normtype_t norm, cham_uplo_t uplo, CHAM_desc_t
 double CHAMELEON_zlantr_Tile(cham_normtype_t norm, cham_uplo_t uplo, cham_diag_t diag, CHAM_desc_t *A);
 int CHAMELEON_zlascal_Tile(cham_uplo_t uplo, CHAMELEON_Complex64_t alpha, CHAM_desc_t *A);
 int CHAMELEON_zlaset_Tile(cham_uplo_t uplo, CHAMELEON_Complex64_t alpha, CHAMELEON_Complex64_t beta, CHAM_desc_t *A);
-//int CHAMELEON_zlaswp_Tile(CHAM_desc_t *A, int K1, int K2, int *IPIV, int INCX);
-//int CHAMELEON_zlaswpc_Tile(CHAM_desc_t *A, int K1, int K2, int *IPIV, int INCX);
+int CHAMELEON_zlaswp_Tile( cham_side_t side, cham_dir_t dir, CHAM_desc_t *A, int K1, int K2, CHAM_ipiv_t *IPIV );
 int CHAMELEON_zlatms_Tile( cham_dist_t idist, unsigned long long int seed, cham_sym_t sym, double *D, int mode, double cond, double dmax, CHAM_desc_t *A );
 int CHAMELEON_zlauum_Tile(cham_uplo_t uplo, CHAM_desc_t *A);
 int CHAMELEON_zplghe_Tile(double bump, cham_uplo_t uplo, CHAM_desc_t *A, unsigned long long int seed );
@@ -209,7 +208,7 @@ int CHAMELEON_zgemm_Tile_Async(cham_trans_t transA, cham_trans_t transB, CHAMELE
 int CHAMELEON_zgepdf_qdwh_Tile_Async( CHAM_desc_t *A, CHAM_desc_t *H, gepdf_info_t *info, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request );
 int CHAMELEON_zgeqrf_Tile_Async(CHAM_desc_t *A, CHAM_desc_t *T, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 int CHAMELEON_zgeqrs_Tile_Async(CHAM_desc_t *A, CHAM_desc_t *T, CHAM_desc_t *B, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
-//int CHAMELEON_zgesv_Tile_Async(CHAM_desc_t *A, int *IPIV, CHAM_desc_t *B, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
+int CHAMELEON_zgesv_Tile_Async(CHAM_desc_t *A, CHAM_ipiv_t *IPIV, CHAM_desc_t *B, void *user_wsA, void *user_wsB, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 int CHAMELEON_zgesv_incpiv_Tile_Async(CHAM_desc_t *A, CHAM_desc_t *L, int *IPIV, CHAM_desc_t *B, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 int CHAMELEON_zgesv_nopiv_Tile_Async(CHAM_desc_t *A, CHAM_desc_t *B, void * ws, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 int CHAMELEON_zgesvd_Tile_Async(cham_job_t jobu, cham_job_t jobvt, CHAM_desc_t *A, double *S, CHAM_desc_t *T, CHAMELEON_Complex64_t *U, int LDU, CHAMELEON_Complex64_t *VT, int LDVT, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
@@ -218,7 +217,7 @@ int CHAMELEON_zgetrf_incpiv_Tile_Async(CHAM_desc_t *A, CHAM_desc_t *L, int *IPIV
 int CHAMELEON_zgetrf_nopiv_Tile_Async(CHAM_desc_t *A, void * ws, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 int CHAMELEON_zgetrf_Tile_Async( CHAM_desc_t *A, CHAM_ipiv_t *IPIV, void *ws, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request );
 //int CHAMELEON_zgetri_Tile_Async(CHAM_desc_t *A, int *IPIV, CHAM_desc_t *W, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
-//int CHAMELEON_zgetrs_Tile_Async(cham_trans_t trans, CHAM_desc_t *A, int *IPIV, CHAM_desc_t *B, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
+int CHAMELEON_zgetrs_Tile_Async(cham_trans_t trans, CHAM_desc_t *A, CHAM_ipiv_t *IPIV, CHAM_desc_t *B, void *user_ws, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 int CHAMELEON_zgetrs_incpiv_Tile_Async(CHAM_desc_t *A, CHAM_desc_t *L, int *IPIV, CHAM_desc_t *B, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 int CHAMELEON_zgetrs_nopiv_Tile_Async(CHAM_desc_t *A, CHAM_desc_t *B, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 int CHAMELEON_zhemm_Tile_Async(cham_side_t side, cham_uplo_t uplo, CHAMELEON_Complex64_t alpha, CHAM_desc_t *A, CHAM_desc_t *B, CHAMELEON_Complex64_t beta, CHAM_desc_t *C, void *ws, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
@@ -237,8 +236,7 @@ int CHAMELEON_zlansy_Tile_Async(cham_normtype_t norm, cham_uplo_t uplo, CHAM_des
 int CHAMELEON_zlantr_Tile_Async(cham_normtype_t norm, cham_uplo_t uplo, cham_diag_t diag, CHAM_desc_t *A, double *value, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 int CHAMELEON_zlascal_Tile_Async(cham_uplo_t uplo, CHAMELEON_Complex64_t alpha, CHAM_desc_t *A, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 int CHAMELEON_zlaset_Tile_Async(cham_uplo_t uplo, CHAMELEON_Complex64_t alpha, CHAMELEON_Complex64_t beta, CHAM_desc_t *A, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
-//int CHAMELEON_zlaswp_Tile_Async(CHAM_desc_t *A, int K1, int K2, int *IPIV, int INCX, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
-//int CHAMELEON_zlaswpc_Tile_Async(CHAM_desc_t *A, int K1, int K2, int *IPIV, int INCX, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
+int CHAMELEON_zlaswp_Tile_Async( cham_side_t side, cham_dir_t dir, CHAM_desc_t *A, int K1, int K2, CHAM_ipiv_t *IPIV, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request );
 int CHAMELEON_zlatms_Tile_Async( cham_dist_t idist, unsigned long long int seed, cham_sym_t sym, double *D, int mode, double cond, double dmax, CHAM_desc_t *A, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request );
 int CHAMELEON_zlauum_Tile_Async(cham_uplo_t uplo, CHAM_desc_t *A, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 int CHAMELEON_zplghe_Tile_Async(double bump, cham_uplo_t uplo, CHAM_desc_t *A, unsigned long long int seed, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request );
@@ -371,6 +369,7 @@ int CHAMELEON_zLapack_to_Tile( CHAMELEON_Complex64_t *Af77, int LDA, CHAM_desc_t
 int CHAMELEON_zTile_to_Lapack( CHAM_desc_t *A, CHAMELEON_Complex64_t *Af77, int LDA ) __attribute__((deprecated("Please refer to CHAMELEON_zDesc2Lap() instead")));
 int CHAMELEON_zLap2Desc( cham_uplo_t uplo, CHAMELEON_Complex64_t *Af77, int LDA, CHAM_desc_t *A );
 int CHAMELEON_zDesc2Lap( cham_uplo_t uplo, CHAM_desc_t *A, CHAMELEON_Complex64_t *Af77, int LDA );
+void CHAMELEON_Ipiv_Init( const CHAM_desc_t *descA, CHAM_ipiv_t *descIPIV );
 
 /**
  *  User Builder function prototypes

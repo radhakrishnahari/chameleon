@@ -17,7 +17,8 @@
  * @author Lionel Eyraud-Dubois
  * @author Xavier Lacoste
  * @author Florent Pruvost
- * @date 2025-01-29
+ * @author Matteo Marcos
+ * @date 2025-03-24
  * @precisions normal z -> c d s
  *
  */
@@ -106,47 +107,24 @@ testing_zgetrf_desc( run_arg_list_t *args, int check )
     testing_stop( &test_data, flops_zgetrf( M, N ) );
 
     /* Checks the factorization and residual */
-#if !defined(CHAMELEON_SIMULATION)
     if ( check ) {
-        CHAM_desc_t *descA0c;
         CHAM_desc_t *descA0 = CHAMELEON_Desc_Copy( descA, CHAMELEON_MAT_ALLOC_TILE );
 
-        /* Create A0c as local to rank 0 on all nodes to gather the matrix */
-        CHAMELEON_Desc_Create_User(
-            &descA0c, (void*)CHAMELEON_MAT_ALLOC_GLOBAL, ChamComplexDouble,
-            nb, nb, nb*nb, M, N, 0, 0, M, N, 1, 1,
-            chameleon_getaddr_cm, chameleon_getblkldd_cm, NULL, NULL );
-
         if ( diag == ChamUnit ) {
-            CHAMELEON_zplgtr_Tile( 0,     ChamUpper, descA0c, seedA   );
-            CHAMELEON_zplgtr_Tile( minMN, ChamLower, descA0c, seedA+1 );
+            CHAMELEON_zplgtr_Tile( 0,     ChamUpper, descA0, seedA   );
+            CHAMELEON_zplgtr_Tile( minMN, ChamLower, descA0, seedA+1 );
         }
         else {
-            CHAMELEON_zplrnt_Tile( descA0c, seedA );
+            CHAMELEON_zplrnt_Tile( descA0, seedA );
         }
 
-        /* Compute the permutation of A0: P * A0 */
-        if ( CHAMELEON_Comm_rank() == 0 ) {
-            int *ipiv;
-
-            ipiv = malloc( sizeof(int) * minMN );
-            CHAMELEON_Ipiv_Gather( descIPIV, ipiv, 0 );
-            LAPACKE_zlaswp( LAPACK_COL_MAJOR, N, descA0c->mat, M, 1, minMN, ipiv, 1 );
-            free( ipiv );
-        }
-        else {
-            CHAMELEON_Ipiv_Gather( descIPIV, NULL, 0 );
-        }
-
-        CHAMELEON_zlacpy_Tile( ChamUpperLower, descA0c, descA0 );
-        CHAMELEON_Desc_Destroy( &descA0c );
+        CHAMELEON_zlaswp_Tile( ChamLeft, ChamDirForward, descA0, 1, descA0->m, descIPIV );
 
         hres += check_zxxtrf( args, ChamGeneral, ChamUpperLower,
                               descA0, descA );
 
         CHAMELEON_Desc_Destroy( &descA0 );
     }
-#endif /* !defined(CHAMELEON_SIMULATION) */
 
     if ( ws != NULL ) {
         CHAMELEON_zgetrf_WS_Free( ws );
@@ -223,7 +201,7 @@ testing_zgetrf_std( run_arg_list_t *args, int check )
         CHAMELEON_zplrnt( M, N, A0, LDA, seedA );
 
         /* Compute the permutation of A0: P * A0 */
-        LAPACKE_zlaswp( LAPACK_COL_MAJOR, N, A0, M, 1, minMN, IPIV, 1 );
+        CHAMELEON_zlaswp( ChamLeft, ChamDirForward, M, N, A0, 1, minMN, minMN, IPIV );
 
         hres += check_zxxtrf_std( args, ChamGeneral, ChamUpperLower, M, N, A0, A, LDA );
 

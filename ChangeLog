@@ -1,5 +1,7 @@
 chameleon-1.4.0
 ------------------------------------------------------------------------
+ - Add the laswp driver and testing. Be careful, the interface does not follow the lapack API to propose the op(P) \times A, or A \times op(P) operation with op(P) equal to P or P^{-1}
+ - Add the gesv driver to perform LU factorization and solve with its associated testing.
  - StarPU: Update the minimum requirement from 1.3 to 1.4
  - StarPU: When using starpu > 1.4.8, use the new distributed submit interface in the codelets instead of the classical insert task interface.
  - ci: use -Werror to prevent from adding warning to the code
