@@ -18,4 +18,5 @@ lda = 40
 k1 = 1, 2, 10
 k2 = 1, 2, 10
 dir = Forward, Backward
+side = Left, Right
 
