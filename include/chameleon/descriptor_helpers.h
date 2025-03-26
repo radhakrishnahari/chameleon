@@ -71,6 +71,11 @@ void chameleon_get_proc_involved_in_panelk_2dbc( const CHAM_desc_t *A,
                                                  int                n,
                                                  void              *ws_getrf );
 
+void chameleon_get_proc_involved_in_rowpanelk_2dbc( const CHAM_desc_t *A,
+                                                    int                m,
+                                                    int                k,
+                                                    void              *ws_getrf );
+
 /**
  * @}
  * @name Block address functions

@@ -55,13 +55,13 @@ INSERT_TASK_zperm_allreduce_send_perm( const RUNTIME_option_t *options,
 }
 
 void
-INSERT_TASK_zperm_allreduce_send_invp( const RUNTIME_option_t *options,
-                                       cham_dir_t              dir,
-                                       CHAM_ipiv_t            *ipiv,
-                                       int                     ipivk,
-                                       const CHAM_desc_t      *A,
-                                       int                     k,
-                                       int                     n )
+INSERT_TASK_zperm_allreduce_send_invp_row( const RUNTIME_option_t *options,
+                                           cham_dir_t              dir,
+                                           CHAM_ipiv_t            *ipiv,
+                                           int                     ipivk,
+                                           const CHAM_desc_t      *A,
+                                           int                     k,
+                                           int                     n )
 {
     (void)options;
     (void)dir;
@@ -73,17 +73,17 @@ INSERT_TASK_zperm_allreduce_send_invp( const RUNTIME_option_t *options,
 }
 
 void
-INSERT_TASK_zperm_allreduce( const RUNTIME_option_t *options,
-                             cham_dir_t              dir,
-                             const CHAM_desc_t      *A,
-                             CHAM_desc_t            *U,
-                             int                     Um,
-                             int                     Un,
-                             CHAM_ipiv_t            *ipiv,
-                             int                     ipivk,
-                             int                     k,
-                             int                     n,
-                             void                   *ws )
+INSERT_TASK_zperm_allreduce_row( const RUNTIME_option_t *options,
+                                 cham_dir_t              dir,
+                                 const CHAM_desc_t      *A,
+                                 CHAM_desc_t            *U,
+                                 int                     Um,
+                                 int                     Un,
+                                 CHAM_ipiv_t            *ipiv,
+                                 int                     ipivk,
+                                 int                     k,
+                                 int                     n,
+                                 void                   *ws )
 {
     (void)options;
     (void)dir;

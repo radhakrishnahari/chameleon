@@ -188,6 +188,14 @@ int CORE_zlaswp_set( int m0, int m, int n, int k,
                      const CHAMELEON_Complex64_t *A, int lda,
                      CHAMELEON_Complex64_t *B, int ldb,
                      const int *invp );
+int CORE_zlaswpc_get( int n0, int m, int n, int k,
+                      const CHAMELEON_Complex64_t *A, int lda,
+                      CHAMELEON_Complex64_t *B, int ldb,
+                      const int *perm );
+int CORE_zlaswpc_set( int n0, int m, int n, int k,
+                      const CHAMELEON_Complex64_t *A, int lda,
+                      CHAMELEON_Complex64_t *B, int ldb,
+                      const int *invp );
 int  CORE_zlaswp_ontile( CHAM_desc_t descA, int i1, int i2, const int *ipiv, int inc);
 int  CORE_zlaswpc_ontile(CHAM_desc_t descA, int i1, int i2, const int *ipiv, int inc);
 int  CORE_zlatro(cham_uplo_t uplo, cham_trans_t trans,

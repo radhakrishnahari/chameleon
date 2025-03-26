@@ -169,6 +169,52 @@ void chameleon_get_proc_involved_in_panelk_2dbc( const CHAM_desc_t *A,
 }
 
 /**
+ * @brief Test if the current MPI process is involved in the panel k for 2DBC distributions.
+ *
+ * @param[in] A
+ *        The matrix descriptor.
+ *
+ * @param[in] m
+ *        The index of the panel to test.
+ *
+ * @param[in] k
+ *        The index of the panel to test.
+ *
+ * @param[inout] ws_getrf
+ *        The i.
+ *
+ */
+void chameleon_get_proc_involved_in_rowpanelk_2dbc( const CHAM_desc_t *A,
+                                                    int                m,
+                                                    int                k,
+                                                    void              *ws_getrf )
+{
+#if defined (CHAMELEON_USE_MPI)
+    struct chameleon_pzgetrf_s *ws = (struct chameleon_pzgetrf_s *)ws_getrf;
+    int *proc_involved = ws->proc_involved;
+    int  b, rank, np;
+
+    np = 0;
+    ws->involved = 0;
+    for ( b = k; (b < A->nt) && ((b-k) < chameleon_desc_datadist_get_iparam(A, 1)); b ++ ) {
+        rank = chameleon_getrankof_2d( A, m, b );
+        proc_involved[ b-k ] = rank;
+        np ++;
+        if ( rank == A->myrank ) {
+            ws->involved = 1;
+        }
+    }
+    ws->proc_involved = proc_involved;
+    ws->np_involved   = np;
+#else
+    (void)A;
+    (void)k;
+    (void)m;
+    (void)ws_getrf;
+#endif
+}
+
+/**
  * @brief Initializes a custom distribution based on an external file.
  *
  *  External file format: First line contains the dimensions M and N (space-separated)

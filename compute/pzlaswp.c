@@ -61,7 +61,7 @@ chameleon_pzlaswp_panel_permute( struct chameleon_pzgetrf_s *ws,
                                ipiv, k, A(k, n), A(m, n) );
     }
 
-    INSERT_TASK_zperm_allreduce( options, dir, A, Wu(A->myrank, n), ipiv, k, k, n, ws );
+    INSERT_TASK_zperm_allreduce_row( options, dir, A, Wu(A->myrank, n), ipiv, k, k, n, ws );
 }
 
 static inline void
@@ -80,7 +80,7 @@ chameleon_pzlaswp_panel( struct chameleon_pzgetrf_s *ws,
     chameleon_get_proc_involved_in_panelk_2dbc( A, k, n, ws );
     if ( A->myrank == chameleon_getrankof_2d( A, k, k ) ) {
         INSERT_TASK_zperm_allreduce_send_perm( options, dir, ipiv, k, A->myrank, ws->np_involved, ws->proc_involved );
-        INSERT_TASK_zperm_allreduce_send_invp( options, dir, ipiv, k, A, k, n );
+        INSERT_TASK_zperm_allreduce_send_invp_row( options, dir, ipiv, k, A, k, n );
     }
     if ( A->myrank == chameleon_getrankof_2d( A, k, n ) ) {
         INSERT_TASK_zperm_allreduce_send_A( options, A, k, n, A->myrank, ws->np_involved, ws->proc_involved );

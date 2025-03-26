@@ -83,10 +83,12 @@ set(CODELETS_ZSRC
     codelets/codelet_zlaset.c
     codelets/codelet_zlaset2.c
     codelets/codelet_zlaswp.c
+    codelets/codelet_zlaswpc.c
     codelets/codelet_zlaswp_batched.c
     codelets/codelet_zlatro.c
     codelets/codelet_zlauum.c
     codelets/codelet_zperm_allreduce.c
+    codelets/codelet_zperm_allreduce_col.c
     codelets/codelet_zplghe.c
     codelets/codelet_zplgsy.c
     codelets/codelet_zplrnt.c
