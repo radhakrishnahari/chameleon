@@ -48,7 +48,7 @@ testing_zlaswp_desc( run_arg_list_t *args, int check )
     int         nb      = run_arg_get_nb(  args );
     int         N       = run_arg_get_int( args, "N", 1000 );
     int         M       = run_arg_get_int( args, "M", N );
-    int         LDA     = run_arg_get_int( args, "LDA", N );
+    int         LDA     = run_arg_get_int( args, "LDA", M );
     int         seedA   = run_arg_get_int( args, "seedA", testing_ialea() );
     int         K1      = run_arg_get_int( args, "K1", 1 );
     int         K2      = run_arg_get_int( args, "K2", M );
@@ -57,18 +57,19 @@ testing_zlaswp_desc( run_arg_list_t *args, int check )
     int *IPIV     = malloc( sizeof(int) * K );
 
     /* Descriptors */
-    CHAM_desc_t *descA;
+    CHAM_desc_t *descA, *descInit;
     CHAM_ipiv_t *descIPIV;
 
     CHAMELEON_Set( CHAMELEON_TILE_SIZE, nb );
 
     /* Creates the matrices */
+    parameters_desc_create( "Init", &descInit, ChamComplexDouble, nb, nb, K, K, K, K );
     parameters_desc_create( "A", &descA, ChamComplexDouble, nb, nb, LDA, N, M, N );
     CHAMELEON_zplrnt_Tile( descA, seedA );
 
     testing_zlaswp_ipiv_gen( IPIV, K );
-    CHAMELEON_Ipiv_Create( &descIPIV, descA, K, IPIV );
-    CHAMELEON_Ipiv_Init( descA, descIPIV );
+    CHAMELEON_Ipiv_Create( &descIPIV, descInit, K, IPIV );
+    CHAMELEON_Ipiv_Init( descInit, descIPIV );
 
     /* Calculates the solution */
     testing_start( &test_data );
