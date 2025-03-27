@@ -57,7 +57,7 @@ testing_zgetrs_desc( run_arg_list_t *args, int check )
     /* Creates the matrices */
     parameters_desc_create( "A", &descA, ChamComplexDouble, nb, nb, LDA, N, N, N );
     parameters_desc_create( "X", &descX, ChamComplexDouble, nb, nb, LDB, NRHS, N, NRHS );
-    CHAMELEON_Ipiv_Create( &descIPIV, descA, NULL );
+    CHAMELEON_Ipiv_Create( &descIPIV, descA, N, NULL );
 
     CHAMELEON_zplrnt_Tile( descA, seedA );
     CHAMELEON_zplrnt_Tile( descX, seedB );

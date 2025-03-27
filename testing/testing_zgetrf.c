@@ -78,7 +78,7 @@ testing_zgetrf_desc( run_arg_list_t *args, int check )
 
     /* Creates the matrices */
     parameters_desc_create( "A", &descA, ChamComplexDouble, nb, nb, LDA, N, M, N );
-    CHAMELEON_Ipiv_Create( &descIPIV, descA, NULL );
+    CHAMELEON_Ipiv_Create( &descIPIV, descA, minMN, NULL );
 
     /* Fills the matrix with random values */
     if ( diag == ChamUnit ) {

@@ -78,7 +78,7 @@ CHAM_desc_t* chameleon_desc_submatrix( CHAM_desc_t *descA, int i, int j, int m, 
 void         chameleon_desc_destroy  ( CHAM_desc_t *desc );
 int          chameleon_desc_check    ( const CHAM_desc_t *desc );
 
-int chameleon_ipiv_init( CHAM_ipiv_t *ipiv, const CHAM_desc_t *desc, void *data );
+int chameleon_ipiv_init( CHAM_ipiv_t *ipiv, const CHAM_desc_t *desc, int m, void *data );
 void chameleon_ipiv_destroy( CHAM_ipiv_t *ipiv, const CHAM_desc_t *desc );
 
 /**

@@ -137,7 +137,7 @@ int CHAMELEON_zgesv( int N, int NRHS,
     if ( ( wsA->alg == ChamGetrfPPivPerColumn ) ||
          ( wsA->alg == ChamGetrfPPiv ) )
     {
-        chameleon_ipiv_init( &descIPIV, &descAt, IPIV );
+        chameleon_ipiv_init( &descIPIV, &descAt, N, IPIV );
     }
 
     /* Call the tile interface */

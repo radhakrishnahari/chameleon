@@ -217,6 +217,7 @@ int  CHAMELEON_Recursive_Desc_Create( CHAM_desc_t **descptr, void *mat, cham_flt
 
 int CHAMELEON_Ipiv_Create ( CHAM_ipiv_t       **ipivptr,
                             const CHAM_desc_t  *desc,
+                            int                 m,
                             void               *data );
 int CHAMELEON_Ipiv_Destroy( CHAM_ipiv_t       **ipivptr,
                             const CHAM_desc_t  *desc );

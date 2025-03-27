@@ -87,6 +87,7 @@ int CHAMELEON_zlaswp( cham_side_t            side,
     RUNTIME_request_t   request  = RUNTIME_REQUEST_INITIALIZER;
     CHAM_desc_t         descAl, descAt;
     CHAM_ipiv_t        *descIPIV;
+    int                 K = ( side == ChamLeft ) ? M : N;
 
     chamctxt = chameleon_context_self();
     if ( chamctxt == NULL ) {
@@ -139,7 +140,7 @@ int CHAMELEON_zlaswp( cham_side_t            side,
     /* Submit the matrix conversion */
     chameleon_zlap2tile( chamctxt, &descAl, &descAt, ChamDescInput, ChamUpperLower,
                          A, NB, NB, LDA, N, M, N, sequence, &request );
-    CHAMELEON_Ipiv_Create( &descIPIV, &descAt, IPIV );
+    CHAMELEON_Ipiv_Create( &descIPIV, &descAt, K, IPIV );
 
     CHAMELEON_Ipiv_Init( &descAt, descIPIV );
 

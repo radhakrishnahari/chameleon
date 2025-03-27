@@ -139,7 +139,7 @@ int CHAMELEON_zgetrs( cham_trans_t trans, int N, int NRHS,
                          B, NB, NB, LDB, NRHS, N, NRHS, sequence, &request );
 
     ws = CHAMELEON_zgetrf_WS_Alloc( &descBt );
-    CHAMELEON_Ipiv_Create( &descIPIV, &descAt, IPIV );
+    CHAMELEON_Ipiv_Create( &descIPIV, &descAt, N, IPIV );
     CHAMELEON_Ipiv_Init( &descAt, descIPIV );
 
     /* Call the tile interface */

@@ -46,6 +46,9 @@
  * @param[in] desc
  *          The tile descriptor for which an associated ipiv descriptor must be generated.
  *
+ * @param[in] m
+ *          The size of the pivot array.
+ *
  * @param[in] data
  *          The pointer to the original vector where to store the pivot values.
  *
@@ -54,7 +57,7 @@
  * @return CHAMELEON_SUCCESS on success, CHAMELEON_ERR_NOT_INITIALIZED otherwise.
  *
  */
-int chameleon_ipiv_init( CHAM_ipiv_t *ipiv, const CHAM_desc_t *desc, void *data )
+int chameleon_ipiv_init( CHAM_ipiv_t *ipiv, const CHAM_desc_t *desc, int m, void *data )
 {
     CHAM_context_t *chamctxt;
     int rc = CHAMELEON_SUCCESS;
@@ -70,7 +73,7 @@ int chameleon_ipiv_init( CHAM_ipiv_t *ipiv, const CHAM_desc_t *desc, void *data 
     ipiv->desc = desc;
     ipiv->data = data;
     ipiv->i    = 0;
-    ipiv->m    = chameleon_min( desc->m, desc->n );
+    ipiv->m    = m;
     ipiv->mb   = desc->mb;
     ipiv->mt   = chameleon_ceil( ipiv->m, ipiv->mb );
 
@@ -114,6 +117,9 @@ void chameleon_ipiv_destroy( CHAM_ipiv_t       *ipiv,
  * @param[in] desc
  *          The tile descriptor for which an associated ipiv descriptor must be generated.
  *
+ * @param[in] m
+ *          The size of the pivot array.
+ *
  * @param[in] data
  *          The pointer to the original vector where to store the pivot values.
  *
@@ -124,7 +130,7 @@ void chameleon_ipiv_destroy( CHAM_ipiv_t       *ipiv,
  * @retval CHAMELEON_ERR_OUT_OF_RESOURCES if failed to allocated some ressources.
  *
  */
-int CHAMELEON_Ipiv_Create( CHAM_ipiv_t **ipivptr, const CHAM_desc_t *desc, void *data )
+int CHAMELEON_Ipiv_Create( CHAM_ipiv_t **ipivptr, const CHAM_desc_t *desc, int m, void *data )
 {
     CHAM_context_t *chamctxt;
     CHAM_ipiv_t *ipiv;
@@ -142,7 +148,7 @@ int CHAMELEON_Ipiv_Create( CHAM_ipiv_t **ipivptr, const CHAM_desc_t *desc, void 
         return CHAMELEON_ERR_OUT_OF_RESOURCES;
     }
 
-    chameleon_ipiv_init( ipiv, desc, data );
+    chameleon_ipiv_init( ipiv, desc, m, data );
 
     *ipivptr = ipiv;
     return CHAMELEON_SUCCESS;

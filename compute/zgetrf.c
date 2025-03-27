@@ -335,7 +335,7 @@ CHAMELEON_zgetrf( int M, int N, CHAMELEON_Complex64_t *A, int LDA, int *IPIV )
     if ( ( ws->alg == ChamGetrfPPivPerColumn ) ||
          ( ws->alg == ChamGetrfPPiv ) )
     {
-        chameleon_ipiv_init( &descIPIV, &descAt, IPIV );
+        chameleon_ipiv_init( &descIPIV, &descAt, chameleon_min( M, N ), IPIV );
     }
 
     /* Call the tile interface */

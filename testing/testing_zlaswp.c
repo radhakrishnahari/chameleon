@@ -53,7 +53,8 @@ testing_zlaswp_desc( run_arg_list_t *args, int check )
     int         K1      = run_arg_get_int( args, "K1", 1 );
     int         K2      = run_arg_get_int( args, "K2", M );
 
-    int *IPIV     = malloc( sizeof(int) * M );
+    int  K        = ( side == ChamLeft ) ? M : N;
+    int *IPIV     = malloc( sizeof(int) * K );
 
     /* Descriptors */
     CHAM_desc_t *descA;
@@ -65,8 +66,8 @@ testing_zlaswp_desc( run_arg_list_t *args, int check )
     parameters_desc_create( "A", &descA, ChamComplexDouble, nb, nb, LDA, N, M, N );
     CHAMELEON_zplrnt_Tile( descA, seedA );
 
-    testing_zlaswp_ipiv_gen( IPIV, M );
-    CHAMELEON_Ipiv_Create( &descIPIV, descA, IPIV );
+    testing_zlaswp_ipiv_gen( IPIV, K );
+    CHAMELEON_Ipiv_Create( &descIPIV, descA, K, IPIV );
     CHAMELEON_Ipiv_Init( descA, descIPIV );
 
     /* Calculates the solution */
