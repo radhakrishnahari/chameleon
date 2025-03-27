@@ -94,10 +94,6 @@ int CHAMELEON_zlaswp( cham_side_t            side,
         chameleon_fatal_error("CHAMELEON_zlaswp", "CHAMELEON not initialized");
         return CHAMELEON_ERR_NOT_INITIALIZED;
     }
-    if ( side == ChamRight ) {
-        chameleon_fatal_error("CHAMELEON_zlaswp", "Only ChamLeft is implemented");
-        return CHAMELEON_ERR_NOT_SUPPORTED;
-    }
     /* Check input arguments */
     if ( M < 0 ) {
         chameleon_error("CHAMELEON_zlaswp", "illegal value of M");
@@ -111,11 +107,11 @@ int CHAMELEON_zlaswp( cham_side_t            side,
         chameleon_error("CHAMELEON_zlaswp", "illegal value of LDA");
         return -5;
     }
-    if ( ( K1 < 1 ) || ( K1 > M ) ) {
+    if ( ( K1 < 1 ) || ( K1 > K ) ) {
         chameleon_error("CHAMELEON_zlaswp", "illegal value of K1");
         return -6;
     }
-    if ( ( K2 < 1 ) || ( K2 > M ) ) {
+    if ( ( K2 < 1 ) || ( K2 > K ) ) {
         chameleon_error("CHAMELEON_zlaswp", "illegal value of K2");
         return -7;
     }
@@ -228,10 +224,6 @@ int CHAMELEON_zlaswp_Tile( cham_side_t  side,
         chameleon_fatal_error("CHAMELEON_zlaswp_Tile", "CHAMELEON not initialized");
         return CHAMELEON_ERR_NOT_INITIALIZED;
     }
-    if ( side == ChamRight ) {
-        chameleon_fatal_error("CHAMELEON_zlaswp", "Only ChamLeft is implemented");
-        return CHAMELEON_ERR_NOT_SUPPORTED;
-    }
     if ( ( K1 < 1 ) || ( K1 > A->m ) ) {
         chameleon_error("CHAMELEON_zlaswp", "illegal value of K1");
         return CHAMELEON_ERR_ILLEGAL_VALUE;
@@ -317,22 +309,19 @@ int CHAMELEON_zlaswp_Tile_Async( cham_side_t         side,
     CHAM_context_t             *chamctxt;
     struct chameleon_pzgetrf_s *ws;
     RUNTIME_option_t            options;
-    int                         k, tempkm;
+    int                         k;
+    int                         K = ( side == ChamLeft ) ? A->m : A->n;
 
     chamctxt = chameleon_context_self();
     if ( chamctxt == NULL ) {
         chameleon_fatal_error("CHAMELEON_zlaswp_Tile_Async", "CHAMELEON not initialized");
         return CHAMELEON_ERR_NOT_INITIALIZED;
     }
-    if ( side == ChamRight ) {
-        chameleon_fatal_error("CHAMELEON_zlaswp", "Only ChamLeft is implemented");
-        return CHAMELEON_ERR_NOT_SUPPORTED;
-    }
-    if ( ( K1 < 1 ) || ( K1 > A->m ) ) {
+    if ( ( K1 < 1 ) || ( K1 > K ) ) {
         chameleon_error("CHAMELEON_zlaswp", "illegal value of K1");
         return CHAMELEON_ERR_ILLEGAL_VALUE;
     }
-    if ( ( K2 < 1 ) || ( K2 > A->m ) ) {
+    if ( ( K2 < 1 ) || ( K2 > K ) ) {
         chameleon_error("CHAMELEON_zlaswp", "illegal value of K2");
         return CHAMELEON_ERR_ILLEGAL_VALUE;
     }
@@ -370,17 +359,37 @@ int CHAMELEON_zlaswp_Tile_Async( cham_side_t         side,
 
     if ( IPIV->data != NULL ) {
         RUNTIME_options_init( &options, chamctxt, sequence, request );
-        for ( k = 0; k < A->mt; k++ ) {
-            tempkm = A->get_blkdim( A, k, DIM_m, A->m );
-            INSERT_TASK_ipiv_to_perm( &options, k * A->mb, tempkm, tempkm, K1 - 1, K2 - 1,
-                                      IPIV, k );
+        if ( side == ChamLeft ) {
+            int tempkm, m0;
+
+            for ( k = 0; k < A->mt; k++ ) {
+                tempkm = A->get_blkdim( A, k, DIM_m, A->m );
+                m0 = k * A->mb;
+                INSERT_TASK_ipiv_to_perm( &options, m0, tempkm, tempkm, K1 - 1, K2 - 1,
+                                               IPIV, k );
+            }
+        }
+        else {
+            int tempkn, n0;
+
+            for ( k = 0; k < A->nt; k++ ) {
+                tempkn = A->get_blkdim( A, k, DIM_n, A->n );
+                n0 = k * A->nb;
+                INSERT_TASK_ipiv_to_perm( &options, n0, tempkn, tempkn, K1 - 1, K2 - 1,
+                                               IPIV, k );
+            }
         }
         chameleon_sequence_wait( chamctxt, sequence );
     }
 
     ws = CHAMELEON_zgetrf_WS_Alloc( A );
 
-    chameleon_pzlaswp( ws, dir, A, IPIV, sequence, request );
+    if ( side == ChamLeft ) {
+        chameleon_pzlaswp( ws, dir, A, IPIV, sequence, request );
+    }
+    else {
+        chameleon_pzlaswpc( ws, dir, A, IPIV, sequence, request );
+    }
 
     CHAMELEON_zgetrf_WS_Free( ws );
 
