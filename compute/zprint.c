@@ -60,6 +60,7 @@ static cham_map_operator_t zprint_map = {
 #endif
     .cudafunc = NULL,
     .hipfunc  = NULL,
+    .synchronous = 1,
 };
 
 /**

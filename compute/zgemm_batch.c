@@ -139,10 +139,11 @@ zgemm_batch_cuda( cublasHandle_t handle, void *op_args,
 #endif
 
 static cham_map_operator_t zgemm_batch_map = {
-    .name     = "zgemm",
-    .cpufunc  = zgemm_batch_cpu,
-    .cudafunc = zgemm_batch_cuda,
-    .hipfunc  = NULL,
+    .name        = "zgemm",
+    .cpufunc     = zgemm_batch_cpu,
+    .cudafunc    = zgemm_batch_cuda,
+    .hipfunc     = NULL,
+    .synchronous = 0,
 };
 
 /**

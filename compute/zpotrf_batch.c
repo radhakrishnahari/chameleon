@@ -56,10 +56,11 @@ zpotrf_batch_cpu( void *op_args,
 #endif
 
 static cham_map_operator_t zpotrf_batch_map = {
-    .name     = "zpotrf",
-    .cpufunc  = zpotrf_batch_cpu,
-    .cudafunc = NULL,
-    .hipfunc  = NULL,
+    .name        = "zpotrf",
+    .cpufunc     = zpotrf_batch_cpu,
+    .cudafunc    = NULL,
+    .hipfunc     = NULL,
+    .synchronous = 0,
 };
 
 /**
