@@ -128,10 +128,11 @@ typedef void *cham_map_hip_fct_t;
  * @brief Structure to store the operator functions on any architecture
  */
 typedef struct cham_map_operator_s {
-    const char         *name;     /**< Name of the operator to be used in debug/tracing mode */
-    cham_map_cpu_fct_t  cpufunc;  /**< Pointer to the CPU function of the operator           */
-    cham_map_cuda_fct_t cudafunc; /**< Pointer to the CUDA/cuBLAS function of the operator   */
-    cham_map_hip_fct_t  hipfunc;  /**< Pointer to the HIP function of the operator           */
+    const char         *name;        /**< Name of the operator to be used in debug/tracing mode */
+    cham_map_cpu_fct_t  cpufunc;     /**< Pointer to the CPU function of the operator           */
+    cham_map_cuda_fct_t cudafunc;    /**< Pointer to the CUDA/cuBLAS function of the operator   */
+    cham_map_hip_fct_t  hipfunc;     /**< Pointer to the HIP function of the operator           */
+    int                 synchronous; /**< Specify if the kernel must be run in synchronous mode */
 } cham_map_operator_t;
 
 /**
