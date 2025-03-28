@@ -384,9 +384,9 @@ int CHAMELEON_zgetrs_Tile_Async( cham_trans_t        trans,
         chameleon_pztrsm( ChamLeft, ChamUpper, ChamNoTrans, ChamNonUnit, (CHAMELEON_Complex64_t)1.0, A, B, sequence, request );
     }
     else {
-        chameleon_pztrsm( ChamLeft, ChamUpper, ChamNoTrans, ChamNonUnit, (CHAMELEON_Complex64_t)1.0, A, B, sequence, request );
+        chameleon_pztrsm( ChamLeft, ChamUpper, ChamTrans, ChamNonUnit, (CHAMELEON_Complex64_t)1.0, A, B, sequence, request );
 
-        chameleon_pztrsm( ChamLeft, ChamLower, ChamNoTrans, ChamUnit, (CHAMELEON_Complex64_t)1.0, A, B, sequence, request );
+        chameleon_pztrsm( ChamLeft, ChamLower, ChamTrans, ChamUnit, (CHAMELEON_Complex64_t)1.0, A, B, sequence, request );
 
         chameleon_pzlaswp( ws, ChamDirBackward, B, IPIV, sequence, request );
     }
