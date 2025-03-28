@@ -35,15 +35,16 @@ testing_zgetrs_desc( run_arg_list_t *args, int check )
     int        hres      = 0;
 
     /* Read arguments */
-    int         async = parameters_getvalue_int( "async" );
-    int         nb    = run_arg_get_nb( args );
-    int         ib    = run_arg_get_ib( args );
-    int         N     = run_arg_get_int( args, "N", 1000 );
-    int         NRHS  = run_arg_get_int( args, "NRHS", 1 );
-    int         LDA   = run_arg_get_int( args, "LDA", N );
-    int         LDB   = run_arg_get_int( args, "LDB", N );
-    int         seedA = run_arg_get_int( args, "seedA", testing_ialea() );
-    int         seedB = run_arg_get_int( args, "seedB", testing_ialea() );
+    int           async = parameters_getvalue_int( "async" );
+    int           nb    = run_arg_get_nb( args );
+    int           ib    = run_arg_get_ib( args );
+    cham_trans_t  trans = run_arg_get_trans( args, "trans", ChamNoTrans );
+    int           N     = run_arg_get_int( args, "N", 1000 );
+    int           NRHS  = run_arg_get_int( args, "NRHS", 1 );
+    int           LDA   = run_arg_get_int( args, "LDA", N );
+    int           LDB   = run_arg_get_int( args, "LDB", N );
+    int           seedA = run_arg_get_int( args, "seedA", testing_ialea() );
+    int           seedB = run_arg_get_int( args, "seedB", testing_ialea() );
 
     /* Descriptors */
     CHAM_desc_t *descA, *descX;
@@ -70,12 +71,12 @@ testing_zgetrs_desc( run_arg_list_t *args, int check )
     /* Calculates the solution */
     testing_start( &test_data );
     if ( async ) {
-        hres = CHAMELEON_zgetrs_Tile_Async( ChamNoTrans, descA, descIPIV, descX, ws, test_data.sequence, &test_data.request );
+        hres = CHAMELEON_zgetrs_Tile_Async( trans, descA, descIPIV, descX, ws, test_data.sequence, &test_data.request );
         CHAMELEON_Desc_Flush( descA, test_data.sequence );
         CHAMELEON_Ipiv_Flush( descIPIV, test_data.sequence );
     }
     else {
-        hres = CHAMELEON_zgetrs_Tile( ChamNoTrans, descA, descIPIV, descX );
+        hres = CHAMELEON_zgetrs_Tile( trans, descA, descIPIV, descX );
     }
     test_data.hres = hres;
     testing_stop( &test_data, flops_zgetrs( N, NRHS ) );
@@ -91,7 +92,7 @@ testing_zgetrs_desc( run_arg_list_t *args, int check )
         CHAMELEON_zplrnt_Tile( descA0, seedA );
         CHAMELEON_zplrnt_Tile( descB,  seedB );
 
-        hres += check_zsolve( args, ChamGeneral, ChamNoTrans, ChamUpperLower, descA0, descX, descB );
+        hres += check_zsolve( args, ChamGeneral, trans, ChamUpperLower, descA0, descX, descB );
 
         CHAMELEON_Desc_Destroy( &descA0 );
         CHAMELEON_Desc_Destroy( &descB );
@@ -118,15 +119,16 @@ testing_zgetrs_std( run_arg_list_t *args, int check )
 
     /* Read arguments */
 #if !defined(CHAMELEON_TESTINGS_VENDOR)
-    int         api   = parameters_getvalue_int( "api" );
+    int           api   = parameters_getvalue_int( "api" );
 #endif
-    int         nb    = run_arg_get_nb( args );
-    int         N     = run_arg_get_int( args, "N", 1000 );
-    int         NRHS  = run_arg_get_int( args, "NRHS", 1 );
-    int         LDA   = run_arg_get_int( args, "LDA", N );
-    int         LDB   = run_arg_get_int( args, "LDB", N );
-    int         seedA = run_arg_get_int( args, "seedA", testing_ialea() );
-    int         seedB = run_arg_get_int( args, "seedB", testing_ialea() );
+    int           nb    = run_arg_get_nb( args );
+    cham_trans_t  trans = run_arg_get_trans( args, "trans", ChamNoTrans );
+    int           N     = run_arg_get_int( args, "N", 1000 );
+    int           NRHS  = run_arg_get_int( args, "NRHS", 1 );
+    int           LDA   = run_arg_get_int( args, "LDA", N );
+    int           LDB   = run_arg_get_int( args, "LDB", N );
+    int           seedA = run_arg_get_int( args, "seedA", testing_ialea() );
+    int           seedB = run_arg_get_int( args, "seedB", testing_ialea() );
 
     /* Descriptors */
     CHAMELEON_Complex64_t *A, *X;
@@ -148,14 +150,14 @@ testing_zgetrs_std( run_arg_list_t *args, int check )
     /* Calculates the solution */
 #if defined(CHAMELEON_TESTINGS_VENDOR)
     testing_start( &test_data );
-    hres = LAPACKE_zgetrs( LAPACK_COL_MAJOR, 'N', N, NRHS, A, LDA, IPIV, X, LDB );
+    hres = LAPACKE_zgetrs( LAPACK_COL_MAJOR, chameleon_lapack_const(trans), N, NRHS, A, LDA, IPIV, X, LDB );
     test_data.hres = hres;
     testing_stop( &test_data, flops_zgetrs( N, NRHS ) );
 #else
     testing_start( &test_data );
     switch ( api ) {
     case 1:
-        hres = CHAMELEON_zgetrs( ChamNoTrans, N, NRHS, A, LDA, IPIV, X, LDB);
+        hres = CHAMELEON_zgetrs( trans, N, NRHS, A, LDA, IPIV, X, LDB);
         break;
 #if !defined(CHAMELEON_SIMULATION) & 0
     case 2:
@@ -181,7 +183,7 @@ testing_zgetrs_std( run_arg_list_t *args, int check )
         CHAMELEON_zplrnt( N, N, A0, LDA, seedA );
         CHAMELEON_zplrnt( N, NRHS, B,  LDB, seedB );
 
-        hres += check_zsolve_std( args, ChamGeneral, ChamNoTrans, ChamUpperLower, N, NRHS, A0, LDA, X, B, LDB );
+        hres += check_zsolve_std( args, ChamGeneral, trans, ChamUpperLower, N, NRHS, A0, LDA, X, B, LDB );
 
         free( A0 );
         free( B );
@@ -201,7 +203,7 @@ testing_t   test_zgetrs;
 #if defined(CHAMELEON_TESTINGS_VENDOR)
 const char *zgetrs_params[] = { "m", "n", "lda", "seedA", NULL };
 #else
-const char *zgetrs_params[] = { "mtxfmt", "nb", "ib", "n", "nrhs", "lda", "ldb", "seedA", "seedB", NULL };
+const char *zgetrs_params[] = { "mtxfmt", "nb", "ib", "trans", "n", "nrhs", "lda", "ldb", "seedA", "seedB", NULL };
 #endif
 const char *zgetrs_output[] = { NULL };
 const char *zgetrs_outchk[] = { "RETURN", NULL };

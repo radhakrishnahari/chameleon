@@ -4,6 +4,7 @@
 # GETRS
 
 # nb: Tile size
+# trans : Specifies if A is transposed or not
 # n: Order of the matrix A and number of rows of matrix B
 # nrhs: The number of columns of matrix B
 # lda: Leading dimension of matrix A
@@ -12,6 +13,7 @@
 op = getrs
 nb = 16, 17
 ib = 16, 17
+trans = ChamNoTrans, ChamTrans
 n = 15, 21, 35
 nrhs = 1, 13, 22, 33
 lda = 40
