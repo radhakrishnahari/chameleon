@@ -198,6 +198,16 @@ void INSERT_TASK_zlaswp_set( const RUNTIME_option_t *options, cham_dir_t dir,
                              const CHAM_ipiv_t *tIPIV, int tIPIVk,
                              const CHAM_desc_t *tileA, int tileAm, int tileAn,
                              const CHAM_desc_t *tileB, int tileBm, int tileBn );
+void INSERT_TASK_zlaswpc_get( const RUNTIME_option_t *options, cham_dir_t dir,
+                             int k, int n0,
+                             const CHAM_ipiv_t *tIPIV, int tIPIVk,
+                             const CHAM_desc_t *tileA, int tileAm, int tileAn,
+                             const CHAM_desc_t *tileB, int tileBm, int tileBn );
+void INSERT_TASK_zlaswpc_set( const RUNTIME_option_t *options, cham_dir_t dir,
+                             int k, int n0,
+                             const CHAM_ipiv_t *tIPIV, int tIPIVk,
+                             const CHAM_desc_t *tileA, int tileAm, int tileAn,
+                             const CHAM_desc_t *tileB, int tileBm, int tileBn );
 void INSERT_TASK_zlaswp_batched( const RUNTIME_option_t *options,
                                  int m0, int minmn,
                                  void *ws,
@@ -634,17 +644,78 @@ void INSERT_TASK_zipiv_allreduce( const RUNTIME_option_t *options,
  *
  *******************************************************************************
  */
-void INSERT_TASK_zperm_allreduce( const RUNTIME_option_t *options,
-                                  cham_dir_t              dir,
-                                  const CHAM_desc_t      *A,
-                                  CHAM_desc_t            *U,
-                                  int                     Um,
-                                  int                     Un,
-                                  CHAM_ipiv_t            *ipiv,
-                                  int                     ipivk,
-                                  int                     k,
-                                  int                     n,
-                                  void                   *ws );
+void INSERT_TASK_zperm_allreduce_row( const RUNTIME_option_t *options,
+                                      cham_dir_t              dir,
+                                      const CHAM_desc_t      *A,
+                                      CHAM_desc_t            *U,
+                                      int                     Um,
+                                      int                     Un,
+                                      CHAM_ipiv_t            *ipiv,
+                                      int                     ipivk,
+                                      int                     k,
+                                      int                     n,
+                                      void                   *ws );
+
+/**
+ ********************************************************************************
+ *
+ * @ingroup CHAMELEON_Complex64_t
+ *
+ *  @brief Perfoms an allreduce operation on the tile
+ *  U(Um, Un) according to the permutation ipiv. This task is used in LASWP with
+ *  columns permutation.
+ *
+ *******************************************************************************
+ *
+ * @param[in] options
+ *          The runtime options data structure to pass through all insert_task calls.
+ *
+ * @param[in] dir
+ *          Specifies the order of the permutation.
+ *          = ChamDirForward:  Natural order
+ *          = ChamDirBackward: Reverse order
+ *
+ * @param[in] A
+ *          The descriptor of the matrix A.
+ *
+ * @param[inout] U
+ *          The descriptor of the worskpace used for the permutation.
+ *
+ * @param[in] Um
+ *          The row index of the tile used in U.
+ *
+ * @param[in] Un
+ *          The column index of the tile used in U.
+ *
+ * @param[in] ipiv
+ *          The pivot structure that contains the informations for the permutation.
+ *
+ * @param[in] ipivk
+ *          The index of the permutation.
+ *
+ * @param[in] m
+ *          The number of rows in the tile U(Um, Un).
+ *
+ * @param[in] k
+ *          The number of columns in the tile U(Um, Un).
+ *
+ * @param[in] ws
+ *          The workspace to handle the data in the LU factorization with
+ *          partial pivoting.
+ *
+ *******************************************************************************
+ */
+void INSERT_TASK_zperm_allreduce_col( const RUNTIME_option_t *options,
+                                      cham_dir_t              dir,
+                                      const CHAM_desc_t      *A,
+                                      CHAM_desc_t            *U,
+                                      int                     Um,
+                                      int                     Un,
+                                      CHAM_ipiv_t            *ipiv,
+                                      int                     ipivk,
+                                      int                     m,
+                                      int                     k,
+                                      void                   *ws );
 
 /**
  ********************************************************************************
@@ -770,13 +841,58 @@ void INSERT_TASK_zperm_allreduce_send_perm( const RUNTIME_option_t *options,
  *
  *******************************************************************************
  */
-void INSERT_TASK_zperm_allreduce_send_invp( const RUNTIME_option_t *options,
-                                            cham_dir_t              dir,
-                                            CHAM_ipiv_t            *ipiv,
-                                            int                     ipivk,
-                                            const CHAM_desc_t      *A,
-                                            int                     k,
-                                            int                     n );
+void INSERT_TASK_zperm_allreduce_send_invp_row( const RUNTIME_option_t *options,
+                                                cham_dir_t              dir,
+                                                CHAM_ipiv_t            *ipiv,
+                                                int                     ipivk,
+                                                const CHAM_desc_t      *A,
+                                                int                     k,
+                                                int                     n );
+
+/**
+ ********************************************************************************
+ *
+ * @ingroup CHAMELEON_Complex64_t
+ *
+ *  @brief Sends the inverse permutation ipivk
+ *  to the processus involved in the permutation. This task is used in LASWP with
+ *  columns permutation.
+ *
+ *******************************************************************************
+ *
+ * @param[in] options
+ *          The runtime options data structure to pass through all insert_task calls.
+ *
+ * @param[in] dir
+ *          Specifies the order of the permutation.
+ *          = ChamDirForward:  Natural order
+ *          = ChamDirBackward: Reverse order
+ *
+ * @param[in] ipiv
+ *          The pivot structure that contains the informations for the LU
+ *          factorization with partial pivoting.
+ *
+ * @param[in] ipivk
+ *          The index of the permutation.
+ *
+ * @param[in] A
+ *          The descriptor of the matrix A.
+ *
+ * @param[in] m
+ *          The index of the panel to permute.
+ *
+ * @param[in] k
+ *          The index of the panel factorized.
+ *
+ *******************************************************************************
+ */
+void INSERT_TASK_zperm_allreduce_send_invp_col( const RUNTIME_option_t *options,
+                                                cham_dir_t              dir,
+                                                CHAM_ipiv_t            *ipiv,
+                                                int                     ipivk,
+                                                const CHAM_desc_t      *A,
+                                                int                     m,
+                                                int                     k );
 
 #endif /* _chameleon_tasks_z_h_ */
 

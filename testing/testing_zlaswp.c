@@ -26,12 +26,12 @@
 #include <chameleon/tasks.h>
 
 static void testing_zlaswp_ipiv_gen( int *IPIV,
-                                     int  M )
+                                     int  k )
 {
     int i;
 
-    for ( i = 0; i < M; i++ ) {
-        IPIV[i] = testing_ialea() % ( M - i ) + i + 1;
+    for ( i = 0; i < k; i++ ) {
+        IPIV[i] = testing_ialea() % ( k - i ) + i + 1;
     }
 }
 
@@ -48,26 +48,28 @@ testing_zlaswp_desc( run_arg_list_t *args, int check )
     int         nb      = run_arg_get_nb(  args );
     int         N       = run_arg_get_int( args, "N", 1000 );
     int         M       = run_arg_get_int( args, "M", N );
-    int         LDA     = run_arg_get_int( args, "LDA", N );
+    int         LDA     = run_arg_get_int( args, "LDA", M );
     int         seedA   = run_arg_get_int( args, "seedA", testing_ialea() );
     int         K1      = run_arg_get_int( args, "K1", 1 );
-    int         K2      = run_arg_get_int( args, "K2", M );
+    int         K2      = run_arg_get_int( args, "K2", ( side == ChamLeft ) ? M : N );
 
-    int *IPIV     = malloc( sizeof(int) * M );
+    int  K        = ( side == ChamLeft ) ? M : N;
+    int *IPIV     = malloc( sizeof(int) * K );
 
     /* Descriptors */
-    CHAM_desc_t *descA;
+    CHAM_desc_t *descA, *descInit;
     CHAM_ipiv_t *descIPIV;
 
     CHAMELEON_Set( CHAMELEON_TILE_SIZE, nb );
 
     /* Creates the matrices */
+    parameters_desc_create( "Init", &descInit, ChamComplexDouble, nb, nb, K, K, K, K );
     parameters_desc_create( "A", &descA, ChamComplexDouble, nb, nb, LDA, N, M, N );
     CHAMELEON_zplrnt_Tile( descA, seedA );
 
-    testing_zlaswp_ipiv_gen( IPIV, M );
-    CHAMELEON_Ipiv_Create( &descIPIV, descA, IPIV );
-    CHAMELEON_Ipiv_Init( descA, descIPIV );
+    testing_zlaswp_ipiv_gen( IPIV, K );
+    CHAMELEON_Ipiv_Create( &descIPIV, descInit, K, IPIV );
+    CHAMELEON_Ipiv_Init( descInit, descIPIV );
 
     /* Calculates the solution */
     testing_start( &test_data );
@@ -97,7 +99,12 @@ testing_zlaswp_desc( run_arg_list_t *args, int check )
         CHAMELEON_zplrnt_Tile( descA0c, seedA );
 
         if ( CHAMELEON_Comm_rank() == 0 ) {
-            LAPACKE_zlaswp( LAPACK_COL_MAJOR, N, descA0c->mat, M, K1, K2, IPIV, INCX );
+            if ( side == ChamLeft ){
+                LAPACKE_zlaswp( LAPACK_COL_MAJOR, N, descA0c->mat, M, K1, K2, IPIV, INCX );
+            }
+            else {
+                LAPACKE_zlaswp( LAPACK_ROW_MAJOR, M, descA0c->mat, M, K1, K2, IPIV, INCX );
+            }
         }
 
         CHAMELEON_zlacpy_Tile( ChamUpperLower, descA0c, descA0 );

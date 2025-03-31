@@ -27,14 +27,15 @@ void RUNTIME_ipiv_create( CHAM_ipiv_t       *ipiv,
                           const CHAM_desc_t *desc )
 {
     assert( ipiv );
-    size_t                nbhandles = 3 * ipiv->mt + 2 * chameleon_desc_datadist_get_iparam(desc, 0);
+    size_t                P         = chameleon_desc_datadist_get_iparam(desc, 0);
+    size_t                nbhandles = 3 * ipiv->mt + 2 * P;
     starpu_data_handle_t *handles   = calloc( nbhandles, sizeof(starpu_data_handle_t) );
     ipiv->ipiv    = handles;
     handles += ipiv->mt;
     ipiv->nextpiv = handles;
-    handles += chameleon_desc_datadist_get_iparam(desc, 0);
+    handles += P;
     ipiv->prevpiv = handles;
-    handles += chameleon_desc_datadist_get_iparam(desc, 0);
+    handles += P;
     ipiv->perm    = handles;
     handles += ipiv->mt;
     ipiv->invp    = handles;
@@ -51,8 +52,8 @@ void RUNTIME_ipiv_create( CHAM_ipiv_t       *ipiv,
             return;
         }
         ipiv->mpitag_nextpiv = ipiv->mpitag_ipiv    + ipiv->mt;
-        ipiv->mpitag_prevpiv = ipiv->mpitag_nextpiv + chameleon_desc_datadist_get_iparam(desc, 0);
-        ipiv->mpitag_perm    = ipiv->mpitag_prevpiv + chameleon_desc_datadist_get_iparam(desc, 0);
+        ipiv->mpitag_prevpiv = ipiv->mpitag_nextpiv + P;
+        ipiv->mpitag_perm    = ipiv->mpitag_prevpiv + P;
         ipiv->mpitag_invp    = ipiv->mpitag_perm    + ipiv->mt;
     }
 #endif

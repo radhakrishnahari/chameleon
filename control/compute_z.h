@@ -54,6 +54,7 @@ struct chameleon_pzgetrf_s {
     CHAM_desc_t             U;
     CHAM_desc_t             Up; /**< Workspace used for the panel factorization    */
     CHAM_desc_t             Wu; /**< Workspace used for the permutation and update */
+    CHAM_desc_t             Wc; /**< Workspace used for the column permutation. */
     CHAM_desc_t             Wl; /**< Workspace used the update                     */
     int                    *proc_involved;
     unsigned int            involved;
@@ -173,7 +174,7 @@ void chameleon_pzlascal(cham_uplo_t uplo, CHAMELEON_Complex64_t alpha, CHAM_desc
 void chameleon_pzlaset( cham_uplo_t uplo, CHAMELEON_Complex64_t alpha, CHAMELEON_Complex64_t beta, CHAM_desc_t *A, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 void chameleon_pzlaset2(cham_uplo_t uplo, CHAMELEON_Complex64_t alpha,                          CHAM_desc_t *A, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 void chameleon_pzlaswp( struct chameleon_pzgetrf_s *ws, cham_dir_t dir, CHAM_desc_t *A, CHAM_ipiv_t *IPIV, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request );
-void chameleon_pzlaswpc(CHAM_desc_t *B, int *IPIV, int inc, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
+void chameleon_pzlaswpc( struct chameleon_pzgetrf_s *ws, cham_dir_t dir, CHAM_desc_t *A, CHAM_ipiv_t *IPIV, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request );
 void chameleon_pzlatms( cham_dist_t idist, unsigned long long int seed, cham_sym_t sym, double *D, int mode, double cond, double dmax, CHAM_desc_t *A, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request );
 void chameleon_pzlauum(cham_uplo_t uplo, CHAM_desc_t *A, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 void chameleon_pzplghe(double bump, cham_uplo_t uplo, CHAM_desc_t *A, int bigM, int m0, int n0, unsigned long long int seed, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request );

@@ -222,7 +222,7 @@ set(ZSRC
     pzhetrd_he2hb.c
     #pzlarft_blgtrd.c
     pzlaswp.c
-    #pzlaswpc.c
+    pzlaswpc.c
     #pztrsmrv.c
     #pzunmqr_blgtrd.c
     #########################
