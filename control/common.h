@@ -93,6 +93,17 @@
 #define ChamIPT_All     2
 
 /**
+ * Structure for reduction operations
+ */
+struct chameleon_reduce_s {
+    cham_getrf_allreduce_t  alg_allreduce; /**< Specifies the algorithm used for the allreduce                          */
+    int                    *proc_involved; /**< Specifies the processes involved in the reduction operation             */
+    unsigned int            involved;      /**< Specifies if the current process is involved in the reduction operation */
+    int                     np_involved;   /**< Specifies the number of involved processes in the reduction operation   */
+};
+typedef struct chameleon_reduce_s CHAM_reduce_t;
+
+/**
  *  Global array of LAPACK constants
  */
 extern char *chameleon_lapack_constants[];
