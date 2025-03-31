@@ -197,6 +197,21 @@ typedef struct chameleon_piv_s {
     int     n;              /**> The number of column considered (must be updated for each panel) */
 } CHAM_ipiv_t;
 
+/**
+ *  CHAMELEON structure to hold pivot informations for the LU factorization with partial pivoting
+ */
+typedef struct chameleon_desc_pivot_s {
+    void          *nextpiv;        /**> Opaque array of pointers for the runtimes to handle the pivot computation structure */
+    void          *prevpiv;        /**> Opaque array of pointers for the runtimes to handle the pivot computation structure */
+    int64_t        mpitag_nextpiv; /**> Initial mpi tag values for the nextpiv handles                                      */
+    int64_t        mpitag_prevpiv; /**> Initial mpi tag values for the prevpiv handles                                      */
+    int            P;              /**> The number of processes per column of the tiled matrix                              */
+    int            Q;              /**> The number of processes per line of the tiled matrix                                */
+    int            nb;             /**> The number of row per block                                                         */
+    int            n;              /**> The number of column considered (must be updated for each panel) */
+    cham_flttype_t dtyp;           /**> Arithmetic used to store the rows/columns to swap                                   */
+} CHAM_desc_pivot_t;
+
 static inline void *
 CHAM_tile_get_ptr( const CHAM_tile_t *tile )
 {
