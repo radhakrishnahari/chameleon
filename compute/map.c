@@ -37,10 +37,11 @@ map_cpu( void *op_args,
 }
 
 static cham_map_operator_t map_op = {
-    .name     = "map",
-    .cpufunc  = map_cpu,
-    .cudafunc = NULL,
-    .hipfunc  = NULL,
+    .name        = "map",
+    .cpufunc     = map_cpu,
+    .cudafunc    = NULL,
+    .hipfunc     = NULL,
+    .synchronous = 0,
 };
 
 /**

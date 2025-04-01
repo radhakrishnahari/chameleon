@@ -76,7 +76,7 @@ cl_map_one_hip_func( void *descr[], void *cl_arg )
  */
 CHAMELEON_CL_CB( map_one, cti_handle_get_m( task->handles[0] ), cti_handle_get_n( task->handles[0] ), 0, M * N )
 #if defined(CHAMELEON_USE_HIP)
-    CODELETS_GPU( map_one, cl_map_one_cpu_func, cl_map_one_hip_func, STARPU_HIP_ASYNC )
+CODELETS_GPU( map_one, cl_map_one_cpu_func, cl_map_one_hip_func, STARPU_HIP_ASYNC )
 #else
 CODELETS( map_one, cl_map_one_cpu_func, cl_map_one_cuda_func, STARPU_CUDA_ASYNC )
 #endif
@@ -139,7 +139,7 @@ cl_map_two_hip_func( void *descr[], void *cl_arg )
  */
 CHAMELEON_CL_CB( map_two, cti_handle_get_m( task->handles[0] ), cti_handle_get_n( task->handles[0] ), 0, M * N )
 #if defined(CHAMELEON_USE_HIP)
-    CODELETS_GPU( map_two, cl_map_two_cpu_func, cl_map_two_hip_func, STARPU_HIP_ASYNC )
+CODELETS_GPU( map_two, cl_map_two_cpu_func, cl_map_two_hip_func, STARPU_HIP_ASYNC )
 #else
 CODELETS( map_two, cl_map_two_cpu_func, cl_map_two_cuda_func, STARPU_CUDA_ASYNC )
 #endif
@@ -217,6 +217,8 @@ CHAMELEON_CL_CB( map_three, cti_handle_get_m( task->handles[0] ), cti_handle_get
 #else
 CODELETS( map_three, cl_map_three_cpu_func, cl_map_three_cuda_func, STARPU_CUDA_ASYNC )
 #endif
+
+#if defined(CHAMELEON_STARPU_USE_INSERT)
 
 void INSERT_TASK_map( const RUNTIME_option_t *options,
                       cham_uplo_t uplo, int m, int n,
@@ -350,3 +352,119 @@ void INSERT_TASK_map( const RUNTIME_option_t *options,
         break;
     }
 }
+
+#else /* defined(CHAMELEON_STARPU_USE_INSERT) */
+
+void INSERT_TASK_map( const RUNTIME_option_t *options,
+                      cham_uplo_t uplo, int m, int n,
+                      int ndata, cham_map_data_t *data,
+                      cham_map_operator_t *op_fcts, void *op_args )
+{
+    INSERT_TASK_COMMON_PARAMETERS_EXTENDED( map, map_one, map, ndata );
+    int i;
+
+    /* Update name if provided */
+    cl_name = (op_fcts->name == NULL) ? "map" : op_fcts->name;
+
+    if ( ( ndata < 0 ) || ( ndata > 3 ) ) {
+        fprintf( stderr, "INSERT_TASK_map() can handle only 1 to 3 parameters\n" );
+        return;
+    }
+
+    /*
+     * Register the data handles and initialize exchanges if needed
+     * The location is based on the first tile location, with the assumption
+     * that all X_i(m,n), with X in all descriptors involved, are stored on the
+     * same node.
+     */
+    starpu_cham_exchange_init_params( options, &params,
+                                      data[0].desc->get_rankof( data[0].desc, m, n ) );
+    for( i=0; i<ndata; i++ ) {
+        starpu_cham_exchange_tile_before_execution( options, &params, &nbdata, descrs,
+                                                    data[i].desc, m, n,
+                                                    cham_to_starpu_access( data[i].access ) );
+    }
+
+    /*
+     * Not involved, let's return
+     */
+    if ( nbdata == 0 ) {
+        return;
+    }
+
+    if ( params.do_execute )
+    {
+        callback_fct_t      callback = NULL;
+        size_t              clargs_size;
+        int                 ret;
+        struct starpu_task *task = starpu_task_create();
+        task->cl    = cl;
+        task->where = 0;
+
+        /* Where to execute */
+        if ( op_fcts->cpufunc ) {
+            task->where |= STARPU_CPU;
+        }
+        if ( op_fcts->cudafunc ) {
+            task->where |= STARPU_CUDA;
+        }
+        if ( op_fcts->hipfunc ) {
+            task->where |= STARPU_HIP;
+        }
+
+        /* Set codelet parameters */
+        clargs_size = sizeof( struct cl_map_args_s ) + sizeof( CHAM_desc_t * ) * (ndata - 1);
+        clargs = malloc( clargs_size );
+        clargs->uplo    = uplo;
+        clargs->m       = m;
+        clargs->n       = n;
+        clargs->op_fcts = op_fcts;
+        clargs->op_args = op_args;
+        for( i=0; i<ndata; i++ ) {
+            clargs->desc[i] = data[i].desc;
+        }
+
+        task->cl_arg      = clargs;
+        task->cl_arg_size = clargs_size;
+        task->cl_arg_free = 1;
+
+        switch( ndata ) {
+        case 3:
+            task->cl = &cl_map_three;
+            callback = cl_map_three_callback;
+            break;
+        case 2:
+            task->cl = &cl_map_two;
+            callback = cl_map_two_callback;
+            break;
+        case 1:
+            task->cl = &cl_map_one;
+            callback = cl_map_one_callback;
+        }
+
+        /* Set common parameters */
+        starpu_cham_task_set_options( options, task, nbdata, descrs, callback );
+        task->synchronous = chameleon_max( task->synchronous, op_fcts->synchronous );
+
+        /* Flops */
+        //task->flops = ...;
+
+        /* Refine name */
+        for( i=0; i<ndata; i++ ) {
+            cl_name = chameleon_codelet_name( cl_name, 1,
+                                              (data[i].desc)->get_blktile( data[i].desc, m, n ) );
+        }
+
+        ret = starpu_task_submit( task );
+        if ( ret == -ENODEV ) {
+            task->destroy = 0;
+            starpu_task_destroy( task );
+            chameleon_error( "INSERT_TASK_map", "Failed to submit the task to StarPU" );
+            return;
+        }
+    }
+
+    starpu_cham_task_exchange_data_after_execution( options, params, nbdata, descrs );
+}
+
+#endif /* defined(CHAMELEON_STARPU_USE_INSERT) */

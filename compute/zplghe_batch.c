@@ -66,10 +66,11 @@ zplghe_batch_cpu( void *op_args,
 #endif
 
 static cham_map_operator_t zplghe_batch_map = {
-    .name     = "zplghe",
-    .cpufunc  = zplghe_batch_cpu,
-    .cudafunc = NULL,
-    .hipfunc  = NULL,
+    .name        = "zplghe",
+    .cpufunc     = zplghe_batch_cpu,
+    .cudafunc    = NULL,
+    .hipfunc     = NULL,
+    .synchronous = 0,
 };
 
 /**

@@ -124,10 +124,11 @@ ztrsm_batch_cuda( cublasHandle_t handle, void *op_args,
 #endif
 
 static cham_map_operator_t ztrsm_batch_map = {
-    .name     = "ztrsm",
-    .cpufunc  = ztrsm_batch_cpu,
-    .cudafunc = ztrsm_batch_cuda,
-    .hipfunc  = NULL,
+    .name        = "ztrsm",
+    .cpufunc     = ztrsm_batch_cpu,
+    .cudafunc    = ztrsm_batch_cuda,
+    .hipfunc     = NULL,
+    .synchronous = 0,
 };
 
 /**

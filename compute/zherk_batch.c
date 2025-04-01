@@ -124,10 +124,11 @@ zherk_batch_cuda( cublasHandle_t handle, void *op_args,
 #endif
 
 static cham_map_operator_t zherk_batch_map = {
-    .name     = "zherk",
-    .cpufunc  = zherk_batch_cpu,
-    .cudafunc = zherk_batch_cuda,
-    .hipfunc  = NULL,
+    .name        = "zherk",
+    .cpufunc     = zherk_batch_cpu,
+    .cudafunc    = zherk_batch_cuda,
+    .hipfunc     = NULL,
+    .synchronous = 0,
 };
 
 /**

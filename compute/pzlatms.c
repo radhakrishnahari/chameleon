@@ -61,10 +61,11 @@ zlaset_diag_cpu( void *op_args,
 }
 
 static cham_map_operator_t zlaset_diag_map = {
-    .name     = "zlaset_diag",
-    .cpufunc  = zlaset_diag_cpu,
-    .cudafunc = NULL,
-    .hipfunc  = NULL,
+    .name        = "zlaset_diag",
+    .cpufunc     = zlaset_diag_cpu,
+    .cudafunc    = NULL,
+    .hipfunc     = NULL,
+    .synchronous = 0,
 };
 
 /**
