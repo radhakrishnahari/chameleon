@@ -19,12 +19,10 @@
  */
 #include "chameleon_openmp.h"
 
-void RUNTIME_ipiv_create( CHAM_ipiv_t *ipiv,
-                          const CHAM_desc_t *desc )
+void RUNTIME_ipiv_create( CHAM_ipiv_t *ipiv )
 {
     assert( 0 );
     (void)ipiv;
-    (void)desc;
 }
 
 void RUNTIME_ipiv_destroy( CHAM_ipiv_t *ipiv,
