@@ -76,7 +76,6 @@ testing_zlaswp_desc( run_arg_list_t *args, int check )
     if ( async ) {
         hres = CHAMELEON_zlaswp_Tile_Async( side, dir, descA, K1, K2, descIPIV, test_data.sequence, &test_data.request );
         CHAMELEON_Desc_Flush( descA, test_data.sequence );
-        CHAMELEON_Ipiv_Flush( descIPIV, test_data.sequence );
     }
     else {
         hres = CHAMELEON_zlaswp_Tile( side, dir, descA, K1, K2, descIPIV );

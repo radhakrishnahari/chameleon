@@ -80,7 +80,6 @@ testing_zgesv_desc( run_arg_list_t *args, int check )
                                            test_data.sequence, &test_data.request );
         CHAMELEON_Desc_Flush( descA, test_data.sequence );
         CHAMELEON_Desc_Flush( descX, test_data.sequence );
-        CHAMELEON_Ipiv_Flush( descIPIV, test_data.sequence );
     }
     else {
         hres = CHAMELEON_zgesv_Tile( descA, descIPIV, descX );

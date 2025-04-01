@@ -98,7 +98,6 @@ testing_zgetrf_desc( run_arg_list_t *args, int check )
     if ( async ) {
         hres = CHAMELEON_zgetrf_Tile_Async( descA, descIPIV, ws, test_data.sequence, &test_data.request );
         CHAMELEON_Desc_Flush( descA, test_data.sequence );
-        CHAMELEON_Ipiv_Flush( descIPIV, test_data.sequence );
     }
     else {
         hres = CHAMELEON_zgetrf_Tile( descA, descIPIV );

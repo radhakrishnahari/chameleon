@@ -240,7 +240,6 @@ int CHAMELEON_zgesv_Tile( CHAM_desc_t *A, CHAM_ipiv_t *IPIV, CHAM_desc_t *B )
     CHAMELEON_zgesv_Tile_Async( A, IPIV, B, wsA, wsB, sequence, &request );
 
     CHAMELEON_Desc_Flush( A, sequence );
-    CHAMELEON_Ipiv_Flush( IPIV, sequence );
     CHAMELEON_Desc_Flush( B, sequence );
 
     chameleon_sequence_wait( chamctxt, sequence );

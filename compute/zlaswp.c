@@ -237,7 +237,6 @@ int CHAMELEON_zlaswp_Tile( cham_side_t  side,
     CHAMELEON_zlaswp_Tile_Async( side, dir, A, K1, K2, IPIV, sequence, &request );
 
     CHAMELEON_Desc_Flush( A, sequence );
-    CHAMELEON_Ipiv_Flush( IPIV, sequence );
 
     chameleon_sequence_wait( chamctxt, sequence );
     status = sequence->status;
@@ -367,6 +366,7 @@ int CHAMELEON_zlaswp_Tile_Async( cham_side_t         side,
                 m0 = k * A->mb;
                 INSERT_TASK_ipiv_to_perm( &options, m0, tempkm, tempkm, K1 - 1, K2 - 1,
                                                IPIV, k );
+                RUNTIME_ipiv_flushk( sequence, IPIV, k);
             }
         }
         else {
@@ -376,7 +376,8 @@ int CHAMELEON_zlaswp_Tile_Async( cham_side_t         side,
                 tempkn = A->get_blkdim( A, k, DIM_n, A->n );
                 n0 = k * A->nb;
                 INSERT_TASK_ipiv_to_perm( &options, n0, tempkn, tempkn, K1 - 1, K2 - 1,
-                                               IPIV, k );
+                                           IPIV, k );
+                RUNTIME_ipiv_flushk( sequence, IPIV, k);
             }
         }
         chameleon_sequence_wait( chamctxt, sequence );

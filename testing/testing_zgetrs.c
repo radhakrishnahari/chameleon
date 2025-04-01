@@ -73,7 +73,6 @@ testing_zgetrs_desc( run_arg_list_t *args, int check )
     if ( async ) {
         hres = CHAMELEON_zgetrs_Tile_Async( trans, descA, descIPIV, descX, ws, test_data.sequence, &test_data.request );
         CHAMELEON_Desc_Flush( descA, test_data.sequence );
-        CHAMELEON_Ipiv_Flush( descIPIV, test_data.sequence );
     }
     else {
         hres = CHAMELEON_zgetrs_Tile( trans, descA, descIPIV, descX );

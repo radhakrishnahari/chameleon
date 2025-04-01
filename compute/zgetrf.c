@@ -432,7 +432,6 @@ CHAMELEON_zgetrf_Tile( CHAM_desc_t *A, CHAM_ipiv_t *IPIV )
     ws = CHAMELEON_zgetrf_WS_Alloc( A );
     CHAMELEON_zgetrf_Tile_Async( A, IPIV, ws, sequence, &request );
     CHAMELEON_Desc_Flush( A, sequence );
-    CHAMELEON_Ipiv_Flush( IPIV, sequence );
 
     chameleon_sequence_wait( chamctxt, sequence );
     CHAMELEON_zgetrf_WS_Free( ws );
