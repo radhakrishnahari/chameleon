@@ -28,7 +28,7 @@ INSERT_TASK_zgetrf_panel_offdiag_batched( const RUNTIME_option_t *options,
                                           void *ws,
                                           CHAM_desc_t *A, int Am, int An,
                                           void **clargs_ptr,
-                                          CHAM_ipiv_t *ipiv )
+                                          CHAM_desc_pivot_t *pivot )
 {
     assert( 0 );
     (void)options;
@@ -40,21 +40,21 @@ INSERT_TASK_zgetrf_panel_offdiag_batched( const RUNTIME_option_t *options,
     (void)Am;
     (void)An;
     (void)clargs_ptr;
-    (void)ipiv;
+    (void)pivot;
 }
 
 void
 INSERT_TASK_zgetrf_panel_offdiag_batched_flush( const RUNTIME_option_t *options,
                                                 CHAM_desc_t *A, int An,
                                                 void **clargs_ptr,
-                                                CHAM_ipiv_t *ipiv )
+                                                CHAM_desc_pivot_t *pivot )
 {
     assert( 0 );
     (void)options;
     (void)A;
     (void)An;
     (void)clargs_ptr;
-    (void)ipiv;
+    (void)pivot;
 }
 
 void
@@ -64,7 +64,8 @@ INSERT_TASK_zgetrf_panel_blocked_batched( const RUNTIME_option_t *options,
                                           CHAM_desc_t *A, int Am, int An,
                                           CHAM_desc_t *U, int Um, int Un,
                                           void **clargs_ptr,
-                                          CHAM_ipiv_t *ipiv )
+                                          CHAM_ipiv_t *ipiv,
+                                          CHAM_desc_pivot_t *pivot )
 {
     assert( 0 );
     (void)options;
@@ -81,6 +82,7 @@ INSERT_TASK_zgetrf_panel_blocked_batched( const RUNTIME_option_t *options,
     (void)Un;
     (void)clargs_ptr;
     (void)ipiv;
+    (void)pivot;
 }
 
 void
@@ -88,7 +90,8 @@ INSERT_TASK_zgetrf_panel_blocked_batched_flush( const RUNTIME_option_t *options,
                                                 CHAM_desc_t *A, int An,
                                                 CHAM_desc_t *U, int Um, int Un,
                                                 void **clargs_ptr,
-                                                CHAM_ipiv_t *ipiv )
+                                                CHAM_ipiv_t *ipiv,
+                                                CHAM_desc_pivot_t *pivot )
 {
     assert( 0 );
     (void)options;
@@ -99,4 +102,5 @@ INSERT_TASK_zgetrf_panel_blocked_batched_flush( const RUNTIME_option_t *options,
     (void)Un;
     (void)clargs_ptr;
     (void)ipiv;
+    (void)pivot;
 }

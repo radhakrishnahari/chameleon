@@ -98,7 +98,8 @@ void INSERT_TASK_zgetrf_blocked_diag( const RUNTIME_option_t *options,
                                       int m, int n, int h, int m0, int ib,
                                       CHAM_desc_t *A, int Am, int An,
                                       CHAM_desc_t *U, int Um, int Un,
-                                      CHAM_ipiv_t *ipiv )
+                                      CHAM_ipiv_t *ipiv,
+                                      CHAM_desc_pivot_t *pivot )
 {
 #if !defined(HAVE_STARPU_NONE_NONZERO)
     /* STARPU_NONE can't be equal to 0 */
@@ -130,9 +131,9 @@ void INSERT_TASK_zgetrf_blocked_diag( const RUNTIME_option_t *options,
     clargs->sequence = options->sequence;
     clargs->request  = options->request;
 
-    int access_ipiv = ( h == 0 )       ? STARPU_W    : STARPU_RW;
-    int access_npiv = ( h == ipiv->n ) ? STARPU_R    : STARPU_REDUX;
-    int access_ppiv = ( h == 0 )       ? STARPU_NONE : STARPU_R;
+    int access_ipiv = ( h == 0 )        ? STARPU_W    : STARPU_RW;
+    int access_npiv = ( h == pivot->n ) ? STARPU_R    : STARPU_REDUX;
+    int access_ppiv = ( h == 0 )        ? STARPU_NONE : STARPU_R;
     int accessU     = STARPU_RW;
 
     if ( h == 0 ) {
@@ -163,8 +164,8 @@ void INSERT_TASK_zgetrf_blocked_diag( const RUNTIME_option_t *options,
         /* Task handles */
         STARPU_RW,                RTBLKADDR(A, CHAMELEON_Complex64_t, Am, An),
         access_ipiv,              RUNTIME_ipiv_getaddr( ipiv, An ),
-        access_npiv,              RUNTIME_pivot_getaddr( ipiv, rankA, An, h ),
-        access_ppiv,              RUNTIME_pivot_getaddr( ipiv, rankA, An, h-1 ),
+        access_npiv,              RUNTIME_pivot_getaddr( pivot, rankA, An, h ),
+        access_ppiv,              RUNTIME_pivot_getaddr( pivot, rankA, An, h-1 ),
         accessU,                  RTBLKADDR(U, CHAMELEON_Complex64_t, Um, Un),
 
         /* Common task arguments */
@@ -181,7 +182,8 @@ void INSERT_TASK_zgetrf_blocked_diag( const RUNTIME_option_t *options,
                                       int m, int n, int h, int m0, int ib,
                                       CHAM_desc_t *A, int Am, int An,
                                       CHAM_desc_t *U, int Um, int Un,
-                                      CHAM_ipiv_t *ipiv )
+                                      CHAM_ipiv_t *ipiv,
+                                      CHAM_desc_pivot_t *pivot )
 {
     int ret, access_ipiv, access_npiv, access_ppiv, accessU;
     struct starpu_task *task;
@@ -199,9 +201,9 @@ void INSERT_TASK_zgetrf_blocked_diag( const RUNTIME_option_t *options,
 
     INSERT_TASK_COMMON_PARAMETERS_EXTENDED( zgetrf_blocked_diag, zgetrf_blocked_diag, zgetrf_blocked, 5 );
 
-    access_ipiv = ( h == 0 )       ? STARPU_W    : STARPU_RW;
-    access_npiv = ( h == ipiv->n ) ? STARPU_R    : STARPU_REDUX;
-    access_ppiv = ( h == 0 )       ? STARPU_NONE : STARPU_R;
+    access_ipiv = ( h == 0 )        ? STARPU_W    : STARPU_RW;
+    access_npiv = ( h == pivot->n ) ? STARPU_R    : STARPU_REDUX;
+    access_ppiv = ( h == 0 )        ? STARPU_NONE : STARPU_R;
     accessU     = STARPU_RW;
     if ( h == 0 ) {
         accessU = STARPU_NONE;
@@ -220,8 +222,8 @@ void INSERT_TASK_zgetrf_blocked_diag( const RUNTIME_option_t *options,
     starpu_cham_exchange_init_params( options, &params, rankA );
     starpu_cham_register_descr( &nbdata, descrs, RTBLKADDR( A, ChamComplexDouble, Am, An ),     STARPU_RW );
     starpu_cham_register_descr( &nbdata, descrs, RUNTIME_ipiv_getaddr( ipiv, An),               access_ipiv );
-    starpu_cham_register_descr( &nbdata, descrs, RUNTIME_pivot_getaddr( ipiv, rankA, An, h ),   access_npiv );
-    starpu_cham_register_descr( &nbdata, descrs, RUNTIME_pivot_getaddr( ipiv, rankA, An, h-1 ), access_ppiv );
+    starpu_cham_register_descr( &nbdata, descrs, RUNTIME_pivot_getaddr( pivot, rankA, An, h ),   access_npiv );
+    starpu_cham_register_descr( &nbdata, descrs, RUNTIME_pivot_getaddr( pivot, rankA, An, h-1 ), access_ppiv );
     starpu_cham_register_descr( &nbdata, descrs, RTBLKADDR( U, ChamComplexDouble, Um, Un ),     accessU );
 
     task = starpu_task_create();
@@ -318,15 +320,15 @@ void INSERT_TASK_zgetrf_blocked_offdiag( const RUNTIME_option_t *options,
                                          int m, int n, int h, int m0, int ib,
                                          CHAM_desc_t *A, int Am, int An,
                                          CHAM_desc_t *U, int Um, int Un,
-                                         CHAM_ipiv_t *ipiv )
+                                         CHAM_desc_pivot_t *pivot )
 {
 #if !defined(HAVE_STARPU_NONE_NONZERO)
     /* STARPU_NONE can't be equal to 0 */
     fprintf( stderr, "INSERT_TASK_zgetrf_blocked_diag: STARPU_NONE can not be equal to 0\n" );
     assert( 0 );
 #endif
-    int access_npiv = ( h == ipiv->n ) ? STARPU_R    : STARPU_REDUX;
-    int access_ppiv = ( h == 0 )       ? STARPU_NONE : STARPU_R;
+    int access_npiv = ( h == pivot->n )        ? STARPU_R    : STARPU_REDUX;
+    int access_ppiv = ( h == 0 )               ? STARPU_NONE : STARPU_R;
     int accessU     = ((h%ib == 0) && (h > 0)) ? STARPU_R : STARPU_NONE;
     int rankA       = A->get_rankof(A, Am, An);
 
@@ -376,8 +378,8 @@ void INSERT_TASK_zgetrf_blocked_offdiag( const RUNTIME_option_t *options,
 
         /* Task handles */
         STARPU_RW,                RTBLKADDR(A, CHAMELEON_Complex64_t, Am, An),
-        access_npiv,              RUNTIME_pivot_getaddr( ipiv, rankA, An, h ),
-        access_ppiv,              RUNTIME_pivot_getaddr( ipiv, rankA, An, h-1 ),
+        access_npiv,              RUNTIME_pivot_getaddr( pivot, rankA, An, h ),
+        access_ppiv,              RUNTIME_pivot_getaddr( pivot, rankA, An, h-1 ),
         accessU,                  RTBLKADDR(U, CHAMELEON_Complex64_t, Um, Un),
 
         /* Common task arguments */
@@ -394,12 +396,12 @@ void INSERT_TASK_zgetrf_blocked_offdiag( const RUNTIME_option_t *options,
                                          int m, int n, int h, int m0, int ib,
                                          CHAM_desc_t *A, int Am, int An,
                                          CHAM_desc_t *U, int Um, int Un,
-                                         CHAM_ipiv_t *ipiv )
+                                         CHAM_desc_pivot_t *pivot )
 {
     int ret;
     struct starpu_task *task;
     int rankA       = A->get_rankof(A, Am, An);
-    int access_npiv = ( h == ipiv->n ) ? STARPU_R    : STARPU_REDUX;
+    int access_npiv = ( h == pivot->n ) ? STARPU_R    : STARPU_REDUX;
     int access_ppiv = ( h == 0 )       ? STARPU_NONE : STARPU_R;
     int accessU     = ((h%ib == 0) && (h > 0)) ? STARPU_R : STARPU_NONE;
 
@@ -423,8 +425,8 @@ void INSERT_TASK_zgetrf_blocked_offdiag( const RUNTIME_option_t *options,
      */
     starpu_cham_exchange_init_params( options, &params, rankA );
     starpu_cham_register_descr( &nbdata, descrs, RTBLKADDR( A, ChamComplexDouble, Am, An ),     STARPU_RW );
-    starpu_cham_register_descr( &nbdata, descrs, RUNTIME_pivot_getaddr( ipiv, rankA, An, h ),   access_npiv );
-    starpu_cham_register_descr( &nbdata, descrs, RUNTIME_pivot_getaddr( ipiv, rankA, An, h-1 ), access_ppiv );
+    starpu_cham_register_descr( &nbdata, descrs, RUNTIME_pivot_getaddr( pivot, rankA, An, h ),   access_npiv );
+    starpu_cham_register_descr( &nbdata, descrs, RUNTIME_pivot_getaddr( pivot, rankA, An, h-1 ), access_ppiv );
     starpu_cham_exchange_handle_before_execution( options, &params, &nbdata, descrs,
                                                   RTBLKADDR( U, ChamComplexDouble, Um, Un ),
                                                   accessU );
@@ -510,7 +512,7 @@ CODELETS_CPU(zgetrf_blocked_trsm, cl_zgetrf_blocked_trsm_cpu_func)
 void INSERT_TASK_zgetrf_blocked_trsm( const RUNTIME_option_t *options,
                                       int m, int n, int h, int ib,
                                       CHAM_desc_t *U, int Um, int Un,
-                                      CHAM_ipiv_t *ipiv )
+                                      CHAM_desc_pivot_t *pivot )
 {
     void (*callback)(void*) = options->profiling ? cl_zgetrf_blocked_trsm_callback : NULL;
     const char *cl_name = "zgetrf_blocked_trsm";
@@ -544,7 +546,7 @@ void INSERT_TASK_zgetrf_blocked_trsm( const RUNTIME_option_t *options,
 
         /* Task handles */
         STARPU_RW,                RTBLKADDR(U, CHAMELEON_Complex64_t, Um, Un),
-        STARPU_R,                 RUNTIME_pivot_getaddr( ipiv, rankU, Un, h-1 ),
+        STARPU_R,                 RUNTIME_pivot_getaddr( pivot, rankU, Un, h-1 ),
 
         /* Common task arguments */
         STARPU_PRIORITY,          options->priority,
@@ -559,7 +561,7 @@ void INSERT_TASK_zgetrf_blocked_trsm( const RUNTIME_option_t *options,
 void INSERT_TASK_zgetrf_blocked_trsm( const RUNTIME_option_t *options,
                                       int m, int n, int h, int ib,
                                       CHAM_desc_t *U, int Um, int Un,
-                                      CHAM_ipiv_t *ipiv )
+                                      CHAM_desc_pivot_t *pivot )
 {
     int ret;
     struct starpu_task *task;
@@ -576,7 +578,7 @@ void INSERT_TASK_zgetrf_blocked_trsm( const RUNTIME_option_t *options,
      */
     starpu_cham_exchange_init_params( options, &params, rankU );
     starpu_cham_register_descr( &nbdata, descrs, RTBLKADDR( U, ChamComplexDouble, Um, Un ),     STARPU_RW );
-    starpu_cham_register_descr( &nbdata, descrs, RUNTIME_pivot_getaddr( ipiv, rankU, Un, h-1 ), STARPU_R  );
+    starpu_cham_register_descr( &nbdata, descrs, RUNTIME_pivot_getaddr( pivot, rankU, Un, h-1 ), STARPU_R  );
 
     task = starpu_task_create();
     task->cl = cl;

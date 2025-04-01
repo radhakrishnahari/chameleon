@@ -25,7 +25,8 @@ void INSERT_TASK_zgetrf_blocked_diag( const RUNTIME_option_t *options,
                                       int m, int n, int h, int m0, int ib,
                                       CHAM_desc_t *A, int Am, int An,
                                       CHAM_desc_t *U, int Um, int Un,
-                                      CHAM_ipiv_t *ipiv )
+                                      CHAM_ipiv_t       *ipiv,
+                                      CHAM_desc_pivot_t *pivot )
 {
     assert( 0 );
     (void)options;
@@ -41,13 +42,14 @@ void INSERT_TASK_zgetrf_blocked_diag( const RUNTIME_option_t *options,
     (void)Um;
     (void)Un;
     (void)ipiv;
+    (void)pivot;
 }
 
 void INSERT_TASK_zgetrf_blocked_offdiag( const RUNTIME_option_t *options,
                                          int m, int n, int h, int m0, int ib,
                                          CHAM_desc_t *A, int Am, int An,
                                          CHAM_desc_t *U, int Um, int Un,
-                                         CHAM_ipiv_t *ipiv )
+                                         CHAM_desc_pivot_t *pivot )
 {
     assert( 0 );
     (void)options;
@@ -62,13 +64,13 @@ void INSERT_TASK_zgetrf_blocked_offdiag( const RUNTIME_option_t *options,
     (void)U;
     (void)Um;
     (void)Un;
-    (void)ipiv;
+    (void)pivot;
 }
 
 void INSERT_TASK_zgetrf_blocked_trsm( const RUNTIME_option_t *options,
                                       int m, int n, int h, int ib,
                                       CHAM_desc_t *U, int Um, int Un,
-                                      CHAM_ipiv_t *ipiv )
+                                      CHAM_desc_pivot_t *pivot )
 {
     assert( 0 );
     (void)options;
@@ -79,5 +81,5 @@ void INSERT_TASK_zgetrf_blocked_trsm( const RUNTIME_option_t *options,
     (void)U;
     (void)Um;
     (void)Un;
-    (void)ipiv;
+    (void)pivot;
 }

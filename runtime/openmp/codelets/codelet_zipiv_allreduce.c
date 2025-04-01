@@ -19,7 +19,7 @@
 
 void INSERT_TASK_zipiv_allreduce( const RUNTIME_option_t *options,
                                   CHAM_desc_t            *A,
-                                  CHAM_ipiv_t            *ipiv,
+                                  CHAM_desc_pivot_t      *pivot,
                                   int                     k,
                                   int                     h,
                                   int                     n,
@@ -27,7 +27,7 @@ void INSERT_TASK_zipiv_allreduce( const RUNTIME_option_t *options,
 {
     (void)options;
     (void)A;
-    (void)ipiv;
+    (void)pivot;
     (void)k;
     (void)h;
     (void)n;
