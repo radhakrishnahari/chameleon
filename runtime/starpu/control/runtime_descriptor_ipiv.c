@@ -98,8 +98,6 @@ void RUNTIME_ipiv_destroy( CHAM_ipiv_t *ipiv )
 
     free( ipiv->ipiv    );
     ipiv->ipiv    = NULL;
-    ipiv->nextpiv = NULL;
-    ipiv->prevpiv = NULL;
     ipiv->perm    = NULL;
     ipiv->invp    = NULL;
     chameleon_starpu_tag_release( ipiv->mpitag_ipiv );
@@ -146,8 +144,7 @@ void *RUNTIME_ipiv_getaddr( const CHAM_ipiv_t *ipiv, int m )
 
 #if defined(CHAMELEON_USE_MPI)
     {
-        const CHAM_desc_t *A     = ipiv->desc;
-        int                owner = A->get_rankof( A, m, m );
+        int                owner = ipiv->get_rankof( ipiv, m, m );
         int64_t            tag   = ipiv->mpitag_ipiv + mm;
         starpu_mpi_data_register( *handle, tag, owner );
     }
@@ -220,8 +217,7 @@ void *RUNTIME_perm_getaddr( const CHAM_ipiv_t *ipiv, int m )
 
 #if defined(CHAMELEON_USE_MPI)
     {
-        const CHAM_desc_t *A     = ipiv->desc;
-        int                owner = A->get_rankof( A, m, m );
+        int                owner = ipiv->get_rankof( ipiv, m, m );
         int64_t            tag   = ipiv->mpitag_perm + mm;
         starpu_mpi_data_register( *handle, tag, owner );
     }
@@ -249,8 +245,7 @@ void *RUNTIME_invp_getaddr( const CHAM_ipiv_t *ipiv, int m )
 
 #if defined(CHAMELEON_USE_MPI)
     {
-        const CHAM_desc_t *A     = ipiv->desc;
-        int                owner = A->get_rankof( A, m, m );
+        int                owner = ipiv->get_rankof( ipiv, m, m );
         int64_t            tag   = ipiv->mpitag_invp + mm;
         starpu_mpi_data_register( *handle, tag, owner );
     }
@@ -347,7 +342,6 @@ void RUNTIME_perm_flushk( const RUNTIME_sequence_t *sequence,
                           const CHAM_ipiv_t *ipiv, int m )
 {
     starpu_data_handle_t *handle;
-    const CHAM_desc_t *A = ipiv->desc;
     int64_t mm = m + ( ipiv->i / ipiv->mb );
 
     handle = (starpu_data_handle_t*)(ipiv->perm);
@@ -356,7 +350,7 @@ void RUNTIME_perm_flushk( const RUNTIME_sequence_t *sequence,
     if ( *handle != NULL ) {
 #if defined(CHAMELEON_USE_MPI)
         starpu_mpi_cache_flush( sequence->comm, *handle );
-        if ( starpu_mpi_data_get_rank( *handle ) == A->myrank )
+        if ( starpu_mpi_data_get_rank( *handle ) == ipiv->myrank )
 #endif
         {
             chameleon_starpu_data_wont_use( *handle );
@@ -369,7 +363,7 @@ void RUNTIME_perm_flushk( const RUNTIME_sequence_t *sequence,
     if ( *handle != NULL ) {
 #if defined(CHAMELEON_USE_MPI)
         starpu_mpi_cache_flush( sequence->comm, *handle );
-        if ( starpu_mpi_data_get_rank( *handle ) == A->myrank )
+        if ( starpu_mpi_data_get_rank( *handle ) == ipiv->myrank )
 #endif
         {
             chameleon_starpu_data_wont_use( *handle );
@@ -379,7 +373,6 @@ void RUNTIME_perm_flushk( const RUNTIME_sequence_t *sequence,
     (void)sequence;
     (void)ipiv;
     (void)m;
-    (void)A;
 }
 
 void RUNTIME_ipiv_gather( const RUNTIME_sequence_t *sequence,

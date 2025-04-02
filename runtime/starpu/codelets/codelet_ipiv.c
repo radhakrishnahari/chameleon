@@ -111,7 +111,7 @@ void INSERT_TASK_ipiv_init_data( const RUNTIME_option_t *options,
         cl_args     = malloc( sizeof(struct cl_laswp_args_s) );
         cl_args->m0 = m0;
         cl_args->n  = n;
-        cl_args->m  = ipiv->desc->m;
+        cl_args->m  = ipiv->m;
 
         cl_args->data = ipiv->data + m0;
 
