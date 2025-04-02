@@ -23,7 +23,7 @@
 /**
  *  Create ws_pivot runtime structures
  */
-void RUNTIME_ipiv_create( CHAM_ipiv_t       *ipiv )
+void RUNTIME_ipiv_create( CHAM_ipiv_t *ipiv )
 {
     assert( ipiv );
     size_t                nbhandles = 3 * ipiv->mt;
@@ -82,8 +82,7 @@ void RUNTIME_pivot_create( CHAM_desc_pivot_t *pivot )
 /**
  *  Destroy ws_pivot runtime structures
  */
-void RUNTIME_ipiv_destroy( CHAM_ipiv_t       *ipiv,
-                           const CHAM_desc_t *desc )
+void RUNTIME_ipiv_destroy( CHAM_ipiv_t *ipiv )
 {
     int                   i;
     starpu_data_handle_t *handle = (starpu_data_handle_t*)(ipiv->ipiv);

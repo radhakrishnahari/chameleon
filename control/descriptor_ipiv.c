@@ -43,21 +43,35 @@
  * @param[in,out] ipiv
  *          The pointer to the ipiv descriptor to initialize.
  *
- * @param[in] desc
- *          The tile descriptor for which an associated ipiv descriptor must be generated.
+ * @param[in] side
+ *          Specifies whenever the permutation will be done on the rows or on the columns
+ *
+ * @param[in] mb
+ *          The number of tile in the pivot array.
  *
  * @param[in] m
  *          The size of the pivot array.
  *
+ * @param[in] p
+ *          Number of processes rows for the 2D block-cyclic distribution.
+ *
+ * @param[in] np
+ *          The total number of processes.
+ *
  * @param[in] data
  *          The pointer to the original vector where to store the pivot values.
  *
+ * @param[in] get_rankof
+ *          The function used to determine which process is responsible for the permutation
+ *          of a tile
  ******************************************************************************
  *
  * @return CHAMELEON_SUCCESS on success, CHAMELEON_ERR_NOT_INITIALIZED otherwise.
  *
  */
-int chameleon_ipiv_init( CHAM_ipiv_t *ipiv, const CHAM_desc_t *desc, int m, void *data )
+int chameleon_ipiv_init( CHAM_ipiv_t *ipiv, cham_side_t side, int mb, int m,
+                         int p, int np, void *data,
+                         blkrankof_ipiv_fct_t get_rankof )
 {
     CHAM_context_t *chamctxt;
     int rc = CHAMELEON_SUCCESS;
@@ -70,12 +84,24 @@ int chameleon_ipiv_init( CHAM_ipiv_t *ipiv, const CHAM_desc_t *desc, int m, void
         return CHAMELEON_ERR_NOT_INITIALIZED;
     }
 
-    ipiv->desc = desc;
-    ipiv->data = data;
-    ipiv->i    = 0;
-    ipiv->m    = m;
-    ipiv->mb   = desc->mb;
-    ipiv->mt   = chameleon_ceil( ipiv->m, ipiv->mb );
+    if ( get_rankof ) {
+        ipiv->get_rankof = get_rankof;
+    }
+    else {
+        ipiv->get_rankof = ( side == ChamLeft ) ? chameleon_getrankof_ipiv_2d_row :
+                                                  chameleon_getrankof_ipiv_2d_col;
+    }
+
+    ipiv->get_blkdim = chameleon_getblkdim_ipiv;
+
+    ipiv->data   = data;
+    ipiv->myrank = RUNTIME_comm_rank( chamctxt );
+    ipiv->i      = 0;
+    ipiv->m      = m;
+    ipiv->mb     = mb;
+    ipiv->mt     = chameleon_ceil( ipiv->m, ipiv->mb );
+    ipiv->P      = p;
+    ipiv->NP     = np;
 
     /* Create runtime specific structure like registering data */
     RUNTIME_ipiv_create( ipiv );
@@ -141,10 +167,9 @@ int chameleon_pivot_init( CHAM_desc_pivot_t *pivot, const CHAM_desc_t *desc )
  *          The pointer to the ipiv descriptor to destroy.
  *
  */
-void chameleon_ipiv_destroy( CHAM_ipiv_t       *ipiv,
-                             const CHAM_desc_t *desc )
+void chameleon_ipiv_destroy( CHAM_ipiv_t *ipiv )
 {
-    RUNTIME_ipiv_destroy( ipiv, desc );
+    RUNTIME_ipiv_destroy( ipiv );
 }
 
 /**
@@ -180,6 +205,9 @@ void chameleon_pivot_destroy( CHAM_desc_pivot_t *pivot )
  * @param[in,out] ipiv
  *          The pointer to the ipiv descriptor to initialize.
  *
+ * @param[in] side
+ *          Specifies whenever the permutation will be done on the rows or on the columns
+ *
  * @param[in] desc
  *          The tile descriptor for which an associated ipiv descriptor must be generated.
  *
@@ -196,7 +224,8 @@ void chameleon_pivot_destroy( CHAM_desc_pivot_t *pivot )
  * @retval CHAMELEON_ERR_OUT_OF_RESOURCES if failed to allocated some ressources.
  *
  */
-int CHAMELEON_Ipiv_Create( CHAM_ipiv_t **ipivptr, const CHAM_desc_t *desc, int m, void *data )
+int CHAMELEON_Ipiv_Create( CHAM_ipiv_t **ipivptr, cham_side_t side, int mb, int m,
+                           int p, int np, void *data )
 {
     CHAM_context_t *chamctxt;
     CHAM_ipiv_t *ipiv;
@@ -214,7 +243,7 @@ int CHAMELEON_Ipiv_Create( CHAM_ipiv_t **ipivptr, const CHAM_desc_t *desc, int m
         return CHAMELEON_ERR_OUT_OF_RESOURCES;
     }
 
-    chameleon_ipiv_init( ipiv, desc, m, data );
+    chameleon_ipiv_init( ipiv, side, mb, m, p, np, data, NULL );
 
     *ipivptr = ipiv;
     return CHAMELEON_SUCCESS;
@@ -229,9 +258,6 @@ int CHAMELEON_Ipiv_Create( CHAM_ipiv_t **ipivptr, const CHAM_desc_t *desc, int m
  *
  *******************************************************************************
  *
- * @param[in] descA
- *          Descriptor of the matrix A.
- *
  * @param[in,out] descIPIV
  *          Descriptor of the pivot array. Should be initialized using
  *          CHAMELEON_Ipiv_Create() with data filled with the vector of pivot.
@@ -240,8 +266,7 @@ int CHAMELEON_Ipiv_Create( CHAM_ipiv_t **ipivptr, const CHAM_desc_t *desc, int m
  *
  *
  */
-void CHAMELEON_Ipiv_Init( const CHAM_desc_t *descA,
-                          CHAM_ipiv_t       *descIPIV )
+void CHAMELEON_Ipiv_Init( CHAM_ipiv_t *descIPIV )
 {
 
     RUNTIME_option_t    options;
@@ -276,8 +301,7 @@ void CHAMELEON_Ipiv_Init( const CHAM_desc_t *descA,
  * @retval CHAMELEON_SUCCESS successful exit
  *
  */
-int CHAMELEON_Ipiv_Destroy( CHAM_ipiv_t **ipivptr,
-                            const CHAM_desc_t *desc )
+int CHAMELEON_Ipiv_Destroy( CHAM_ipiv_t **ipivptr )
 {
     CHAM_context_t *chamctxt;
     CHAM_ipiv_t *ipiv;
@@ -294,7 +318,7 @@ int CHAMELEON_Ipiv_Destroy( CHAM_ipiv_t **ipivptr,
     }
 
     ipiv = *ipivptr;
-    chameleon_ipiv_destroy( ipiv, desc );
+    chameleon_ipiv_destroy( ipiv );
     free(ipiv);
     *ipivptr = NULL;
     return CHAMELEON_SUCCESS;

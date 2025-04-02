@@ -720,8 +720,7 @@ void RUNTIME_sdisplay_oneprofile (cham_tasktype_t task);
 
 void RUNTIME_ipiv_create ( CHAM_ipiv_t *ipiv );
 void RUNTIME_pivot_create ( CHAM_desc_pivot_t *pivot );
-void RUNTIME_ipiv_destroy( CHAM_ipiv_t *ipiv,
-                           const CHAM_desc_t *desc );
+void RUNTIME_ipiv_destroy( CHAM_ipiv_t *ipiv );
 void RUNTIME_pivot_destroy( CHAM_desc_pivot_t *pivot );
 void RUNTIME_ipiv_gather ( const RUNTIME_sequence_t *sequence,
                            CHAM_ipiv_t *desc, int *ipiv, int node );

@@ -369,7 +369,7 @@ int CHAMELEON_zLapack_to_Tile( CHAMELEON_Complex64_t *Af77, int LDA, CHAM_desc_t
 int CHAMELEON_zTile_to_Lapack( CHAM_desc_t *A, CHAMELEON_Complex64_t *Af77, int LDA ) __attribute__((deprecated("Please refer to CHAMELEON_zDesc2Lap() instead")));
 int CHAMELEON_zLap2Desc( cham_uplo_t uplo, CHAMELEON_Complex64_t *Af77, int LDA, CHAM_desc_t *A );
 int CHAMELEON_zDesc2Lap( cham_uplo_t uplo, CHAM_desc_t *A, CHAMELEON_Complex64_t *Af77, int LDA );
-void CHAMELEON_Ipiv_Init( const CHAM_desc_t *descA, CHAM_ipiv_t *descIPIV );
+void CHAMELEON_Ipiv_Init( CHAM_ipiv_t *descIPIV );
 
 /**
  *  User Builder function prototypes

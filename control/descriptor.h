@@ -77,8 +77,10 @@ CHAM_desc_t* chameleon_desc_submatrix( CHAM_desc_t *descA, int i, int j, int m, 
 void         chameleon_desc_destroy  ( CHAM_desc_t *desc );
 int          chameleon_desc_check    ( const CHAM_desc_t *desc );
 
-int  chameleon_ipiv_init   ( CHAM_ipiv_t *ipiv, const CHAM_desc_t *desc, int m, void *data );
-void chameleon_ipiv_destroy( CHAM_ipiv_t *ipiv, const CHAM_desc_t *desc );
+int chameleon_ipiv_init( CHAM_ipiv_t *ipiv, cham_side_t side, int mb, int m,
+                         int p, int np, void *data,
+                         blkrankof_ipiv_fct_t get_rankof );
+void chameleon_ipiv_destroy( CHAM_ipiv_t *ipiv );
 
 int  chameleon_pivot_init   ( CHAM_desc_pivot_t *pivot, const CHAM_desc_t *desc );
 void chameleon_pivot_destroy( CHAM_desc_pivot_t *pivot );
