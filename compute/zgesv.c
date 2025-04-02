@@ -84,6 +84,7 @@ int CHAMELEON_zgesv( int N, int NRHS,
     CHAM_desc_t                 descAl, descAt;
     CHAM_desc_t                 descBl, descBt;
     struct chameleon_pzgetrf_s *wsA,   *wsB;
+    int                         P,      Q;
 
     chamctxt = chameleon_context_self();
     if ( chamctxt == NULL ) {
@@ -130,6 +131,9 @@ int CHAMELEON_zgesv( int N, int NRHS,
     chameleon_zlap2tile( chamctxt, &descBl, &descBt, ChamDescInout, ChamUpperLower,
                          B, NB, NB, LDB, NRHS, N, NRHS, sequence, &request );
 
+    P = chameleon_desc_datadist_get_iparam( &descAt, 0 );
+    Q = chameleon_desc_datadist_get_iparam( &descAt, 1 );
+
     /* Allocate workspace for partial pivoting */
     wsA = CHAMELEON_zgetrf_WS_Alloc( &descAt );
     wsB = CHAMELEON_zgetrf_WS_Alloc( &descBt );
@@ -137,7 +141,7 @@ int CHAMELEON_zgesv( int N, int NRHS,
     if ( ( wsA->alg == ChamGetrfPPivPerColumn ) ||
          ( wsA->alg == ChamGetrfPPiv ) )
     {
-        chameleon_ipiv_init( &descIPIV, &descAt, N, IPIV );
+        chameleon_ipiv_init( &descIPIV, ChamLeft, descAt.mb, N, P, P*Q, IPIV, chameleon_getrankof_ipiv_2d_diag );
     }
 
     /* Call the tile interface */
@@ -161,7 +165,7 @@ int CHAMELEON_zgesv( int N, int NRHS,
     if ( ( wsA->alg == ChamGetrfPPivPerColumn ) ||
          ( wsA->alg == ChamGetrfPPiv ) )
     {
-        chameleon_ipiv_destroy( &descIPIV, &descAt );
+        chameleon_ipiv_destroy( &descIPIV );
     }
 
     /* Cleanup the temporary data */
@@ -367,6 +371,8 @@ int CHAMELEON_zgesv_Tile_Async( CHAM_desc_t        *A,
     else {
         wsB = user_wsB;
     }
+
+    IPIV->get_rankof = chameleon_getrankof_ipiv_2d_diag;
 
     chameleon_pzgetrf( wsA, A, IPIV, sequence, request );
 

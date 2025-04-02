@@ -88,6 +88,7 @@ int CHAMELEON_zlaswp( cham_side_t            side,
     CHAM_desc_t         descAl, descAt;
     CHAM_ipiv_t        *descIPIV;
     int                 K = ( side == ChamLeft ) ? M : N;
+    int                 P, Q;
 
     chamctxt = chameleon_context_self();
     if ( chamctxt == NULL ) {
@@ -136,9 +137,13 @@ int CHAMELEON_zlaswp( cham_side_t            side,
     /* Submit the matrix conversion */
     chameleon_zlap2tile( chamctxt, &descAl, &descAt, ChamDescInput, ChamUpperLower,
                          A, NB, NB, LDA, N, M, N, sequence, &request );
-    CHAMELEON_Ipiv_Create( &descIPIV, &descAt, K, IPIV );
 
-    CHAMELEON_Ipiv_Init( &descAt, descIPIV );
+    P = chameleon_desc_datadist_get_iparam( &descAt, 0 );
+    Q = chameleon_desc_datadist_get_iparam( &descAt, 1 );
+
+    CHAMELEON_Ipiv_Create( &descIPIV, side, descAt.mb, K, P, P*Q, IPIV );
+
+    CHAMELEON_Ipiv_Init( descIPIV );
 
     /* Call the tile interface */
     CHAMELEON_zlaswp_Tile_Async( side, dir, &descAt, K1, K2, descIPIV, sequence, &request );
@@ -150,7 +155,7 @@ int CHAMELEON_zlaswp( cham_side_t            side,
     chameleon_sequence_wait( chamctxt, sequence );
 
     /* Cleanup the temporary data */
-    CHAMELEON_Ipiv_Destroy( &descIPIV, &descAt );
+    CHAMELEON_Ipiv_Destroy( &descIPIV );
     chameleon_ztile2lap_cleanup( chamctxt, &descAl, &descAt );
 
     chameleon_sequence_destroy( chamctxt, sequence );

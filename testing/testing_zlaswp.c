@@ -40,6 +40,7 @@ testing_zlaswp_desc( run_arg_list_t *args, int check )
 {
     testdata_t test_data = { .args = args };
     int        hres      = 0;
+    int        P, Q;
 
     /* Read arguments */
     int         async   = parameters_getvalue_int( "async" );
@@ -55,21 +56,25 @@ testing_zlaswp_desc( run_arg_list_t *args, int check )
 
     int  K        = ( side == ChamLeft ) ? M : N;
     int *IPIV     = malloc( sizeof(int) * K );
+    int  kb;
 
     /* Descriptors */
-    CHAM_desc_t *descA, *descInit;
+    CHAM_desc_t *descA;
     CHAM_ipiv_t *descIPIV;
 
     CHAMELEON_Set( CHAMELEON_TILE_SIZE, nb );
 
     /* Creates the matrices */
-    parameters_desc_create( "Init", &descInit, ChamComplexDouble, nb, nb, K, K, K, K );
     parameters_desc_create( "A", &descA, ChamComplexDouble, nb, nb, LDA, N, M, N );
     CHAMELEON_zplrnt_Tile( descA, seedA );
 
+    P  = chameleon_desc_datadist_get_iparam( descA, 0 );
+    Q  = chameleon_desc_datadist_get_iparam( descA, 1 );
+    kb = ( side == ChamLeft ) ? descA->nb : descA->mb;
+
     testing_zlaswp_ipiv_gen( IPIV, K );
-    CHAMELEON_Ipiv_Create( &descIPIV, descInit, K, IPIV );
-    CHAMELEON_Ipiv_Init( descInit, descIPIV );
+    CHAMELEON_Ipiv_Create( &descIPIV, side, kb, K, P, P*Q, IPIV );
+    CHAMELEON_Ipiv_Init( descIPIV );
 
     /* Calculates the solution */
     testing_start( &test_data );
@@ -115,7 +120,7 @@ testing_zlaswp_desc( run_arg_list_t *args, int check )
     }
 #endif /* !defined(CHAMELEON_SIMULATION) */
 
-    CHAMELEON_Ipiv_Destroy( &descIPIV, descA );
+    CHAMELEON_Ipiv_Destroy( &descIPIV );
     parameters_desc_destroy( &descA );
     free( IPIV );
 

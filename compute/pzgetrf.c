@@ -130,7 +130,7 @@ chameleon_pzgetrf_panel_facto_percol( struct chameleon_pzgetrf_s *ws,
     minmn  = chameleon_min( tempkm, tempkn );
 
     /* Update the number of column */
-    ipiv->n = minmn;
+    pivot->n = minmn;
 
     /*
      * Algorithm per column with pivoting
@@ -181,7 +181,7 @@ chameleon_pzgetrf_panel_facto_percol_batched( struct chameleon_pzgetrf_s *ws,
     minmn  = chameleon_min( tempkm, tempkn );
 
     /* Update the number of column */
-    ipiv->n = minmn;
+    pivot->n = minmn;
 
     /*
      * Algorithm per column with pivoting (no recursion)
@@ -225,7 +225,7 @@ chameleon_pzgetrf_panel_facto_blocked( struct chameleon_pzgetrf_s *ws,
     minmn  = chameleon_min( tempkm, tempkn );
 
     /* Update the number of column */
-    ipiv->n = minmn;
+    pivot->n = minmn;
     nbblock = chameleon_ceil( minmn, ws->ib );
 
     /*
@@ -293,7 +293,7 @@ chameleon_pzgetrf_panel_facto_blocked_batched( struct chameleon_pzgetrf_s *ws,
     minmn  = chameleon_min( tempkm, tempkn );
 
     /* Update the number of column */
-    ipiv->n = minmn;
+    pivot->n = minmn;
     nbblock = chameleon_ceil( minmn, ws->ib );
 
     /*

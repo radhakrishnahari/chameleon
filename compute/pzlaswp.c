@@ -78,7 +78,7 @@ chameleon_pzlaswp_panel( struct chameleon_pzgetrf_s *ws,
 
 #if defined(CHAMELEON_USE_MPI)
     chameleon_get_proc_involved_in_panelk_2dbc( A, k, n, ws );
-    if ( A->myrank == chameleon_getrankof_2d( A, k, k ) ) {
+    if ( A->myrank == ipiv->get_rankof( ipiv, k, k ) ) {
         INSERT_TASK_zperm_allreduce_send_perm( options, dir, ipiv, k, A->myrank, ws->np_involved, ws->proc_involved );
         INSERT_TASK_zperm_allreduce_send_invp_row( options, dir, ipiv, k, A, k, n );
     }

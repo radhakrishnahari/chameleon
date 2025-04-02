@@ -76,7 +76,7 @@ chameleon_pzlaswpc_panel( struct chameleon_pzgetrf_s *ws,
 
 #if defined(CHAMELEON_USE_MPI)
     chameleon_get_proc_involved_in_rowpanelk_2dbc( A, m, k, ws );
-    if ( A->myrank == chameleon_getrankof_2d( A, k, k ) ) {
+    if ( A->myrank == ipiv->get_rankof( ipiv, k, k ) ) {
         INSERT_TASK_zperm_allreduce_send_perm( options, dir, ipiv, k, A->myrank, ws->np_involved, ws->proc_involved );
         INSERT_TASK_zperm_allreduce_send_invp_col( options, dir, ipiv, k, A, m, k );
     }
@@ -121,7 +121,7 @@ chameleon_pzlaswpc( struct chameleon_pzgetrf_s *ws,
     RUNTIME_options_init( &options, chamctxt, sequence, request );
 
     if ( dir == ChamDirForward ) {
-        for ( k = 0; k < A->nt; k++ ) {
+        for ( k = 0; k < IPIV->mt; k++ ) {
             for ( m = 0; m < A->mt; m++ ) {
                 options.priority = A->mt-m;
 
@@ -131,7 +131,7 @@ chameleon_pzlaswpc( struct chameleon_pzgetrf_s *ws,
         }
     }
     else {
-        for ( k = A->nt - 1; k > -1; k-- ) {
+        for ( k = IPIV->mt - 1; k > -1; k-- ) {
             for ( m = 0; m < A->mt; m++ ) {
                 options.priority = A->mt-m;
                 chameleon_pzlaswpc_panel( ws, dir, A, IPIV, m, k, &options, sequence );
