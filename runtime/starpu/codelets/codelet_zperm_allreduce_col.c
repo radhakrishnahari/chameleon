@@ -178,7 +178,7 @@ INSERT_TASK_zperm_allreduce_recv_col( const RUNTIME_option_t *options,
 {
     int                 ret;
     struct starpu_task *task;
-    void               *ipiv_handle
+    void               *ipiv_handle;
 
     if ( dir == ChamDirForward ) {
         ipiv_handle = RUNTIME_perm_getaddr( ipiv, ipivk );
