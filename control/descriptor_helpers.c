@@ -85,6 +85,73 @@ int chameleon_getrankof_2d_diag( const CHAM_desc_t *A, int m, int n )
 }
 
 /**
+ * @brief Return the rank of the process responsible for the permutation of the tile (m, n)
+ * in a classic 2D Block Cyclic distribution PxQ.
+ *
+ * @param[in] IPIV
+ *        The ipiv descriptor.
+ *
+ * @param[in] m
+ *        The row index of the tile.
+ *
+ * @param[in] n
+ *        The column index of the tile.
+ *
+ * @return The rank of the process responsible for the row permutation of the tile (m, n)
+ *
+ */
+int chameleon_getrankof_ipiv_2d_row( const CHAM_ipiv_t *IPIV, int m, int n )
+{
+    int Q = IPIV->NP / IPIV->P;
+    return ( m % IPIV->P ) * Q;
+}
+
+/**
+ * @brief Return the rank of the process responsible for the column permutation of the tile (m, n)
+ * in a classic 2D Block Cyclic distribution PxQ.
+ *
+ * @param[in] IPIV
+ *        The ipiv descriptor.
+ *
+ * @param[in] m
+ *        The row index of the tile.
+ *
+ * @param[in] n
+ *        The column index of the tile.
+ *
+ * @return The rank of the process responsible for the permutation of the tile (m, n)
+ *
+ */
+int chameleon_getrankof_ipiv_2d_col( const CHAM_ipiv_t *IPIV, int m, int n )
+{
+    int Q = IPIV->NP / IPIV->P;
+    return n % Q;
+}
+
+/**
+ * @brief Return the rank of the process responsible for the permutation of the tile (m, n)
+ * when used for getrf in a classic 2D Block Cyclic distribution PxQ.
+ *
+ * @param[in] IPIV
+ *        The ipiv descriptor.
+ *
+ * @param[in] m
+ *        The row and column index of the tile.
+ *
+ * @param[in] n
+ *        Unused
+ *
+ * @return The rank of the process responsible for the permutation of the tile (m, n)
+ *
+ */
+int chameleon_getrankof_ipiv_2d_diag( const CHAM_ipiv_t *IPIV, int m, int n )
+{
+    (void)n;
+    int Q = IPIV->NP / IPIV->P;
+    return (m % IPIV->P) * Q + (m % Q);
+}
+
+/**
  * @brief Test if the current MPI process is involved in the panel k for 2DBC distributions.
  *
  * @param[in] A

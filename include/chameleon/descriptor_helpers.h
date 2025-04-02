@@ -45,8 +45,11 @@ extern "C" {
  * @name Mapping functions
  * @{
  */
-int chameleon_getrankof_2d     ( const CHAM_desc_t *A, int m, int n );
-int chameleon_getrankof_2d_diag( const CHAM_desc_t *A, int m, int n );
+int chameleon_getrankof_2d          ( const CHAM_desc_t *A,    int m, int n );
+int chameleon_getrankof_2d_diag     ( const CHAM_desc_t *A,    int m, int n );
+int chameleon_getrankof_ipiv_2d_row ( const CHAM_ipiv_t *ipiv, int m, int n );
+int chameleon_getrankof_ipiv_2d_col ( const CHAM_ipiv_t *ipiv, int m, int n );
+int chameleon_getrankof_ipiv_2d_diag( const CHAM_ipiv_t *ipiv, int m, int n );
 
 typedef struct custom_dist_s{
     int *blocks_dist;         // Matrix of size dist_m times dist_n with values from 1 to number of process MPI
@@ -178,6 +181,28 @@ chameleon_getblkdim( const CHAM_desc_t *A, int m, cham_dim_t dim, int lm )
         return chameleon_getblkdim_n( A, m, lm );
     }
 }
+
+/**
+ *
+ * @ingroup Descriptor
+ *
+ * @brief Return tile dimension along the n dimension with regular tile sizes.
+ *
+ * @param[in] IPIV
+ *          The ipiv descriptor.
+ *
+ * @param[in] m
+ *          The index of the tile.
+ *
+ * @retval The length of the tile.
+ *
+ */
+static inline int
+chameleon_getblkdim_ipiv( const CHAM_ipiv_t *IPIV, int m )
+{
+    return ( ( m + 1 ) * IPIV->mb > IPIV->m ) ? IPIV->m - m * IPIV->mb : IPIV->mb;
+}
+
 /**
  * @}
  */
