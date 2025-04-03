@@ -28,16 +28,17 @@ endif()
 
 if (CHAMELEON_PREC_D)
   add_subdirectory(lapack_to_chameleon)
+
+  if(CHAMELEON_USE_MPI AND MPI_C_FOUND AND CHAMELEON_SCHED_STARPU)
+    add_subdirectory(mpi)
+  endif()
 else()
-  message(WARNING "CHAMELEON_PREC_D is set to OFF so that lapack_to_chameleon "
-  "and out_core tutorials cannot be built (use only double arithmetic "
+  message(WARNING "CHAMELEON_PREC_D is set to OFF so that lapack_to_chameleon, "
+  "out_core and mpi tutorials cannot be built (use only double arithmetic "
   "precision).\n Please set CHAMELEON_PREC_D to ON if you want to build "
-  "executables of this tutorial.")
+  "executables of these tutorials.")
 endif()
 
-if(CHAMELEON_USE_MPI AND MPI_C_FOUND AND CHAMELEON_SCHED_STARPU)
-  add_subdirectory(mpi)
-endif()
 
 ###
 ### END CMakeLists.txt
