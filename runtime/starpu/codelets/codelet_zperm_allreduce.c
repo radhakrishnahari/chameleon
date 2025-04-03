@@ -250,9 +250,9 @@ zperm_allreduce_chameleon_starpu_task( const RUNTIME_option_t     *options,
                                        int                         ipivk,
                                        int                         k,
                                        int                         n,
-                                       struct chameleon_pzgetrf_s *ws )
+                                       CHAM_reduce_t              *reduce )
 {
-    int *proc_involved = ws->proc_involved;
+    int *proc_involved = reduce->proc_involved;
     int  np_involved   = chameleon_min( chameleon_desc_datadist_get_iparam(A, 0), A->mt - k );
     int  np_iter       = np_involved;
     int  p_recv, p_send, me, p_first;
@@ -299,12 +299,12 @@ INSERT_TASK_zperm_allreduce_row( const RUNTIME_option_t *options,
                                  int                     n,
                                  void                   *ws )
 {
-    struct chameleon_pzgetrf_s *tmp = (struct chameleon_pzgetrf_s *)ws;
-    cham_getrf_allreduce_t alg = tmp->alg_allreduce;
+    struct chameleon_pzlaswp_s *tmp = (struct chameleon_pzlaswp_s *)ws;
+    cham_getrf_allreduce_t      alg = tmp->reduce.alg_allreduce;
     switch( alg ) {
     case ChamStarPUTasks:
     default:
-        zperm_allreduce_chameleon_starpu_task( options, dir, A, U, Um, Un, ipiv, ipivk, k, n, tmp );
+        zperm_allreduce_chameleon_starpu_task( options, dir, A, U, Um, Un, ipiv, ipivk, k, n, &(tmp->reduce) );
     }
 }
 

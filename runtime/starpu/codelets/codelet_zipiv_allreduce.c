@@ -251,12 +251,12 @@ INSERT_TASK_zipiv_allreduce( const RUNTIME_option_t *options,
                              int                     n,
                              void                   *ws )
 {
-    struct chameleon_pzgetrf_s *tmp = (struct chameleon_pzgetrf_s *)ws;
-    cham_getrf_allreduce_t alg = tmp->alg_allreduce;
+    struct chameleon_pzlaswp_s *tmp = (struct chameleon_pzlaswp_s *)ws;
+    cham_getrf_allreduce_t      alg = tmp->reduce.alg_allreduce;
     switch( alg ) {
     case ChamStarPUTasks:
     default:
-        zipiv_allreduce_chameleon_starpu_task( options, A, pivot, tmp->proc_involved, k, h, n );
+        zipiv_allreduce_chameleon_starpu_task( options, A, pivot, tmp->reduce.proc_involved, k, h, n );
     }
 }
 #else

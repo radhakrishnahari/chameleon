@@ -72,12 +72,12 @@ int chameleon_p_involved_in_panelk_2dbc( const CHAM_desc_t *A, int k, int p );
 void chameleon_get_proc_involved_in_panelk_2dbc( const CHAM_desc_t *A,
                                                  int                k,
                                                  int                n,
-                                                 void              *ws_getrf );
+                                                 void              *ws_reduce );
 
 void chameleon_get_proc_involved_in_rowpanelk_2dbc( const CHAM_desc_t *A,
                                                     int                m,
                                                     int                k,
-                                                    void              *ws_getrf );
+                                                    void              *ws_reduce );
 
 /**
  * @}
