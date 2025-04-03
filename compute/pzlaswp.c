@@ -123,7 +123,7 @@ chameleon_pzlaswp( struct chameleon_pzgetrf_s *ws,
     RUNTIME_options_init( &options, chamctxt, sequence, request );
 
     if ( dir == ChamDirForward ) {
-        for ( k = 0; k < A->mt; k++ ) {
+        for ( k = 0; k < IPIV->mt; k++ ) {
             for ( n = 0; n < A->nt; n++ ) {
                 options.priority = A->nt-n;
 
@@ -133,7 +133,7 @@ chameleon_pzlaswp( struct chameleon_pzgetrf_s *ws,
         }
     }
     else {
-        for ( k = A->mt - 1; k > -1; k-- ) {
+        for ( k = IPIV->mt - 1; k > -1; k-- ) {
             for ( n = 0; n < A->nt; n++ ) {
                 options.priority = A->nt-n;
                 chameleon_pzlaswp_panel( ws, dir, A, IPIV, k, n, &options, sequence );
