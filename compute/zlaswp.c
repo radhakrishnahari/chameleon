@@ -23,6 +23,124 @@
  *
  * @ingroup CHAMELEON_Complex64_t
  *
+ *  CHAMELEON_zlaswp_WS_Alloc - Allocate the required workspaces for laswp
+ *
+ *******************************************************************************
+ *
+ * @param[in] A
+ *          The descriptor of the matrix A.
+ *
+ * @param[in] side
+ *          Specifies whether the permutation is done on the rows or the columns.
+ *          = ChamLeft:  op(A) = A
+ *          = ChamRight: op(A) = A^T
+ *
+ *******************************************************************************
+ *
+ * @retval An allocated opaque pointer to use in CHAMELEON_laswp_Tile_Async()
+ *         and to free with CHAMELEON_laswp_WS_Free().
+ *
+ *******************************************************************************
+ *
+ * @sa CHAMELEON_zgetrf_Tile_Async
+ * @sa CHAMELEON_zgetrf_WS_Free
+ *
+ */
+void *
+CHAMELEON_zlaswp_WS_Alloc( cham_side_t side, const CHAM_desc_t *A )
+{
+    CHAM_context_t             *chamctxt;
+    struct chameleon_pzlaswp_s *ws;
+    CHAM_reduce_t              *reduce;
+    int                         P = chameleon_desc_datadist_get_iparam( A, 0 );
+    int                         Q = chameleon_desc_datadist_get_iparam( A, 1 );
+
+    chamctxt = chameleon_context_self();
+    if ( chamctxt == NULL ) {
+        return NULL;
+    }
+
+    ws = calloc( 1, sizeof(struct chameleon_pzlaswp_s) );
+
+    reduce = &(ws->reduce);
+
+#if defined (CHAMELEON_USE_MPI)
+    reduce->proc_involved = malloc( sizeof( int ) * P );
+    reduce->involved      = 0;
+    reduce->np_involved   = 0;
+#endif
+
+    {
+        char *allreduce = chameleon_getenv( "CHAMELEON_ALLREDUCE" );
+
+        if ( allreduce != NULL ) {
+            if ( strcasecmp( allreduce, "cham_spu_tasks" ) == 0 ) {
+                reduce->alg_allreduce = ChamStarPUTasks;
+            }
+            else {
+                chameleon_error( "CHAMELEON_zlaswp_WS_Alloc", "CHAMELEON_ALLREDUCE is not one of chameleon_starpu_tasks, chameleon_starpu, chameleon_starpu_mpi, chameleon_mpi => Switch back to chameleon_starpu_tasks\n" );
+                reduce->alg_allreduce = ChamStarPUTasks;
+            }
+        }
+        chameleon_cleanenv( allreduce );
+    }
+
+    if ( side == ChamLeft ) {
+        chameleon_desc_init( &(ws->W), CHAMELEON_MAT_ALLOC_TILE,
+                            ChamComplexDouble, A->mb, A->nb, A->mb*A->nb,
+                            A->mb * P * Q, A->n, 0, 0,
+                            A->mb * P * Q, A->n, P * Q, 1,
+                            NULL, NULL, NULL, A->get_rankof_init_arg );
+    }
+    else {
+        chameleon_desc_init( &(ws->W), CHAMELEON_MAT_ALLOC_TILE,
+                            ChamComplexDouble, A->mb, A->nb, A->mb*A->nb,
+                            A->m, A->nb * P * Q, 0, 0,
+                            A->m, A->nb * P * Q, 1, P * Q,
+                            NULL, NULL, NULL, A->get_rankof_init_arg );
+    }
+
+    return ws;
+}
+
+/**
+ ********************************************************************************
+ *
+ * @ingroup CHAMELEON_Complex64_t
+ *
+ * @brief Free the allocated workspaces for asynchronous laswp
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] user_ws
+ *          On entry, the opaque pointer allocated by
+ *          CHAMELEON_zlaswp_WS_Alloc() On exit, all data are freed.
+ *
+ *******************************************************************************
+ *
+ * @sa CHAMELEON_zlaswp_Tile_Async
+ * @sa CHAMELEON_zlaswp_WS_Alloc
+ *
+ */
+void
+CHAMELEON_zlaswp_WS_Free( void *user_ws )
+{
+    struct chameleon_pzlaswp_s *ws = (struct chameleon_pzlaswp_s *)user_ws;
+
+#if defined (CHAMELEON_USE_MPI)
+    free( ws->reduce.proc_involved );
+#endif
+
+    chameleon_desc_destroy( &(ws->W) );
+
+    free( ws );
+}
+
+/**
+ ********************************************************************************
+ *
+ * @ingroup CHAMELEON_Complex64_t
+ *
  *  @brief Computes the permutation P*op(A) or op(A)*P where P is the permutation
  *         matrix generated from IPIV.
  *
@@ -223,17 +341,18 @@ int CHAMELEON_zlaswp_Tile( cham_side_t  side,
     RUNTIME_sequence_t *sequence = NULL;
     RUNTIME_request_t   request  = RUNTIME_REQUEST_INITIALIZER;
     int                 status;
+    int                 K = ( side == ChamLeft ) ? A->m : A->n;
 
     chamctxt = chameleon_context_self();
     if ( chamctxt == NULL ) {
         chameleon_fatal_error("CHAMELEON_zlaswp_Tile", "CHAMELEON not initialized");
         return CHAMELEON_ERR_NOT_INITIALIZED;
     }
-    if ( ( K1 < 1 ) || ( K1 > A->m ) ) {
+    if ( ( K1 < 1 ) || ( K1 > K ) ) {
         chameleon_error("CHAMELEON_zlaswp", "illegal value of K1");
         return CHAMELEON_ERR_ILLEGAL_VALUE;
     }
-    if ( ( K2 < 1 ) || ( K2 > A->m ) ) {
+    if ( ( K2 < 1 ) || ( K2 > K ) ) {
         chameleon_error("CHAMELEON_zlaswp", "illegal value of K2");
         return CHAMELEON_ERR_ILLEGAL_VALUE;
     }
@@ -311,7 +430,7 @@ int CHAMELEON_zlaswp_Tile_Async( cham_side_t         side,
                                  RUNTIME_request_t  *request )
 {
     CHAM_context_t             *chamctxt;
-    struct chameleon_pzgetrf_s *ws;
+    struct chameleon_pzlaswp_s *ws;
     RUNTIME_option_t            options;
     int                         k;
     int                         K = ( side == ChamLeft ) ? A->m : A->n;
@@ -388,7 +507,7 @@ int CHAMELEON_zlaswp_Tile_Async( cham_side_t         side,
         chameleon_sequence_wait( chamctxt, sequence );
     }
 
-    ws = CHAMELEON_zgetrf_WS_Alloc( A );
+    ws = CHAMELEON_zlaswp_WS_Alloc( side, A );
 
     if ( side == ChamLeft ) {
         chameleon_pzlaswp( ws, dir, A, IPIV, sequence, request );

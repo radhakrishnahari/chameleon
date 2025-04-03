@@ -333,6 +333,8 @@ void *CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A );
 void  CHAMELEON_zgetrf_WS_Free( void *ws );
 void *CHAMELEON_zgetrf_nopiv_WS_Alloc( const CHAM_desc_t *A );
 void  CHAMELEON_zgetrf_nopiv_WS_Free( void *ws );
+void *CHAMELEON_zlaswp_WS_Alloc( cham_side_t side, const CHAM_desc_t *A );
+void  CHAMELEON_zlaswp_WS_Free( void *ws );
 
 int CHAMELEON_Alloc_Workspace_zgesv_incpiv(        int N, CHAM_desc_t **descL, int **IPIV, int p, int q);
 int CHAMELEON_Alloc_Workspace_zgetrf_incpiv(int M, int N, CHAM_desc_t **descL, int **IPIV, int p, int q);
