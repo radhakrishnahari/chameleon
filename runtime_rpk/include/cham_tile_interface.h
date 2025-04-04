@@ -19,6 +19,11 @@
 #ifndef _cham_tile_interface_h_
 #define _cham_tile_interface_h_
 
+#include "chameleon/struct.h"
+#include "chameleon/constants.h"
+
+BEGIN_C_DECLS
+
 extern struct starpu_data_interface_ops starpu_interface_cham_tile_ops;
 #define STARPU_CHAM_TILE_INTERFACE_ID starpu_interface_cham_tile_ops.interfaceid
 
@@ -44,9 +49,12 @@ void starpu_cham_tile_register( starpu_data_handle_t *handleptr,
                                 CHAM_tile_t          *tile,
                                 cham_flttype_t        flttype );
 
+starpu_cham_tile_interface_t *   cti_handle_get_interface( starpu_data_handle_t handle );
 int    cti_handle_get_m        ( starpu_data_handle_t handle );
 int    cti_handle_get_n        ( starpu_data_handle_t handle );
+size_t cti_handle_get_elemsize ( starpu_data_handle_t handle );
 size_t cti_handle_get_allocsize( starpu_data_handle_t handle );
+CHAM_tile_t * cti_handle_get( starpu_data_handle_t handle );
 
 static inline CHAM_tile_t *
 cti_interface_get( starpu_cham_tile_interface_t *interface )
@@ -54,21 +62,12 @@ cti_interface_get( starpu_cham_tile_interface_t *interface )
     return &(interface->tile);
 }
 
-static inline CHAM_tile_t *
-cti_handle_get( starpu_data_handle_t handle )
-{
-    starpu_cham_tile_interface_t *cham_tile_interface = (starpu_cham_tile_interface_t *)
-        starpu_data_get_interface_on_node( handle, STARPU_MAIN_RAM );
-
-#ifdef STARPU_DEBUG
-    STARPU_ASSERT_MSG( cham_tile_interface->id == STARPU_CHAM_TILE_INTERFACE_ID,
-                       "Error. The given data is not a cham_tile." );
-#endif
-
-    return &(cham_tile_interface->tile);
-}
+CHAM_tile_t *
+cti_handle_get( starpu_data_handle_t handle );
 
 void starpu_cham_tile_interface_init();
 void starpu_cham_tile_interface_fini();
+
+END_C_DECLS
 
 #endif /* _cham_tile_interface_h_ */

@@ -20,10 +20,14 @@
  */
 #include "coreblas.h"
 #include "coreblas/coreblas_ztile.h"
+#include "runtime_rpk.h"
 
 #if defined( CHAMELEON_USE_HMATOSS )
 #include "coreblas/hmat.h"
 #endif
+
+/* An utility macro to track unimplemented kernels for some input combinations */
+#define tcore_ztile_unimpl(feat, combi, ...) do { fprintf(stderr, "error: Unimplemented Kernel %s for input " combi " at %s:%d\n", feat, __VA_ARGS__, __FILE__, __LINE__); exit(1); } while(0)
 
 #if defined( PRECISION_z ) || defined( PRECISION_c )
 void
@@ -47,8 +51,22 @@ TCORE_dzasum( cham_store_t       storev,
               double *           work )
 {
     coreblas_kernel_trace( A );
-    assert( A->format & (CHAMELEON_TILE_FULLRANK | CHAMELEON_TILE_DESC) );
-    CORE_dzasum( storev, uplo, M, N, CHAM_tile_get_ptr( A ), A->ld, work );
+    if ( A->format & (CHAMELEON_TILE_FULLRANK | CHAMELEON_TILE_DESC) ) {
+        CORE_dzasum( storev, uplo, M, N, CHAM_tile_get_ptr( A ), A->ld, work );
+    }
+    else if ( A->format & CHAMELEON_TILE_LOWRANK ) {
+        rpk_complex64_t *Ala = (rpk_complex64_t*) malloc( A->ld * N * sizeof(rpk_complex64_t) );
+        rpk_matrix_t *Ara = (rpk_matrix_t*) CHAM_tile_get_ptr( A );
+        const rpk_ctx_t *ctx = runtime_rpk_zctx_get();
+        rpkx_zlr2ge( ctx, RapackNoTrans, M, N, Ara, Ala, A->ld );
+
+        CORE_dzasum( storev, uplo, M, N, Ala, A->ld, work );
+
+        free(Ala);
+    }
+    else {
+        tcore_ztile_unimpl("TCORE_dzasum", "%s", CHAM_tile_get_typestr(A));
+    }
 }
 
 int
@@ -81,9 +99,25 @@ TCORE_zgeadd( cham_trans_t          trans,
         assert(0);
     }
 
-    return CORE_zgeadd( trans, M, N,
-                        alpha, CHAM_tile_get_ptr( A ), A->ld,
-                        beta,  CHAM_tile_get_ptr( B ), B->ld );
+    if ( A->format & CHAMELEON_TILE_FULLRANK &&
+         B->format & CHAMELEON_TILE_FULLRANK )
+    {
+        return CORE_zgeadd( trans, M, N,
+                            alpha, CHAM_tile_get_ptr( A ), A->ld,
+                            beta,  CHAM_tile_get_ptr( B ), B->ld );
+    }
+    else if ( A->format & CHAMELEON_TILE_LOWRANK && B->format & CHAMELEON_TILE_LOWRANK ) {
+        rpk_matrix_t *Ara = (rpk_matrix_t*) CHAM_tile_get_ptr( A );
+        rpk_matrix_t *Bra = (rpk_matrix_t*) CHAM_tile_get_ptr( B );
+        assert( Ara->rk == -1 );
+        assert( Bra->rk == -1 );
+        const rpk_ctx_t *ctx = runtime_rpk_zctx_get();
+        assert(0);
+    }
+    else {
+        tcore_ztile_unimpl("TCORE_zgeadd", "%s_%s", CHAM_tile_get_typestr(A), CHAM_tile_get_typestr(B));
+    }
+    return 0;
 }
 
 int
@@ -128,9 +162,7 @@ TCORE_zgemm( cham_trans_t          transA,
              CHAM_tile_t *         C )
 {
     coreblas_kernel_trace( A, B, C );
-    if ( ( A->format & (CHAMELEON_TILE_FULLRANK | CHAMELEON_TILE_DESC) ) &&
-         ( B->format & (CHAMELEON_TILE_FULLRANK | CHAMELEON_TILE_DESC) ) &&
-         ( C->format & (CHAMELEON_TILE_FULLRANK | CHAMELEON_TILE_DESC) ) )
+    if ( A->format & B->format & C->format & CHAMELEON_TILE_FULLRANK )
     {
         CORE_zgemm( transA, transB, M, N, K, alpha,
                     CHAM_tile_get_ptr( A ), A->ld,
@@ -157,8 +189,32 @@ TCORE_zgemm( cham_trans_t          transA,
                     CHAM_tile_get_ptr( C ), C->n );
     }
 #endif
+    else if ( A->format & B->format & C->format & CHAMELEON_TILE_LOWRANK ) {
+        rpk_zgemm_t gemm_op;
+        gemm_op.transA = (rpk_trans_t) transA;
+        gemm_op.transB = (rpk_trans_t) transB;
+        gemm_op.M = M;
+        gemm_op.N = N;
+        gemm_op.K = K;
+        gemm_op.alpha = alpha;
+        gemm_op.Cm = M;
+        gemm_op.Cn = N;
+        gemm_op.offx = 0;
+        gemm_op.offy = 0;
+        gemm_op.A = (rpk_matrix_t*) CHAM_tile_get_ptr( A );
+        gemm_op.B = (rpk_matrix_t*) CHAM_tile_get_ptr( B );
+        gemm_op.beta = beta;
+        gemm_op.C = (rpk_matrix_t*) CHAM_tile_get_ptr( C );
+        gemm_op.work = NULL;
+        gemm_op.lwork = -1;
+        gemm_op.lwused = -1;
+        gemm_op.lock = NULL;
+
+        const rpk_ctx_t *ctx = runtime_rpk_zctx_get();
+        rpkx_zgemm(ctx, &gemm_op);
+    }
     else {
-        assert( 0 );
+        tcore_ztile_unimpl("TCORE_zgemm", "%s_%s_%s", CHAM_tile_get_typestr(A), CHAM_tile_get_typestr(B), CHAM_tile_get_typestr(C));
     }
 }
 
@@ -246,6 +302,11 @@ TCORE_zgetrf_nopiv( int M, int N, int IB, CHAM_tile_t *A, int *INFO )
     if ( A->format & (CHAMELEON_TILE_FULLRANK | CHAMELEON_TILE_DESC) ) {
         rc = CORE_zgetrf_nopiv( M, N, IB, CHAM_tile_get_ptr( A ), A->ld, INFO );
     }
+    else if ( A->format & CHAMELEON_TILE_LOWRANK ) {
+        rpk_matrix_t *Ara = (rpk_matrix_t*) CHAM_tile_get_ptr( A );
+        assert( Ara->rk == -1 );
+        rc = CORE_zgetrf_nopiv( M, N, IB, Ara->u, M, INFO );
+    }
 #if defined( CHAMELEON_USE_HMATOSS )
     else if ( A->format & CHAMELEON_TILE_HMAT ) {
         rc     = hmat_zgetrf( A->mat );
@@ -296,9 +357,22 @@ TCORE_zherk( cham_uplo_t        uplo,
              CHAM_tile_t *      C )
 {
     coreblas_kernel_trace( A, C );
-    assert( A->format & (CHAMELEON_TILE_FULLRANK | CHAMELEON_TILE_DESC) );
-    assert( C->format & (CHAMELEON_TILE_FULLRANK | CHAMELEON_TILE_DESC) );
-    CORE_zherk( uplo, trans, N, K, alpha, CHAM_tile_get_ptr( A ), A->ld, beta, CHAM_tile_get_ptr( C ), C->ld );
+    if ( A->format & C->format & CHAMELEON_TILE_FULLRANK ) {
+        CORE_zherk( uplo, trans, N, K, alpha, CHAM_tile_get_ptr( A ), A->ld, beta, CHAM_tile_get_ptr( C ), C->ld );
+    }
+    else if ( A->format & C->format & CHAMELEON_TILE_LOWRANK ) {
+        const rpk_matrix_t *Ara = (rpk_matrix_t*) CHAM_tile_get_ptr( A );
+        rpk_matrix_t *Cra = (rpk_matrix_t*) CHAM_tile_get_ptr( C );
+        assert( Cra->rk == -1 );
+        
+        const rpk_ctx_t *ctx = runtime_rpk_zctx_get();
+        rpkx_zherk(
+            ctx, (rpk_uplo_t)uplo, (rpk_trans_t)trans, N, K, alpha, Ara, beta, Cra->u, N, NULL
+        );
+    }
+    else {
+        tcore_ztile_unimpl("TCORE_zherk", "%s_%s", CHAM_tile_get_typestr(A), CHAM_tile_get_typestr(C));
+    }
 }
 
 void
@@ -363,7 +437,51 @@ TCORE_zlacpy( cham_uplo_t uplo, int M, int N, const CHAM_tile_t *A, CHAM_tile_t 
     {
         assert(0); /* This should have been handled at the codelet level */
     }
-    CORE_zlacpy( uplo, M, N, CHAM_tile_get_ptr( A ), A->ld, CHAM_tile_get_ptr( B ), B->ld );
+    if ( A->format & B->format & CHAMELEON_TILE_FULLRANK ) {
+        CORE_zlacpy( uplo, M, N, CHAM_tile_get_ptr( A ), A->ld, CHAM_tile_get_ptr( B ), B->ld );
+    }
+    else if ( (A->format & CHAMELEON_TILE_FULLRANK) && (B->format & CHAMELEON_TILE_LOWRANK) ) {
+        CHAMELEON_Complex64_t *Ala = (CHAMELEON_Complex64_t*) CHAM_tile_get_ptr( A );
+        rpk_matrix_t *Bra = (rpk_matrix_t*) CHAM_tile_get_ptr( B );
+        const rpk_ctx_t *ctx = runtime_rpk_zctx_get();
+        rpkx_zlrsze( ctx, 0, M, N, Bra, -1, -1, -1 );
+        CORE_zlacpy(
+            uplo, M, N, Ala, A->ld, Bra->u, M
+        );
+    }
+    else if ( (A->format & CHAMELEON_TILE_LOWRANK) && (B->format & CHAMELEON_TILE_FULLRANK)) {
+        /*
+         * TODO: consider uplo parameter
+         */
+        rpk_matrix_t *Ara = (rpk_matrix_t*) CHAM_tile_get_ptr( A );
+        CHAMELEON_Complex64_t *Bla = (CHAMELEON_Complex64_t*) CHAM_tile_get_ptr( B );
+        rpk_complex64_t *Ala = (rpk_complex64_t*) malloc( M * N * sizeof(rpk_complex64_t) );
+        const rpk_ctx_t *ctx = runtime_rpk_zctx_get();
+        rpkx_zlr2ge( ctx, RapackNoTrans, M, N, Ara, Ala, M );
+        CORE_zlacpy( uplo, M, N, Ala, M, Bla, B->ld );
+
+        free(Ala);
+    }
+    else if ( A->format & B->format & CHAMELEON_TILE_LOWRANK ) {
+        rpk_matrix_t *Ara = (rpk_matrix_t*) CHAM_tile_get_ptr( A );
+        rpk_matrix_t *Bra = (rpk_matrix_t*) CHAM_tile_get_ptr( B );
+        
+        rpk_complex64_t *Ala = (rpk_complex64_t*) malloc( M * N * sizeof(rpk_complex64_t) );
+        rpk_complex64_t *Bla = (rpk_complex64_t*) malloc( M * N * sizeof(rpk_complex64_t) );
+        const rpk_ctx_t *ctx = runtime_rpk_zctx_get();
+        rpkx_zlr2ge( ctx, RapackNoTrans, M, N, Ara, Ala, M );
+        rpkx_zlr2ge( ctx, RapackNoTrans, M, N, Bra, Bla, M );
+
+        rpkx_zlrsze( ctx, 0, M, N, Bra, -1, -1, -1 );
+        CORE_zlacpy( ChamUpperLower, M, N, Bla, M, Bra->u, M );
+        CORE_zlacpy( uplo, M, N, Ala, M, Bra->u, M);
+
+        free( Ala );
+        free( Bla );
+    }
+    else {
+        tcore_ztile_unimpl("TCORE_zlacpy", "%s_%s", CHAM_tile_get_typestr(A), CHAM_tile_get_typestr(B));
+    }
 }
 
 void
@@ -437,8 +555,19 @@ int
 TCORE_zlascal( cham_uplo_t uplo, int m, int n, CHAMELEON_Complex64_t alpha, CHAM_tile_t *A )
 {
     coreblas_kernel_trace( A );
-    assert( A->format & (CHAMELEON_TILE_FULLRANK | CHAMELEON_TILE_DESC) );
-    return CORE_zlascal( uplo, m, n, alpha, CHAM_tile_get_ptr( A ), A->ld );
+    if ( A->format & (CHAMELEON_TILE_FULLRANK | CHAMELEON_TILE_DESC) ) {
+        return CORE_zlascal( uplo, m, n, alpha, CHAM_tile_get_ptr( A ), A->ld );
+    }
+    else if ( A->format & CHAMELEON_TILE_LOWRANK ) {
+        rpk_matrix_t *Ara = CHAM_tile_get_ptr( A );
+
+        const rpk_ctx_t *ctx = runtime_rpk_zctx_get();
+        rpkx_zlrscl( ctx, alpha, m, n, m, n, Ara, 0, 0 );     
+        return 0;
+    }
+    else {
+        tcore_ztile_unimpl("TCORE_zlascal", "%s", CHAM_tile_get_typestr(A));
+    }
 }
 
 void
@@ -450,8 +579,17 @@ TCORE_zlaset( cham_uplo_t           uplo,
               CHAM_tile_t *         A )
 {
     coreblas_kernel_trace( A );
-    assert( A->format & (CHAMELEON_TILE_FULLRANK | CHAMELEON_TILE_DESC) );
-    CORE_zlaset( uplo, m, n, alpha, beta, CHAM_tile_get_ptr( A ), A->ld );
+    if (A->format & (CHAMELEON_TILE_FULLRANK | CHAMELEON_TILE_DESC)) {
+        CORE_zlaset( uplo, m, n, alpha, beta, CHAM_tile_get_ptr( A ), A->ld );
+    }
+    else if (A->format & CHAMELEON_TILE_LOWRANK) {
+        rpk_matrix_t *Ara = (rpk_matrix_t*) CHAM_tile_get_ptr( A );
+        const rpk_ctx_t *ctx = runtime_rpk_zctx_get();
+        rpkx_zlrset( ctx, (rpk_uplo_t)uplo, m, n, alpha, beta,  Ara );
+    }
+    else {
+        tcore_ztile_unimpl( "TCORE_zlaset", "%s", CHAM_tile_get_typestr(A) );
+    }
 }
 
 void
@@ -578,8 +716,13 @@ TCORE_zpotrf( cham_uplo_t uplo, int n, CHAM_tile_t *A, int *INFO )
         *INFO = hmat_zpotrf( A->mat );
     }
 #endif
+    else if ( A->format & CHAMELEON_TILE_LOWRANK ) {
+        rpk_matrix_t *Ara = (rpk_matrix_t*) CHAM_tile_get_ptr( A );
+        assert(Ara->rk == -1);
+        CORE_zpotrf( uplo, n, Ara->u, n, INFO );
+    }
     else {
-        assert( 0 );
+        tcore_ztile_unimpl("TCORE_zpotrf", "%s", CHAM_tile_get_typestr(A));
     }
     return;
 }
@@ -648,9 +791,21 @@ TCORE_zsyrk( cham_uplo_t           uplo,
              CHAM_tile_t *         C )
 {
     coreblas_kernel_trace( A, C );
-    assert( A->format & (CHAMELEON_TILE_FULLRANK | CHAMELEON_TILE_DESC) );
-    assert( C->format & (CHAMELEON_TILE_FULLRANK | CHAMELEON_TILE_DESC) );
-    CORE_zsyrk( uplo, trans, N, K, alpha, CHAM_tile_get_ptr( A ), A->ld, beta, CHAM_tile_get_ptr( C ), C->ld );
+    if (( A->format & (CHAMELEON_TILE_FULLRANK | CHAMELEON_TILE_DESC) ) && ( C->format & (CHAMELEON_TILE_FULLRANK | CHAMELEON_TILE_DESC) )) {
+        CORE_zsyrk( uplo, trans, N, K, alpha, CHAM_tile_get_ptr( A ), A->ld, beta, CHAM_tile_get_ptr( C ), C->ld );
+    }
+    else if ( A->format & C->format & CHAMELEON_TILE_LOWRANK ) {
+        const rpk_matrix_t *Ara = (rpk_matrix_t*) CHAM_tile_get_ptr( A );
+        rpk_matrix_t *Cra = (rpk_matrix_t*) CHAM_tile_get_ptr( C );
+        assert( Cra->rk == -1 );
+        const rpk_ctx_t *ctx = runtime_rpk_zctx_get();
+        rpkx_zherk(
+            ctx, (rpk_uplo_t)uplo, (rpk_trans_t)trans, N, K, alpha, Ara, beta, Cra->u, N, NULL
+        );
+    }
+    else {
+        tcore_ztile_unimpl("TCORE_zsyrk", "%s", CHAM_tile_get_typestr(A));
+    }
 }
 
 void
@@ -866,9 +1021,20 @@ TCORE_ztrsm( cham_side_t           side,
     coreblas_kernel_trace( A, B );
 
     if ( ( A->format & (CHAMELEON_TILE_FULLRANK | CHAMELEON_TILE_DESC) ) &&
-         ( B->format & (CHAMELEON_TILE_FULLRANK | CHAMELEON_TILE_DESC) ) )
-    {
+         ( B->format & (CHAMELEON_TILE_FULLRANK | CHAMELEON_TILE_DESC) ) ) {
         CORE_ztrsm( side, uplo, transA, diag, M, N, alpha, CHAM_tile_get_ptr( A ), A->ld, CHAM_tile_get_ptr( B ), B->ld );
+    }
+    else if ( A->format & B->format & CHAMELEON_TILE_LOWRANK ) {
+        rpk_matrix_t *Ara = (rpk_matrix_t*) CHAM_tile_get_ptr( A );
+        assert(Ara->rk == -1);
+
+        rpk_matrix_t *Bra = (rpk_matrix_t*) CHAM_tile_get_ptr( B );
+
+        const rpk_ctx_t *ctx = runtime_rpk_zctx_get();
+        rpkx_ztrsm(
+            ctx, (rpk_side_t)side, (rpk_uplo_t)uplo, (rpk_trans_t)transA,
+            (rpk_diag_t)diag, M, N, alpha, Ara->u, (side == ChamLeft)? M : N, Bra
+        );
     }
 #if defined( CHAMELEON_USE_HMATOSS )
     else if ( A->format & CHAMELEON_TILE_HMAT ) {
@@ -883,7 +1049,7 @@ TCORE_ztrsm( cham_side_t           side,
     }
 #endif
     else {
-        assert( 0 );
+        tcore_ztile_unimpl("TCORE_ztrsm", "%s_%s", CHAM_tile_get_typestr(A), CHAM_tile_get_typestr(B));
     }
 }
 

@@ -91,7 +91,7 @@ int chameleon_desc_mat_free( CHAM_desc_t *desc )
     return CHAMELEON_SUCCESS;
 }
 
-void chameleon_desc_init_tiles( CHAM_desc_t *desc, blkrankof_fct_t rankof )
+void chameleon_desc_init_tiles( CHAM_desc_t *desc, int tilefmt, blkrankof_fct_t rankof )
 {
     CHAM_tile_t *tile;
     int8_t flttype = cham_get_flttype( desc->dtyp );
@@ -104,7 +104,7 @@ void chameleon_desc_init_tiles( CHAM_desc_t *desc, blkrankof_fct_t rankof )
     for( jj=0; jj<desc->lnt; jj++ ) {
         for( ii=0; ii<desc->lmt; ii++, tile++ ) {
             int rank = rankof( desc, ii, jj );
-            tile->format  = CHAMELEON_TILE_FULLRANK;
+            tile->format  = tilefmt;
             tile->flttype = flttype;
             tile->rank    = rank;
             tile->m       = ii == desc->lmt-1 ? desc->lm - ii * desc->mb : desc->mb;
@@ -201,7 +201,7 @@ void chameleon_desc_set_datadist( CHAM_desc_t *to, cham_data_dist_t *from )
  *
  */
 int chameleon_desc_init_internal( CHAM_desc_t *desc, const char *name, void *mat,
-                                  cham_flttype_t dtyp, int mb, int nb,
+                                  int tilefmt, cham_flttype_t dtyp, int mb, int nb,
                                   int lm, int ln, int m, int n, int p, int q,
                                   blkaddr_fct_t   get_blkaddr,
                                   blkldd_fct_t    get_blkldd,
@@ -378,11 +378,23 @@ int chameleon_desc_init_internal( CHAM_desc_t *desc, const char *name, void *mat
         desc->use_mat = 1;
     }
 
+    switch (tilefmt) {
+        case CHAMELEON_TILE_LOWRANK:
+            desc->format = ChamRapack;
+            break;
+        case CHAMELEON_TILE_HMAT:
+            desc->format = ChamHmatOSS;
+            break;
+        default:
+            desc->format = ChamTile;
+            break;
+    }
+
     desc->A21 = (size_t)(desc->llm - desc->llm%mb)*(size_t)(desc->lln - desc->lln%nb);
     desc->A12 = (size_t)(            desc->llm%mb)*(size_t)(desc->lln - desc->lln%nb) + desc->A21;
     desc->A22 = (size_t)(desc->llm - desc->llm%mb)*(size_t)(            desc->lln%nb) + desc->A12;
 
-    chameleon_desc_init_tiles( desc, desc->get_rankof_init );
+    chameleon_desc_init_tiles( desc, tilefmt, desc->get_rankof_init );
 
     /* Create runtime specific structure like registering data */
     RUNTIME_desc_create( desc );
@@ -571,6 +583,80 @@ int CHAMELEON_Desc_Create( CHAM_desc_t **descptr, void *mat, cham_flttype_t dtyp
  *
  * @ingroup Descriptor
  *
+ *  CHAMELEON_Desc_Create - Create tiled matrix descriptor.
+ *
+ ******************************************************************************
+ *
+ * @param[out] desc
+ *          On exit, descriptor of the matrix.
+ *
+ * @param[in] mat
+ *          Memory location of the matrix. If mat is NULL, the space to store
+ *          the data is automatically allocated by the call to the function.
+ *
+ * @param[in] dtyp
+ *          Data type of the matrix:
+ *          @arg ChamInteger:       integer (i),
+ *          @arg ChamRealHalf:      half precision real (H),
+ *          @arg ChamRealFloat:     single precision real (S),
+ *          @arg ChamRealDouble:    double precision real (D),
+ *          @arg ChamComplexHalf:   half precision complex (),
+ *          @arg ChamComplexFloat:  single precision complex (C),
+ *          @arg ChamComplexDouble: double precision complex (Z).
+ *
+ * @param[in] mb
+ *          Number of rows in a tile.
+ *
+ * @param[in] nb
+ *          Number of columns in a tile.
+ *
+ * @param[in] bsiz
+ *          Size in number of elements of each tile, including internal padding.
+ *
+ * @param[in] lm
+ *          Number of rows of the entire matrix.
+ *
+ * @param[in] ln
+ *          Number of columns of the entire matrix.
+ *
+ * @param[in] i
+ *          Row index to the beginning of the submatrix.
+ *
+ * @param[in] j
+ *          Column indes to the beginning of the submatrix.
+ *
+ * @param[in] m
+ *          Number of rows of the submatrix.
+ *
+ * @param[in] n
+ *          Number of columns of the submatrix.
+ *
+ * @param[in] p
+ *          Number of processes rows for the 2D block-cyclic distribution.
+ *
+ * @param[in] q
+ *          Number of processes columns for the 2D block-cyclic distribution.
+ *
+ ******************************************************************************
+ *
+ * @retval CHAMELEON_SUCCESS successful exit
+ *
+ */
+int CHAMELEON_Desc_Create_Tile( CHAM_desc_t **descptr, void *mat, int tilefmt, cham_flttype_t dtyp, int mb, int nb, int bsiz,
+                           int lm, int ln, int i, int j, int m, int n, int p, int q )
+{
+    blkrankof_fct_t get_rankof = NULL;
+
+    return CHAMELEON_Desc_Create_User_Tile( descptr, mat, tilefmt, dtyp, mb, nb, bsiz,
+                                       lm, ln, i, j, m, n, p, q,
+                                       NULL, NULL, get_rankof, NULL );
+}
+
+/**
+ *****************************************************************************
+ *
+ * @ingroup Descriptor
+ *
  *  CHAMELEON_Desc_Create_User - Create generic tiled matrix descriptor for general
  *  applications.
  *
@@ -641,7 +727,7 @@ int CHAMELEON_Desc_Create( CHAM_desc_t **descptr, void *mat, cham_flttype_t dtyp
  * @retval CHAMELEON_SUCCESS successful exit
  *
  */
-int CHAMELEON_Desc_Create_User( CHAM_desc_t **descptr, void *mat, cham_flttype_t dtyp, int mb, int nb, int bsiz,
+int CHAMELEON_Desc_Create_User_Tile( CHAM_desc_t **descptr, void *mat, int tilefmt, cham_flttype_t dtyp, int mb, int nb, int bsiz,
                                 int lm, int ln, int i, int j, int m, int n, int p, int q,
                                 blkaddr_fct_t   get_blkaddr,
                                 blkldd_fct_t    get_blkldd,
@@ -665,7 +751,7 @@ int CHAMELEON_Desc_Create_User( CHAM_desc_t **descptr, void *mat, cham_flttype_t
         return CHAMELEON_ERR_OUT_OF_RESOURCES;
     }
 
-    chameleon_desc_init( desc, mat, dtyp, mb, nb, bsiz,
+    chameleon_desc_init( desc, mat, tilefmt, dtyp, mb, nb, bsiz,
                          lm, ln, i, j, m, n, p, q,
                          get_blkaddr, get_blkldd, get_rankof, get_rankof_arg );
 
@@ -678,6 +764,18 @@ int CHAMELEON_Desc_Create_User( CHAM_desc_t **descptr, void *mat, cham_flttype_t
 
     *descptr = desc;
     return CHAMELEON_SUCCESS;
+}
+
+int CHAMELEON_Desc_Create_User( CHAM_desc_t **descptr, void *mat, cham_flttype_t dtyp, int mb, int nb, int bsiz,
+                                int lm, int ln, int i, int j, int m, int n, int p, int q,
+                                blkaddr_fct_t   get_blkaddr,
+                                blkldd_fct_t    get_blkldd,
+                                blkrankof_fct_t get_rankof,
+                                void* get_rankof_arg )
+{
+    return CHAMELEON_Desc_Create_User_Tile( descptr, mat, CHAMELEON_TILE_FULLRANK, dtyp, mb, nb, bsiz,
+                                            lm, ln, i, j, m, n, p, q,
+                                            get_blkaddr, get_blkldd, get_rankof, get_rankof_arg );
 }
 
 /**
@@ -858,11 +956,71 @@ int CHAMELEON_Desc_Create_OOC(CHAM_desc_t **descptr, cham_flttype_t dtyp, int mb
 CHAM_desc_t *CHAMELEON_Desc_Copy( const CHAM_desc_t *descin, void *mat )
 {
     CHAM_desc_t *descout = NULL;
-    CHAMELEON_Desc_Create_User( &descout, mat,
-                                descin->dtyp, descin->mb, descin->nb, descin->bsiz,
-                                descin->lm, descin->ln, descin->i, descin->j, descin->m, descin->n,
-                                chameleon_desc_datadist_get_iparam(descin, 0), chameleon_desc_datadist_get_iparam(descin, 1),
-                                NULL, NULL, descin->get_rankof_init, descin->get_rankof_init_arg );
+    int tilefmt;
+
+    switch (descin->format) {
+        case ChamTile:
+            tilefmt = CHAMELEON_TILE_FULLRANK;
+            break;
+        case ChamRapack:
+            tilefmt = CHAMELEON_TILE_LOWRANK;
+            break;
+        case ChamHmatOSS:
+            tilefmt = CHAMELEON_TILE_HMAT;
+            break;
+    }
+    CHAMELEON_Desc_Create_User_Tile( &descout, mat, tilefmt,
+                            descin->dtyp, descin->mb, descin->nb, descin->bsiz,
+                            descin->lm, descin->ln, descin->i, descin->j, descin->m, descin->n, chameleon_desc_datadist_get_iparam(descin, 0), chameleon_desc_datadist_get_iparam(descin, 1),
+                            NULL, NULL, descin->get_rankof_init, descin->get_rankof_init_arg );
+    return descout;
+}
+
+/**
+ *****************************************************************************
+ *
+ * @ingroup Descriptor
+ *
+ * @brief Creates a new descriptor with the same properties as the one given as
+ * input.
+ *
+ * @warning This function copies the descriptor structure, but does not copy the
+ * matrix data.
+ *
+ ******************************************************************************
+ *
+ * @param[in] descin
+ *          The descriptor structure to duplicate.
+ *
+ * @param[in] mat
+ *          Memory location for the copy. If mat is NULL, the space to store
+ *          the data is automatically allocated by the call to the function.
+ *
+ ******************************************************************************
+ *
+ * @retval The new matrix descriptor.
+ *
+ */
+CHAM_desc_t *CHAMELEON_Desc_Copy_Fmt( const CHAM_desc_t *descin, void *mat, cham_mtxfmt_t mtxfmt )
+{
+    CHAM_desc_t *descout = NULL;
+    int tilefmt;
+    switch (mtxfmt) {
+        case ChamTile:
+            tilefmt = CHAMELEON_TILE_FULLRANK;
+            break;
+        case ChamRapack:
+            tilefmt = CHAMELEON_TILE_LOWRANK;
+            break;
+        case ChamHmatOSS:
+            tilefmt = CHAMELEON_TILE_HMAT;
+            break;
+    }
+
+    CHAMELEON_Desc_Create_User_Tile( &descout, mat, tilefmt,
+                            descin->dtyp, descin->mb, descin->nb, descin->bsiz,
+                            descin->lm, descin->ln, descin->i, descin->j, descin->m, descin->n, chameleon_desc_datadist_get_iparam(descin, 0), chameleon_desc_datadist_get_iparam(descin, 1),
+                            NULL, NULL, descin->get_rankof_init, descin->get_rankof_init_arg );
     return descout;
 }
 

@@ -69,7 +69,7 @@ void *CHAMELEON_zgetrf_nopiv_WS_Alloc( const CHAM_desc_t *A )
         int lookahead = chamctxt->lookahead;
         options->use_workspace = 1;
 
-        chameleon_desc_init( &(options->WL), CHAMELEON_MAT_ALLOC_TILE,
+        chameleon_desc_init( &(options->WL), CHAMELEON_MAT_ALLOC_TILE, CHAMELEON_TILE_FULLRANK,
                              ChamComplexDouble, A->mb, A->nb, (A->mb * A->nb),
                              A->mt * A->mb, A->nb * chameleon_desc_datadist_get_iparam(A, 1) * lookahead, 0, 0,
                              A->mt * A->mb, A->nb * chameleon_desc_datadist_get_iparam(A, 1) * lookahead,
@@ -77,7 +77,7 @@ void *CHAMELEON_zgetrf_nopiv_WS_Alloc( const CHAM_desc_t *A )
                              chameleon_desc_datadist_get_iparam(A, 1),
                              NULL, NULL, A->get_rankof_init, A->get_rankof_init_arg );
 
-        chameleon_desc_init( &(options->WU), CHAMELEON_MAT_ALLOC_TILE,
+        chameleon_desc_init( &(options->WU), CHAMELEON_MAT_ALLOC_TILE, CHAMELEON_TILE_FULLRANK,
                              ChamComplexDouble,
                              A->mb, A->nb, (A->mb * A->nb),
                              A->mb * chameleon_desc_datadist_get_iparam(A, 0) * lookahead, A->nt * A->nb, 0, 0,

@@ -217,6 +217,7 @@ void chameleon_pzlatms( cham_dist_t idist, unsigned long long int seed, cham_sym
 #endif
 
         chameleon_desc_init( &descTS, CHAMELEON_MAT_ALLOC_TILE,
+                             CHAMELEON_TILE_FULLRANK,
                              ChamComplexDouble, ib, descU.nb, ib * descU.nb,
                              ib * descU.mt, descU.nb * descU.nt, 0, 0,
                              ib * descU.mt, descU.nb * descU.nt,
@@ -224,6 +225,7 @@ void chameleon_pzlatms( cham_dist_t idist, unsigned long long int seed, cham_sym
                              chameleon_desc_datadist_get_iparam(&descU, 1),
                              NULL, NULL, NULL, NULL );
         chameleon_desc_init( &descTT, CHAMELEON_MAT_ALLOC_TILE,
+                             CHAMELEON_TILE_FULLRANK,
                              ChamComplexDouble, ib, descU.nb, ib * descU.nb,
                              ib * descU.mt, descU.nb * descU.nt, 0, 0,
                              ib * descU.mt, descU.nb * descU.nt,
@@ -292,6 +294,7 @@ void chameleon_pzlatms( cham_dist_t idist, unsigned long long int seed, cham_sym
 #endif
 
         chameleon_desc_init( &descTS, CHAMELEON_MAT_ALLOC_TILE,
+                             CHAMELEON_TILE_FULLRANK,
                              ChamComplexDouble, ib, descV.nb, ib * descV.nb,
                              ib * descV.mt, descV.nb * descV.nt, 0, 0,
                              ib * descV.mt, descV.nb * descV.nt,
@@ -299,6 +302,7 @@ void chameleon_pzlatms( cham_dist_t idist, unsigned long long int seed, cham_sym
                              chameleon_desc_datadist_get_iparam(&descV, 1),
                              NULL, NULL, NULL, NULL );
         chameleon_desc_init( &descTT, CHAMELEON_MAT_ALLOC_TILE,
+                             CHAMELEON_TILE_FULLRANK,
                              ChamComplexDouble, ib, descV.nb, ib * descV.nb,
                              ib * descV.mt, descV.nb * descV.nt, 0, 0,
                              ib * descV.mt, descV.nb * descV.nt,

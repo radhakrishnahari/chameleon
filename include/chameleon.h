@@ -152,6 +152,16 @@ int CHAMELEON_Desc_Create( CHAM_desc_t **desc, void *mat, cham_flttype_t dtyp,
                            int mb, int nb, int bsiz, int lm, int ln,
                            int i, int j, int m, int n, int p, int q );
 
+int CHAMELEON_Desc_Create_User_Tile( CHAM_desc_t **desc, void *mat, int tilefmt, cham_flttype_t dtyp, int mb, int nb, int bsiz,
+                                int lm, int ln, int i, int j, int m, int n, int p, int q,
+                                blkaddr_fct_t get_blkaddr, blkldd_fct_t get_blkldd,
+                                blkrankof_fct_t get_rankof, void* get_rankof_arg );
+
+int CHAMELEON_Desc_Create_Tile( CHAM_desc_t **desc, void *mat, int tilefmt, cham_flttype_t dtyp,
+                           int mb, int nb, int bsiz, int lm, int ln,
+                           int i, int j, int m, int n, int p, int q );
+
+
 int CHAMELEON_Desc_Create_OOC_User( CHAM_desc_t **desc, cham_flttype_t dtyp,
                                     int mb, int nb, int bsiz, int lm, int ln,
                                     int i, int j, int m, int n, int p, int q,
@@ -161,6 +171,7 @@ int CHAMELEON_Desc_Create_OOC( CHAM_desc_t **desc, cham_flttype_t dtyp,
                                int i, int j, int m, int n, int p, int q );
 
 CHAM_desc_t *CHAMELEON_Desc_Copy( const CHAM_desc_t *descin, void *mat );
+CHAM_desc_t *CHAMELEON_Desc_Copy_Fmt( const CHAM_desc_t *descin, void *mat, cham_mtxfmt_t mtxfmt );
 CHAM_desc_t *CHAMELEON_Desc_CopyOnZero( const CHAM_desc_t *descin, void *mat );
 CHAM_desc_t *CHAMELEON_Desc_SubMatrix( CHAM_desc_t *descA, int i, int j, int m, int n );
 
@@ -290,6 +301,8 @@ double CHAMELEON_dlamch( void );
     __chameleon_finalize();
 
 #endif
+
+void chameleon_tile2ps( cham_uplo_t uplo, CHAM_desc_t *descAt, FILE *fp );
 
 END_C_DECLS
 

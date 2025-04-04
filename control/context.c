@@ -147,6 +147,10 @@ CHAM_context_t *chameleon_context_create()
     chamctxt->householder = chameleon_getenv_householder( "CHAMELEON_HOUSEHOLDER_MODE", ChamFlatHouseholder );
     chamctxt->translation = chameleon_getenv_translation( "CHAMELEON_TRANSLATION_MODE", ChamInPlace );
 
+    /* Low rank compression parameters */
+    chamctxt->accuracy = pow(10.0, chameleon_getenv_get_value_int( "CHAMELEON_LOG10_APP_ACCURACY", -6 ));
+    chamctxt->lrmeth   = chameleon_getenv_get_value_int( "CHAMELEON_LRMETH", ChamLRMethodSVD );
+
     /* Initialize scheduler */
     RUNTIME_context_create(chamctxt);
 
@@ -410,6 +414,12 @@ int CHAMELEON_Set( int param, int value )
                 return CHAMELEON_ERR_ILLEGAL_VALUE;
             }
             chamctxt->lookahead = value;
+            break;
+        case CHAMELEON_LOG10_APP_ACCURACY:
+            chamctxt->accuracy = pow(10.0, value);
+            break;
+        case CHAMELEON_LR_METHOD:
+            chamctxt->lrmeth = value;
             break;
         default:
             chameleon_error("CHAMELEON_Set", "unknown parameter");

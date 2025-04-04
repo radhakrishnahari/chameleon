@@ -45,6 +45,15 @@ typedef enum chameleon_arithmetic_e {
     ChamDouble = 3,
 } cham_arithmetic_t;
 
+typedef enum cham_lrmeth_e {
+    ChamLRMethodSVD,   /**< Use singular value decomposition for low-rank compression       */
+    ChamLRMethodPQRCP, /**< Use partial QR with column pivoting for low-rank compression    */
+    ChamLRMethodRQRCP, /**< Use randomized QR with column pivoting for low-rank compression */
+    ChamLRMethodTQRCP, /**< Use truncated QR with column pivotingfor low-rank compression   */
+    ChamLRMethodRQRRT, /**< Use randomized QR with rotation for low-rank compression        */
+    ChamLRMethodNbr,
+} cham_lrmeth_t;
+
 typedef enum chameleon_ftype_e {
     ChamInt     = 0,
     ChamReal    = 1,
@@ -211,7 +220,22 @@ typedef enum chameleon_mtxtype_e {
     ChamSymmetric  = 232,
     ChamHermitian  = 233,
     ChamTriangular = 234,
+    ChamToeplitz   = 235,
+    ChamHankel     = 236,
+    ChamLowrank    = 237,
+    ChamFEMBEM     = 238, /*< Matrix type for FEMBEM application */
 } cham_mtxtype_t;
+
+/**
+ * @brief Rank-structured matrix storage formats
+ */
+enum chameleon_mtxfmt_e {
+    ChamTile = 1, /**< Full-rank tile storage */
+    ChamHmatOSS = 2, /**< HmatOSS tile storage */
+    ChamRapack = 4,  /**< Rapack tile storage */
+};
+
+typedef enum chameleon_mtxfmt_e cham_mtxfmt_t;
 
 /**
  * @brief Eigen and singular values generator format
@@ -333,14 +357,16 @@ typedef enum chameleon_getrf_allreduce_e {
 /**
  *  CHAMELEON constants - configuration parameters
  */
-#define CHAMELEON_CONCURRENCY       1
-#define CHAMELEON_TILE_SIZE         2
-#define CHAMELEON_INNER_BLOCK_SIZE  3
-#define CHAMELEON_HOUSEHOLDER_MODE  5
-#define CHAMELEON_HOUSEHOLDER_SIZE  6
-#define CHAMELEON_TRANSLATION_MODE  7
-#define CHAMELEON_LOOKAHEAD         8
-#define CHAMELEON_RUNTIME           9
+#define CHAMELEON_CONCURRENCY        1
+#define CHAMELEON_TILE_SIZE          2
+#define CHAMELEON_INNER_BLOCK_SIZE   3
+#define CHAMELEON_HOUSEHOLDER_MODE   5
+#define CHAMELEON_HOUSEHOLDER_SIZE   6
+#define CHAMELEON_TRANSLATION_MODE   7
+#define CHAMELEON_LOOKAHEAD          8
+#define CHAMELEON_RUNTIME            9
+#define CHAMELEON_LOG10_APP_ACCURACY 10
+#define CHAMELEON_LR_METHOD          11
 
 /**
  *  CHAMELEON constants - configuration parameters for a request

@@ -51,6 +51,7 @@ int hmat_zpotrf( hmat_matrix_t *A ) {
     hmat_factorization_context_t ctx_facto;
     hmat_factorization_context_init( &ctx_facto );
     ctx_facto.factorization = hmat_factorization_llt;
+    ctx_facto.progress = NULL;
     hmat_zinterface.factorize_generic( A, &ctx_facto );
     return 0;
 }
@@ -68,6 +69,7 @@ int hmat_zgetrf( hmat_matrix_t *A ) {
     hmat_factorization_context_t ctx_facto;
     hmat_factorization_context_init( &ctx_facto );
     ctx_facto.factorization = hmat_factorization_lu;
+    ctx_facto.progress = NULL;
     hmat_zinterface.factorize_generic( A, &ctx_facto );
     return 0;
 }

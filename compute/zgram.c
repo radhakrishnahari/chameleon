@@ -63,6 +63,7 @@ void *CHAMELEON_zgram_WS_Alloc( const CHAM_desc_t *A )
     worknt = chameleon_max( A->nt, chameleon_desc_datadist_get_iparam(A, 1) );
 
     chameleon_desc_init( &(options->Wcol), CHAMELEON_MAT_ALLOC_TILE,
+                         CHAMELEON_TILE_FULLRANK,
                          ChamRealDouble, 2, A->nb, 2*A->nb,
                          2*workmt, A->n, 0, 0,
                          2*workmt, A->n,
@@ -71,6 +72,7 @@ void *CHAMELEON_zgram_WS_Alloc( const CHAM_desc_t *A )
                          NULL, NULL, NULL, NULL );
 
     chameleon_desc_init( &(options->Welt), CHAMELEON_MAT_ALLOC_TILE,
+                         CHAMELEON_TILE_FULLRANK,
                          ChamRealDouble, 2, 1, 2,
                          2, worknt, 0, 0,
                          2, worknt,

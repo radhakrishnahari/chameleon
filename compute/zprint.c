@@ -33,7 +33,6 @@ zprint_cpu( void *op_args,
             const CHAM_desc_t *descA, CHAM_tile_t *tileA, ... )
 {
     struct zprint_args_s  *options = (struct zprint_args_s *)op_args;
-    CHAMELEON_Complex64_t *A = CHAM_tile_get_ptr( tileA );
 
     int tempmm = descA->get_blkdim( descA, m, DIM_m, descA->m );
     int tempnn = descA->get_blkdim( descA, n, DIM_n, descA->n );
@@ -42,10 +41,38 @@ zprint_cpu( void *op_args,
     if ( ndata > 1 ) {
         fprintf( stderr, "zprint_cpu: supports only one piece of data and %d have been given\n", ndata );
     }
-    assert( tileA->format & CHAMELEON_TILE_FULLRANK );
 
-    CORE_zprint( options->file, options->header, uplo,
-                 tempmm, tempnn, m, n, A, lda );
+    assert( tileA->format & ( CHAMELEON_TILE_FULLRANK | CHAMELEON_TILE_LOWRANK ) );
+
+#if !defined(CHAMELEON_SIMULATION)
+    switch ( tileA->format ) {
+        case CHAMELEON_TILE_FULLRANK:
+            {
+                CHAMELEON_Complex64_t *A = CHAM_tile_get_ptr( tileA );
+                CORE_zprint( options->file, options->header, uplo,
+                         tempmm, tempnn, m, n, A, lda );
+            }
+            break;
+        case CHAMELEON_TILE_LOWRANK:
+            {
+                rpk_matrix_t *Ara = CHAM_tile_get_ptr( tileA );
+                if ( Ara->rk == -1 ) {
+                    CORE_zprint( options->file, options->header, uplo,
+                                 tempmm, tempnn, m, n, Ara->u, tempmm );
+                }
+                else {
+                    fprintf(
+                        stderr, "rank=%d\n", Ara->rk
+                    );
+                    CORE_zprint( options->file, options->header, uplo,
+                                 tempmm, Ara->rk, m, n, Ara->u, Ara->rk );
+                    CORE_zprint( options->file, options->header, uplo,
+                                 Ara->rk, tempnn, m, n, Ara->v, Ara->rk );
+                }
+            }
+            break;
+    }
+#endif
 
     return 0;
 }

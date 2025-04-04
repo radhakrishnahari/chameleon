@@ -67,6 +67,9 @@
 #cmakedefine CHAMELEON_PREC_DS
 #cmakedefine CHAMELEON_PREC_ZC
 
+/* Low rank support */
+#cmakedefine CHAMELEON_USE_RAPACK
+
 /* Hmat-oss */
 #cmakedefine CHAMELEON_USE_HMATOSS
 

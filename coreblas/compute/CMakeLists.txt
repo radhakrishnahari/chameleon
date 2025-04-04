@@ -114,8 +114,17 @@ set(ZSRC
     core_zunmqr.c
     core_zprint.c
     )
+
+if( CHAMELEON_USE_RAPACK)
+  list( APPEND ZSRC
+    core_zge2lr.c
+    tcore_ztile2rpk.c
+    tcore_zlrcrk.c
+    )
+endif()
 if( CHAMELEON_USE_HMATOSS )
   list( APPEND ZSRC
+    tcore_zhmat2rpk.cc
     hmat_z.c )
 endif()
 
@@ -163,9 +172,17 @@ if( CHAMELEON_USE_HMATOSS )
   target_link_libraries(coreblas PUBLIC HMAT::hmat )
 endif()
 
+if( CHAMELEON_USE_RAPACK )
+    target_link_libraries(coreblas PUBLIC RAPACK::rapack)
+endif()
+
 target_link_libraries(coreblas PRIVATE MORSE::LAPACKE)
 target_link_libraries(coreblas PRIVATE MORSE::CBLAS)
 target_link_libraries(coreblas PUBLIC MORSE::M)
+
+if (CHAMELEON_SCHED_STARPU)
+    target_link_libraries(coreblas PUBLIC chameleon_starpu_rapack)
+endif()
 
 # export target coreblas
 install(EXPORT coreblasTargets

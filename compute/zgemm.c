@@ -190,8 +190,22 @@ void *CHAMELEON_zgemm_WS_Alloc( cham_trans_t       transA __attribute__((unused)
     if ( options->alg == ChamGemmAlgSummaC )
     {
         int lookahead = chamctxt->lookahead;
-
+        int tilefmt;
+        
+        switch (C->format) {
+            case ChamTile:
+                tilefmt = CHAMELEON_TILE_FULLRANK;
+                break;
+            case ChamRapack:
+                tilefmt = CHAMELEON_TILE_LOWRANK;
+                break;
+            case ChamHmatOSS:
+                tilefmt = CHAMELEON_TILE_HMAT;
+                break;
+        }
+        
         chameleon_desc_init( &(options->WA), CHAMELEON_MAT_ALLOC_TILE,
+                             tilefmt,
                              ChamComplexDouble, C->mb, C->nb, (C->mb * C->nb),
                              C->mt * C->mb, C->nb * chameleon_desc_datadist_get_iparam(C, 1) * lookahead, 0, 0,
                              C->mt * C->mb, C->nb * chameleon_desc_datadist_get_iparam(C, 1) * lookahead,
@@ -199,6 +213,7 @@ void *CHAMELEON_zgemm_WS_Alloc( cham_trans_t       transA __attribute__((unused)
                              chameleon_desc_datadist_get_iparam(C, 1),
                              NULL, NULL, NULL, NULL );
         chameleon_desc_init( &(options->WB), CHAMELEON_MAT_ALLOC_TILE,
+                             tilefmt,
                              ChamComplexDouble, C->mb, C->nb, (C->mb * C->nb),
                              C->mb * chameleon_desc_datadist_get_iparam(C, 0) * lookahead, C->nt * C->nb, 0, 0,
                              C->mb * chameleon_desc_datadist_get_iparam(C, 0) * lookahead, C->nt * C->nb,

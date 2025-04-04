@@ -41,7 +41,7 @@ void *RUNTIME_malloc( size_t size )
 #else
     void *ptr;
 
-    if (starpu_malloc_flags(&ptr, size, STARPU_MALLOC_PINNED|FOLDED|STARPU_MALLOC_COUNT) != 0) {
+    if ( starpu_malloc_flags(&ptr, size, STARPU_MALLOC_PINNED | FOLDED| STARPU_MALLOC_COUNT) != 0 ) {
         return NULL;
     }
     return ptr;

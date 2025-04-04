@@ -28,7 +28,7 @@ if (NOT EZTRACE_FOUND)
     find_package(EZTRACE)
 endif()
 
-if (EZTRACE_FOUND)
+if (CHAMELEON_USE_EZTRACE AND EZTRACE_FOUND)
 
     set(EZTRACE_eztrace_create_plugin_DIR "EZTRACE_eztrace_create_plugin_DIR-NOTFOUND")
     find_path(EZTRACE_eztrace_create_plugin_DIR
@@ -59,7 +59,7 @@ if (EZTRACE_FOUND)
                 WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${_module}
                 DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${_module}
                 )
-            add_custom_target(
+	    add_custom_target(
                 eztrace-module-chameleon_${_module}-libs ALL
                 DEPENDS libeztrace-convert-chameleon_${_module}.so
                 )
@@ -75,7 +75,7 @@ if (EZTRACE_FOUND)
         endforeach()
     endif (EZTRACE_eztrace_create_plugin_DIR)
 
-endif (EZTRACE_FOUND)
+endif (CHAMELEON_USE_EZTRACE AND EZTRACE_FOUND)
 
 ###
 ### END CMakeLists.txt

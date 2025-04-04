@@ -30,6 +30,10 @@
 #if defined(STARPU_USE_FXT)
 #include <starpu_fxt.h>
 #endif
+#include "runtime_rpk.h"
+#if defined(CHAMELEON_USE_HMATOSS)
+#include "runtime_hmat.h"
+#endif
 
 static int starpu_initialized = 0;
 
@@ -126,6 +130,7 @@ static int chameleon_starpu_init( MPI_Comm comm, struct starpu_conf *conf )
         }
         rc = starpu_mpi_init(NULL, NULL, !flag);
 #  endif
+
     }
 #else
 
@@ -233,6 +238,10 @@ int RUNTIME_init( CHAM_context_t *chamctxt,
 
     starpu_cham_tile_interface_init();
     cppi_interface_init();
+	runtime_rpk_ctx_init();
+#if defined(CHAMELEON_USE_HMATOSS)
+    runtime_hmat_interface_init();
+#endif
 
     chameleon_starpu_parallel_worker_init( sched_opt );
     return hres;
@@ -252,6 +261,8 @@ void RUNTIME_finalize( CHAM_context_t *chamctxt )
     chameleon_starpu_parallel_worker_fini( sched_opt );
 
     starpu_cham_tile_interface_fini();
+
+	runtime_rpk_ctx_exit();
 
 #if defined(CHAMELEON_USE_CUDA) && !defined(CHAMELEON_SIMULATION)
     starpu_cublas_shutdown();

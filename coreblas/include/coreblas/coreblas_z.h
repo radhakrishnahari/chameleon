@@ -29,6 +29,9 @@
 #ifndef _coreblas_z_h_
 #define _coreblas_z_h_
 
+#define _rapack_cblas_h_
+#include "rapack.h"
+
 /**
  *  Declarations of serial kernels - alphabetical order
  */
@@ -422,5 +425,15 @@ int CORE_zgram( cham_uplo_t uplo, int M, int N, int Mt, int Nt,
 void CORE_zprint( FILE *file, const char *header,
                   cham_uplo_t uplo, int m, int n, int Am, int An,
                   const CHAMELEON_Complex64_t *A, int lda );
+
+void CORE_zge2lr( rpk_int_t        rklimit,
+                  rpk_int_t        m,
+                  rpk_int_t        n,
+                  const CHAMELEON_Complex64_t* A,
+                  rpk_int_t        lda,
+                  rpk_matrix_t    *Alr );
+
+void TCORE_zhmat2rpk( CHAM_tile_t *tileA, CHAM_tile_t *tileB );
+void TCORE_ztile2rpk( CHAM_tile_t *tileA, CHAM_tile_t *tileB );
 
 #endif /* _coreblas_z_h_ */
