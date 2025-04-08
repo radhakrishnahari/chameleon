@@ -19,20 +19,28 @@
  */
 #include "chameleon_openmp.h"
 
-void RUNTIME_ipiv_create( CHAM_ipiv_t *ipiv,
-                          const CHAM_desc_t *desc )
+void RUNTIME_ipiv_create( CHAM_ipiv_t *ipiv )
 {
     assert( 0 );
     (void)ipiv;
-    (void)desc;
 }
 
-void RUNTIME_ipiv_destroy( CHAM_ipiv_t *ipiv,
-                           const CHAM_desc_t *desc )
+void RUNTIME_pivot_create( CHAM_desc_pivot_t *pivot )
+{
+    assert( 0 );
+    (void)pivot;
+}
+
+void RUNTIME_ipiv_destroy( CHAM_ipiv_t *ipiv )
 {
     assert( 0 );
     (void)ipiv;
-    (void)desc;
+}
+
+void RUNTIME_pivot_destroy( CHAM_desc_pivot_t *pivot )
+{
+    assert( 0 );
+    (void)pivot;
 }
 
 void *RUNTIME_ipiv_getaddr( const CHAM_ipiv_t *ipiv, int m )
@@ -43,22 +51,22 @@ void *RUNTIME_ipiv_getaddr( const CHAM_ipiv_t *ipiv, int m )
     return NULL;
 }
 
-void *RUNTIME_nextpiv_getaddr( const CHAM_ipiv_t *ipiv, int rank, int m, int h )
+void *RUNTIME_nextpiv_getaddr( const CHAM_desc_pivot_t *pivot, int rank, int k, int h )
 {
     assert( 0 );
-    (void)ipiv;
+    (void)pivot;
     (void)rank;
-    (void)m;
+    (void)k;
     (void)h;
     return NULL;
 }
 
-void *RUNTIME_prevpiv_getaddr( const CHAM_ipiv_t *ipiv, int rank, int m, int h )
+void *RUNTIME_prevpiv_getaddr( const CHAM_desc_pivot_t *pivot, int rank, int k, int h )
 {
     assert( 0 );
-    (void)ipiv;
+    (void)pivot;
     (void)rank;
-    (void)m;
+    (void)k;
     (void)h;
     return NULL;
 }
@@ -79,6 +87,31 @@ void *RUNTIME_invp_getaddr( const CHAM_ipiv_t *ipiv, int k )
     return NULL;
 }
 
+void RUNTIME_pivot_flushk( const RUNTIME_sequence_t *sequence,
+                           const CHAM_desc_pivot_t *pivot, int rank )
+{
+    assert( 0 );
+    (void)sequence;
+    (void)pivot;
+    (void)rank;
+}
+
+void RUNTIME_pivot_flush( const RUNTIME_sequence_t *sequence,
+                          const CHAM_desc_pivot_t  *pivot )
+{
+    assert( 0 );
+    (void)pivot;
+    (void)sequence;
+}
+
+void RUNTIME_ipiv_flush( const RUNTIME_sequence_t *sequence,
+                         const CHAM_ipiv_t        *ipiv )
+{
+    assert( 0 );
+    (void)sequence;
+    (void)ipiv;
+}
+
 void RUNTIME_ipiv_flushk( const RUNTIME_sequence_t *sequence,
                           const CHAM_ipiv_t *ipiv, int m )
 {
@@ -86,14 +119,6 @@ void RUNTIME_ipiv_flushk( const RUNTIME_sequence_t *sequence,
     (void)sequence;
     (void)ipiv;
     (void)m;
-}
-
-void RUNTIME_ipiv_flush( const RUNTIME_sequence_t *sequence,
-                         const CHAM_ipiv_t        *ipiv )
-{
-    assert( 0 );
-    (void)ipiv;
-    (void)sequence;
 }
 
 void RUNTIME_perm_flushk( const RUNTIME_sequence_t *sequence,

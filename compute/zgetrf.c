@@ -59,7 +59,9 @@ CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A )
 {
     CHAM_context_t             *chamctxt;
     struct chameleon_pzgetrf_s *ws;
-    int lookahead, batch_size;
+    int                         lookahead, batch_size;
+    int                         P = chameleon_desc_datadist_get_iparam( A, 0 );
+    int                         Q = chameleon_desc_datadist_get_iparam( A, 1 );
 
     chamctxt = chameleon_context_self();
     if ( chamctxt == NULL ) {
@@ -70,11 +72,7 @@ CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A )
     ws->alg = ChamGetrfPPiv;
     ws->ib  = CHAMELEON_IB;
 
-#if defined (CHAMELEON_USE_MPI)
-    ws->proc_involved = malloc( sizeof( int ) * chameleon_desc_datadist_get_iparam(A, 0) );
-    ws->involved      = 0;
-    ws->np_involved   = 0;
-#endif
+    ws->laswp = CHAMELEON_zlaswp_WS_Alloc( ChamLeft, A );
 
     {
         char *algostr = chameleon_getenv( "CHAMELEON_GETRF_ALGO" );
@@ -99,21 +97,6 @@ CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A )
         chameleon_cleanenv( algostr );
     }
 
-    {
-        char *allreduce = chameleon_getenv( "CHAMELEON_GETRF_ALL_REDUCE" );
-
-        if ( allreduce != NULL ) {
-            if ( strcasecmp( allreduce, "cham_spu_tasks" ) == 0 ) {
-                ws->alg_allreduce = ChamStarPUTasks;
-            }
-            else {
-                chameleon_error( "CHAMELEON_zgetrf_WS_Alloc", "CHAMELEON_GETRF_ALL_REDUCE is not one of chameleon_starpu_tasks, chameleon_starpu, chameleon_starpu_mpi, chameleon_mpi => Switch back to chameleon_starpu_tasks\n" );
-                ws->alg_allreduce = ChamStarPUTasks;
-            }
-        }
-        chameleon_cleanenv( allreduce );
-    }
-
     batch_size = chameleon_getenv_get_value_int( "CHAMELEON_GETRF_BATCH_SIZE", 0 );
     if ( batch_size > CHAMELEON_BATCH_SIZE ) {
         chameleon_warning( "CHAMELEON_BATCH_SIZE", "CHAMELEON_GETRF_BATCH_SIZE must be smaller than CHAMELEON_BATCH_SIZE, please recompile with the right CHAMELEON_BATCH_SIZE, or reduce the CHAMELEON_GETRF_BATCH_SIZE value\n" );
@@ -132,9 +115,7 @@ CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A )
         chameleon_desc_init( &(ws->U), CHAMELEON_MAT_ALLOC_TILE,
                              ChamComplexDouble, 1, A->nb, A->nb,
                              A->mt, A->nt * A->nb, 0, 0,
-                             A->mt, A->nt * A->nb,
-                             chameleon_desc_datadist_get_iparam(A, 0),
-                             chameleon_desc_datadist_get_iparam(A, 1),
+                             A->mt, A->nt * A->nb, P, Q,
                              NULL, NULL, A->get_rankof_init, A->get_rankof_init_arg );
     }
     else if ( ( ws->alg == ChamGetrfPPiv )          ||
@@ -143,25 +124,13 @@ CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A )
         chameleon_desc_init( &(ws->U), CHAMELEON_MAT_ALLOC_TILE,
                              ChamComplexDouble, A->mb, A->nb, A->mb*A->nb,
                              A->m, A->n, 0, 0,
-                             A->m, A->n,
-                             chameleon_desc_datadist_get_iparam(A, 0),
-                             chameleon_desc_datadist_get_iparam(A, 1),
+                             A->m, A->n, P, Q,
                              NULL, NULL, A->get_rankof_init, A->get_rankof_init_arg );
-        chameleon_desc_init( &(ws->Wu), CHAMELEON_MAT_ALLOC_TILE,
-                             ChamComplexDouble, A->mb, A->nb, A->mb*A->nb,
-                             A->mb * chameleon_desc_datadist_get_iparam(A, 0) * chameleon_desc_datadist_get_iparam(A, 1), A->n, 0, 0,
-                             A->mb * chameleon_desc_datadist_get_iparam(A, 0) * chameleon_desc_datadist_get_iparam(A, 1), A->n, chameleon_desc_datadist_get_iparam(A, 0) * chameleon_desc_datadist_get_iparam(A, 1), 1,
-                             NULL, NULL, NULL, A->get_rankof_init_arg );
-        chameleon_desc_init( &(ws->Wc), CHAMELEON_MAT_ALLOC_TILE,
-                            ChamComplexDouble, A->mb, A->nb, A->mb*A->nb,
-                            A->m, A->nb * chameleon_desc_datadist_get_iparam(A, 0) * chameleon_desc_datadist_get_iparam(A, 1), 0, 0,
-                            A->m, A->nb * chameleon_desc_datadist_get_iparam(A, 0) * chameleon_desc_datadist_get_iparam(A, 1), 1, chameleon_desc_datadist_get_iparam(A, 0) * chameleon_desc_datadist_get_iparam(A, 1),
-                            NULL, NULL, NULL, A->get_rankof_init_arg );
         lookahead = chamctxt->lookahead;
         chameleon_desc_init( &(ws->Wl), CHAMELEON_MAT_ALLOC_TILE,
                              ChamComplexDouble, A->mb, A->nb, (A->mb * A->nb),
-                             A->mt * A->mb, A->nb * chameleon_desc_datadist_get_iparam(A, 1) * lookahead, 0, 0,
-                             A->mt * A->mb, A->nb * chameleon_desc_datadist_get_iparam(A, 1) * lookahead, chameleon_desc_datadist_get_iparam(A, 0), chameleon_desc_datadist_get_iparam(A, 1),
+                             A->mt * A->mb, A->nb * Q * lookahead, 0, 0,
+                             A->mt * A->mb, A->nb * Q * lookahead, P, Q,
                              NULL, NULL, A->get_rankof_init, A->get_rankof_init_arg );
     }
 
@@ -180,9 +149,7 @@ CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A )
         chameleon_desc_init( &(ws->Up), CHAMELEON_MAT_ALLOC_TILE,
                              ChamComplexDouble, ws->ib, A->nb, ws->ib * A->nb,
                              A->mt * ws->ib, A->nt * A->nb, 0, 0,
-                             A->mt * ws->ib, A->nt * A->nb,
-                             chameleon_desc_datadist_get_iparam(A, 0),
-                             chameleon_desc_datadist_get_iparam(A, 1),
+                             A->mt * ws->ib, A->nt * A->nb, P, Q,
                              NULL, NULL, A->get_rankof_init, A->get_rankof_init_arg );
     }
 
@@ -213,10 +180,6 @@ CHAMELEON_zgetrf_WS_Free( void *user_ws )
 {
     struct chameleon_pzgetrf_s *ws = (struct chameleon_pzgetrf_s *)user_ws;
 
-#if defined (CHAMELEON_USE_MPI)
-    free( ws->proc_involved );
-#endif
-
     if ( ( ws->alg == ChamGetrfNoPivPerColumn ) ||
          ( ws->alg == ChamGetrfPPiv           ) ||
          ( ws->alg == ChamGetrfPPivPerColumn  ) )
@@ -230,8 +193,6 @@ CHAMELEON_zgetrf_WS_Free( void *user_ws )
     if ( ( ws->alg == ChamGetrfPPiv           ) ||
          ( ws->alg == ChamGetrfPPivPerColumn  ) )
     {
-        chameleon_desc_destroy( &(ws->Wu) );
-        chameleon_desc_destroy( &(ws->Wc) );
         chameleon_desc_destroy( &(ws->Wl) );
     }
     free( ws );
@@ -289,13 +250,14 @@ int
 CHAMELEON_zgetrf( int M, int N, CHAMELEON_Complex64_t *A, int LDA, int *IPIV )
 {
     int                 NB;
-    int                 status;
-    CHAM_desc_t         descAl, descAt;
-    CHAM_ipiv_t         descIPIV;
-    CHAM_context_t     *chamctxt;
-    RUNTIME_sequence_t *sequence = NULL;
-    RUNTIME_request_t   request  = RUNTIME_REQUEST_INITIALIZER;
+    int                         status;
+    CHAM_desc_t                 descAl, descAt;
+    CHAM_ipiv_t                 descIPIV;
+    CHAM_context_t             *chamctxt;
+    RUNTIME_sequence_t         *sequence = NULL;
+    RUNTIME_request_t           request  = RUNTIME_REQUEST_INITIALIZER;
     struct chameleon_pzgetrf_s *ws;
+    int                         P, Q;
 
     chamctxt = chameleon_context_self();
     if ( chamctxt == NULL ) {
@@ -335,13 +297,16 @@ CHAMELEON_zgetrf( int M, int N, CHAMELEON_Complex64_t *A, int LDA, int *IPIV )
     chameleon_zlap2tile( chamctxt, &descAl, &descAt, ChamDescInout, ChamUpperLower,
                          A, NB, NB, LDA, N, M, N, sequence, &request );
 
+    P = chameleon_desc_datadist_get_iparam( &descAt, 0 );
+    Q = chameleon_desc_datadist_get_iparam( &descAt, 1 );
+
     /* Allocate workspace for partial pivoting */
     ws = CHAMELEON_zgetrf_WS_Alloc( &descAt );
 
     if ( ( ws->alg == ChamGetrfPPivPerColumn ) ||
          ( ws->alg == ChamGetrfPPiv ) )
     {
-        chameleon_ipiv_init( &descIPIV, &descAt, chameleon_min( M, N ), IPIV );
+        chameleon_ipiv_init( &descIPIV, ChamLeft, descAt.mb, chameleon_min( M, N ), P, P*Q, IPIV, chameleon_getrankof_ipiv_2d_diag);
     }
 
     /* Call the tile interface */
@@ -362,7 +327,7 @@ CHAMELEON_zgetrf( int M, int N, CHAMELEON_Complex64_t *A, int LDA, int *IPIV )
     if ( ( ws->alg == ChamGetrfPPivPerColumn ) ||
          ( ws->alg == ChamGetrfPPiv ) )
     {
-        chameleon_ipiv_destroy( &descIPIV, &descAt );
+        chameleon_ipiv_destroy( &descIPIV );
     }
     CHAMELEON_zgetrf_WS_Free( ws );
     chameleon_ztile2lap_cleanup( chamctxt, &descAl, &descAt );
@@ -432,7 +397,6 @@ CHAMELEON_zgetrf_Tile( CHAM_desc_t *A, CHAM_ipiv_t *IPIV )
     ws = CHAMELEON_zgetrf_WS_Alloc( A );
     CHAMELEON_zgetrf_Tile_Async( A, IPIV, ws, sequence, &request );
     CHAMELEON_Desc_Flush( A, sequence );
-    CHAMELEON_Ipiv_Flush( IPIV, sequence );
 
     chameleon_sequence_wait( chamctxt, sequence );
     CHAMELEON_zgetrf_WS_Free( ws );
@@ -544,6 +508,8 @@ CHAMELEON_zgetrf_Tile_Async( CHAM_desc_t        *A,
     else {
         ws = user_ws;
     }
+
+    IPIV->get_rankof = chameleon_getrankof_ipiv_2d_diag;
 
     chameleon_pzgetrf( ws, A, IPIV, sequence, request );
 

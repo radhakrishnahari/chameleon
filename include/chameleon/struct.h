@@ -173,29 +173,49 @@ struct chameleon_desc_s {
     void *schedopt;   /**> scheduler (QUARK|StarPU) specific structure                        */
 };
 
+typedef struct chameleon_ipiv_s CHAM_ipiv_t;
+
+typedef int (*blkdim_ipiv_fct_t)    ( const CHAM_ipiv_t*, int );
+typedef int (*blkrankof_ipiv_fct_t) ( const CHAM_ipiv_t*, int, int );
+
 /**
  *  CHAMELEON structure to hold pivot informations for the LU factorization with partial pivoting
  */
-typedef struct chameleon_piv_s {
-    const CHAM_desc_t *desc;   /**> Reference descriptor to compute data mapping based on diagonal tiles,
-                              and get floating reference type                                        */
-    int    *data;    /**> Pointer to the data                                                    */
-    void   *ipiv;    /**> Opaque array of pointers for the runtimes to handle the ipiv array     */
-    void   *nextpiv; /**> Opaque array of pointers for the runtimes to handle the pivot computation structure */
-    void   *prevpiv; /**> Opaque array of pointers for the runtimes to handle the pivot computation structure */
-    void   *perm;    /**> Opaque array of pointers for the runtimes to handle the temporary permutation array */
-    void   *invp;    /**> Opaque array of pointers for the runtimes to handle the temporary inverse permutation array */
-    int64_t mpitag_ipiv;    /**> Initial mpi tag values for the ipiv handles    */
-    int64_t mpitag_nextpiv; /**> Initial mpi tag values for the nextpiv handles */
-    int64_t mpitag_prevpiv; /**> Initial mpi tag values for the prevpiv handles */
-    int64_t mpitag_perm;    /**> Initial mpi tag values for the nextpiv handles */
-    int64_t mpitag_invp;    /**> Initial mpi tag values for the prevpiv handles */
-    int     i;              /**> row index to the beginning of the submatrix    */
-    int     m;              /**> The number of row in the vector ipiv           */
-    int     mb;             /**> The number of row per block                    */
-    int     mt;             /**> The number of tiles                            */
-    int     n;              /**> The number of column considered (must be updated for each panel) */
-} CHAM_ipiv_t;
+struct chameleon_ipiv_s {
+    blkdim_ipiv_fct_t    get_blkdim; /**> function to get chameleon tiles dimension within algorithms                                 */
+    blkrankof_ipiv_fct_t get_rankof; /**> function to get chameleon tiles MPI rank                                                    */
+
+    int         *data;               /**> Pointer to the data                                                                         */
+    void        *ipiv;               /**> Opaque array of pointers for the runtimes to handle the ipiv array                          */
+    void        *perm;               /**> Opaque array of pointers for the runtimes to handle the temporary permutation array         */
+    void        *invp;               /**> Opaque array of pointers for the runtimes to handle the temporary inverse permutation array */
+    int64_t      mpitag_ipiv;        /**> Initial mpi tag values for the ipiv handles                                                 */
+    int64_t      mpitag_perm;        /**> Initial mpi tag values for the nextpiv handles                                              */
+    int64_t      mpitag_invp;        /**> Initial mpi tag values for the prevpiv handles                                              */
+
+    int          myrank;             /**> MPI rank of the descriptor */
+    int          i;                  /**> row index to the beginning of the submatrix                                                 */
+    int          m;                  /**> The number of row in the vector ipiv                                                        */
+    int          mb;                 /**> The number of row per block                                                                 */
+    int          mt;                 /**> The number of tiles                                                                         */
+    int          P;                  /**> The number of processes per column on a tiled matrix                                        */
+    int          NP;                 /**> The total number of processes                                                               */
+};
+
+/**
+ *  CHAMELEON structure to hold pivot informations for the LU factorization with partial pivoting
+ */
+typedef struct chameleon_desc_pivot_s {
+    void          *nextpiv;        /**> Opaque array of pointers for the runtimes to handle the pivot computation structure */
+    void          *prevpiv;        /**> Opaque array of pointers for the runtimes to handle the pivot computation structure */
+    int64_t        mpitag_nextpiv; /**> Initial mpi tag values for the nextpiv handles                                      */
+    int64_t        mpitag_prevpiv; /**> Initial mpi tag values for the prevpiv handles                                      */
+    int            P;              /**> The number of processes per column of the tiled matrix                              */
+    int            Q;              /**> The number of processes per line of the tiled matrix                                */
+    int            nb;             /**> The number of row per block                                                         */
+    int            n;              /**> The number of column considered (must be updated for each panel) */
+    cham_flttype_t dtyp;           /**> Arithmetic used to store the rows/columns to swap                                   */
+} CHAM_desc_pivot_t;
 
 static inline void *
 CHAM_tile_get_ptr( const CHAM_tile_t *tile )

@@ -718,33 +718,37 @@ void RUNTIME_ddisplay_oneprofile (cham_tasktype_t task);
 void RUNTIME_sdisplay_allprofile ();
 void RUNTIME_sdisplay_oneprofile (cham_tasktype_t task);
 
-void RUNTIME_ipiv_create ( CHAM_ipiv_t *ipiv,
-                          const CHAM_desc_t *desc );
-void RUNTIME_ipiv_destroy( CHAM_ipiv_t *ipiv,
-                           const CHAM_desc_t *desc );
+void RUNTIME_ipiv_create ( CHAM_ipiv_t *ipiv );
+void RUNTIME_pivot_create ( CHAM_desc_pivot_t *pivot );
+void RUNTIME_ipiv_destroy( CHAM_ipiv_t *ipiv );
+void RUNTIME_pivot_destroy( CHAM_desc_pivot_t *pivot );
 void RUNTIME_ipiv_gather ( const RUNTIME_sequence_t *sequence,
                            CHAM_ipiv_t *desc, int *ipiv, int node );
 
+void RUNTIME_pivot_flushk( const RUNTIME_sequence_t *sequence,
+                           const CHAM_desc_pivot_t *pivot, int m );
+void RUNTIME_pivot_flush ( const RUNTIME_sequence_t *sequence,
+                           const CHAM_desc_pivot_t  *pivot );
 void RUNTIME_ipiv_flushk( const RUNTIME_sequence_t *sequence,
                           const CHAM_ipiv_t *ipiv, int m );
 void RUNTIME_ipiv_flush ( const RUNTIME_sequence_t *sequence,
-                          const CHAM_ipiv_t *ipiv );
+                          const CHAM_ipiv_t  *ipiv );
 void RUNTIME_perm_flushk( const RUNTIME_sequence_t *sequence,
                           const CHAM_ipiv_t *ipiv, int m );
 
 void *RUNTIME_ipiv_getaddr   ( const CHAM_ipiv_t *ipiv, int m );
-void *RUNTIME_nextpiv_getaddr( const CHAM_ipiv_t *ipiv, int rank, int k, int h );
-void *RUNTIME_prevpiv_getaddr( const CHAM_ipiv_t *ipiv, int rank, int k, int h );
 void *RUNTIME_perm_getaddr   ( const CHAM_ipiv_t *ipiv, int m );
 void *RUNTIME_invp_getaddr   ( const CHAM_ipiv_t *ipiv, int m );
+void *RUNTIME_nextpiv_getaddr( const CHAM_desc_pivot_t *pivot, int rank, int k, int h );
+void *RUNTIME_prevpiv_getaddr( const CHAM_desc_pivot_t *pivot, int rank, int k, int h );
 
 static inline void *
-RUNTIME_pivot_getaddr( CHAM_ipiv_t *ipiv, int rank, int k, int h ) {
+RUNTIME_pivot_getaddr( CHAM_desc_pivot_t *pivot, int rank, int k, int h ) {
     if ( h%2 == 0 ) {
-        return RUNTIME_nextpiv_getaddr( ipiv, rank, k, h );
+        return RUNTIME_nextpiv_getaddr( pivot, rank, k, h );
     }
     else {
-        return RUNTIME_prevpiv_getaddr( ipiv, rank, k, h );
+        return RUNTIME_prevpiv_getaddr( pivot, rank, k, h );
     }
 }
 

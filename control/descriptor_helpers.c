@@ -85,6 +85,73 @@ int chameleon_getrankof_2d_diag( const CHAM_desc_t *A, int m, int n )
 }
 
 /**
+ * @brief Return the rank of the process responsible for the permutation of the tile (m, n)
+ * in a classic 2D Block Cyclic distribution PxQ.
+ *
+ * @param[in] IPIV
+ *        The ipiv descriptor.
+ *
+ * @param[in] m
+ *        The row index of the tile.
+ *
+ * @param[in] n
+ *        The column index of the tile.
+ *
+ * @return The rank of the process responsible for the row permutation of the tile (m, n)
+ *
+ */
+int chameleon_getrankof_ipiv_2d_row( const CHAM_ipiv_t *IPIV, int m, int n )
+{
+    int Q = IPIV->NP / IPIV->P;
+    return ( m % IPIV->P ) * Q;
+}
+
+/**
+ * @brief Return the rank of the process responsible for the column permutation of the tile (m, n)
+ * in a classic 2D Block Cyclic distribution PxQ.
+ *
+ * @param[in] IPIV
+ *        The ipiv descriptor.
+ *
+ * @param[in] m
+ *        The row index of the tile.
+ *
+ * @param[in] n
+ *        The column index of the tile.
+ *
+ * @return The rank of the process responsible for the permutation of the tile (m, n)
+ *
+ */
+int chameleon_getrankof_ipiv_2d_col( const CHAM_ipiv_t *IPIV, int m, int n )
+{
+    int Q = IPIV->NP / IPIV->P;
+    return n % Q;
+}
+
+/**
+ * @brief Return the rank of the process responsible for the permutation of the tile (m, n)
+ * when used for getrf in a classic 2D Block Cyclic distribution PxQ.
+ *
+ * @param[in] IPIV
+ *        The ipiv descriptor.
+ *
+ * @param[in] m
+ *        The row and column index of the tile.
+ *
+ * @param[in] n
+ *        Unused
+ *
+ * @return The rank of the process responsible for the permutation of the tile (m, n)
+ *
+ */
+int chameleon_getrankof_ipiv_2d_diag( const CHAM_ipiv_t *IPIV, int m, int n )
+{
+    (void)n;
+    int Q = IPIV->NP / IPIV->P;
+    return (m % IPIV->P) * Q + (m % Q);
+}
+
+/**
  * @brief Test if the current MPI process is involved in the panel k for 2DBC distributions.
  *
  * @param[in] A
@@ -134,37 +201,37 @@ int chameleon_p_involved_in_panelk_2dbc( const CHAM_desc_t *A, int k, int p ) {
  * @param[in] n
  *        The index of the panel to test.
  *
- * @param[inout] ws_getrf
+ * @param[inout] ws_reduce
  *        The i.
  *
  */
 void chameleon_get_proc_involved_in_panelk_2dbc( const CHAM_desc_t *A,
                                                  int                k,
                                                  int                n,
-                                                 void              *ws_getrf )
+                                                 void              *ws_reduce )
 {
 #if defined (CHAMELEON_USE_MPI)
-    struct chameleon_pzgetrf_s *ws = (struct chameleon_pzgetrf_s *)ws_getrf;
-    int *proc_involved = ws->proc_involved;
-    int  b, rank, np;
+    CHAM_reduce_t *reduce        = (CHAM_reduce_t*) ws_reduce;
+    int           *proc_involved = reduce->proc_involved;
+    int            b, rank, np;
 
     np = 0;
-    ws->involved = 0;
+    reduce->involved = 0;
     for ( b = k; (b < A->mt) && ((b-k) < chameleon_desc_datadist_get_iparam(A, 0)); b ++ ) {
         rank = chameleon_getrankof_2d( A, b, n );
         proc_involved[ b-k ] = rank;
         np ++;
         if ( rank == A->myrank ) {
-            ws->involved = 1;
+            reduce->involved = 1;
         }
     }
-    ws->proc_involved = proc_involved;
-    ws->np_involved   = np;
+    reduce->proc_involved = proc_involved;
+    reduce->np_involved   = np;
 #else
     (void)A;
     (void)k;
     (void)n;
-    (void)ws_getrf;
+    (void)ws_reduce;
 #endif
 }
 
@@ -180,37 +247,37 @@ void chameleon_get_proc_involved_in_panelk_2dbc( const CHAM_desc_t *A,
  * @param[in] k
  *        The index of the panel to test.
  *
- * @param[inout] ws_getrf
+ * @param[inout] ws_reduce
  *        The i.
  *
  */
 void chameleon_get_proc_involved_in_rowpanelk_2dbc( const CHAM_desc_t *A,
                                                     int                m,
                                                     int                k,
-                                                    void              *ws_getrf )
+                                                    void              *ws_reduce )
 {
 #if defined (CHAMELEON_USE_MPI)
-    struct chameleon_pzgetrf_s *ws = (struct chameleon_pzgetrf_s *)ws_getrf;
-    int *proc_involved = ws->proc_involved;
-    int  b, rank, np;
+    CHAM_reduce_t *reduce = (CHAM_reduce_t*) ws_reduce;
+    int           *proc_involved = reduce->proc_involved;
+    int            b, rank, np;
 
     np = 0;
-    ws->involved = 0;
+    reduce->involved = 0;
     for ( b = k; (b < A->nt) && ((b-k) < chameleon_desc_datadist_get_iparam(A, 1)); b ++ ) {
         rank = chameleon_getrankof_2d( A, m, b );
         proc_involved[ b-k ] = rank;
         np ++;
         if ( rank == A->myrank ) {
-            ws->involved = 1;
+            reduce->involved = 1;
         }
     }
-    ws->proc_involved = proc_involved;
-    ws->np_involved   = np;
+    reduce->proc_involved = proc_involved;
+    reduce->np_involved   = np;
 #else
     (void)A;
     (void)k;
     (void)m;
-    (void)ws_getrf;
+    (void)ws_reduce;
 #endif
 }
 

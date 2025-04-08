@@ -535,36 +535,38 @@ void INSERT_TASK_zgetrf_nopiv_percol_trsm( const RUNTIME_option_t *options,
 void INSERT_TASK_zgetrf_percol_diag( const RUNTIME_option_t *options,
                                      int m, int n, int h, int m0,
                                      CHAM_desc_t *A, int Am, int An,
-                                     CHAM_ipiv_t *ws );
+                                     CHAM_ipiv_t       *ipiv,
+                                     CHAM_desc_pivot_t *pivot );
 
 void INSERT_TASK_zgetrf_percol_offdiag( const RUNTIME_option_t *options,
                                         int m, int n, int h, int m0,
                                         CHAM_desc_t *A, int Am, int An,
-                                        CHAM_ipiv_t *ws );
+                                        CHAM_desc_pivot_t *pivot );
 
 void INSERT_TASK_zgetrf_blocked_diag( const RUNTIME_option_t *options,
                                       int m, int n, int h, int m0, int ib,
                                       CHAM_desc_t *A, int Am, int An,
                                       CHAM_desc_t *U, int Um, int Un,
-                                      CHAM_ipiv_t *ws );
+                                      CHAM_ipiv_t *ipiv,
+                                      CHAM_desc_pivot_t *pivot );
 
 void INSERT_TASK_zgetrf_blocked_offdiag( const RUNTIME_option_t *options,
                                          int m, int n, int h, int m0, int ib,
                                          CHAM_desc_t *A, int Am, int An,
                                          CHAM_desc_t *U, int Um, int Un,
-                                         CHAM_ipiv_t *ws );
+                                         CHAM_desc_pivot_t *pivot );
 
 void INSERT_TASK_zgetrf_panel_offdiag_batched( const RUNTIME_option_t *options,
                                                int m, int n, int h, int m0,
                                                void *ws,
                                                CHAM_desc_t *A, int Am, int An,
                                                void **clargs_ptr,
-                                               CHAM_ipiv_t *ipiv );
+                                               CHAM_desc_pivot_t *pivot );
 
 void INSERT_TASK_zgetrf_panel_offdiag_batched_flush( const RUNTIME_option_t *options,
                                                      CHAM_desc_t *A, int An,
                                                      void **clargs_ptr,
-                                                     CHAM_ipiv_t *ipiv );
+                                                     CHAM_desc_pivot_t *pivot );
 
 void INSERT_TASK_zgetrf_panel_blocked_batched( const RUNTIME_option_t *options,
                                                int m, int n, int h, int m0,
@@ -572,22 +574,24 @@ void INSERT_TASK_zgetrf_panel_blocked_batched( const RUNTIME_option_t *options,
                                                CHAM_desc_t *A, int Am, int An,
                                                CHAM_desc_t *U, int Um, int Un,
                                                void **clargs_ptr,
-                                               CHAM_ipiv_t *ipiv );
+                                               CHAM_ipiv_t *ipiv,
+                                               CHAM_desc_pivot_t *pivot );
 
 void INSERT_TASK_zgetrf_panel_blocked_batched_flush( const RUNTIME_option_t *options,
                                                      CHAM_desc_t *A, int An,
                                                      CHAM_desc_t *U, int Um, int Un,
                                                      void **clargs_ptr,
-                                                     CHAM_ipiv_t *ipiv );
+                                                     CHAM_ipiv_t *ipiv,
+                                                     CHAM_desc_pivot_t *pivot );
 
 void INSERT_TASK_zgetrf_blocked_trsm( const RUNTIME_option_t *options,
                                       int m, int n, int h, int ib,
                                       CHAM_desc_t *U, int Um, int Un,
-                                      CHAM_ipiv_t *ws );
+                                      CHAM_desc_pivot_t *pivot );
 
 void INSERT_TASK_zipiv_allreduce( const RUNTIME_option_t *options,
                                   CHAM_desc_t            *A,
-                                  CHAM_ipiv_t            *ipiv,
+                                  CHAM_desc_pivot_t      *pivot,
                                   int                     k,
                                   int                     h,
                                   int                     n,

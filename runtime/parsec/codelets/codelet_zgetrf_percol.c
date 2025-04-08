@@ -25,7 +25,8 @@
 void INSERT_TASK_zgetrf_percol_diag( const RUNTIME_option_t *options,
                                      int m, int n, int h, int m0,
                                      CHAM_desc_t *A, int Am, int An,
-                                     CHAM_ipiv_t *ipiv )
+                                     CHAM_ipiv_t       *ipiv,
+                                     CHAM_desc_pivot_t *pivot )
 {
     assert( 0 );
     (void)options;
@@ -37,12 +38,13 @@ void INSERT_TASK_zgetrf_percol_diag( const RUNTIME_option_t *options,
     (void)Am;
     (void)An;
     (void)ipiv;
+    (void)pivot;
 }
 
 void INSERT_TASK_zgetrf_percol_offdiag( const RUNTIME_option_t *options,
                                         int m, int n, int h, int m0,
                                         CHAM_desc_t *A, int Am, int An,
-                                        CHAM_ipiv_t *ipiv )
+                                        CHAM_desc_pivot_t *pivot )
 {
     assert( 0 );
     (void)options;
@@ -53,5 +55,5 @@ void INSERT_TASK_zgetrf_percol_offdiag( const RUNTIME_option_t *options,
     (void)A;
     (void)Am;
     (void)An;
-    (void)ipiv;
+    (void)pivot;
 }

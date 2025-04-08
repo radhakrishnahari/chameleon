@@ -41,24 +41,27 @@ struct chameleon_pzgemm_s {
 };
 
 /**
+ * @brief Data structure to handle the LASWP workspaces
+ */
+struct chameleon_pzlaswp_s {
+    CHAM_desc_t   W;      /**< Workspace used for the row/column permutation. */
+    CHAM_reduce_t reduce; /**< Structure for reduction operations             */
+};
+
+/**
  * @brief Data structure to handle the GETRF workspaces with partial pivoting
  */
 struct chameleon_pzgetrf_s {
-    cham_getrf_t            alg;
-    cham_getrf_allreduce_t  alg_allreduce;
-    int                     ib;         /**< Internal blocking parameter */
-    int                     batch_size_blas2; /**< Batch size for the blas 2 operations of the panel factorization */
-    int                     batch_size_blas3; /**< Batch size for the blas 3 operations of the panel factorization */
-    int                     batch_size_swap;  /**< Batch size for the permutation */
-    int                     ringswitch; /**< Define when to switch to ring bcast           */
-    CHAM_desc_t             U;
-    CHAM_desc_t             Up; /**< Workspace used for the panel factorization    */
-    CHAM_desc_t             Wu; /**< Workspace used for the permutation and update */
-    CHAM_desc_t             Wc; /**< Workspace used for the column permutation. */
-    CHAM_desc_t             Wl; /**< Workspace used the update                     */
-    int                    *proc_involved;
-    unsigned int            involved;
-    int                     np_involved;
+    struct chameleon_pzlaswp_s *laswp;            /**< Structure containing the permutation workspace and the reduce data   */
+    cham_getrf_t                alg;              /**< Define the algorithm used to compute the getrf                       */
+    int                         ib;               /**< Internal blocking parameter                                          */
+    int                         batch_size_blas2; /**< Batch size for the blas 2 operations of the panel factorization      */
+    int                         batch_size_blas3; /**< Batch size for the blas 3 operations of the panel factorization      */
+    int                         batch_size_swap;  /**< Batch size for the permutation                                       */
+    int                         ringswitch;       /**< Define when to switch to ring bcast                                  */
+    CHAM_desc_t                 U;                /**< Workspaces used for the panels permutation in getrf without pivoting */
+    CHAM_desc_t                 Up;               /**< Workspace used for the panel factorization                           */
+    CHAM_desc_t                 Wl;               /**< Workspace used for the update                                        */
 };
 
 /**
@@ -173,8 +176,8 @@ void chameleon_pzlansy_generic( cham_normtype_t norm, cham_uplo_t uplo, cham_tra
 void chameleon_pzlascal(cham_uplo_t uplo, CHAMELEON_Complex64_t alpha, CHAM_desc_t *A, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 void chameleon_pzlaset( cham_uplo_t uplo, CHAMELEON_Complex64_t alpha, CHAMELEON_Complex64_t beta, CHAM_desc_t *A, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 void chameleon_pzlaset2(cham_uplo_t uplo, CHAMELEON_Complex64_t alpha,                          CHAM_desc_t *A, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
-void chameleon_pzlaswp( struct chameleon_pzgetrf_s *ws, cham_dir_t dir, CHAM_desc_t *A, CHAM_ipiv_t *IPIV, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request );
-void chameleon_pzlaswpc( struct chameleon_pzgetrf_s *ws, cham_dir_t dir, CHAM_desc_t *A, CHAM_ipiv_t *IPIV, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request );
+void chameleon_pzlaswp( struct chameleon_pzlaswp_s *ws, cham_dir_t dir, CHAM_desc_t *A, CHAM_ipiv_t *IPIV, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request );
+void chameleon_pzlaswpc( struct chameleon_pzlaswp_s *ws, cham_dir_t dir, CHAM_desc_t *A, CHAM_ipiv_t *IPIV, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request );
 void chameleon_pzlatms( cham_dist_t idist, unsigned long long int seed, cham_sym_t sym, double *D, int mode, double cond, double dmax, CHAM_desc_t *A, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request );
 void chameleon_pzlauum(cham_uplo_t uplo, CHAM_desc_t *A, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 void chameleon_pzplghe(double bump, cham_uplo_t uplo, CHAM_desc_t *A, int bigM, int m0, int n0, unsigned long long int seed, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request );

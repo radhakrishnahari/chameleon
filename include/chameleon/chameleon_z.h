@@ -333,6 +333,8 @@ void *CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A );
 void  CHAMELEON_zgetrf_WS_Free( void *ws );
 void *CHAMELEON_zgetrf_nopiv_WS_Alloc( const CHAM_desc_t *A );
 void  CHAMELEON_zgetrf_nopiv_WS_Free( void *ws );
+void *CHAMELEON_zlaswp_WS_Alloc( cham_side_t side, const CHAM_desc_t *A );
+void  CHAMELEON_zlaswp_WS_Free( void *ws );
 
 int CHAMELEON_Alloc_Workspace_zgesv_incpiv(        int N, CHAM_desc_t **descL, int **IPIV, int p, int q);
 int CHAMELEON_Alloc_Workspace_zgetrf_incpiv(int M, int N, CHAM_desc_t **descL, int **IPIV, int p, int q);
@@ -369,7 +371,7 @@ int CHAMELEON_zLapack_to_Tile( CHAMELEON_Complex64_t *Af77, int LDA, CHAM_desc_t
 int CHAMELEON_zTile_to_Lapack( CHAM_desc_t *A, CHAMELEON_Complex64_t *Af77, int LDA ) __attribute__((deprecated("Please refer to CHAMELEON_zDesc2Lap() instead")));
 int CHAMELEON_zLap2Desc( cham_uplo_t uplo, CHAMELEON_Complex64_t *Af77, int LDA, CHAM_desc_t *A );
 int CHAMELEON_zDesc2Lap( cham_uplo_t uplo, CHAM_desc_t *A, CHAMELEON_Complex64_t *Af77, int LDA );
-void CHAMELEON_Ipiv_Init( const CHAM_desc_t *descA, CHAM_ipiv_t *descIPIV );
+void CHAMELEON_Ipiv_Init( CHAM_ipiv_t *descIPIV );
 
 /**
  *  User Builder function prototypes

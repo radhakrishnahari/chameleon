@@ -39,6 +39,7 @@ testing_zgetrf_desc( run_arg_list_t *args, int check )
 {
     testdata_t test_data = { .args = args };
     int        hres      = 0;
+    int        P, Q;
 
     /* Read arguments */
     int         async = parameters_getvalue_int( "async" );
@@ -78,7 +79,11 @@ testing_zgetrf_desc( run_arg_list_t *args, int check )
 
     /* Creates the matrices */
     parameters_desc_create( "A", &descA, ChamComplexDouble, nb, nb, LDA, N, M, N );
-    CHAMELEON_Ipiv_Create( &descIPIV, descA, minMN, NULL );
+
+    P = chameleon_desc_datadist_get_iparam( descA, 0 );
+    Q = chameleon_desc_datadist_get_iparam( descA, 1 );
+
+    CHAMELEON_Ipiv_Create( &descIPIV, ChamLeft, descA->mb, N, P, P*Q, NULL );
 
     /* Fills the matrix with random values */
     if ( diag == ChamUnit ) {
@@ -98,7 +103,6 @@ testing_zgetrf_desc( run_arg_list_t *args, int check )
     if ( async ) {
         hres = CHAMELEON_zgetrf_Tile_Async( descA, descIPIV, ws, test_data.sequence, &test_data.request );
         CHAMELEON_Desc_Flush( descA, test_data.sequence );
-        CHAMELEON_Ipiv_Flush( descIPIV, test_data.sequence );
     }
     else {
         hres = CHAMELEON_zgetrf_Tile( descA, descIPIV );
@@ -130,7 +134,7 @@ testing_zgetrf_desc( run_arg_list_t *args, int check )
         CHAMELEON_zgetrf_WS_Free( ws );
     }
 
-    CHAMELEON_Ipiv_Destroy( &descIPIV, descA );
+    CHAMELEON_Ipiv_Destroy( &descIPIV );
     parameters_desc_destroy( &descA );
 
     return hres;

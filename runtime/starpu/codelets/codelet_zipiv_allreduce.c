@@ -81,7 +81,7 @@ CODELETS_CPU( zipiv_allreduce, cl_zipiv_allreduce_cpu_func )
 
 static void
 INSERT_TASK_zipiv_allreduce_send( const RUNTIME_option_t *options,
-                                  CHAM_ipiv_t            *ipiv,
+                                  CHAM_desc_pivot_t      *pivot,
                                   int                     me,
                                   int                     dst,
                                   int                     k,
@@ -90,14 +90,14 @@ INSERT_TASK_zipiv_allreduce_send( const RUNTIME_option_t *options,
     rt_starpu_insert_task(
         NULL,
         STARPU_EXECUTE_ON_NODE, dst,
-        STARPU_R,               RUNTIME_pivot_getaddr( ipiv, me, k, h ),
+        STARPU_R,               RUNTIME_pivot_getaddr( pivot, me, k, h ),
         STARPU_PRIORITY,        options->priority,
         0 );
 }
 
 static void
 INSERT_TASK_zipiv_allreduce_recv( const RUNTIME_option_t *options,
-                                  CHAM_ipiv_t            *ipiv,
+                                  CHAM_desc_pivot_t      *pivot,
                                   int                     me,
                                   int                     src,
                                   int                     k,
@@ -112,20 +112,20 @@ INSERT_TASK_zipiv_allreduce_recv( const RUNTIME_option_t *options,
     rt_starpu_insert_task(
         &cl_zipiv_allreduce,
         STARPU_CL_ARGS,           clargs, sizeof(struct cl_redux_args_s),
-        STARPU_RW,                RUNTIME_pivot_getaddr( ipiv, me,  k, h ),
-        STARPU_R,                 RUNTIME_pivot_getaddr( ipiv, src, k, h ),
+        STARPU_RW,                RUNTIME_pivot_getaddr( pivot, me,  k, h ),
+        STARPU_R,                 RUNTIME_pivot_getaddr( pivot, src, k, h ),
         STARPU_EXECUTE_ON_NODE,   me,
         STARPU_EXECUTE_ON_WORKER, options->workerid,
         STARPU_PRIORITY,          options->priority,
         0 );
-    starpu_mpi_cache_flush( options->sequence->comm, RUNTIME_pivot_getaddr( ipiv, src, k, h ) );
+    starpu_mpi_cache_flush( options->sequence->comm, RUNTIME_pivot_getaddr( pivot, src, k, h ) );
 }
 
 #else /* defined(CHAMELEON_STARPU_USE_INSERT) */
 
 static void
 INSERT_TASK_zipiv_allreduce_send( const RUNTIME_option_t *options,
-                                  CHAM_ipiv_t            *ipiv,
+                                  CHAM_desc_pivot_t      *pivot,
                                   int                     me,
                                   int                     dst,
                                   int                     k,
@@ -135,7 +135,7 @@ INSERT_TASK_zipiv_allreduce_send( const RUNTIME_option_t *options,
 
     starpu_cham_exchange_init_params( options, &params, dst );
     starpu_cham_exchange_handle_before_execution( options, &params, &nbdata, descrs,
-                                                  RUNTIME_pivot_getaddr( ipiv, me, k, h ),
+                                                  RUNTIME_pivot_getaddr( pivot, me, k, h ),
                                                   STARPU_R );
     starpu_cham_task_exchange_data_after_execution( options, params, nbdata, descrs );
     (void)cl;
@@ -144,7 +144,7 @@ INSERT_TASK_zipiv_allreduce_send( const RUNTIME_option_t *options,
 
 static void
 INSERT_TASK_zipiv_allreduce_recv( const RUNTIME_option_t *options,
-                                  CHAM_ipiv_t            *ipiv,
+                                  CHAM_desc_pivot_t      *pivot,
                                   int                     me,
                                   int                     src,
                                   int                     k,
@@ -157,10 +157,10 @@ INSERT_TASK_zipiv_allreduce_recv( const RUNTIME_option_t *options,
 
     starpu_cham_exchange_init_params( options, &params, me );
     starpu_cham_exchange_handle_before_execution( options, &params, &nbdata, descrs,
-                                                  RUNTIME_pivot_getaddr( ipiv, me,  k, h ),
+                                                  RUNTIME_pivot_getaddr( pivot, me,  k, h ),
                                                   STARPU_RW );
     starpu_cham_exchange_handle_before_execution( options, &params, &nbdata, descrs,
-                                                  RUNTIME_pivot_getaddr( ipiv, src, k, h ),
+                                                  RUNTIME_pivot_getaddr( pivot, src, k, h ),
                                                   STARPU_R );
 
     task = starpu_task_create();
@@ -193,7 +193,7 @@ INSERT_TASK_zipiv_allreduce_recv( const RUNTIME_option_t *options,
     }
 
     starpu_cham_task_exchange_data_after_execution( options, params, nbdata, descrs );
-    starpu_mpi_cache_flush( options->sequence->comm, RUNTIME_pivot_getaddr( ipiv, src, k, h ) );
+    starpu_mpi_cache_flush( options->sequence->comm, RUNTIME_pivot_getaddr( pivot, src, k, h ) );
 }
 
 #endif /* defined(CHAMELEON_STARPU_USE_INSERT) */
@@ -201,7 +201,7 @@ INSERT_TASK_zipiv_allreduce_recv( const RUNTIME_option_t *options,
 static void
 zipiv_allreduce_chameleon_starpu_task( const RUNTIME_option_t *options,
                                        CHAM_desc_t            *A,
-                                       CHAM_ipiv_t            *ipiv,
+                                       CHAM_desc_pivot_t      *pivot,
                                        int                    *proc_involved,
                                        int                     k,
                                        int                     h,
@@ -213,9 +213,9 @@ zipiv_allreduce_chameleon_starpu_task( const RUNTIME_option_t *options,
     int shift = 1;
 
     if ( h > 0 ) {
-        starpu_data_invalidate_submit( RUNTIME_pivot_getaddr( ipiv, A->myrank, k, h-1 ) );
+        starpu_data_invalidate_submit( RUNTIME_pivot_getaddr( pivot, A->myrank, k, h-1 ) );
     }
-    if ( h >= ipiv->n ) {
+    if ( h >= pivot->n ) {
         return;
     }
 
@@ -233,8 +233,8 @@ zipiv_allreduce_chameleon_starpu_task( const RUNTIME_option_t *options,
             p_send = proc_involved[ ( me + shift               ) % np_involved ];
             p_recv = proc_involved[ ( me - shift + np_involved ) % np_involved ];
 
-            INSERT_TASK_zipiv_allreduce_send( options, ipiv, A->myrank, p_send, k, h    );
-            INSERT_TASK_zipiv_allreduce_recv( options, ipiv, A->myrank, p_recv, k, h, n );
+            INSERT_TASK_zipiv_allreduce_send( options, pivot, A->myrank, p_send, k, h    );
+            INSERT_TASK_zipiv_allreduce_recv( options, pivot, A->myrank, p_recv, k, h, n );
 
             shift   = shift << 1;
             np_iter = chameleon_ceil( np_iter, 2 );
@@ -245,32 +245,32 @@ zipiv_allreduce_chameleon_starpu_task( const RUNTIME_option_t *options,
 void
 INSERT_TASK_zipiv_allreduce( const RUNTIME_option_t *options,
                              CHAM_desc_t            *A,
-                             CHAM_ipiv_t            *ipiv,
+                             CHAM_desc_pivot_t      *pivot,
                              int                     k,
                              int                     h,
                              int                     n,
                              void                   *ws )
 {
-    struct chameleon_pzgetrf_s *tmp = (struct chameleon_pzgetrf_s *)ws;
-    cham_getrf_allreduce_t alg = tmp->alg_allreduce;
+    struct chameleon_pzlaswp_s *tmp = (struct chameleon_pzlaswp_s *)ws;
+    cham_getrf_allreduce_t      alg = tmp->reduce.alg_allreduce;
     switch( alg ) {
     case ChamStarPUTasks:
     default:
-        zipiv_allreduce_chameleon_starpu_task( options, A, ipiv, tmp->proc_involved, k, h, n );
+        zipiv_allreduce_chameleon_starpu_task( options, A, pivot, tmp->reduce.proc_involved, k, h, n );
     }
 }
 #else
 void
 INSERT_TASK_zipiv_allreduce( const RUNTIME_option_t *options,
                              CHAM_desc_t            *A,
-                             CHAM_ipiv_t            *ipiv,
+                             CHAM_desc_pivot_t      *pivot,
                              int                     k,
                              int                     h,
                              int                     n,
                              void                   *ws )
 {
     if ( h > 0 ) {
-        starpu_data_invalidate_submit( RUNTIME_pivot_getaddr( ipiv, A->myrank, k, h-1 ) );
+        starpu_data_invalidate_submit( RUNTIME_pivot_getaddr( pivot, A->myrank, k, h-1 ) );
     }
 
     (void)options;

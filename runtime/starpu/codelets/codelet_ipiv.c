@@ -111,7 +111,7 @@ void INSERT_TASK_ipiv_init_data( const RUNTIME_option_t *options,
         cl_args     = malloc( sizeof(struct cl_laswp_args_s) );
         cl_args->m0 = m0;
         cl_args->n  = n;
-        cl_args->m  = ipiv->desc->m;
+        cl_args->m  = ipiv->m;
 
         cl_args->data = ipiv->data + m0;
 
@@ -124,14 +124,14 @@ void INSERT_TASK_ipiv_init_data( const RUNTIME_option_t *options,
 }
 
 void INSERT_TASK_ipiv_reducek( const RUNTIME_option_t *options,
-                               CHAM_ipiv_t *ipiv, int k, int h, int rank )
+                               CHAM_desc_pivot_t *pivot, int k, int h, int rank )
 {
-    starpu_data_handle_t prevpiv = RUNTIME_pivot_getaddr( ipiv, rank, k, h-1 );
+    starpu_data_handle_t prevpiv = RUNTIME_pivot_getaddr( pivot, rank, k, h-1 );
 
 #if defined(HAVE_STARPU_MPI_REDUX) && defined(CHAMELEON_USE_MPI)
 #if !defined(HAVE_STARPU_MPI_REDUX_WRAPUP)
-    starpu_data_handle_t nextpiv = RUNTIME_pivot_getaddr( ipiv, rank, k, h );
-    if ( h < ipiv->n ) {
+    starpu_data_handle_t nextpiv = RUNTIME_pivot_getaddr( pivot, rank, k, h );
+    if ( h < pivot->n ) {
         starpu_mpi_redux_data_prio_tree( options->sequence->comm, nextpiv,
                                          options->priority, 2 /* Binary tree */ );
     }
