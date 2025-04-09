@@ -212,7 +212,7 @@ void INSERT_TASK_zlaswpc_set( const RUNTIME_option_t *options,
 #else /* defined(CHAMELEON_STARPU_USE_INSERT) */
 
 void INSERT_TASK_zlaswpc_set( const RUNTIME_option_t *options,
-                              cham_dir_t dir, int n0, int k,
+                              cham_dir_t dir, int k, int n0,
                               const CHAM_ipiv_t *ipiv, int ipivk,
                               const CHAM_desc_t *A, int Am, int An,
                               const CHAM_desc_t *B, int Bm, int Bn )
