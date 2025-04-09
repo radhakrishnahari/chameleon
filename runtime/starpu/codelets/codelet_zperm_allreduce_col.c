@@ -149,7 +149,7 @@ INSERT_TASK_zperm_allreduce_send_col( const RUNTIME_option_t *options,
                                       int                     dst,
                                       int                     m )
 {
-    INSERT_TASK_COMMON_PARAMETERS_CLNULL( zperm_allreduce_send, 1 );
+    INSERT_TASK_COMMON_PARAMETERS_CLNULL( zperm_allreduce_send_col, 1 );
 
     starpu_cham_exchange_init_params( options, &params, dst );
     starpu_cham_exchange_handle_before_execution( options, &params, &nbdata, descrs,
@@ -196,7 +196,7 @@ INSERT_TASK_zperm_allreduce_recv_col( const RUNTIME_option_t *options,
     starpu_cham_exchange_handle_before_execution( options, &params, &nbdata, descrs,
                                                   RTBLKADDR( U, ChamComplexDouble, m, src ),
                                                   STARPU_R );
-    starpu_cham_register_descr( &nbdata, descrs, RUNTIME_invp_getaddr( ipiv, ipivk ), STARPU_R );
+    starpu_cham_register_descr( &nbdata, descrs, ipiv_handle, STARPU_R );
 
     task = starpu_task_create();
     task->cl = cl;
