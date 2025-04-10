@@ -19,8 +19,9 @@
 #include "chameleon/tasks_z.h"
 
 void INSERT_TASK_zlaswp_batched( const RUNTIME_option_t *options,
+                                 cham_dir_t              dir,
                                  int                     m0,
-                                 int                     minmn,
+                                 int                     m,
                                  void                   *ws,
                                  const CHAM_ipiv_t      *ipiv,
                                  int                     ipivk,
@@ -36,8 +37,9 @@ void INSERT_TASK_zlaswp_batched( const RUNTIME_option_t *options,
                                  void                  **clargs_ptr )
 {
     (void)options;
+    (void)dir;
     (void)m0;
-    (void)minmn;
+    (void)m;
     (void)ws;
     (void)ipiv;
     (void)ipivk;
@@ -54,6 +56,7 @@ void INSERT_TASK_zlaswp_batched( const RUNTIME_option_t *options,
 }
 
 void INSERT_TASK_zlaswp_batched_flush( const RUNTIME_option_t *options,
+                                       cham_dir_t              dir,
                                        const CHAM_ipiv_t      *ipiv,
                                        int                     ipivk,
                                        const CHAM_desc_t      *Ak,
@@ -65,6 +68,7 @@ void INSERT_TASK_zlaswp_batched_flush( const RUNTIME_option_t *options,
                                        void                  **clargs_ptr )
 {
     (void)options;
+    (void)dir;
     (void)ipiv;
     (void)ipivk;
     (void)Ak;
