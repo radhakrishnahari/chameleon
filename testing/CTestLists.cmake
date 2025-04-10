@@ -113,6 +113,10 @@ if (NOT CHAMELEON_SIMULATION)
                 add_test( test_${cat}_${prec}laswp ${PREFIX} ${CMD} -c -t ${THREADS} -g ${gpus} -P 1 -f input/laswp.in )
                 add_test( test_${cat}_${prec}getrs ${PREFIX} ${CMD} -c -t ${THREADS} -g ${gpus} -P 1 -f input/getrs.in )
                 add_test( test_${cat}_${prec}gesv ${PREFIX} ${CMD} -c -t ${THREADS} -g ${gpus} -P 1 -f input/gesv.in )
+
+                add_test( test_${cat}_${prec}laswp_batch ${PREFIX} ${CMD} -c -t ${THREADS} -g ${gpus} -P 1 -f input/laswp.in )
+                set_tests_properties( test_${cat}_${prec}laswp_batch
+                                      PROPERTIES ENVIRONMENT "CHAMELEON_LASWP_BATCH_SIZE=3" )
                 if ( ${cat} STREQUAL "mpi" )
                     add_test( test_${cat}_${prec}laswp_ppiv_comm_with_task ${PREFIX} ${CMD} -c -t ${THREADS} -g ${gpus} -P ${NP} -f input/laswp.in )
                     add_test( test_${cat}_${prec}getrs_ppiv_comm_with_task ${PREFIX} ${CMD} -c -t ${THREADS} -g ${gpus} -P ${NP} -f input/getrs.in )
