@@ -85,6 +85,12 @@ CHAMELEON_zlaswp_WS_Alloc( cham_side_t side, const CHAM_desc_t *A )
         chameleon_cleanenv( allreduce );
     }
 
+    ws->batch_size_swap = chameleon_getenv_get_value_int( "CHAMELEON_LASWP_BATCH_SIZE", 0 );
+    if ( ws->batch_size_swap > CHAMELEON_BATCH_SIZE ) {
+        chameleon_warning( "CHAMELEON_BATCH_SIZE", "CHAMELEON_LASWP_BATCH_SIZE must be smaller than CHAMELEON_BATCH_SIZE, please recompile with the right CHAMELEON_BATCH_SIZE, or reduce the CHAMELEON_LASWP_BATCH_SIZE value\n" );
+        ws->batch_size_swap = CHAMELEON_BATCH_SIZE;
+    }
+
     if ( side == ChamLeft ) {
         chameleon_desc_init( &(ws->W), CHAMELEON_MAT_ALLOC_TILE,
                             ChamComplexDouble, A->mb, A->nb, A->mb*A->nb,
