@@ -23,8 +23,8 @@
  *
  * @ingroup CORE_CHAMELEON_Complex64_t
  *
- * CORE_zlaswpc_get extracts the columns from the tile B that have been selected as
- * pivot into the tile A.
+ * CORE_zlaswpc_get extracts the columns from the tile A that have been selected as
+ * pivot into the tile B.
  *
  *******************************************************************************
  *
@@ -33,10 +33,10 @@
  *         belongs to.
  *
  * @param[in] m
- *          The number of rows of the matrix A.
+ *          The number of rows of the matrices A and B.
  *
  * @param[in] n
- *         The number of columns of the matrices A and B.
+ *         The number of columns of the matrix A.
  *
  * @param[in] k
  *         The number of columns of the matrix B. This is the number of potential
@@ -44,19 +44,19 @@
  *
  * @param[in] A
  *          On entry, the matrix A of dimension lda-by-n where to extract the
- *          pivot columns if some are selected in the range m0..m0+m.
+ *          pivot columns if some are selected in the range n0..n0+n
  *
  * @param[in] lda
  *          The leading dimension of the array A. lda >= max(1,m).
  *
  * @param[inout] B
- *          On entry, a matrix of size ldb-by-n with 0s or already collected
+ *          On entry, a matrix of size ldb-by-k with 0s or already collected
  *          columns.
  *          On exit, B is filled with the selected columns from A, such that for
- *          each row i, B[i] = A[perm[i]-m0-1].
+ *          each column i, B[:,i] = A[:,perm[i]-n0-1].
  *
  * @param[in] ldb
- *          The leading dimension of the array B. ldb >= max(1,k).
+ *          The leading dimension of the array B. ldb >= max(1,m).
  *
  * @param[in] perm
  *          The permutation array of dimension k.
@@ -110,7 +110,6 @@ CORE_zlaswpc_get( int n0, int m, int n, int k,
     {
         int idx = perm[i] - n0;
 
-
         if ( ( idx >= 0 ) && (idx < n ) )
         {
             cblas_zcopy( m, A + idx * lda, 1,
@@ -136,10 +135,10 @@ CORE_zlaswpc_get( int n0, int m, int n, int k,
  *         belongs to.
  *
  * @param[in] m
- *          The number of rows of the matrix B.
+ *          The number of rows of the matrices A and B.
  *
  * @param[in] n
- *         The number of columns of the matrices A and B.
+ *         The number of columns of the matrix B.
  *
  * @param[in] k
  *         The number of columns of the matrix A. This is the number of potential
@@ -150,12 +149,12 @@ CORE_zlaswpc_get( int n0, int m, int n, int k,
  *          pivoted columns.
  *
  * @param[in] lda
- *          The leading dimension of the array A. lda >= max(1,k).
+ *          The leading dimension of the array A. lda >= max(1,m).
  *
  * @param[inout] B
- *          On entry, a matrix of size ldb-by-n that may require some pivoted columns.
+ *          On entry, a matrix of size ldb-by-k that may require some pivoted columns.
  *          On exit, B is updated with the pivoted columns it needs to receive, such that for
- *          each column i, A[i] = B[invp[i]-m0-1].
+ *          each column i, A[:,i] = B[:,invp[i]-n0-1].
  *
  * @param[in] ldb
  *          The leading dimension of the array B. ldb >= max(1,m).
