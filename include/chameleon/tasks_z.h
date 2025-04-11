@@ -745,6 +745,69 @@ void INSERT_TASK_zperm_reduce_row( const RUNTIME_option_t *options,
  *
  * @ingroup CHAMELEON_Complex64_t
  *
+ *  @brief Perfoms an reduce operation on the tile
+ *  U(Um, Un) according to the permutation ipiv. This task is used in the
+ *  column LASWP
+ *
+ *******************************************************************************
+ *
+ * @param[in] options
+ *          The runtime options data structure to pass through all insert_task calls.
+ *
+ * @param[in] dir
+ *          Specifies the order of the permutation.
+ *          = ChamDirForward:  Natural order
+ *          = ChamDirBackward: Reverse order
+ *
+ * @param[in] A
+ *          The descriptor of the matrix A.
+ *
+ * @param[inout] U
+ *          The descriptor of the worskpace used for the permutation in the LU
+ *          factorization with partial pivoting.
+ *
+ * @param[in] Um
+ *          The row index of the tile used in U.
+ *
+ * @param[in] Un
+ *          The column index of the tile used in U.
+ *
+ * @param[in] ipiv
+ *          The pivot structure that contains the informations for the LU
+ *          factorization with partial pivoting.
+ *
+ * @param[in] ipivk
+ *          The index of the permutation.
+ *
+ * @param[in] m
+ *          The number of rows in the tile U(Um, Un).
+ *
+ * @param[in] k
+ *          The number of columns in the tile U(Um, Un).
+ *
+ * @param[in] ws
+ *          The workspace to handle the data in the LU factorization with
+ *          partial pivoting.
+ *
+ *******************************************************************************
+ */
+void INSERT_TASK_zperm_reduce_col( const RUNTIME_option_t *options,
+                                   cham_dir_t              dir,
+                                   const CHAM_desc_t      *A,
+                                   CHAM_desc_t            *U,
+                                   int                     Um,
+                                   int                     Un,
+                                   CHAM_ipiv_t            *ipiv,
+                                   int                     ipivk,
+                                   int                     m,
+                                   int                     k,
+                                   void                   *ws );
+
+/**
+ ********************************************************************************
+ *
+ * @ingroup CHAMELEON_Complex64_t
+ *
  *  @brief Perfoms an allreduce operation on the tile
  *  U(Um, Un) according to the permutation ipiv. This task is used in LASWP with
  *  columns permutation.
