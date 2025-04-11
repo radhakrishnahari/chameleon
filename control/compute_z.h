@@ -44,9 +44,10 @@ struct chameleon_pzgemm_s {
  * @brief Data structure to handle the LASWP workspaces
  */
 struct chameleon_pzlaswp_s {
-    CHAM_desc_t   W;                /**< Workspace used for the row/column permutation. */
-    CHAM_reduce_t reduce;           /**< Structure for reduction operations             */
-    int           batch_size_swap;  /**< Batch size for the permutation                 */
+    CHAM_desc_t   W;                /**< Workspace used for the row/column permutation.       */
+    CHAM_reduce_t reduce;           /**< Structure for reduction operations                   */
+    int           batch_size_swap;  /**< Batch size for the permutation                       */
+    int           allreduce;        /**< Specifies whether the reduction is replicated or not */
 };
 
 /**

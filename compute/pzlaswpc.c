@@ -59,7 +59,12 @@ chameleon_pzlaswpc_panel_permute( struct chameleon_pzlaswp_s *ws,
                                  ipiv, k, A(m, k), A(m, n) );
     }
 
-    INSERT_TASK_zperm_allreduce_col( options, dir, A, W(m, A->myrank), ipiv, k, m, k, ws );
+    if ( ws->allreduce ) {
+        INSERT_TASK_zperm_allreduce_col( options, dir, A, W(m, A->myrank), ipiv, k, m, k, ws );
+    }
+    else {
+        INSERT_TASK_zperm_reduce_col( options, dir, A, W(m, A->myrank), ipiv, k, m, k, ws );
+    }
 }
 
 /**
@@ -100,7 +105,12 @@ chameleon_pzlaswpc_panel_permute_batched( struct chameleon_pzlaswp_s *ws,
     }
     INSERT_TASK_zlaswpc_batched_flush( options, dir, ipiv, k, A(m, k), W(m, A->myrank), clargs );
 
-    INSERT_TASK_zperm_allreduce_col( options, dir, A, W(m, A->myrank), ipiv, k, m, k, ws );
+    if ( ws->allreduce ) {
+        INSERT_TASK_zperm_allreduce_col( options, dir, A, W(m, A->myrank), ipiv, k, m, k, ws );
+    }
+    else {
+        INSERT_TASK_zperm_reduce_col( options, dir, A, W(m, A->myrank), ipiv, k, m, k, ws );
+    }
 
     free( clargs );
 }

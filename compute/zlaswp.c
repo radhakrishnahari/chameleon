@@ -2,7 +2,7 @@
  *
  * @file zlaswp.c
  *
- * @copyright 2012-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2025-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  ***
@@ -62,7 +62,10 @@ CHAMELEON_zlaswp_WS_Alloc( cham_side_t side, const CHAM_desc_t *A )
 
     ws = calloc( 1, sizeof(struct chameleon_pzlaswp_s) );
 
+    ws->allreduce = 0;
+
     reduce = &(ws->reduce);
+    reduce->alg_allreduce = ChamStarPUTasks;
 
 #if defined (CHAMELEON_USE_MPI)
     reduce->proc_involved = malloc( sizeof( int ) * P );
@@ -70,6 +73,14 @@ CHAMELEON_zlaswp_WS_Alloc( cham_side_t side, const CHAM_desc_t *A )
     reduce->np_involved   = 0;
 #endif
 
+    /*
+     * Used only for testing purpose to switch from the reduce to allreduce algorithm in the tests
+     */
+    ws->allreduce = chameleon_getenv_get_value_int( "CHAMELEON_LASWP_ALLREDUCE", 0 );
+
+    /*
+     * Read the environment variable to define the allreduce mode to use
+     */
     {
         char *allreduce = chameleon_getenv( "CHAMELEON_ALLREDUCE" );
 
@@ -79,13 +90,15 @@ CHAMELEON_zlaswp_WS_Alloc( cham_side_t side, const CHAM_desc_t *A )
             }
             else {
                 chameleon_error( "CHAMELEON_zlaswp_WS_Alloc", "CHAMELEON_ALLREDUCE is not one of chameleon_starpu_tasks, chameleon_starpu, chameleon_starpu_mpi, chameleon_mpi => Switch back to chameleon_starpu_tasks\n" );
-                reduce->alg_allreduce = ChamStarPUTasks;
             }
         }
         chameleon_cleanenv( allreduce );
     }
 
-    ws->batch_size_swap = chameleon_getenv_get_value_int( "CHAMELEON_LASWP_BATCH_SIZE", 0 );
+    /*
+     * Read the environment variable to setup the batch size
+     */
+    ws->batch_size_swap = chameleon_getenv_get_value_int( "CHAMELEON_LASWP_BATCH_SIZE", CHAMELEON_BATCH_SIZE );
     if ( ws->batch_size_swap > CHAMELEON_BATCH_SIZE ) {
         chameleon_warning( "CHAMELEON_BATCH_SIZE", "CHAMELEON_LASWP_BATCH_SIZE must be smaller than CHAMELEON_BATCH_SIZE, please recompile with the right CHAMELEON_BATCH_SIZE, or reduce the CHAMELEON_LASWP_BATCH_SIZE value\n" );
         ws->batch_size_swap = CHAMELEON_BATCH_SIZE;
