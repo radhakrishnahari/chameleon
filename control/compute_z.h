@@ -44,8 +44,9 @@ struct chameleon_pzgemm_s {
  * @brief Data structure to handle the LASWP workspaces
  */
 struct chameleon_pzlaswp_s {
-    CHAM_desc_t   W;      /**< Workspace used for the row/column permutation. */
-    CHAM_reduce_t reduce; /**< Structure for reduction operations             */
+    CHAM_desc_t   W;                /**< Workspace used for the row/column permutation. */
+    CHAM_reduce_t reduce;           /**< Structure for reduction operations             */
+    int           batch_size_swap;  /**< Batch size for the permutation                 */
 };
 
 /**
@@ -57,7 +58,6 @@ struct chameleon_pzgetrf_s {
     int                         ib;               /**< Internal blocking parameter                                          */
     int                         batch_size_blas2; /**< Batch size for the blas 2 operations of the panel factorization      */
     int                         batch_size_blas3; /**< Batch size for the blas 3 operations of the panel factorization      */
-    int                         batch_size_swap;  /**< Batch size for the permutation                                       */
     int                         ringswitch;       /**< Define when to switch to ring bcast                                  */
     CHAM_desc_t                 U;                /**< Workspaces used for the panels permutation in getrf without pivoting */
     CHAM_desc_t                 Up;               /**< Workspace used for the panel factorization                           */

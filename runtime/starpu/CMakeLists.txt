@@ -110,9 +110,9 @@ if ( STARPU_FOUND )
 #include <starpu.h>
 int main() {
   if (STARPU_NONE == 0)
-    return 1;
+    return EXIT_FAILURE;
   else
-    return 0;
+    return EXIT_SUCCESS;
 }
 ")
 

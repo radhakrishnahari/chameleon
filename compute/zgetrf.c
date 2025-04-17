@@ -105,8 +105,9 @@ CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A )
     ws->batch_size_blas2 = ( ws->batch_size_blas2 > CHAMELEON_BATCH_SIZE ) ? CHAMELEON_BATCH_SIZE : ws->batch_size_blas2;
     ws->batch_size_blas3 = chameleon_getenv_get_value_int( "CHAMELEON_GETRF_BATCH_SIZE_BLAS3", batch_size );
     ws->batch_size_blas3 = ( ws->batch_size_blas3 > CHAMELEON_BATCH_SIZE ) ? CHAMELEON_BATCH_SIZE : ws->batch_size_blas3;
-    ws->batch_size_swap = chameleon_getenv_get_value_int( "CHAMELEON_GETRF_BATCH_SIZE_SWAP", batch_size );
-    ws->batch_size_swap = ( ws->batch_size_swap > CHAMELEON_BATCH_SIZE ) ? CHAMELEON_BATCH_SIZE : ws->batch_size_swap;
+
+    ws->laswp->batch_size_swap = ( ws->laswp->batch_size_swap == 0 ) ? batch_size : ws->laswp->batch_size_swap;
+    ws->laswp->batch_size_swap = ( ws->laswp->batch_size_swap > CHAMELEON_BATCH_SIZE ) ? CHAMELEON_BATCH_SIZE : ws->laswp->batch_size_swap;
 
     ws->ringswitch = chameleon_getenv_get_value_int( "CHAMELEON_GETRF_RINGSWITCH", INT_MAX );
 

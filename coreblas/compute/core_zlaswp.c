@@ -24,8 +24,8 @@
  *
  * @ingroup CORE_CHAMELEON_Complex64_t
  *
- * CORE_zlaswp_get extracts the rows from the tile B that have been selected as
- * pivot into the tile A.
+ * CORE_zlaswp_get extracts the rows from the tile A that have been selected as
+ * pivot into the tile B.
  *
  *******************************************************************************
  *
@@ -54,7 +54,7 @@
  *          On entry, a matrix of size ldb-by-n with 0s or already collected
  *          rows.
  *          On exit, B is filled with the selected rows from A, such that for
- *          each row i, B[i] = A[perm[i]-m0-1].
+ *          each row i, B[i,:] = A[perm[i]-m0-1,:].
  *
  * @param[in] ldb
  *          The leading dimension of the array B. ldb >= max(1,k).
@@ -155,7 +155,7 @@ CORE_zlaswp_get( int m0, int m, int n, int k,
  * @param[inout] B
  *          On entry, a matrix of size ldb-by-n that may require some pivoted rows.
  *          On exit, B is updated with the pivoted rows it needs to receive, such that for
- *          each row i, A[i] = B[invp[i]-m0-1].
+ *          each row i, A[i,:] = B[invp[i]-m0-1,:].
  *
  * @param[in] ldb
  *          The leading dimension of the array B. ldb >= max(1,m).

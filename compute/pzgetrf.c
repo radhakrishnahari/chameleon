@@ -476,10 +476,10 @@ chameleon_pzgetrf_panel_permute_batched( struct chameleon_pzgetrf_s *ws,
                                 ipiv, k, A(k, n), Wu(A->myrank, n) );
 
         for(m=k+1; m<A->mt; m++){
-            INSERT_TASK_zlaswp_batched( options, m*A->mb, minmn, (void *)ws, ipiv, k,
+            INSERT_TASK_zlaswp_batched( options, ChamDirForward, m*A->mb, minmn, (void *)ws->laswp, ipiv, k,
                                         A(m, n), A(k, n), Wu(A->myrank, n), clargs );
         }
-        INSERT_TASK_zlaswp_batched_flush( options, ipiv, k, A(k, n), Wu(A->myrank, n), clargs );
+        INSERT_TASK_zlaswp_batched_flush( options, ChamDirForward, ipiv, k, A(k, n), Wu(A->myrank, n), clargs );
 
         INSERT_TASK_zperm_allreduce_row( options, ChamDirForward, A, Wu(A->myrank, n), ipiv, k, k, n, ws->laswp );
 
@@ -515,7 +515,7 @@ chameleon_pzgetrf_panel_permute_forward( struct chameleon_pzgetrf_s *ws,
     }
 #endif
 
-    if ( ws->batch_size_swap > 0 ) {
+    if ( ws->laswp->batch_size_swap > 0 ) {
         chameleon_pzgetrf_panel_permute_batched( ws, A, ipiv, k, n, options );
     }
     else {
@@ -550,7 +550,7 @@ chameleon_pzgetrf_panel_permute_backward( struct chameleon_pzgetrf_s *ws,
     }
 #endif
 
-    if ( ws->batch_size_swap > 0 ) {
+    if ( ws->laswp->batch_size_swap > 0 ) {
         chameleon_pzgetrf_panel_permute_batched( ws, A, ipiv, k, n, options );
     }
     else {
