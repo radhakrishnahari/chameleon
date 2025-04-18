@@ -73,6 +73,7 @@ CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A )
     ws->ib  = CHAMELEON_IB;
 
     ws->laswp = CHAMELEON_zlaswp_WS_Alloc( ChamLeft, A );
+    ws->laswp->allreduce = 1;
 
     {
         char *algostr = chameleon_getenv( "CHAMELEON_GETRF_ALGO" );
@@ -180,6 +181,8 @@ void
 CHAMELEON_zgetrf_WS_Free( void *user_ws )
 {
     struct chameleon_pzgetrf_s *ws = (struct chameleon_pzgetrf_s *)user_ws;
+
+    CHAMELEON_zlaswp_WS_Free( ws->laswp );
 
     if ( ( ws->alg == ChamGetrfNoPivPerColumn ) ||
          ( ws->alg == ChamGetrfPPiv           ) ||
