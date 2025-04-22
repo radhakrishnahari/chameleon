@@ -22,7 +22,9 @@
 void INSERT_TASK_zlaswpc_batched( const RUNTIME_option_t *options,
                                   cham_dir_t              dir,
                                   int                     n0,
+                                  int                     m,
                                   int                     n,
+                                  int                     k,
                                   void                   *ws,
                                   const CHAM_ipiv_t      *ipiv,
                                   int                     ipivk,
@@ -40,7 +42,9 @@ void INSERT_TASK_zlaswpc_batched( const RUNTIME_option_t *options,
     (void)options;
     (void)dir;
     (void)n0;
+    (void)m;
     (void)n;
+    (void)k;
     (void)ws;
     (void)ipiv;
     (void)ipivk;

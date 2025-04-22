@@ -30,7 +30,7 @@ static void CORE_zlaswp_get_quark( Quark *quark )
 }
 
 void INSERT_TASK_zlaswp_get( const RUNTIME_option_t *options,
-                             cham_dir_t dir, int m0, int k,
+                             cham_dir_t dir, int m0, int m, int n, int k,
                              const CHAM_ipiv_t *ipiv, int ipivk,
                              const CHAM_desc_t *A, int Am, int An,
                              const CHAM_desc_t *U, int Um, int Un )
@@ -48,6 +48,8 @@ void INSERT_TASK_zlaswp_get( const RUNTIME_option_t *options,
         0 );
 
     (void)dir;
+    (void)m;
+    (void)n;
 }
 
 static void CORE_zlaswp_set_quark( Quark *quark )
@@ -61,7 +63,7 @@ static void CORE_zlaswp_set_quark( Quark *quark )
 }
 
 void INSERT_TASK_zlaswp_set( const RUNTIME_option_t *options,
-                             cham_dir_t dir, int m0, int k,
+                             cham_dir_t dir, int m0, int m, int n, int k,
                              const CHAM_ipiv_t *ipiv, int ipivk,
                              const CHAM_desc_t *A, int Am, int An,
                              const CHAM_desc_t *B, int Bm, int Bn )
@@ -79,4 +81,6 @@ void INSERT_TASK_zlaswp_set( const RUNTIME_option_t *options,
         0 );
 
     (void)dir;
+    (void)m;
+    (void)n;
 }

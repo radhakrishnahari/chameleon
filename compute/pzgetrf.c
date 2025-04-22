@@ -398,7 +398,7 @@ chameleon_pzgetrf_panel_permute( struct chameleon_pzgetrf_s *ws,
     case ChamGetrfPPivPerColumn:
     {
         int m;
-        int tempkm, tempkn, tempnn, minmn;
+        int tempkm, tempkn, tempnn, tempmm, minmn;
         int withlacpy;
 
         tempkm = A->get_blkdim( A, k, DIM_m, A->m );
@@ -417,15 +417,16 @@ chameleon_pzgetrf_panel_permute( struct chameleon_pzgetrf_s *ws,
          * perm array is made of size tempkm for the first row especially.
          * Otherwise, the final copy back to the tile may copy only a partial tile
          */
-        INSERT_TASK_zlaswp_get( options, ChamDirForward, k*A->mb, tempkm,
+        INSERT_TASK_zlaswp_get( options, ChamDirForward, k*A->mb, tempkm, tempnn, tempkm,
                                 ipiv, k, A(k, n), Wu(A->myrank, n) );
 
         for(m=k+1; m<A->mt; m++){
+            tempmm = A->get_blkdim( A, m, DIM_m, A->m );
             /* Extract selected rows into A(k, n) */
-            INSERT_TASK_zlaswp_get( options, ChamDirForward, m*A->mb, minmn,
+            INSERT_TASK_zlaswp_get( options, ChamDirForward, m*A->mb, tempmm, tempnn, minmn,
                                     ipiv, k, A(m, n), Wu(A->myrank, n) );
             /* Copy rows from A(k,n) into their final position */
-            INSERT_TASK_zlaswp_set( options, ChamDirForward, m*A->mb, minmn,
+            INSERT_TASK_zlaswp_set( options, ChamDirForward, m*A->mb, tempmm, tempnn, minmn,
                                     ipiv, k, A(k, n), A(m, n) );
         }
 
@@ -450,7 +451,7 @@ chameleon_pzgetrf_panel_permute_batched( struct chameleon_pzgetrf_s *ws,
     case ChamGetrfPPivPerColumn:
     {
         int m;
-        int tempkm, tempkn, tempnn, minmn;
+        int tempkm, tempkn, tempmm, tempnn, minmn;
         int withlacpy;
 
         void **clargs = malloc( sizeof(char *) );
@@ -472,11 +473,12 @@ chameleon_pzgetrf_panel_permute_batched( struct chameleon_pzgetrf_s *ws,
          * perm array is made of size tempkm for the first row especially.
          * Otherwise, the final copy back to the tile may copy only a partial tile
          */
-        INSERT_TASK_zlaswp_get( options, ChamDirForward, k*A->mb, tempkm,
+        INSERT_TASK_zlaswp_get( options, ChamDirForward, k*A->mb, tempkm, tempnn, tempkm,
                                 ipiv, k, A(k, n), Wu(A->myrank, n) );
 
         for(m=k+1; m<A->mt; m++){
-            INSERT_TASK_zlaswp_batched( options, ChamDirForward, m*A->mb, minmn, (void *)ws->laswp, ipiv, k,
+            tempmm = A->get_blkdim( A, m, DIM_m, A->m );
+            INSERT_TASK_zlaswp_batched( options, ChamDirForward, m*A->mb, tempmm, tempnn, minmn, (void *)ws->laswp, ipiv, k,
                                         A(m, n), A(k, n), Wu(A->myrank, n), clargs );
         }
         INSERT_TASK_zlaswp_batched_flush( options, ChamDirForward, ipiv, k, A(k, n), Wu(A->myrank, n), clargs );

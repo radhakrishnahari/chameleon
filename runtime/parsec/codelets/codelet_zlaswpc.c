@@ -20,7 +20,7 @@
 #include "coreblas/coreblas_z.h"
 
 void INSERT_TASK_zlaswpc_get( const RUNTIME_option_t *options,
-                              cham_dir_t dir, int k, int n0,
+                              cham_dir_t dir, int n0, int m, int n, int k,
                               const CHAM_ipiv_t *ipiv, int ipivk,
                               const CHAM_desc_t *A, int Am, int An,
                               const CHAM_desc_t *U, int Um, int Un )
@@ -28,6 +28,8 @@ void INSERT_TASK_zlaswpc_get( const RUNTIME_option_t *options,
     (void)options;
     (void)dir;
     (void)k;
+    (void)m;
+    (void)n;
     (void)n0;
     (void)ipiv;
     (void)ipivk;
@@ -40,7 +42,7 @@ void INSERT_TASK_zlaswpc_get( const RUNTIME_option_t *options,
 }
 
 void INSERT_TASK_zlaswpc_set( const RUNTIME_option_t *options,
-                              cham_dir_t dir, int k, int n0,
+                              cham_dir_t dir, int n0, int m, int n, int k,
                               const CHAM_ipiv_t *ipiv, int ipivk,
                               const CHAM_desc_t *A, int Am, int An,
                               const CHAM_desc_t *B, int Bm, int Bn )
@@ -48,6 +50,8 @@ void INSERT_TASK_zlaswpc_set( const RUNTIME_option_t *options,
     (void)options;
     (void)dir;
     (void)k;
+    (void)m;
+    (void)n;
     (void)n0;
     (void)ipiv;
     (void)ipivk;

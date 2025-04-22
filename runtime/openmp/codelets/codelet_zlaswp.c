@@ -20,7 +20,7 @@
 #include "coreblas/coreblas_ztile.h"
 
 void INSERT_TASK_zlaswp_get( const RUNTIME_option_t *options,
-                             cham_dir_t dir, int m0, int k,
+                             cham_dir_t dir, int m0, int m, int n, int k,
                              const CHAM_ipiv_t *ipiv, int ipivk,
                              const CHAM_desc_t *A, int Am, int An,
                              const CHAM_desc_t *U, int Um, int Un )
@@ -34,7 +34,7 @@ void INSERT_TASK_zlaswp_get( const RUNTIME_option_t *options,
 
 #pragma omp task firstprivate( m0, k, ipiv, tileA, tileU ) depend( in:perm ) depend( in:tileA[0] ) depend( inout:tileU[0] )
     {
-        TCORE_zlaswp_get( m0, A->m, A->n, k, tileA, tileU, perm );
+        TCORE_zlaswp_get( m0, m, n, k, tileA, tileU, perm );
     }
 
     (void)options;
@@ -42,7 +42,7 @@ void INSERT_TASK_zlaswp_get( const RUNTIME_option_t *options,
 }
 
 void INSERT_TASK_zlaswp_set( const RUNTIME_option_t *options,
-                             cham_dir_t dir, int m0, int k,
+                             cham_dir_t dir, int m0, int m, int n, int k,
                              const CHAM_ipiv_t *ipiv, int ipivk,
                              const CHAM_desc_t *A, int Am, int An,
                              const CHAM_desc_t *B, int Bm, int Bn )
@@ -56,7 +56,7 @@ void INSERT_TASK_zlaswp_set( const RUNTIME_option_t *options,
 
 #pragma omp task firstprivate( m0, k, ipiv, tileA, tileB ) depend( in:invp ) depend( in:tileA[0] ) depend( inout:tileB[0] )
     {
-        TCORE_zlaswp_set( m0, A->m, A->n, k, tileA, tileB, invp );
+        TCORE_zlaswp_set( m0, m, n, k, tileA, tileB, invp );
     }
 
     (void)options;

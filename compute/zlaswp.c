@@ -508,7 +508,7 @@ int CHAMELEON_zlaswp_Tile_Async( cham_side_t         side,
         return CHAMELEON_SUCCESS;
     }
 
-     if ( user_ws == NULL ) {
+    if ( user_ws == NULL ) {
         ws = CHAMELEON_zlaswp_WS_Alloc( side, A );
     }
     else {
