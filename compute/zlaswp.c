@@ -98,7 +98,8 @@ CHAMELEON_zlaswp_WS_Alloc( cham_side_t side, const CHAM_desc_t *A )
     /*
      * Read the environment variable to setup the batch size
      */
-    ws->batch_size_swap = chameleon_getenv_get_value_int( "CHAMELEON_LASWP_BATCH_SIZE", CHAMELEON_BATCH_SIZE );
+    ws->batch_size_swap = chameleon_getenv_get_value_int( "CHAMELEON_BATCH_SIZE", 0 );
+    ws->batch_size_swap = chameleon_getenv_get_value_int( "CHAMELEON_LASWP_BATCH_SIZE", ws->batch_size_swap );
     if ( ws->batch_size_swap > CHAMELEON_BATCH_SIZE ) {
         chameleon_warning( "CHAMELEON_BATCH_SIZE", "CHAMELEON_LASWP_BATCH_SIZE must be smaller than CHAMELEON_BATCH_SIZE, please recompile with the right CHAMELEON_BATCH_SIZE, or reduce the CHAMELEON_LASWP_BATCH_SIZE value\n" );
         ws->batch_size_swap = CHAMELEON_BATCH_SIZE;

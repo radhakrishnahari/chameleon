@@ -98,7 +98,8 @@ CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A )
         chameleon_cleanenv( algostr );
     }
 
-    batch_size = chameleon_getenv_get_value_int( "CHAMELEON_GETRF_BATCH_SIZE", 0 );
+    batch_size = chameleon_getenv_get_value_int( "CHAMELEON_BATCH_SIZE", 0 );
+    batch_size = chameleon_getenv_get_value_int( "CHAMELEON_GETRF_BATCH_SIZE", batch_size );
     if ( batch_size > CHAMELEON_BATCH_SIZE ) {
         chameleon_warning( "CHAMELEON_BATCH_SIZE", "CHAMELEON_GETRF_BATCH_SIZE must be smaller than CHAMELEON_BATCH_SIZE, please recompile with the right CHAMELEON_BATCH_SIZE, or reduce the CHAMELEON_GETRF_BATCH_SIZE value\n" );
     }
