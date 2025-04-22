@@ -107,8 +107,8 @@ if (NOT CHAMELEON_SIMULATION)
         if ( CHAMELEON_SCHED_STARPU AND HAVE_STARPU_NONE_NONZERO )
           set( getrf_test_prefix test_${cat}_${prec}getrf )
           set( laswp_test_prefix test_${cat}_${prec}laswp )
-          set( getrf_test_cmd ${PREFIX} ${CMD} -c -t ${THREADS} -g ${gpus} -P 1 -f input/getrf.in )
-          set( laswp_test_cmd ${PREFIX} ${CMD} -c -t ${THREADS} -g ${gpus} -P 1 -f input/laswp.in )
+          set( getrf_test_cmd ${PREFIX} ${CMD} -c -t ${THREADS} -g ${gpus} -P ${NP} -f input/getrf.in )
+          set( laswp_test_cmd ${PREFIX} ${CMD} -c -t ${THREADS} -g ${gpus} -P ${NP} -f input/laswp.in )
 
           add_test( ${laswp_test_prefix}_allreduce ${laswp_test_cmd} )
           set_tests_properties( ${laswp_test_prefix}_allreduce
