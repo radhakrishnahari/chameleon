@@ -22,6 +22,8 @@
 
 struct cl_zlaswp_args_s {
     int m0;
+    int m;
+    int n;
     int k;
 };
 
@@ -36,7 +38,7 @@ static void cl_zlaswp_get_cpu_func( void *descr[], void *cl_arg )
     A    = (CHAM_tile_t *) cti_interface_get( descr[1] );
     B    = (CHAM_tile_t *) cti_interface_get( descr[2] );
 
-    TCORE_zlaswp_get( clargs->m0, A->m, A->n, clargs->k, A, B, perm );
+    TCORE_zlaswp_get( clargs->m0, clargs->m, clargs->n, clargs->k, A, B, perm );
 }
 #endif
 
@@ -48,7 +50,7 @@ CODELETS_CPU( zlaswp_get, cl_zlaswp_get_cpu_func )
 #if defined(CHAMELEON_STARPU_USE_INSERT)
 
 void INSERT_TASK_zlaswp_get( const RUNTIME_option_t *options,
-                             cham_dir_t dir, int m0, int k,
+                             cham_dir_t dir, int m0, int m, int n, int k,
                              const CHAM_ipiv_t *ipiv, int ipivk,
                              const CHAM_desc_t *A, int Am, int An,
                              const CHAM_desc_t *U, int Um, int Un )
@@ -62,6 +64,8 @@ void INSERT_TASK_zlaswp_get( const RUNTIME_option_t *options,
     struct cl_zlaswp_args_s *clargs;
     clargs = malloc( sizeof( struct cl_zlaswp_args_s ) );
     clargs->m0 = m0;
+    clargs->m  = m;
+    clargs->n  = n;
     clargs->k  = k;
 
     if ( dir == ChamDirForward ) {
@@ -87,7 +91,7 @@ void INSERT_TASK_zlaswp_get( const RUNTIME_option_t *options,
 #else /* defined(CHAMELEON_STARPU_USE_INSERT) */
 
 void INSERT_TASK_zlaswp_get( const RUNTIME_option_t *options,
-                             cham_dir_t dir, int m0, int k,
+                             cham_dir_t dir, int m0, int m, int n, int k,
                              const CHAM_ipiv_t *ipiv, int ipivk,
                              const CHAM_desc_t *A, int Am, int An,
                              const CHAM_desc_t *U, int Um, int Un )
@@ -124,6 +128,8 @@ void INSERT_TASK_zlaswp_get( const RUNTIME_option_t *options,
 
     clargs = malloc( sizeof( struct cl_zlaswp_args_s ) );
     clargs->m0 = m0;
+    clargs->m  = m;
+    clargs->n  = n;
     clargs->k  = k;
 
     task->cl_arg      = clargs;
@@ -161,7 +167,7 @@ static void cl_zlaswp_set_cpu_func( void *descr[], void *cl_arg )
     A    = (CHAM_tile_t *) cti_interface_get( descr[1] );
     B    = (CHAM_tile_t *) cti_interface_get( descr[2] );
 
-    TCORE_zlaswp_set( clargs->m0, B->m, B->n, clargs->k, A, B, invp );
+    TCORE_zlaswp_set( clargs->m0, clargs->m, clargs->n, clargs->k, A, B, invp );
 }
 #endif
 
@@ -173,7 +179,7 @@ CODELETS_CPU( zlaswp_set, cl_zlaswp_set_cpu_func )
 #if defined(CHAMELEON_STARPU_USE_INSERT)
 
 void INSERT_TASK_zlaswp_set( const RUNTIME_option_t *options,
-                             cham_dir_t dir, int m0, int k,
+                             cham_dir_t dir, int m0, int m, int n, int k,
                              const CHAM_ipiv_t *ipiv, int ipivk,
                              const CHAM_desc_t *A, int Am, int An,
                              const CHAM_desc_t *B, int Bm, int Bn )
@@ -187,6 +193,8 @@ void INSERT_TASK_zlaswp_set( const RUNTIME_option_t *options,
     struct cl_zlaswp_args_s *clargs;
     clargs = malloc( sizeof( struct cl_zlaswp_args_s ) );
     clargs->m0 = m0;
+    clargs->m  = m;
+    clargs->n  = n;
     clargs->k  = k;
 
     if ( dir == ChamDirForward ) {
@@ -213,7 +221,7 @@ void INSERT_TASK_zlaswp_set( const RUNTIME_option_t *options,
 #else /* defined(CHAMELEON_STARPU_USE_INSERT) */
 
 void INSERT_TASK_zlaswp_set( const RUNTIME_option_t *options,
-                             cham_dir_t dir, int m0, int k,
+                             cham_dir_t dir, int m0, int m, int n, int k,
                              const CHAM_ipiv_t *ipiv, int ipivk,
                              const CHAM_desc_t *A, int Am, int An,
                              const CHAM_desc_t *B, int Bm, int Bn )
@@ -250,6 +258,8 @@ void INSERT_TASK_zlaswp_set( const RUNTIME_option_t *options,
     /* Set codelet parameters */
     clargs = malloc( sizeof( struct cl_zlaswp_args_s ) );
     clargs->m0 = m0;
+    clargs->m  = m;
+    clargs->n  = n;
     clargs->k  = k;
 
     task->cl_arg      = clargs;

@@ -22,6 +22,8 @@ void INSERT_TASK_zlaswp_batched( const RUNTIME_option_t *options,
                                  cham_dir_t              dir,
                                  int                     m0,
                                  int                     m,
+                                 int                     n,
+                                 int                     k,
                                  void                   *ws,
                                  const CHAM_ipiv_t      *ipiv,
                                  int                     ipivk,
@@ -40,6 +42,8 @@ void INSERT_TASK_zlaswp_batched( const RUNTIME_option_t *options,
     (void)dir;
     (void)m0;
     (void)m;
+    (void)n;
+    (void)k;
     (void)ws;
     (void)ipiv;
     (void)ipivk;

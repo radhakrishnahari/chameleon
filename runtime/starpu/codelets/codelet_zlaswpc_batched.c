@@ -21,7 +21,9 @@
 
 struct cl_zlaswpc_batched_args_s {
     int                      tasks_nbr;
-    int                      n;
+    int                      k;
+    int                      m[CHAMELEON_BATCH_SIZE];
+    int                      n[CHAMELEON_BATCH_SIZE];
     int                      n0[CHAMELEON_BATCH_SIZE];
     struct starpu_data_descr handle_mode[CHAMELEON_BATCH_SIZE];
 };
@@ -31,11 +33,11 @@ static void
 cl_zlaswpc_batched_cpu_func( void *descr[],
                             void *cl_arg )
 {
-    int          i, n0, n, *permget, *permset;
+    int          i, n0, m, n, k, *permget, *permset;
     CHAM_tile_t *A, *U, *B;
     struct cl_zlaswpc_batched_args_s *clargs = ( struct cl_zlaswpc_batched_args_s * ) cl_arg;
 
-    n       = clargs->n;
+    k       = clargs->k;
     permget = (int *)STARPU_VECTOR_GET_PTR( descr[0] );
     permset = (int *)STARPU_VECTOR_GET_PTR( descr[1] );
     U       = (CHAM_tile_t *) cti_interface_get( descr[2] );
@@ -44,8 +46,10 @@ cl_zlaswpc_batched_cpu_func( void *descr[],
     for ( i = 0; i < clargs->tasks_nbr; i++ ) {
         A  = (CHAM_tile_t *) cti_interface_get( descr[ i + 4 ] );
         n0 = clargs->n0[ i ];
-        TCORE_zlaswpc_get( n0, A->m, A->n, n, A, U, permget );
-        TCORE_zlaswpc_set( n0, A->m, A->n, n, B, A, permset );
+        m  = clargs->m[ i ];
+        n  = clargs->n[ i ];
+        TCORE_zlaswpc_get( n0, m, n, k, A, U, permget );
+        TCORE_zlaswpc_set( n0, m, n, k, B, A, permset );
     }
 }
 #endif
@@ -58,7 +62,9 @@ CODELETS_CPU( zlaswpc_batched, cl_zlaswpc_batched_cpu_func )
 void INSERT_TASK_zlaswpc_batched( const RUNTIME_option_t *options,
                                   cham_dir_t              dir,
                                   int                     n0,
+                                  int                     m,
                                   int                     n,
+                                  int                     k,
                                   void                   *ws,
                                   const CHAM_ipiv_t      *ipiv, int ipivk,
                                   const CHAM_desc_t      *An,   int Anm, int Ann,
@@ -76,12 +82,14 @@ void INSERT_TASK_zlaswpc_batched( const RUNTIME_option_t *options,
     if( clargs == NULL ) {
         clargs = malloc( sizeof( struct cl_zlaswpc_batched_args_s ) ) ;
         clargs->tasks_nbr = 0;
-        clargs->n         = n;
+        clargs->k         = k;
         *clargs_ptr       = clargs;
     }
 
     task_num               = clargs->tasks_nbr;
     clargs->n0[ task_num ] = n0;
+    clargs->m[ task_num ]  = m;
+    clargs->n[ task_num ]  = n;
     clargs->handle_mode[ task_num ].handle = RTBLKADDR(An, CHAMELEON_Complex64_t, Anm, Ann);
     clargs->handle_mode[ task_num ].mode   = STARPU_RW;
     clargs->tasks_nbr ++;

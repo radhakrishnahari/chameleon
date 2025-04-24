@@ -53,6 +53,7 @@ _extra_blas = [
     ('',                     'sgerst',               'dgerst',               'cgerst',               'zgerst'              ),
     ('',                     'sipiv_allreduce',      'dipiv_allreduce',      'cipiv_allreduce',      'zipiv_allreduce'     ),
     ('',                     'sperm_allreduce',      'dperm_allreduce',      'cperm_allreduce',      'zperm_allreduce'     ),
+    ('',                     'sperm_reduce',      'dperm_reduce',      'cperm_reduce',      'zperm_reduce'     ),
 ]
 
 _extra_BLAS = [ [ x.upper() for x in row ] for row in _extra_blas ]

@@ -25,8 +25,19 @@
 #include <coreblas/lapacke.h>
 #include <chameleon/tasks.h>
 
-static void testing_zlaswp_ipiv_gen( int *IPIV,
-                                     int  k )
+static cham_fixdbl_t
+flops_zlaswp( cham_fixdbl_t M, cham_fixdbl_t N )
+{
+    cham_fixdbl_t flops;
+
+    flops = M * N * sizeof( CHAMELEON_Complex64_t );
+
+    return flops;
+}
+
+static void
+testing_zlaswp_ipiv_gen( int *IPIV,
+                         int  k )
 {
     int i;
 
@@ -40,53 +51,60 @@ testing_zlaswp_desc( run_arg_list_t *args, int check )
 {
     testdata_t test_data = { .args = args };
     int        hres      = 0;
-    int        P, Q;
 
     /* Read arguments */
     int         async   = parameters_getvalue_int( "async" );
+    int         nb      = run_arg_get_nb(  args );
+    int         P       = parameters_getvalue_int( "P" );
     cham_side_t side    = run_arg_get_side( args, "side", ChamLeft );
     cham_dir_t  dir     = run_arg_get_dir( args,  "dir", ChamDirForward );
-    int         nb      = run_arg_get_nb(  args );
     int         N       = run_arg_get_int( args, "N", 1000 );
     int         M       = run_arg_get_int( args, "M", N );
     int         LDA     = run_arg_get_int( args, "LDA", M );
-    int         seedA   = run_arg_get_int( args, "seedA", testing_ialea() );
     int         K1      = run_arg_get_int( args, "K1", 1 );
     int         K2      = run_arg_get_int( args, "K2", ( side == ChamLeft ) ? M : N );
+    int         seedA   = run_arg_get_int( args, "seedA", testing_ialea() );
+    int         Q       = parameters_compute_q( P );
 
-    int  K        = ( side == ChamLeft ) ? M : N;
-    int *IPIV     = malloc( sizeof(int) * K );
-    int  kb;
+    int  K    = ( side == ChamLeft ) ? M : N;
+    int  kb   = nb;
+    int *IPIV = malloc( sizeof(int) * K );
 
     /* Descriptors */
     CHAM_desc_t *descA;
     CHAM_ipiv_t *descIPIV;
+    void        *ws = NULL;
 
     CHAMELEON_Set( CHAMELEON_TILE_SIZE, nb );
 
     /* Creates the matrices */
     parameters_desc_create( "A", &descA, ChamComplexDouble, nb, nb, LDA, N, M, N );
+    CHAMELEON_Ipiv_Create( &descIPIV, side, kb, K, P, P*Q, IPIV );
+
+    /* Fill the matrices with random values */
     CHAMELEON_zplrnt_Tile( descA, seedA );
 
-    P  = chameleon_desc_datadist_get_iparam( descA, 0 );
-    Q  = chameleon_desc_datadist_get_iparam( descA, 1 );
-    kb = ( side == ChamLeft ) ? descA->nb : descA->mb;
-
+    /* IPIV is initialized with random values that are propagated to the descriptor (should be changed in the future) */
     testing_zlaswp_ipiv_gen( IPIV, K );
-    CHAMELEON_Ipiv_Create( &descIPIV, side, kb, K, P, P*Q, IPIV );
     CHAMELEON_Ipiv_Init( descIPIV );
 
-    /* Calculates the solution */
+    if ( async ) {
+        ws = CHAMELEON_zlaswp_WS_Alloc( side, descA );
+    }
+
+    /* Calculates the perumtation */
     testing_start( &test_data );
     if ( async ) {
-        hres = CHAMELEON_zlaswp_Tile_Async( side, dir, descA, K1, K2, descIPIV, test_data.sequence, &test_data.request );
-        CHAMELEON_Desc_Flush( descA, test_data.sequence );
+        hres = CHAMELEON_zlaswp_Tile_Async( side, dir, descA, K1, K2, descIPIV, ws,
+                                            test_data.sequence, &test_data.request );
+        CHAMELEON_Desc_Flush( descA,    test_data.sequence );
+        CHAMELEON_Ipiv_Flush( descIPIV, test_data.sequence );
     }
     else {
         hres = CHAMELEON_zlaswp_Tile( side, dir, descA, K1, K2, descIPIV );
     }
     test_data.hres = hres;
-    testing_stop( &test_data, 0 );
+    testing_stop( &test_data, flops_zlaswp( M, N ) );
 
 #if !defined(CHAMELEON_SIMULATION)
     if ( check ) {
@@ -128,7 +146,7 @@ testing_zlaswp_desc( run_arg_list_t *args, int check )
 }
 
 testing_t   test_zlaswp;
-const char *zlaswp_params[] = { "mtxfmt", "nb", "n", "m", "lda", "seedA", "k1", "k2", "side", "dir", NULL };
+const char *zlaswp_params[] = { "mtxfmt", "nb", "side", "dir", "m", "n", "lda", "k1", "k2", "seedA", NULL };
 const char *zlaswp_output[] = { NULL };
 const char *zlaswp_outchk[] = { "RETURN", NULL };
 

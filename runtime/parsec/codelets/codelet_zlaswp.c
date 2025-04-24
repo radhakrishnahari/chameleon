@@ -33,7 +33,7 @@ CORE_zlaswp_get_parsec( parsec_execution_stream_t *context,
 }
 
 void INSERT_TASK_zlaswp_get( const RUNTIME_option_t *options,
-                             cham_dir_t dir, int m0, int k,
+                             cham_dir_t dir, int m0, int m, int n, int k,
                              const CHAM_ipiv_t *ipiv, int ipivk,
                              const CHAM_desc_t *A, int Am, int An,
                              const CHAM_desc_t *U, int Um, int Un )
@@ -56,6 +56,8 @@ void INSERT_TASK_zlaswp_get( const RUNTIME_option_t *options,
         PARSEC_DTD_ARG_END );
 
     (void)dir;
+    (void)m;
+    (void)n;
 }
 
 static inline int
@@ -72,7 +74,7 @@ CORE_zlaswp_set_parsec( parsec_execution_stream_t *context,
 }
 
 void INSERT_TASK_zlaswp_set( const RUNTIME_option_t *options,
-                             cham_dir_t dir, int m0, int k,
+                             cham_dir_t dir, int m0, int m, int n, int k,
                              const CHAM_ipiv_t *ipiv, int ipivk,
                              const CHAM_desc_t *A, int Am, int An,
                              const CHAM_desc_t *B, int Bm, int Bn )
@@ -95,4 +97,6 @@ void INSERT_TASK_zlaswp_set( const RUNTIME_option_t *options,
         PARSEC_DTD_ARG_END );
 
     (void)dir;
+    (void)m;
+    (void)n;
 }

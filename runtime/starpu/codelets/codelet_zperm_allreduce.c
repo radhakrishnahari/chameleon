@@ -260,29 +260,32 @@ zperm_allreduce_chameleon_starpu_task( const RUNTIME_option_t     *options,
 
     if ( np_involved == 1 ) {
         assert( proc_involved[0] == A->myrank );
+        return;
     }
-    else {
-        p_first = proc_involved[0];
-        for( me = 0; me < np_involved; me++ ) {
-            if ( proc_involved[me] == A->myrank ) {
-                break;
-            }
-        }
-        assert( me < np_involved );
-        while ( np_iter > 1 ) {
-            p_send = proc_involved[ ( me + shift               ) % np_involved ];
-            p_recv = proc_involved[ ( me - shift + np_involved ) % np_involved ];
 
-            INSERT_TASK_zperm_allreduce_send( options, U, A->myrank, p_send, n );
-            INSERT_TASK_zperm_allreduce_recv( options, dir, U, ipiv, ipivk, A->myrank, p_recv,
-                                              n, k == (A->mt-1) ? A->m - k * A->mb : A->mb,
-                                              chameleon_desc_datadist_get_iparam(A, 0),
-                                              chameleon_desc_datadist_get_iparam(A, 1),
-                                              shift, np_involved, p_first );
-
-            shift   = shift << 1;
-            np_iter = chameleon_ceil( np_iter, 2 );
+    /* Get my index in the list */
+    for( me = 0; me < np_involved; me++ ) {
+        if ( proc_involved[me] == A->myrank ) {
+            break;
         }
+    }
+
+    p_first = proc_involved[0];
+
+    assert( me < np_involved );
+    while ( np_iter > 1 ) {
+        p_send = proc_involved[ ( me + shift               ) % np_involved ];
+        p_recv = proc_involved[ ( me - shift + np_involved ) % np_involved ];
+
+        INSERT_TASK_zperm_allreduce_send( options, U, A->myrank, p_send, n );
+        INSERT_TASK_zperm_allreduce_recv( options, dir, U, ipiv, ipivk, A->myrank, p_recv,
+                                          n, k == (A->mt-1) ? A->m - k * A->mb : A->mb,
+                                          chameleon_desc_datadist_get_iparam(A, 0),
+                                          chameleon_desc_datadist_get_iparam(A, 1),
+                                          shift, np_involved, p_first );
+
+        shift   = shift << 1;
+        np_iter = chameleon_ceil( np_iter, 2 );
     }
 }
 

@@ -21,6 +21,8 @@
 
 struct cl_zlaswpc_args_s {
     int n0;
+    int m;
+    int n;
     int k;
 };
 
@@ -35,7 +37,7 @@ static void cl_zlaswpc_get_cpu_func( void *descr[], void *cl_arg )
     A    = (CHAM_tile_t *) cti_interface_get( descr[1] );
     B    = (CHAM_tile_t *) cti_interface_get( descr[2] );
 
-    TCORE_zlaswpc_get( clargs->n0, B->m, A->n, clargs->k, A, B, perm );
+    TCORE_zlaswpc_get( clargs->n0, clargs->m, clargs->n, clargs->k, A, B, perm );
 }
 #endif
 
@@ -47,7 +49,7 @@ CODELETS_CPU( zlaswpc_get, cl_zlaswpc_get_cpu_func )
 #if defined(CHAMELEON_STARPU_USE_INSERT)
 
 void INSERT_TASK_zlaswpc_get( const RUNTIME_option_t *options,
-                              cham_dir_t dir, int k, int n0,
+                              cham_dir_t dir, int n0, int m, int n, int k,
                               const CHAM_ipiv_t *ipiv, int ipivk,
                               const CHAM_desc_t *A, int Am, int An,
                               const CHAM_desc_t *U, int Um, int Un )
@@ -61,6 +63,8 @@ void INSERT_TASK_zlaswpc_get( const RUNTIME_option_t *options,
     struct cl_zlaswpc_args_s *clargs;
     clargs = malloc( sizeof( struct cl_zlaswpc_args_s ) );
     clargs->n0 = n0;
+    clargs->m  = m;
+    clargs->n  = n;
     clargs->k  = k;
 
     if ( dir == ChamDirForward ) {
@@ -86,7 +90,7 @@ void INSERT_TASK_zlaswpc_get( const RUNTIME_option_t *options,
 #else /* defined(CHAMELEON_STARPU_USE_INSERT) */
 
 void INSERT_TASK_zlaswpc_get( const RUNTIME_option_t *options,
-                              cham_dir_t dir, int k, int n0,
+                              cham_dir_t dir, int n0, int m, int n, int k,
                               const CHAM_ipiv_t *ipiv, int ipivk,
                               const CHAM_desc_t *A, int Am, int An,
                               const CHAM_desc_t *U, int Um, int Un )
@@ -123,6 +127,8 @@ void INSERT_TASK_zlaswpc_get( const RUNTIME_option_t *options,
 
     clargs = malloc( sizeof( struct cl_zlaswpc_args_s ) );
     clargs->n0 = n0;
+    clargs->m  = m;
+    clargs->n  = n;
     clargs->k  = k;
 
     task->cl_arg      = clargs;
@@ -160,7 +166,7 @@ static void cl_zlaswpc_set_cpu_func( void *descr[], void *cl_arg )
     A    = (CHAM_tile_t *) cti_interface_get( descr[1] );
     B    = (CHAM_tile_t *) cti_interface_get( descr[2] );
 
-    TCORE_zlaswpc_set( clargs->n0, B->m, B->n, clargs->k, A, B, invp );
+    TCORE_zlaswpc_set( clargs->n0, clargs->m, clargs->n, clargs->k, A, B, invp );
 }
 #endif
 
@@ -172,7 +178,7 @@ CODELETS_CPU( zlaswpc_set, cl_zlaswpc_set_cpu_func )
 #if defined(CHAMELEON_STARPU_USE_INSERT)
 
 void INSERT_TASK_zlaswpc_set( const RUNTIME_option_t *options,
-                              cham_dir_t dir, int k, int n0,
+                              cham_dir_t dir, int n0, int m, int n, int k,
                               const CHAM_ipiv_t *ipiv, int ipivk,
                               const CHAM_desc_t *A, int Am, int An,
                               const CHAM_desc_t *B, int Bm, int Bn )
@@ -186,6 +192,8 @@ void INSERT_TASK_zlaswpc_set( const RUNTIME_option_t *options,
     struct cl_zlaswpc_args_s *clargs;
     clargs = malloc( sizeof( struct cl_zlaswpc_args_s ) );
     clargs->n0 = n0;
+    clargs->m  = m;
+    clargs->n  = n;
     clargs->k  = k;
 
     if ( dir == ChamDirForward ) {
@@ -212,7 +220,7 @@ void INSERT_TASK_zlaswpc_set( const RUNTIME_option_t *options,
 #else /* defined(CHAMELEON_STARPU_USE_INSERT) */
 
 void INSERT_TASK_zlaswpc_set( const RUNTIME_option_t *options,
-                              cham_dir_t dir, int k, int n0,
+                              cham_dir_t dir, int n0, int m, int n, int k,
                               const CHAM_ipiv_t *ipiv, int ipivk,
                               const CHAM_desc_t *A, int Am, int An,
                               const CHAM_desc_t *B, int Bm, int Bn )
@@ -249,6 +257,8 @@ void INSERT_TASK_zlaswpc_set( const RUNTIME_option_t *options,
     /* Set codelet parameters */
     clargs = malloc( sizeof( struct cl_zlaswpc_args_s ) );
     clargs->n0 = n0;
+    clargs->m  = m;
+    clargs->n  = n;
     clargs->k  = k;
 
     task->cl_arg      = clargs;

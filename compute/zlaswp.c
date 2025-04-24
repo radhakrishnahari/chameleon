@@ -2,7 +2,7 @@
  *
  * @file zlaswp.c
  *
- * @copyright 2012-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2025-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  ***
@@ -42,8 +42,8 @@
  *
  *******************************************************************************
  *
- * @sa CHAMELEON_zgetrf_Tile_Async
- * @sa CHAMELEON_zgetrf_WS_Free
+ * @sa CHAMELEON_zlaswp_Tile_Async
+ * @sa CHAMELEON_zlaswp_WS_Free
  *
  */
 void *
@@ -62,7 +62,10 @@ CHAMELEON_zlaswp_WS_Alloc( cham_side_t side, const CHAM_desc_t *A )
 
     ws = calloc( 1, sizeof(struct chameleon_pzlaswp_s) );
 
+    ws->allreduce = 0;
+
     reduce = &(ws->reduce);
+    reduce->alg_allreduce = ChamStarPUTasks;
 
 #if defined (CHAMELEON_USE_MPI)
     reduce->proc_involved = malloc( sizeof( int ) * P );
@@ -70,6 +73,14 @@ CHAMELEON_zlaswp_WS_Alloc( cham_side_t side, const CHAM_desc_t *A )
     reduce->np_involved   = 0;
 #endif
 
+    /*
+     * Used only for testing purpose to switch from the reduce to allreduce algorithm in the tests
+     */
+    ws->allreduce = chameleon_getenv_get_value_int( "CHAMELEON_LASWP_ALLREDUCE", 0 );
+
+    /*
+     * Read the environment variable to define the allreduce mode to use
+     */
     {
         char *allreduce = chameleon_getenv( "CHAMELEON_ALLREDUCE" );
 
@@ -79,13 +90,16 @@ CHAMELEON_zlaswp_WS_Alloc( cham_side_t side, const CHAM_desc_t *A )
             }
             else {
                 chameleon_error( "CHAMELEON_zlaswp_WS_Alloc", "CHAMELEON_ALLREDUCE is not one of chameleon_starpu_tasks, chameleon_starpu, chameleon_starpu_mpi, chameleon_mpi => Switch back to chameleon_starpu_tasks\n" );
-                reduce->alg_allreduce = ChamStarPUTasks;
             }
         }
         chameleon_cleanenv( allreduce );
     }
 
-    ws->batch_size_swap = chameleon_getenv_get_value_int( "CHAMELEON_LASWP_BATCH_SIZE", 0 );
+    /*
+     * Read the environment variable to setup the batch size
+     */
+    ws->batch_size_swap = chameleon_getenv_get_value_int( "CHAMELEON_BATCH_SIZE", 0 );
+    ws->batch_size_swap = chameleon_getenv_get_value_int( "CHAMELEON_LASWP_BATCH_SIZE", ws->batch_size_swap );
     if ( ws->batch_size_swap > CHAMELEON_BATCH_SIZE ) {
         chameleon_warning( "CHAMELEON_BATCH_SIZE", "CHAMELEON_LASWP_BATCH_SIZE must be smaller than CHAMELEON_BATCH_SIZE, please recompile with the right CHAMELEON_BATCH_SIZE, or reduce the CHAMELEON_LASWP_BATCH_SIZE value\n" );
         ws->batch_size_swap = CHAMELEON_BATCH_SIZE;
@@ -213,6 +227,7 @@ int CHAMELEON_zlaswp( cham_side_t            side,
     CHAM_ipiv_t        *descIPIV;
     int                 K = ( side == ChamLeft ) ? M : N;
     int                 P, Q;
+    void               *ws;
 
     chamctxt = chameleon_context_self();
     if ( chamctxt == NULL ) {
@@ -270,13 +285,15 @@ int CHAMELEON_zlaswp( cham_side_t            side,
     CHAMELEON_Ipiv_Init( descIPIV );
 
     /* Call the tile interface */
-    CHAMELEON_zlaswp_Tile_Async( side, dir, &descAt, K1, K2, descIPIV, sequence, &request );
+    ws = CHAMELEON_zlaswp_WS_Alloc( side, &descAt );
+    CHAMELEON_zlaswp_Tile_Async( side, dir, &descAt, K1, K2, descIPIV, ws, sequence, &request );
 
     /* Submit the matrix conversion back */
     chameleon_ztile2lap( chamctxt, &descAl, &descAt,
                          ChamDescInput, ChamUpperLower, sequence, &request );
 
     chameleon_sequence_wait( chamctxt, sequence );
+    CHAMELEON_zlaswp_WS_Free( ws );
 
     /* Cleanup the temporary data */
     CHAMELEON_Ipiv_Destroy( &descIPIV );
@@ -348,6 +365,7 @@ int CHAMELEON_zlaswp_Tile( cham_side_t  side,
     RUNTIME_request_t   request  = RUNTIME_REQUEST_INITIALIZER;
     int                 status;
     int                 K = ( side == ChamLeft ) ? A->m : A->n;
+    void               *ws;
 
     chamctxt = chameleon_context_self();
     if ( chamctxt == NULL ) {
@@ -364,11 +382,14 @@ int CHAMELEON_zlaswp_Tile( cham_side_t  side,
     }
     chameleon_sequence_create( chamctxt, &sequence );
 
-    CHAMELEON_zlaswp_Tile_Async( side, dir, A, K1, K2, IPIV, sequence, &request );
+    ws = CHAMELEON_zlaswp_WS_Alloc( side, A );
+    CHAMELEON_zlaswp_Tile_Async( side, dir, A, K1, K2, IPIV, ws, sequence, &request );
 
     CHAMELEON_Desc_Flush( A, sequence );
 
     chameleon_sequence_wait( chamctxt, sequence );
+    CHAMELEON_zlaswp_WS_Free( ws );
+
     status = sequence->status;
     chameleon_sequence_destroy( chamctxt, sequence );
     return status;
@@ -432,6 +453,7 @@ int CHAMELEON_zlaswp_Tile_Async( cham_side_t         side,
                                  int                 K1,
                                  int                 K2,
                                  CHAM_ipiv_t        *IPIV,
+                                 void               *user_ws,
                                  RUNTIME_sequence_t *sequence,
                                  RUNTIME_request_t  *request )
 {
@@ -486,6 +508,13 @@ int CHAMELEON_zlaswp_Tile_Async( cham_side_t         side,
         return CHAMELEON_SUCCESS;
     }
 
+    if ( user_ws == NULL ) {
+        ws = CHAMELEON_zlaswp_WS_Alloc( side, A );
+    }
+    else {
+        ws = user_ws;
+    }
+
     if ( IPIV->data != NULL ) {
         RUNTIME_options_init( &options, chamctxt, sequence, request );
         if ( side == ChamLeft ) {
@@ -510,10 +539,7 @@ int CHAMELEON_zlaswp_Tile_Async( cham_side_t         side,
                 RUNTIME_ipiv_flushk( sequence, IPIV, k);
             }
         }
-        chameleon_sequence_wait( chamctxt, sequence );
     }
-
-    ws = CHAMELEON_zlaswp_WS_Alloc( side, A );
 
     if ( side == ChamLeft ) {
         chameleon_pzlaswp( ws, dir, A, IPIV, sequence, request );
@@ -522,7 +548,11 @@ int CHAMELEON_zlaswp_Tile_Async( cham_side_t         side,
         chameleon_pzlaswpc( ws, dir, A, IPIV, sequence, request );
     }
 
-    CHAMELEON_zgetrf_WS_Free( ws );
+    if ( user_ws == NULL ) {
+        CHAMELEON_Desc_Flush( A, sequence );
+        chameleon_sequence_wait( chamctxt, sequence );
+        CHAMELEON_zlaswp_WS_Free( ws );
+    }
 
     return CHAMELEON_SUCCESS;
 }

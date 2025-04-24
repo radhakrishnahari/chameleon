@@ -34,7 +34,7 @@ chameleon_pzlaswpc_panel_permute( struct chameleon_pzlaswp_s *ws,
                                   RUNTIME_option_t           *options )
 {
     int                        n;
-    int                        tempmm, tempkn;
+    int                        tempmm, tempnn, tempkn;
     int                        withlacpy;
 
     tempmm = A->get_blkdim( A, m, DIM_m, A->m );
@@ -47,19 +47,25 @@ chameleon_pzlaswpc_panel_permute( struct chameleon_pzlaswp_s *ws,
                         A(m, k), W(m, A->myrank) );
     options->withlacpy = withlacpy;
 
-    INSERT_TASK_zlaswpc_get( options, dir, tempkn, k*A->nb,
+    INSERT_TASK_zlaswpc_get( options, dir, k*A->nb, tempmm, tempkn, tempkn,
                              ipiv, k, A(m, k), W(m, A->myrank) );
 
     for ( n = k + 1; n < A->nt; n++ ) {
+        tempnn = A->get_blkdim( A, n, DIM_n, A->n );
         /* Extract selected rows into A(k, n) */
-        INSERT_TASK_zlaswpc_get( options, dir, tempkn, n*A->nb,
+        INSERT_TASK_zlaswpc_get( options, dir, n*A->nb, tempmm, tempnn, tempkn,
                                  ipiv, k, A(m, n), W(m, A->myrank) );
         /* Copy rows from A(k,n) into their final position */
-        INSERT_TASK_zlaswpc_set( options, dir, tempkn, n*A->nb,
+        INSERT_TASK_zlaswpc_set( options, dir, n*A->nb, tempmm, tempnn, tempkn,
                                  ipiv, k, A(m, k), A(m, n) );
     }
 
-    INSERT_TASK_zperm_allreduce_col( options, dir, A, W(m, A->myrank), ipiv, k, m, k, ws );
+    if ( ws->allreduce ) {
+        INSERT_TASK_zperm_allreduce_col( options, dir, A, W(m, A->myrank), ipiv, k, m, k, ws );
+    }
+    else {
+        INSERT_TASK_zperm_reduce_col( options, dir, A, W(m, A->myrank), ipiv, k, m, k, ws );
+    }
 }
 
 /**
@@ -75,7 +81,7 @@ chameleon_pzlaswpc_panel_permute_batched( struct chameleon_pzlaswp_s *ws,
                                           RUNTIME_option_t           *options )
 {
     int                        n;
-    int                        tempmm, tempkn;
+    int                        tempmm, tempnn, tempkn;
     int                        withlacpy;
 
     void **clargs = malloc( sizeof(char *) );
@@ -91,16 +97,22 @@ chameleon_pzlaswpc_panel_permute_batched( struct chameleon_pzlaswp_s *ws,
                         A(m, k), W(m, A->myrank) );
     options->withlacpy = withlacpy;
 
-    INSERT_TASK_zlaswpc_get( options, dir, tempkn, k*A->nb,
+    INSERT_TASK_zlaswpc_get( options, dir, k*A->nb, tempmm, tempkn, tempkn,
                              ipiv, k, A(m, k), W(m, A->myrank) );
 
     for ( n = k + 1; n < A->nt; n++ ) {
-        INSERT_TASK_zlaswpc_batched( options, dir, n*A->nb, tempkn, (void *)ws, ipiv, k,
+        tempnn = A->get_blkdim( A, n, DIM_n, A->n );
+        INSERT_TASK_zlaswpc_batched( options, dir, n*A->nb, tempmm, tempnn, tempkn, (void *)ws, ipiv, k,
                                      A(m, n), A(m, k), W(m, A->myrank), clargs );
     }
     INSERT_TASK_zlaswpc_batched_flush( options, dir, ipiv, k, A(m, k), W(m, A->myrank), clargs );
 
-    INSERT_TASK_zperm_allreduce_col( options, dir, A, W(m, A->myrank), ipiv, k, m, k, ws );
+    if ( ws->allreduce ) {
+        INSERT_TASK_zperm_allreduce_col( options, dir, A, W(m, A->myrank), ipiv, k, m, k, ws );
+    }
+    else {
+        INSERT_TASK_zperm_reduce_col( options, dir, A, W(m, A->myrank), ipiv, k, m, k, ws );
+    }
 
     free( clargs );
 }
