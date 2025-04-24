@@ -58,8 +58,11 @@ if (NOT CHAMELEON_SIMULATION)
     endif()
     # LU
     set( TESTS ${TESTS} getrf_nopiv getrs_nopiv gesv_nopiv )
-    if ( CHAMELEON_SCHED_STARPU AND HAVE_STARPU_NONE_NONZERO )
-      set( TESTS ${TESTS} laswp getrs gesv )
+    if ( CHAMELEON_SCHED_STARPU )
+      set( TESTS ${TESTS} laswp )
+      if ( HAVE_STARPU_NONE_NONZERO )
+        set( TESTS ${TESTS} getrf getrs gesv )
+      endif()
     endif()
     # QR / LQ
     set( TESTS ${TESTS} geqrf gelqf geqrf_hqr gelqf_hqr )
@@ -104,19 +107,26 @@ if (NOT CHAMELEON_SIMULATION)
           endif()
         endforeach()
 
-        if ( CHAMELEON_SCHED_STARPU AND HAVE_STARPU_NONE_NONZERO )
-          set( getrf_test_prefix test_${cat}_${prec}getrf )
+        if ( CHAMELEON_SCHED_STARPU )
           set( laswp_test_prefix test_${cat}_${prec}laswp )
-          set( getrf_test_cmd ${PREFIX} ${CMD} -c -t ${THREADS} -g ${gpus} -P ${NP} -f input/getrf.in )
           set( laswp_test_cmd ${PREFIX} ${CMD} -c -t ${THREADS} -g ${gpus} -P ${NP} -f input/laswp.in )
 
-          add_test( ${laswp_test_prefix}_allreduce ${laswp_test_cmd} )
+          add_test( test_${cat}_${prec}laswp_allreduce ${PREFIX} ${CMD} -c -t ${THREADS} -g ${gpus} -P 1 -f input/laswp.in )
           set_tests_properties( ${laswp_test_prefix}_allreduce
             PROPERTIES ENVIRONMENT "CHAMELEON_LASWP_ALLREDUCE=1" )
 
           add_test( test_${cat}_${prec}laswp_batch ${PREFIX} ${CMD} -c -t ${THREADS} -g ${gpus} -P 1 -f input/laswp.in )
           set_tests_properties( test_${cat}_${prec}laswp_batch
             PROPERTIES ENVIRONMENT "CHAMELEON_BATCH_SIZE=3" )
+
+          # if ( ${cat} STREQUAL "mpi" )
+          #   add_test( ${laswp_test_prefix}_ppiv_comm_with_task ${laswp_test_cmd} -P ${NP} )
+          # endif()
+        endif()
+
+        if ( CHAMELEON_SCHED_STARPU AND HAVE_STARPU_NONE_NONZERO )
+          set( getrf_test_prefix test_${cat}_${prec}getrf )
+          set( getrf_test_cmd ${PREFIX} ${CMD} -c -t ${THREADS} -g ${gpus} -P ${NP} -f input/getrf.in )
 
           add_test( ${getrf_test_prefix}_ppivpercol ${getrf_test_cmd} )
           set_tests_properties( ${getrf_test_prefix}_ppivpercol
@@ -136,7 +146,6 @@ if (NOT CHAMELEON_SIMULATION)
 
           # if ( ${cat} STREQUAL "mpi" )
           #   add_test( ${getrf_test_prefix}_ppiv_comm_with_task ${getrf_test_cmd} -P ${NP} )
-          #   add_test( ${laswp_test_prefix}_ppiv_comm_with_task ${laswp_test_cmd} -P ${NP} )
           #   add_test( test_${cat}_${prec}getrs_ppiv_comm_with_task ${PREFIX} ${CMD} -c -t ${THREADS} -g ${gpus} -P ${NP} -f input/getrs.in )
           #   add_test( test_${cat}_${prec}gesv_ppiv_comm_with_task  ${PREFIX} ${CMD} -c -t ${THREADS} -g ${gpus} -P ${NP} -f input/gesv.in )
           #   set_tests_properties( test_${cat}_${prec}getrf_ppiv_comm_with_task
