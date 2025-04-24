@@ -144,7 +144,7 @@ if (NOT CHAMELEON_SIMULATION)
           # endif()
         endif()
 
-        list( REMOVE_ITEM TESTSTMP print gepdf_qr )
+        list( REMOVE_ITEM TESTSTMP print gepdf_qr laswp )
 
         if ( NOT (${cat} STREQUAL "mpi"))
           foreach( test ${TESTSTMP} )
