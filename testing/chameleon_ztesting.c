@@ -53,7 +53,7 @@ parameter_t parameters[] = {
 #if !defined(CHAMELEON_TESTINGS_VENDOR)
     { "check",    "Enable checking of the result",            'c', PARAM_OPTION, 0, 0, TestValInt, {0}, NULL, pread_int, sprint_int },
     { "trace",    "Enable the trace generation",              'T', PARAM_OPTION, 0, 0, TestValInt, {0}, NULL, pread_int, sprint_int }, /* "--trace" and "-T" are hardcoded in a warning message below */
-    { "mtxfmt",   "Change the way the matrix is stored (0: global, 1: tiles, 2: OOC)", 'F', PARAM_OPTION | PARAM_INPUT | PARAM_OUTPUT, 1, 6, TestValInt, {0}, NULL, pread_int, sprint_int },
+    { "mtxfmt",   "Change the way the matrix is stored (0: global, 1: tiles, 2: OOC)", 'F', PARAM_OPTION | PARAM_INPUT | PARAM_OUTPUT, 1, 6, TestValInt, {1}, NULL, pread_int, sprint_int },
     { "profile",  "Display the kernel profiling",             -33, PARAM_OPTION, 0, 0, TestValInt, {0}, NULL, pread_int, sprint_int },
     { "forcegpu", "Force kernels on GPU",                     -34, PARAM_OPTION, 0, 0, TestValInt, {0}, NULL, pread_int, sprint_int },
     { "async",    "Switch to the Async interface",                        's', PARAM_OPTION, 0, 0, TestValInt, {0}, NULL, pread_int, sprint_int },
