@@ -86,6 +86,11 @@ if (NOT CHAMELEON_SIMULATION)
       foreach( gpus ${N_GPUS} )
 
         set( TESTSTMP ${TESTS} )
+        if ( ${cat} STREQUAL "mpi" )
+            set ( P ${NP} )
+        else()
+            set ( P 1 )
+        endif()
 
         if ( NOT ( ${gpus} EQUAL 0 ) )
           set( cat ${cat}_gpu )
@@ -109,13 +114,12 @@ if (NOT CHAMELEON_SIMULATION)
 
         if ( CHAMELEON_SCHED_STARPU )
           set( laswp_test_prefix test_${cat}_${prec}laswp )
-          set( laswp_test_cmd ${PREFIX} ${CMD} -c -t ${THREADS} -g ${gpus} -P ${NP} -f input/laswp.in )
 
-          add_test( test_${cat}_${prec}laswp_allreduce ${PREFIX} ${CMD} -c -t ${THREADS} -g ${gpus} -P 1 -f input/laswp.in )
+          add_test( test_${cat}_${prec}laswp_allreduce ${PREFIX} ${CMD} -c -t ${THREADS} -g ${gpus} -P ${P} -f input/laswp.in )
           set_tests_properties( ${laswp_test_prefix}_allreduce
             PROPERTIES ENVIRONMENT "CHAMELEON_LASWP_ALLREDUCE=1" )
 
-          add_test( test_${cat}_${prec}laswp_batch ${PREFIX} ${CMD} -c -t ${THREADS} -g ${gpus} -P 1 -f input/laswp.in )
+          add_test( test_${cat}_${prec}laswp_batch ${PREFIX} ${CMD} -c -t ${THREADS} -g ${gpus} -P ${P} -f input/laswp.in )
           set_tests_properties( test_${cat}_${prec}laswp_batch
             PROPERTIES ENVIRONMENT "CHAMELEON_BATCH_SIZE=3" )
 
@@ -126,7 +130,7 @@ if (NOT CHAMELEON_SIMULATION)
 
         if ( CHAMELEON_SCHED_STARPU AND HAVE_STARPU_NONE_NONZERO )
           set( getrf_test_prefix test_${cat}_${prec}getrf )
-          set( getrf_test_cmd ${PREFIX} ${CMD} -c -t ${THREADS} -g ${gpus} -P ${NP} -f input/getrf.in )
+          set( getrf_test_cmd ${PREFIX} ${CMD} -c -t ${THREADS} -g ${gpus} -P ${P} -f input/getrf.in )
 
           add_test( ${getrf_test_prefix}_ppivpercol ${getrf_test_cmd} )
           set_tests_properties( ${getrf_test_prefix}_ppivpercol
