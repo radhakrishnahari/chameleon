@@ -205,7 +205,7 @@ testing_zgetrf_std( run_arg_list_t *args, int check )
         CHAMELEON_zplrnt( M, N, A0, LDA, seedA );
 
         /* Compute the permutation of A0: P * A0 */
-        CHAMELEON_zlaswp( ChamLeft, ChamDirForward, M, N, A0, 1, minMN, minMN, IPIV );
+        CHAMELEON_zlaswp( ChamLeft, ChamDirForward, M, N, A0, LDA, 1, minMN, IPIV );
 
         hres += check_zxxtrf_std( args, ChamGeneral, ChamUpperLower, M, N, A0, A, LDA );
 
