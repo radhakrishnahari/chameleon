@@ -17,7 +17,7 @@ if [ -d build-$NODE-$MPI ]; then
   rm build-$NODE-$MPI -r
 fi
 cmake -B build-$NODE-$MPI $CHAMELEON_BUILD_OPTIONS
-cmake --build build-$NODE-$MPI -j20 --verbose
+cmake --build build-$NODE-$MPI -j20  > /dev/null
 export CHAMELEON_BUILD=$PWD/build-$NODE-$MPI
 
 # clean old benchmarks
