@@ -137,7 +137,7 @@ def format_entry_stats(row: Row, mpivendor: str, commit_chameleon: Repo, commit_
         "size": 1,
         "_source": ["mean", "stdev"],
         }
-        response = es.search(index=es_index, body=search_param)
+        response = es.search(index=es_index, **search_param)
         elastic_docs2 = response["hits"]["hits"]
 
         if len(elastic_docs2) > 0:
@@ -313,7 +313,7 @@ def main(
       "size": 1,
       "_source": ["Commit_sha_chameleon"],
     }
-    response = es.search(index=es_index_stats, body=search_param)
+    response = es.search(index=es_index_stats, **search_param)
     elastic_docs = response["hits"]["hits"]
     last_stats_commit = 'null'
     if len(elastic_docs) > 0:

@@ -39,7 +39,7 @@ def main(
       },
       "size": 1000
     }
-    response = es.search(index=es_index, body=search_param)
+    response = es.search(index=es_index, **search_param)
     elastic_docs = response["hits"]["hits"]
 
     docs = pandas.DataFrame()
