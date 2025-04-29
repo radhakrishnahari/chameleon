@@ -43,7 +43,7 @@ gen_mpi_figure <- function( df, mpi )
 {
     ## summary( df )
     if ( nrow( df ) == 0 ) {
-        break;
+        return(NULL);
     }
 
     df$nmpi = revalue( df$nmpi, c("1" = "1 MPI Process",
@@ -136,7 +136,7 @@ gen_shm_figure <- function( df )
 
     p <- p + xlab( "Matrix size (M = N = K)" )
     p <- p + ylab( element_blank() )
-    p <- p + guides( colour=FALSE )
+    p <- p + guides( colour="none" )
 
     filename <- paste( "chameleon", "plafrim", h, sep="_")
     filename <- paste( filename, ".png", sep="" )
