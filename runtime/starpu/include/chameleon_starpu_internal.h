@@ -20,7 +20,9 @@
  * @author Loris Lucido
  * @author Terry Cojean
  * @author Matthieu Kuhn
- * @date 2024-09-17
+ * @author Alycia Lisito
+ * @author Matteo Marcos
+ * @date 2025-07-15
  *
  */
 #ifndef _chameleon_starpu_internal_h_
@@ -33,6 +35,7 @@
 /* Chameleon interfaces for StarPU */
 #include "cham_tile_interface.h"
 #include "cppi_interface.h"
+#include "cpui_interface.h"
 
 /**
  * @brief StarPU specific Chameleon structure stored in the schedopt field
