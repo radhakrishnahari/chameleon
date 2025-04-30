@@ -60,7 +60,7 @@ def main(
 
     docs = docs.astype({"Nmpi": int, "Nthread": int, "Ngpu": int, "P": int, "Q": int, "M": int, "N": int, "K": int})
     docs = docs.rename(columns=str.lower)
-    docs.to_csv("chameleon.csv", ",", index=False)
+    docs.to_csv(path_or_buf="chameleon.csv", sep=",", index=False)
 
 if __name__ == "__main__":
     main()

@@ -232,7 +232,7 @@ def main(
     # measures in term of cputimes and gflops
     es = Elasticsearch(elastic_url)
     es_index = team + "-" + project + "_" + "perf"
-    if not es.indices.exists(es_index):
+    if not es.indices.exists(index=es_index):
         es.indices.create(es_index)
 
     # call this if mapping must be changed (e.g. add a new field)
@@ -273,12 +273,12 @@ def main(
 
     # insert measures in database
     for request in requests:
-        es.index(index=es_index.lower(), body=request)
+        es.index(index=es_index.lower(), document=request)
 
     # compute stats: mean and stdev of gflops measured
     # database for stats
     es_index_stats = team + "-" + project + "_" + "stats"
-    if not es.indices.exists(es_index_stats):
+    if not es.indices.exists(index=es_index_stats):
         es.indices.create(es_index_stats)
 
     # call this if mapping must be changed (e.g. add a new field)
@@ -331,7 +331,7 @@ def main(
             err = max(err, err2)
             # insert updated mean and stdev in database
             #print("entry ", entry)
-            es.index(index=es_index_stats.lower(), body=entry)
+            es.index(index=es_index_stats.lower(), document=entry)
         if err == 1:
             sys.exit(1)
 
