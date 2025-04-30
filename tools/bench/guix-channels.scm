@@ -3,13 +3,13 @@
         (url "https://gitlab.inria.fr/guix-hpc/guix-hpc-non-free.git")
         (branch "master")
         (commit
-          "3a1181428b9b7016a19f54278ddd0a2d8f20f874"))
+          "5c3a506f855ff4c3fb27b96fd76230a399e1bfad"))
       (channel
         (name 'guix)
-        (url "https://git.savannah.gnu.org/git/guix.git")
+        (url "https://codeberg.org/guix/guix-mirror.git")
         (branch "master")
         (commit
-          "7e00fb9f31f51ac2f9fa67b71a3eb8aaa23efdb6")
+          "eff2759d5b4a3155f0e85702262fe1408d06b91f")
         (introduction
           (make-channel-introduction
             "9edb3f66fd807b096b48283debdcddccfea34bad"
@@ -20,13 +20,13 @@
         (url "https://gitlab.inria.fr/guix-hpc/guix-hpc.git")
         (branch "master")
         (commit
-          "043240cdb8df597f874333e02c1f05467103a225"))
+          "4d0ed2ab9285ae22f9e0e8aed293d42a0f908a6e"))
       (channel
         (name 'guix-science-nonfree)
-        (url "https://github.com/guix-science/guix-science-nonfree.git")
+        (url "https://codeberg.org/guix-science/guix-science-nonfree.git")
         (branch "master")
         (commit
-          "5942e5a6370ce1a83872a824ee7056cad40cabd2")
+          "a6e01a80337adc740a9ab2c48da62917d5c81cdd")
         (introduction
           (make-channel-introduction
             "58661b110325fd5d9b40e6f0177cc486a615817e"
@@ -34,10 +34,10 @@
               "CA4F 8CF4 37D7 478F DA05  5FD4 4213 7701 1A37 8446"))))
       (channel
         (name 'guix-science)
-        (url "https://github.com/guix-science/guix-science.git")
+        (url "https://codeberg.org/guix-science/guix-science.git")
         (branch "master")
         (commit
-          "12eba5aa0c5cbf357c476ef7872e0d562d054eff")
+          "b9f41a281365e0681dd78ac4c756c78a5997fa30")
         (introduction
           (make-channel-introduction
             "b1fe5aaff3ab48e798a4cce02f0212bc91f423dc"
@@ -45,10 +45,10 @@
               "CA4F 8CF4 37D7 478F DA05  5FD4 4213 7701 1A37 8446"))))
       (channel
         (name 'guix-past)
-        (url "https://gitlab.inria.fr/guix-hpc/guix-past")
+        (url "https://codeberg.org/guix-science/guix-past.git")
         (branch "master")
         (commit
-          "aab6148759476f0270bbe098919a978da45d7a2d")
+          "8353f5e12b31a6f477956a10f68d271d805a634f")
         (introduction
           (make-channel-introduction
             "0c119db2ea86a389769f4d2b9c6f5c41c027e336"
