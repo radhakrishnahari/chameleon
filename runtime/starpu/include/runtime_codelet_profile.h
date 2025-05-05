@@ -27,7 +27,7 @@
 
 #define CHAMELEON_CL_CB(name, _m, _n, _k, _nflops)                                             \
     static measure_t name##_perf[STARPU_NMAXWORKERS];                                          \
-    void cl_##name##_callback()                                                                \
+    void cl_##name##_callback(void*)                                                           \
     {                                                                                          \
         struct starpu_task *task = starpu_task_get_current();                                  \
         /* XXX we assume square tiles here ! */                                                \
@@ -73,7 +73,7 @@
 
 #define CHAMELEON_CL_CB_HEADER(name)                    \
     extern struct starpu_perfmodel*cl_##name##_save;    \
-    void cl_##name##_callback();                        \
+    void cl_##name##_callback(void*);                   \
     void profiling_display_##name##_info(void)
 
 #endif /* _runtime_codelet_profile_h_ */
