@@ -21,7 +21,7 @@
  * @author Alycia Lisito
  * @author Brieuc Nicolas
  * @author Matteo Marcos
- * @date 2025-06-16
+ * @date 2025-07-15
  *
  */
 #ifndef _chameleon_runtime_h_
@@ -745,6 +745,11 @@ void *RUNTIME_perm_getaddr   ( const CHAM_ipiv_t *ipiv, int m );
 void *RUNTIME_invp_getaddr   ( const CHAM_ipiv_t *ipiv, int m );
 void *RUNTIME_nextpiv_getaddr( const CHAM_desc_pivot_t *pivot, int rank, int k, int h );
 void *RUNTIME_prevpiv_getaddr( const CHAM_desc_pivot_t *pivot, int rank, int k, int h );
+
+void  RUNTIME_cpui_create ( CHAM_perm_t *ws );
+void *RUNTIME_cpui_getaddr( const CHAM_perm_t *ws, int m, int n );
+void  RUNTIME_cpui_destroy( CHAM_perm_t *ws );
+void  RUNTIME_cpui_flushk( const RUNTIME_sequence_t *sequence, int rank, const CHAM_perm_t *ws, int m, int n );
 
 static inline void *
 RUNTIME_pivot_getaddr( CHAM_desc_pivot_t *pivot, int rank, int k, int h ) {
