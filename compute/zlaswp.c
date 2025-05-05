@@ -12,7 +12,7 @@
  * @version 1.3.0
  * @author Alycia Lisito
  * @author Matteo Marcos
- * @date 2025-03-24
+ * @date 2025-07-15
  * @precisions normal z -> s d c
  *
  */
@@ -71,6 +71,8 @@ CHAMELEON_zlaswp_WS_Alloc( cham_side_t side, const CHAM_desc_t *A )
     reduce->proc_involved = malloc( sizeof( int ) * P );
     reduce->involved      = 0;
     reduce->np_involved   = 0;
+#else
+    reduce->np_involved = 1;
 #endif
 
     /*
@@ -110,21 +112,31 @@ CHAMELEON_zlaswp_WS_Alloc( cham_side_t side, const CHAM_desc_t *A )
                                 " please recompile with the right CHAMELEON_BATCH_SIZE, or reduce the CHAMELEON_LASWP_BATCH_SIZE value\n" );
         ws->batch_size_swap = CHAMELEON_BATCH_SIZE;
     }
-
     if ( side == ChamLeft ) {
-        chameleon_desc_init( &(ws->W), CHAMELEON_MAT_ALLOC_TILE,
+        chameleon_desc_init( &(ws->Wu), CHAMELEON_MAT_ALLOC_TILE,
                             ChamComplexDouble, A->mb, A->nb, A->mb*A->nb,
                             A->mb * P * Q, A->n, 0, 0,
                             A->mb * P * Q, A->n, P * Q, 1,
                             NULL, NULL, NULL, A->get_rankof_init_arg );
     }
     else {
-        chameleon_desc_init( &(ws->W), CHAMELEON_MAT_ALLOC_TILE,
+        chameleon_desc_init( &(ws->Wu), CHAMELEON_MAT_ALLOC_TILE,
                             ChamComplexDouble, A->mb, A->nb, A->mb*A->nb,
                             A->m, A->nb * P * Q, 0, 0,
                             A->m, A->nb * P * Q, 1, P * Q,
                             NULL, NULL, NULL, A->get_rankof_init_arg );
     }
+
+    ws->ws.mt   = A->mt;
+    ws->ws.nt   = A->nt;
+    ws->ws.mb   = A->mb;
+    ws->ws.nb   = A->nb;
+    ws->ws.n    = A->n;
+    ws->ws.m    = A->m;
+    ws->ws.side = side;
+    ws->ws.dtyp = A->dtyp;
+    ws->ws.NP   = P * Q;
+    RUNTIME_cpui_create( &(ws->ws) );
 
     return ws;
 }
@@ -157,7 +169,8 @@ CHAMELEON_zlaswp_WS_Free( void *user_ws )
     free( ws->reduce.proc_involved );
 #endif
 
-    chameleon_desc_destroy( &(ws->W) );
+    chameleon_desc_destroy( &(ws->Wu) );
+    RUNTIME_cpui_destroy( &(ws->ws) );
 
     free( ws );
 }
@@ -529,6 +542,9 @@ int CHAMELEON_zlaswp_Tile_Async( cham_side_t         side,
             for ( k = 0; k < A->mt; k++ ) {
                 tempkm = A->get_blkdim( A, k, DIM_m, A->m );
                 m0 = k * A->mb;
+                if ( IPIV->get_rankof( IPIV, k, k ) != IPIV->myrank ) {
+                    continue;
+                }
                 INSERT_TASK_ipiv_to_perm( &options, m0, tempkm, tempkm, K1 - 1, K2 - 1,
                                                IPIV, k );
                 RUNTIME_ipiv_flushk( sequence, IPIV, k);
@@ -540,6 +556,9 @@ int CHAMELEON_zlaswp_Tile_Async( cham_side_t         side,
             for ( k = 0; k < A->nt; k++ ) {
                 tempkn = A->get_blkdim( A, k, DIM_n, A->n );
                 n0 = k * A->nb;
+                if ( IPIV->get_rankof( IPIV, k, k ) != IPIV->myrank ) {
+                    continue;
+                }
                 INSERT_TASK_ipiv_to_perm( &options, n0, tempkn, tempkn, K1 - 1, K2 - 1,
                                            IPIV, k );
                 RUNTIME_ipiv_flushk( sequence, IPIV, k);
