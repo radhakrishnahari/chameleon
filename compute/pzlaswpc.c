@@ -12,14 +12,15 @@
  * @version 1.3.0
  * @author Alycia Lisito
  * @author Matteo Marcos
- * @date 2025-03-24
+ * @date 2025-07-15
  * @precisions normal z -> s d c
  *
  */
 #include "control/common.h"
 
-#define A(m,n)   A,       m, n
-#define W(m,n)  &(ws->W), m, n
+#define A(m,n)  A,         m, n
+#define Ws(m,n) &(ws->ws), m, n
+#define Wu(m,n) &(ws->Wu), m, n
 
 /**
  *  Permutation of the panel n at step k
@@ -33,9 +34,9 @@ chameleon_pzlaswpc_panel_permute( struct chameleon_pzlaswp_s *ws,
                                   int                         k,
                                   RUNTIME_option_t           *options )
 {
-    int                        n;
-    int                        tempmm, tempnn, tempkn;
-    int                        withlacpy;
+    int n;
+    int tempmm, tempnn, tempkn;
+    int withlacpy;
 
     tempmm = A->get_blkdim( A, m, DIM_m, A->m );
     tempkn = A->get_blkdim( A, k, DIM_n, A->n );
@@ -44,27 +45,27 @@ chameleon_pzlaswpc_panel_permute( struct chameleon_pzlaswp_s *ws,
     withlacpy = options->withlacpy;
     options->withlacpy = 1;
     INSERT_TASK_zlacpy( options, ChamUpperLower, tempmm, tempkn,
-                        A(m, k), W(m, A->myrank) );
+                        A(m, k), Wu(m, A->myrank) );
     options->withlacpy = withlacpy;
 
-    INSERT_TASK_zlaswpc_get( options, dir, k*A->nb, tempmm, tempkn, tempkn,
-                             ipiv, k, A(m, k), W(m, A->myrank) );
+    INSERT_TASK_zlaswp_get( options, ChamRight, dir, k*A->nb, tempmm, tempkn, tempkn,
+                            ipiv, k, A(m, k), Wu(m, A->myrank) );
 
     for ( n = k + 1; n < A->nt; n++ ) {
         tempnn = A->get_blkdim( A, n, DIM_n, A->n );
         /* Extract selected rows into A(k, n) */
-        INSERT_TASK_zlaswpc_get( options, dir, n*A->nb, tempmm, tempnn, tempkn,
-                                 ipiv, k, A(m, n), W(m, A->myrank) );
+        INSERT_TASK_zlaswp_get( options, ChamRight, dir, n*A->nb, tempmm, tempnn, tempkn,
+                                ipiv, k, A(m, n), Wu(m, A->myrank) );
         /* Copy rows from A(k,n) into their final position */
-        INSERT_TASK_zlaswpc_set( options, dir, n*A->nb, tempmm, tempnn, tempkn,
-                                 ipiv, k, A(m, k), A(m, n) );
+        INSERT_TASK_zlaswp_set( options, ChamRight, dir, n*A->nb, tempmm, tempnn, tempkn,
+                                ipiv, k, A(m, k), A(m, n) );
     }
 
     if ( ws->allreduce ) {
-        INSERT_TASK_zperm_allreduce_col( options, dir, A, W(m, A->myrank), ipiv, k, m, k, ws );
+        INSERT_TASK_zperm_allreduce( options, dir, A(m, k), ipiv, k, Wu(m, A->myrank), ws, m, A->myrank );
     }
     else {
-        INSERT_TASK_zperm_reduce_col( options, dir, A, W(m, A->myrank), ipiv, k, m, k, ws );
+        INSERT_TASK_zperm_reduce( options, dir, A(m, k), ipiv, k, Wu(m, A->myrank), ws, m, A->myrank );
     }
 }
 
@@ -80,9 +81,9 @@ chameleon_pzlaswpc_panel_permute_batched( struct chameleon_pzlaswp_s *ws,
                                           int                         k,
                                           RUNTIME_option_t           *options )
 {
-    int                        n;
-    int                        tempmm, tempnn, tempkn;
-    int                        withlacpy;
+    int n;
+    int tempmm, tempnn, tempkn;
+    int withlacpy;
 
     void **clargs = malloc( sizeof(char *) );
     *clargs = NULL;
@@ -94,24 +95,24 @@ chameleon_pzlaswpc_panel_permute_batched( struct chameleon_pzlaswp_s *ws,
     withlacpy = options->withlacpy;
     options->withlacpy = 1;
     INSERT_TASK_zlacpy( options, ChamUpperLower, tempmm, tempkn,
-                        A(m, k), W(m, A->myrank) );
+                        A(m, k), Wu(m, A->myrank) );
     options->withlacpy = withlacpy;
 
-    INSERT_TASK_zlaswpc_get( options, dir, k*A->nb, tempmm, tempkn, tempkn,
-                             ipiv, k, A(m, k), W(m, A->myrank) );
+    INSERT_TASK_zlaswp_get( options, ChamRight, dir, k*A->nb, tempmm, tempkn, tempkn,
+                            ipiv, k, A(m, k), Wu(m, A->myrank) );
 
     for ( n = k + 1; n < A->nt; n++ ) {
         tempnn = A->get_blkdim( A, n, DIM_n, A->n );
-        INSERT_TASK_zlaswpc_batched( options, dir, n*A->nb, tempmm, tempnn, tempkn, (void *)ws, ipiv, k,
-                                     A(m, n), A(m, k), W(m, A->myrank), clargs );
+        INSERT_TASK_zlaswp_batched( options, ws->ws.side, dir, n*A->nb, tempmm, tempnn, tempkn, (void *)ws, ipiv, k,
+                                    A(m, n), A(m, k), Wu(m, A->myrank), clargs );
     }
-    INSERT_TASK_zlaswpc_batched_flush( options, dir, ipiv, k, A(m, k), W(m, A->myrank), clargs );
+    INSERT_TASK_zlaswp_batched_flush( options, dir, ipiv, k, A(m, k), Wu(m, A->myrank), clargs );
 
     if ( ws->allreduce ) {
-        INSERT_TASK_zperm_allreduce_col( options, dir, A, W(m, A->myrank), ipiv, k, m, k, ws );
+        INSERT_TASK_zperm_allreduce( options, dir, A(m, k), ipiv, k, Wu(m, A->myrank), ws, m, A->myrank );
     }
     else {
-        INSERT_TASK_zperm_reduce_col( options, dir, A, W(m, A->myrank), ipiv, k, m, k, ws );
+        INSERT_TASK_zperm_reduce( options, dir, A(m, k), ipiv, k, Wu(m, A->myrank), ws, m, A->myrank );
     }
 
     free( clargs );
@@ -155,12 +156,18 @@ chameleon_pzlaswpc_panel( struct chameleon_pzlaswp_s *ws,
 
     if ( A->myrank == chameleon_getrankof_2d( A, m, k ) ) {
 
-        tempmm = A->get_blkdim( A, m, DIM_m, A->m );
-        tempkn = A->get_blkdim( A, k, DIM_n, A->n );
-        INSERT_TASK_zlacpy( options, ChamUpperLower, tempmm, tempkn,
-                            W(m, A->myrank), A(m, k) );
+        if ( ws->reduce.np_involved == 1 ) {
+            tempmm = A->get_blkdim( A, m, DIM_m, A->m );
+            tempkn = A->get_blkdim( A, k, DIM_n, A->n );
+            INSERT_TASK_zlacpy( options, ChamUpperLower, tempmm, tempkn,
+                                Wu(m, A->myrank), A(m, k) );
+        }
+        else {
+            INSERT_TASK_zlaswp_ret( options, Ws(m, A->myrank), A(m, k) );
+        }
         chameleon_data_flush( sequence, A(m, k), request->flush );
     }
+    RUNTIME_cpui_flushk( sequence, A->myrank, Ws(m, A->myrank) );
     (void)reduce;
 }
 
