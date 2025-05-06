@@ -9,9 +9,10 @@
  *
  * @brief Chameleon quark codelets to do the reduction
  *
- * @version 1.4.0
+ * @version 1.3.0
  * @author Matteo Marcox
- * @date 2025-04-11
+ * @author Matteo Marcos
+ * @date 2025-07-15
  * @precisions normal z -> c d s
  *
  */
@@ -19,27 +20,31 @@
 #include "chameleon/tasks_z.h"
 
 void
-INSERT_TASK_zperm_reduce_row( const RUNTIME_option_t *options,
-                              cham_dir_t              dir,
-                              const CHAM_desc_t      *A,
-                              CHAM_desc_t            *U,
-                              int                     Um,
-                              int                     Un,
-                              CHAM_ipiv_t            *ipiv,
-                              int                     ipivk,
-                              int                     k,
-                              int                     n,
-                              void                   *ws )
+INSERT_TASK_zperm_reduce( const RUNTIME_option_t *options,
+                          cham_dir_t              dir,
+                          const CHAM_desc_t      *A,
+                          int                     m,
+                          int                     n,
+                          CHAM_ipiv_t            *ipiv,
+                          int                     ipivk,
+                          const CHAM_desc_t      *Wu,
+                          int                     Wum,
+                          int                     Wun,
+                          void                   *ws,
+                          int                     Wm,
+                          int                     Wn )
 {
     (void)options;
     (void)dir;
     (void)A;
-    (void)U;
-    (void)Um;
-    (void)Un;
+    (void)m;
+    (void)n;
     (void)ipiv;
     (void)ipivk;
-    (void)k;
-    (void)n;
+    (void)Wu;
+    (void)Wum;
+    (void)Wun;
     (void)ws;
+    (void)Wm;
+    (void)Wn;
 }

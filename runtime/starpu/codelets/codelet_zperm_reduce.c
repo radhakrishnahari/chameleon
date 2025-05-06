@@ -12,7 +12,7 @@
  * @version 1.3.0
  * @author Alycia Lisito
  * @author Matteo Marcos
- * @date 2025-04-11
+ * @date 2025-07-15
  * @precisions normal z -> c d s
  *
  */
@@ -20,82 +20,103 @@
 #include "runtime_codelet_z.h"
 #include <coreblas/cblas_wrapper.h>
 
-#if defined(CHAMELEON_USE_MPI)
-
-struct cl_redux_args_s {
-    int tempmm;
-    int mb;
-    int n;
-    int p;
-    int q;
-    int me;
+struct cl_zperm_init_args_s {
+    cham_side_t side;
+    int         p;
+    int         q;
+    int         mb;
+    int         Am;
+    int         An;
+    int         k;
+    int         myrank;
 };
 
+#if defined(CHAMELEON_USE_MPI)
 static void
-cl_zperm_reduce_cpu_func( void *descr[], void *cl_arg )
+cl_cpui_reduce_init_cpu_func( void *descr[], void *cl_args )
 {
-    struct cl_redux_args_s      *clargs     = (struct cl_redux_args_s *) cl_arg;
-    const CHAM_tile_t           *tileUinout = cti_interface_get( descr[0] );
-    const CHAM_tile_t           *tileUin    = cti_interface_get( descr[1] );
-    const int                   *perm       = (int *)STARPU_VECTOR_GET_PTR( descr[2] );
-    CHAMELEON_Complex64_t       *Uinout     = CHAM_tile_get_ptr( tileUinout );
-    const CHAMELEON_Complex64_t *Uin        = CHAM_tile_get_ptr( tileUin );
 
-    int tempmm  = clargs->tempmm;
-    int mb      = clargs->mb;
-    int n       = clargs->n;
-    int p       = clargs->p;
-    int q       = clargs->q;
-    int me      = clargs->me;
-    int nb      = tileUinout->n;
-    int i, m, ownerp;
+    struct cl_zperm_init_args_s *clargs  = (struct cl_zperm_init_args_s *)cl_args;
+    int                         *perm    = (int *)STARPU_VECTOR_GET_PTR( descr[0] );
+    CHAM_tile_t                 *A_tile  = (CHAM_tile_t *) cti_interface_get( descr[1] );
+    cpui_interface_t            *ws      = (cpui_interface_t*) descr[2];
+    CHAMELEON_Complex64_t       *A       = CHAM_tile_get_ptr( A_tile );
+    int                          ldb     = ws->n;
+    cham_side_t                  side    = ws->side;
+    int                          mb_full = clargs->mb;
+    int                          p       = clargs->p;
+    int                          q       = clargs->q;
+    int                          myrank  = clargs->myrank;
+    int                          Am      = clargs->Am;
+    int                          An      = clargs->An;
+    CHAMELEON_Complex64_t       *rows;
+    int                          nindex;
+    int                          i, idx, idx_rank;
+    int                          lda, A_inc;
 
-    for ( i = 0; i < tempmm; i++ ) {
-        m      = perm[ i ] / mb;
-        ownerp = ( (m % p) * q + (n % q) );
+    if ( side == ChamLeft ) {
+        A_inc = 1;
+        lda   = A_tile->ld;
+    }
+    else {
+        A_inc = A_tile->ld;
+        lda   = 1;
+    }
 
-        if ( me != ownerp )
-        {
-            cblas_zcopy( nb, Uin    + i, tileUin->ld,
-                             Uinout + i, tileUinout->ld );
+    if( (ws->Am != clargs->Am) || (ws->An != clargs->An) ) {
+        ws->ws.nindex = 0;
+        memset( ws->ws.index, -1, sizeof(int) * ws->m );
+        ws->Am = Am;
+        ws->An = An;
+    }
+    nindex = ws->ws.nindex;
+
+    rows = (CHAMELEON_Complex64_t*) ws->ws.rows;
+
+    for ( i = 0; i < clargs->k; i++ ) {
+        idx = perm[i] / mb_full;
+        idx_rank = ( side == ChamLeft ) ? (idx % p) * q + (An  % q) :
+                                          (Am  % p) * q + (idx % q);
+        if ( idx_rank == myrank ) {
+            ws->ws.index[i] = nindex;
+            cblas_zcopy( ws->n, A    + i      * A_inc, lda,
+                                rows + nindex * ldb,   1 );
+            nindex++;
         }
     }
+    ws->ws.nindex = nindex;
 }
 
-CODELETS_CPU( zperm_reduce, cl_zperm_reduce_cpu_func )
+CODELETS_CPU( zperm_reduce_init, cl_cpui_reduce_init_cpu_func )
+CODELETS_CPU( zperm_reduce, cl_cpui_redux_cpu_func )
 
 #if defined(CHAMELEON_STARPU_USE_INSERT)
 
 static void
-INSERT_TASK_zperm_reduce_send( const RUNTIME_option_t *options,
-                               CHAM_desc_t            *U,
-                               int                     me,
-                               int                     dst,
-                               int                     n )
-{
-    rt_starpu_insert_task(
-        NULL,
-        STARPU_EXECUTE_ON_NODE, dst,
-        STARPU_R,               RTBLKADDR(U, CHAMELEON_Complex64_t, me, n),
-        STARPU_PRIORITY,        options->priority,
-        0 );
-}
-
-static void
-INSERT_TASK_zperm_reduce_recv( const RUNTIME_option_t *options,
+INSERT_TASK_zperm_reduce_init( const RUNTIME_option_t *options,
                                cham_dir_t              dir,
-                               CHAM_desc_t            *U,
+                               int                     me,
+                               int                     k,
+                               int                     p,
+                               int                     q,
                                CHAM_ipiv_t            *ipiv,
                                int                     ipivk,
-                               int                     me,
-                               int                     src,
-                               int                     n,
-                               int                     tempmm,
-                               int                     p,
-                               int                     q )
+                               int                     Am, int An,
+                               const CHAM_desc_t      *Wu, int Wum, int Wun,
+                               CHAM_perm_t            *ws, int Wm,  int Wn )
 {
-    struct cl_redux_args_s *clargs;
-    void                   *ipiv_handle;
+    void *ipiv_handle;
+
+    struct cl_zperm_init_args_s *clargs;
+    clargs         = malloc( sizeof( struct cl_zperm_init_args_s ) );
+    clargs->side   = ws->side;
+    clargs->Am     = Am;
+    clargs->An     = An;
+    clargs->k      = k;
+    clargs->myrank = ipiv->myrank;
+    clargs->p      = p;
+    clargs->q      = q;
+    clargs->mb     = ipiv->mb;
 
     if ( dir == ChamDirForward ) {
         ipiv_handle = RUNTIME_perm_getaddr( ipiv, ipivk );
@@ -104,41 +125,142 @@ INSERT_TASK_zperm_reduce_recv( const RUNTIME_option_t *options,
         ipiv_handle = RUNTIME_invp_getaddr( ipiv, ipivk );
     }
 
-    clargs = malloc( sizeof( struct cl_redux_args_s ) );
-    clargs->tempmm  = tempmm;
-    clargs->mb      = U->mb;
-    clargs->n       = n;
-    clargs->p       = p;
-    clargs->q       = q;
-    clargs->me      = me;
+    rt_starpu_insert_task(
+        &cl_zperm_reduce_init,
+        STARPU_CL_ARGS,             clargs, sizeof(struct cl_zperm_init_args_s),
+        STARPU_R,                   ipiv_handle,
+        STARPU_R,                   RTBLKADDR( Wu, ChamComplexDouble, Wum, Wun ),
+        STARPU_RW | STARPU_COMMUTE, RUNTIME_cpui_getaddr( ws, Wm, Wn ),
+        STARPU_EXECUTE_ON_NODE,     me,
+        STARPU_EXECUTE_ON_WORKER,   options->workerid,
+        STARPU_PRIORITY,            options->priority,
+        0 );
+}
 
+static void
+INSERT_TASK_zperm_reduce_send( const RUNTIME_option_t *options,
+                               CHAM_perm_t            *ws,
+                               int                     me,
+                               int                     dst,
+                               int                     m,
+                               int                     n )
+{
+    rt_starpu_insert_task(
+        NULL,
+        STARPU_EXECUTE_ON_NODE, dst,
+        STARPU_R,               RUNTIME_cpui_getaddr( ws, m, n ),
+        STARPU_PRIORITY,        options->priority,
+        0 );
+}
+
+static void
+INSERT_TASK_zperm_reduce_recv( const RUNTIME_option_t *options,
+                               CHAM_perm_t            *ws,
+                               int                     me,
+                               int                     src,
+                               int                     m,
+                               int                     n )
+{
+    void *cpui_handle = ( ws->side == ChamLeft ) ? RUNTIME_cpui_getaddr( ws, src, n ) :
+                                                   RUNTIME_cpui_getaddr( ws, m, src );
     rt_starpu_insert_task(
         &cl_zperm_reduce,
-        STARPU_CL_ARGS,           clargs, sizeof(struct cl_redux_args_s),
-        STARPU_RW,                RTBLKADDR(U, CHAMELEON_Complex64_t, me,  n),
-        STARPU_R,                 RTBLKADDR(U, CHAMELEON_Complex64_t, src, n),
-        STARPU_R,                 ipiv_handle,
+        STARPU_RW,                RUNTIME_cpui_getaddr( ws, m, n ),
+        STARPU_R,                 cpui_handle,
         STARPU_EXECUTE_ON_NODE,   me,
         STARPU_EXECUTE_ON_WORKER, options->workerid,
         STARPU_PRIORITY,          options->priority,
         0 );
-    starpu_mpi_cache_flush( options->sequence->comm, RTBLKADDR(U, CHAMELEON_Complex64_t, src, n) );
+    starpu_mpi_cache_flush( options->sequence->comm, cpui_handle );
 }
 
 #else /* defined(CHAMELEON_STARPU_USE_INSERT) */
 
 static void
+INSERT_TASK_zperm_reduce_init( const RUNTIME_option_t *options,
+                               cham_dir_t              dir,
+                               int                     me,
+                               int                     k,
+                               int                     p,
+                               int                     q,
+                               CHAM_ipiv_t            *ipiv,
+                               int                     ipivk,
+                               int                     Am, int An,
+                               const CHAM_desc_t      *Wu, int Wum, int Wun,
+                               CHAM_perm_t            *ws, int Wm,  int Wn )
+{
+    int                 ret;
+    struct starpu_task *task;
+    void *ipiv_handle;
+
+    if ( dir == ChamDirForward ) {
+        ipiv_handle = RUNTIME_perm_getaddr( ipiv, ipivk );
+    }
+    else {
+        ipiv_handle = RUNTIME_invp_getaddr( ipiv, ipivk );
+    }
+
+    INSERT_TASK_COMMON_PARAMETERS_EXTENDED( zperm_reduce_init, zperm_reduce_init, zperm_init, 3 )
+
+    /*
+     * Register the data handles, might need to receive perm and invp
+     */
+    starpu_cham_exchange_init_params( options, &params, me );
+    starpu_cham_exchange_handle_before_execution( options, &params, &nbdata, descrs,
+                                                  ipiv_handle, STARPU_R );
+    starpu_cham_exchange_handle_before_execution( options, &params, &nbdata, descrs,
+                                                  RTBLKADDR( Wu, ChamComplexDouble, Wum, Wun), STARPU_R );
+    starpu_cham_register_descr( &nbdata, descrs, RUNTIME_cpui_getaddr( ws, Wm, Wn ), STARPU_RW | STARPU_COMMUTE );
+
+    task = starpu_task_create();
+    task->cl = cl;
+
+    clargs = malloc( sizeof( struct cl_zperm_init_args_s ) );
+    clargs->side   = ws->side;
+    clargs->Am     = Am;
+    clargs->An     = An;
+    clargs->k      = k;
+    clargs->myrank = ipiv->myrank;
+    clargs->p      = p;
+    clargs->q      = q;
+    clargs->mb     = ipiv->mb;
+
+    task->cl_arg      = clargs;
+    task->cl_arg_size = sizeof( struct cl_zperm_init_args_s );
+    task->cl_arg_free = 1;
+
+    /* Set common parameters */
+    starpu_cham_task_set_options( options, task, nbdata, descrs, NULL );
+
+    /* Flops */
+    task->flops = 0.;
+
+    /* Refine name */
+    task->name = cl_name;
+
+    ret = starpu_task_submit( task );
+    if ( ret == -ENODEV ) {
+        task->destroy = 0;
+        starpu_task_destroy( task );
+        chameleon_error( "INSERT_TASK_zperm_allreduce_init", "Failed to submit the task to StarPU" );
+        return;
+    }
+    starpu_cham_task_exchange_data_after_execution( options, params, nbdata, descrs );
+}
+
+static void
 INSERT_TASK_zperm_reduce_send( const RUNTIME_option_t *options,
-                               CHAM_desc_t            *U,
+                               CHAM_perm_t            *ws,
                                int                     me,
                                int                     dst,
+                               int                     m,
                                int                     n )
 {
     INSERT_TASK_COMMON_PARAMETERS_CLNULL( zperm_reduce_send, 1 );
 
     starpu_cham_exchange_init_params( options, &params, dst );
     starpu_cham_exchange_handle_before_execution( options, &params, &nbdata, descrs,
-                                                  RTBLKADDR( U, ChamComplexDouble, me, n ),
+                                                  RUNTIME_cpui_getaddr( ws, m, n ),
                                                   STARPU_R );
     starpu_cham_task_exchange_data_after_execution( options, params, nbdata, descrs );
     (void)cl;
@@ -147,54 +269,29 @@ INSERT_TASK_zperm_reduce_send( const RUNTIME_option_t *options,
 
 static void
 INSERT_TASK_zperm_reduce_recv( const RUNTIME_option_t *options,
-                               cham_dir_t              dir,
-                               CHAM_desc_t            *U,
-                               CHAM_ipiv_t            *ipiv,
-                               int                     ipivk,
+                               CHAM_perm_t            *ws,
                                int                     me,
                                int                     src,
-                               int                     n,
-                               int                     tempmm,
-                               int                     p,
-                               int                     q )
+                               int                     m,
+                               int                     n )
 {
     int                 ret;
     struct starpu_task *task;
-    void               *ipiv_handle;
+    void               *cpui_handle = ( ws->side == ChamLeft ) ? RUNTIME_cpui_getaddr( ws, src, n ) :
+                                                                 RUNTIME_cpui_getaddr( ws, m, src );
 
-    if ( dir == ChamDirForward ) {
-        ipiv_handle = RUNTIME_perm_getaddr( ipiv, ipivk );
-    }
-    else {
-        ipiv_handle = RUNTIME_invp_getaddr( ipiv, ipivk );
-    }
-
-    INSERT_TASK_COMMON_PARAMETERS_EXTENDED( zperm_reduce_send, zperm_reduce, redux, 3 );
+    INSERT_TASK_COMMON_PARAMETERS( zperm_reduce, 2 );
 
     starpu_cham_exchange_init_params( options, &params, me );
     starpu_cham_exchange_handle_before_execution( options, &params, &nbdata, descrs,
-                                                  RTBLKADDR( U, ChamComplexDouble, me, n ),
+                                                  RUNTIME_cpui_getaddr( ws, m, n ),
                                                   STARPU_RW );
     starpu_cham_exchange_handle_before_execution( options, &params, &nbdata, descrs,
-                                                  RTBLKADDR( U, ChamComplexDouble, src, n ),
+                                                  cpui_handle,
                                                   STARPU_R );
-    starpu_cham_register_descr( &nbdata, descrs, ipiv_handle, STARPU_R );
 
     task = starpu_task_create();
     task->cl = cl;
-
-    /* Set codelet parameters */
-    clargs = malloc( sizeof( struct cl_redux_args_s ) );
-    clargs->tempmm  = tempmm;
-    clargs->mb      = U->mb;
-    clargs->n       = n;
-    clargs->p       = p;
-    clargs->q       = q;
-    clargs->me      = me;
-
-    task->cl_arg      = clargs;
-    task->cl_arg_size = sizeof( struct cl_redux_args_s );
-    task->cl_arg_free = 1;
 
     /* Set common parameters */
     starpu_cham_task_set_options( options, task, nbdata, descrs, NULL );
@@ -213,34 +310,51 @@ INSERT_TASK_zperm_reduce_recv( const RUNTIME_option_t *options,
         return;
     }
     starpu_cham_task_exchange_data_after_execution( options, params, nbdata, descrs );
-    starpu_mpi_cache_flush( options->sequence->comm, RTBLKADDR(U, CHAMELEON_Complex64_t, src, n) );
+    starpu_mpi_cache_flush( options->sequence->comm, cpui_handle );
+    (void)clargs;
 }
 
 #endif /* defined(CHAMELEON_STARPU_USE_INSERT) */
 
 static void
-zperm_reduce_chameleon_starpu_task( const RUNTIME_option_t     *options,
-                                    cham_dir_t                  dir,
-                                    const CHAM_desc_t          *A,
-                                    CHAM_desc_t                *U,
-                                    int                         Um,
-                                    int                         Un,
-                                    CHAM_ipiv_t                *ipiv,
-                                    int                         ipivk,
-                                    int                         k,
-                                    int                         n,
-                                    CHAM_reduce_t              *reduce )
+zperm_reduce_chameleon_starpu_task( const RUNTIME_option_t *options,
+                                    cham_dir_t              dir,
+                                    const CHAM_desc_t      *A,
+                                    int                     Am,
+                                    int                     An,
+                                    CHAM_ipiv_t            *ipiv,
+                                    int                     ipivk,
+                                    const CHAM_desc_t      *Wu,
+                                    int                     Wum,
+                                    int                     Wun,
+                                    CHAM_perm_t            *ws,
+                                    int                     Wm,
+                                    int                     Wn,
+                                    CHAM_reduce_t          *reduce )
 {
     int *proc_involved = reduce->proc_involved;
-    int  np_involved   = chameleon_min( chameleon_desc_datadist_get_iparam(A, 0), A->mt - k );
-    int  p_recv, p_send, p/*, me*/;
+    int  np_involved   = reduce->np_involved;
+    int  P             = chameleon_desc_datadist_get_iparam( A, 0 );
+    int  Q             = chameleon_desc_datadist_get_iparam( A, 1 );
+    int  p_recv, p_send, p;
+    int  tempkn, tempkm;
 
     if( np_involved == 1 ){
         assert( proc_involved[0] == A->myrank );
         return;
     }
 
-    if ( A->myrank == A->get_rankof( A, k, n ) ) {
+    tempkm = A->get_blkdim( A, ipivk, DIM_m, A->m );
+    tempkn = A->get_blkdim( A, ipivk, DIM_n, A->n );
+
+    if ( ws->side == ChamLeft ) {
+        INSERT_TASK_zperm_reduce_init( options, dir, A->myrank, tempkm, P, Q, ipiv, ipivk, Am, An, Wu, Wum, Wun, ws, Wm, Wn );
+    }
+    else {
+        INSERT_TASK_zperm_reduce_init( options, dir, A->myrank, tempkn, P, Q, ipiv, ipivk, Am, An, Wu, Wum, Wun, ws, Wm, Wn );
+    }
+
+    if ( A->myrank == A->get_rankof( A, Am, An ) ) {
         for ( p = 0; p < np_involved; p ++ ) {
             p_recv = proc_involved[p];
 
@@ -248,68 +362,72 @@ zperm_reduce_chameleon_starpu_task( const RUNTIME_option_t     *options,
                 continue;
             }
 
-            INSERT_TASK_zperm_reduce_recv( options, dir, U, ipiv, ipivk, A->myrank, p_recv,
-                                           n, k == (A->mt-1) ? A->m - k * A->mb : A->mb,
-                                           chameleon_desc_datadist_get_iparam(A, 0),
-                                           chameleon_desc_datadist_get_iparam(A, 1) );
+            INSERT_TASK_zperm_reduce_recv( options, ws, A->myrank, p_recv, Wm, Wn );
 
         }
     }
     else {
-        p_send = A->get_rankof( A, k, n );
+        p_send = A->get_rankof( A, Am, An );
 
-        INSERT_TASK_zperm_reduce_send( options, U, A->myrank, p_send, n );
+        INSERT_TASK_zperm_reduce_send( options, ws, A->myrank, p_send, Wm, Wn );
     }
 
 }
 
 void
-INSERT_TASK_zperm_reduce_row( const RUNTIME_option_t *options,
-                              cham_dir_t              dir,
-                              const CHAM_desc_t      *A,
-                              CHAM_desc_t            *U,
-                              int                     Um,
-                              int                     Un,
-                              CHAM_ipiv_t            *ipiv,
-                              int                     ipivk,
-                              int                     k,
-                              int                     n,
-                              void                   *ws )
+INSERT_TASK_zperm_reduce( const RUNTIME_option_t *options,
+                          cham_dir_t              dir,
+                          const CHAM_desc_t      *A,
+                          int                     Am,
+                          int                     An,
+                          CHAM_ipiv_t            *ipiv,
+                          int                     ipivk,
+                          const CHAM_desc_t      *Wu,
+                          int                     Wum,
+                          int                     Wun,
+                          void                   *ws,
+                          int                     Wm,
+                          int                     Wn )
 {
     struct chameleon_pzlaswp_s *tmp = (struct chameleon_pzlaswp_s *)ws;
     cham_getrf_allreduce_t      alg = tmp->reduce.alg_allreduce;
     switch( alg ) {
     case ChamStarPUTasks:
     default:
-        zperm_reduce_chameleon_starpu_task( options, dir, A, U, Um, Un, ipiv, ipivk, k, n, &(tmp->reduce) );
+        zperm_reduce_chameleon_starpu_task( options, dir, A, Am, An, ipiv, ipivk, Wu, Wum, Wun, &(tmp->ws), Wm, Wn, &(tmp->reduce) );
     }
 }
 
 #else
 
 void
-INSERT_TASK_zperm_reduce_row( const RUNTIME_option_t *options,
-                              cham_dir_t              dir,
-                              const CHAM_desc_t      *A,
-                              CHAM_desc_t            *U,
-                              int                     Um,
-                              int                     Un,
-                              CHAM_ipiv_t            *ipiv,
-                              int                     ipivk,
-                              int                     k,
-                              int                     n,
-                              void                   *ws )
+INSERT_TASK_zperm_reduce( const RUNTIME_option_t *options,
+                          cham_dir_t              dir,
+                          const CHAM_desc_t      *A,
+                          int                     m,
+                          int                     n,
+                          CHAM_ipiv_t            *ipiv,
+                          int                     ipivk,
+                          const CHAM_desc_t      *Wu,
+                          int                     Wum,
+                          int                     Wun,
+                          void                   *ws,
+                          int                     Wm,
+                          int                     Wn )
 {
     (void)options;
     (void)A;
-    (void)U;
-    (void)Um;
-    (void)Un;
-    (void)ipiv;
-    (void)ipivk;
-    (void)k;
+    (void)m;
     (void)n;
     (void)ws;
+    (void)dir;
+    (void)ipiv;
+    (void)ipivk;
+    (void)Wu;
+    (void)Wum;
+    (void)Wun;
+    (void)Wm;
+    (void)Wn;
 }
 
 #endif

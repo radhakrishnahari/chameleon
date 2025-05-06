@@ -11,7 +11,8 @@
  *
  * @version 1.3.0
  * @author Alycia Lisito
- * @date 2025-03-24
+ * @author Matteo Marcos
+ * @date 2025-07-15
  * @precisions normal z -> c d s
  *
  */
@@ -73,27 +74,31 @@ INSERT_TASK_zperm_allreduce_send_invp_row( const RUNTIME_option_t *options,
 }
 
 void
-INSERT_TASK_zperm_allreduce_row( const RUNTIME_option_t *options,
-                                 cham_dir_t              dir,
-                                 const CHAM_desc_t      *A,
-                                 CHAM_desc_t            *U,
-                                 int                     Um,
-                                 int                     Un,
-                                 CHAM_ipiv_t            *ipiv,
-                                 int                     ipivk,
-                                 int                     k,
-                                 int                     n,
-                                 void                   *ws )
+INSERT_TASK_zperm_allreduce( const RUNTIME_option_t *options,
+                             cham_dir_t              dir,
+                             const CHAM_desc_t      *A,
+                             int                     m,
+                             int                     n,
+                             CHAM_ipiv_t            *ipiv,
+                             int                     ipivk,
+                             const CHAM_desc_t      *Wu,
+                             int                     Wum,
+                             int                     Wun,
+                             void                   *ws,
+                             int                     Wm,
+                             int                     Wn )
 {
     (void)options;
-    (void)dir;
     (void)A;
-    (void)U;
-    (void)Um;
-    (void)Un;
-    (void)ipiv;
-    (void)ipivk;
-    (void)k;
+    (void)m;
     (void)n;
     (void)ws;
+    (void)Wm;
+    (void)Wn;
+    (void)Wu;
+    (void)Wum;
+    (void)Wun;
+    (void)ipiv;
+    (void)ipivk;
+    (void)dir;
 }
