@@ -12,7 +12,7 @@
  * @version 1.3.0
  * @author Alycia Lisito
  * @author Matteo Marcos
- * @date 2025-04-10
+ * @date 2025-07-15
  * @precisions normal z -> c d s
  *
  */
@@ -20,6 +20,7 @@
 #include "runtime_codelet_z.h"
 
 struct cl_zlaswp_batched_args_s {
+    int                      side;
     int                      tasks_nbr;
     int                      k;
     int                      m[CHAMELEON_BATCH_SIZE];
@@ -36,6 +37,7 @@ cl_zlaswp_batched_cpu_func( void *descr[],
     int          i, m0, m, n, k, *permget, *permset;
     CHAM_tile_t *A, *U, *B;
     struct cl_zlaswp_batched_args_s *clargs = ( struct cl_zlaswp_batched_args_s * ) cl_arg;
+    cham_side_t                      side   = clargs->side;
 
     k = clargs->k;
     permget = (int *)STARPU_VECTOR_GET_PTR( descr[0] );
@@ -48,8 +50,8 @@ cl_zlaswp_batched_cpu_func( void *descr[],
         m0 = clargs->m0[ i ];
         m = clargs->m[ i ];
         n = clargs->n[ i ];
-        TCORE_zlaswp_get( m0, m, n, k, A, U, permget );
-        TCORE_zlaswp_set( m0, m, n, k, B, A, permset );
+        TCORE_zlaswp_get( side, m0, m, n, k, A, U, permget );
+        TCORE_zlaswp_set( side, m0, m, n, k, B, A, permset );
     }
 }
 #endif
@@ -60,6 +62,7 @@ cl_zlaswp_batched_cpu_func( void *descr[],
 CODELETS_CPU( zlaswp_batched, cl_zlaswp_batched_cpu_func )
 
 void INSERT_TASK_zlaswp_batched( const RUNTIME_option_t *options,
+                                 cham_side_t             side,
                                  cham_dir_t              dir,
                                  int                     m0,
                                  int                     m,
@@ -81,6 +84,7 @@ void INSERT_TASK_zlaswp_batched( const RUNTIME_option_t *options,
 
     if( clargs == NULL ) {
         clargs = malloc( sizeof( struct cl_zlaswp_batched_args_s ) ) ;
+        clargs->side      = side;
         clargs->tasks_nbr = 0;
         clargs->k         = k;
         *clargs_ptr       = clargs;
@@ -183,9 +187,8 @@ void INSERT_TASK_zlaswp_batched_flush( const RUNTIME_option_t *options,
     starpu_cham_exchange_handle_before_execution( options, &params, &nbdata, descrs,
                                                   ipiv_handle_set,
                                                   STARPU_R );
-    starpu_cham_register_descr( &nbdata, descrs, RTBLKADDR( U, ChamComplexDouble, Um, Un ),
-                                STARPU_RW | STARPU_COMMUTE );
-    starpu_cham_register_descr( &nbdata, descrs, RTBLKADDR( Ak, ChamComplexDouble, Akm, Akn ), STARPU_R );
+    starpu_cham_exchange_handle_before_execution( options, &params, &nbdata, descrs, RTBLKADDR( U, ChamComplexDouble, Um, Un ),    STARPU_RW | STARPU_COMMUTE );
+    starpu_cham_exchange_handle_before_execution( options, &params, &nbdata, descrs, RTBLKADDR( Ak, ChamComplexDouble, Akm, Akn ), STARPU_R );
     for ( k = 0; k < myclargs->tasks_nbr; k++ ) {
         starpu_cham_register_descr( &nbdata, descrs, myclargs->handle_mode[ k ].handle, STARPU_RW );
     }
