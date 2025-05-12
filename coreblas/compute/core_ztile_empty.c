@@ -13,7 +13,8 @@
  * @author Mathieu Faverge
  * @author Alycia Lisito
  * @author Abel Calluaud
- * @date 2024-03-27
+ * @author Matteo Marcos
+ * @date 2025-07-15
  * @precisions normal z -> c d s
  *
  */
@@ -336,6 +337,7 @@ TCORE_zlascal( cham_uplo_t uplo, int m, int n, CHAMELEON_Complex64_t alpha, CHAM
 {
     coreblas_kernel_trace( A );
     assert( A->format & (CHAMELEON_TILE_FULLRANK | CHAMELEON_TILE_DESC) );
+    return 0;
 }
 
 void
@@ -358,7 +360,7 @@ TCORE_zlaset2( cham_uplo_t uplo, int n1, int n2, CHAMELEON_Complex64_t alpha, CH
 }
 
 int
-TCORE_zlaswp_get( int m0, int m, int n, int k, CHAM_tile_t *A, CHAM_tile_t *B, const int *perm )
+TCORE_zlaswp_get( cham_side_t side, int m0, int m, int n, int k, CHAM_tile_t *A, CHAM_tile_t *B, const int *perm )
 {
     coreblas_kernel_trace( A, B );
     assert( A->format & (CHAMELEON_TILE_FULLRANK | CHAMELEON_TILE_DESC) );
@@ -367,7 +369,7 @@ TCORE_zlaswp_get( int m0, int m, int n, int k, CHAM_tile_t *A, CHAM_tile_t *B, c
 }
 
 int
-TCORE_zlaswp_set( int m0, int m, int n, int k, CHAM_tile_t *A, CHAM_tile_t *B, const int *invp )
+TCORE_zlaswp_set( cham_side_t side, int m0, int m, int n, int k, CHAM_tile_t *A, CHAM_tile_t *B, const int *invp )
 {
     coreblas_kernel_trace( A, B );
     assert( A->format & (CHAMELEON_TILE_FULLRANK | CHAMELEON_TILE_DESC) );
@@ -798,8 +800,8 @@ TCORE_zunmqr( cham_side_t            side,
     assert( V->format & (CHAMELEON_TILE_FULLRANK | CHAMELEON_TILE_DESC) );
     assert( T->format & (CHAMELEON_TILE_FULLRANK | CHAMELEON_TILE_DESC) );
     assert( C->format & (CHAMELEON_TILE_FULLRANK | CHAMELEON_TILE_DESC) );
-}    return 0;
-
+    return 0;
+}
 
 int
 TCORE_zgesum( cham_store_t storev, int M, int N, const CHAM_tile_t *A, CHAM_tile_t *sum )

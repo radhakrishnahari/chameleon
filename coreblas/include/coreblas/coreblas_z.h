@@ -22,7 +22,9 @@
  * @author Cedric Castagnede
  * @author Florent Pruvost
  * @author Matthieu Kuhn
- * @date 2024-02-18
+ * @author Brieuc Nicolas
+ * @author Matteo Marcos
+ * @date 2025-07-15
  * @precisions normal z -> c d s
  *
  */
@@ -184,11 +186,12 @@ void CORE_zlaset2(cham_uplo_t uplo, int n1, int n2, CHAMELEON_Complex64_t alpha,
                   CHAMELEON_Complex64_t *tileA, int ldtilea);
 void CORE_zlaswp(int N, CHAMELEON_Complex64_t *A, int LDA,
                  int I1,  int I2, const int *IPIV, int INC);
-int CORE_zlaswp_get( int m0, int m, int n, int k,
+int CORE_zlaswp_get( cham_side_t side, int m0, int m, int n, int k,
                      const CHAMELEON_Complex64_t *A, int lda,
                      CHAMELEON_Complex64_t *B, int ldb,
                      const int *perm );
-int CORE_zlaswp_set( int m0, int m, int n, int k,
+int CORE_zlaswp_set( cham_side_t side,
+                     int m0, int m, int n, int k,
                      const CHAMELEON_Complex64_t *A, int lda,
                      CHAMELEON_Complex64_t *B, int ldb,
                      const int *invp );
