@@ -482,24 +482,6 @@ TCORE_zlaswp_set( cham_side_t side, int m0, int m, int n, int k, CHAM_tile_t *A,
 }
 
 int
-TCORE_zlaswpc_get( int n0, int m, int n, int k, CHAM_tile_t *A, CHAM_tile_t *B, const int *perm )
-{
-    coreblas_kernel_trace( A, B );
-    assert( A->format & (CHAMELEON_TILE_FULLRANK | CHAMELEON_TILE_DESC) );
-    assert( B->format & (CHAMELEON_TILE_FULLRANK | CHAMELEON_TILE_DESC) );
-    return CORE_zlaswpc_get( n0, m, n, k, CHAM_tile_get_ptr( A ), A->ld, CHAM_tile_get_ptr( B ), B->ld, perm );
-}
-
-int
-TCORE_zlaswpc_set( int n0, int m, int n, int k, CHAM_tile_t *A, CHAM_tile_t *B, const int *invp )
-{
-    coreblas_kernel_trace( A, B );
-    assert( A->format & (CHAMELEON_TILE_FULLRANK | CHAMELEON_TILE_DESC) );
-    assert( B->format & (CHAMELEON_TILE_FULLRANK | CHAMELEON_TILE_DESC) );
-    return CORE_zlaswpc_set( n0, m, n, k, CHAM_tile_get_ptr( A ), A->ld, CHAM_tile_get_ptr( B ), B->ld, invp );
-}
-
-int
 TCORE_zlatro( cham_uplo_t        uplo,
               cham_trans_t       trans,
               int                M,

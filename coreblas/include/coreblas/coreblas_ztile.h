@@ -57,8 +57,6 @@ void TCORE_zlaset( cham_uplo_t uplo, int n1, int n2, CHAMELEON_Complex64_t alpha
 void TCORE_zlaset2( cham_uplo_t uplo, int n1, int n2, CHAMELEON_Complex64_t alpha, CHAM_tile_t *A );
 int TCORE_zlaswp_get( cham_side_t side, int m0, int m, int n, int k, CHAM_tile_t *A, CHAM_tile_t *B, const int *perm );
 int TCORE_zlaswp_set( cham_side_t side, int m0, int m, int n, int k, CHAM_tile_t *A, CHAM_tile_t *B, const int *invp );
-int TCORE_zlaswpc_get( int n0, int m, int n, int k, CHAM_tile_t *A, CHAM_tile_t *B, const int *perm );
-int TCORE_zlaswpc_set( int n0, int m, int n, int k, CHAM_tile_t *A, CHAM_tile_t *B, const int *invp );
 int  TCORE_zlatro( cham_uplo_t uplo, cham_trans_t trans, int M, int N, const CHAM_tile_t *A, CHAM_tile_t *B );
 void TCORE_zlauum( cham_uplo_t uplo, int N, CHAM_tile_t *A );
 #if defined(PRECISION_z) || defined(PRECISION_c)
