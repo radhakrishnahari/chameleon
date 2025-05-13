@@ -20,7 +20,8 @@ export XDG_CACHE_HOME=/tmp/guix-$$
 
 # save guix commits
 #guix describe --format=json > guix.json
-guix time-machine -C ./tools/bench/guix-channels.scm -- describe --format=json > guix.json
+guix time-machine --url=https://codeberg.org/guix/guix-mirror.git \
+  --channels=./tools/bench/guix-channels.scm -- describe --format=json > guix.json
 
 # define env var depending on the node type
 if [[ "$NODE" == "bora" ]]; then
@@ -61,17 +62,11 @@ GUIX_RULE="-D $GUIX_ENV $GUIX_ENV_MPI $GUIX_ADHOC $GUIX_ADHOC_MPI"
 # Submit jobs
 
 #exec guix shell --pure \
-exec guix time-machine -C ./tools/bench/guix-channels.scm -- shell --pure \
-       --preserve=PLATFORM \
-       --preserve=NODE \
-       --preserve=LD_PRELOAD \
-       --preserve=^CI \
-       --preserve=proxy$ \
-       --preserve=^SLURM \
-       --preserve=^JUBE \
-       --preserve=^MPI \
-       --preserve=^STARPU \
-       --preserve=^CHAMELEON \
+exec guix time-machine \
+       --url=https://codeberg.org/guix/guix-mirror.git \
+       --channels=./tools/bench/guix-channels.scm \
+       -- shell --pure \
+       --preserve="PLATFORM|NODE|LD_PRELOAD|^CI|proxy$|^SLURM|^JUBE|^MPI|^STARPU|^CHAMELEON" \
        $GUIX_RULE \
        -- /bin/bash --norc ./tools/bench/plafrim/slurm.sh
 err=$?
