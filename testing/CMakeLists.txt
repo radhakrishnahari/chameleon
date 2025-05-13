@@ -85,6 +85,7 @@ set(ZSRC_WO_STDAPI
   testing_zgesv_nopiv.c
   testing_zgesvd.c
   testing_zlaswp.c
+  testing_zlapmt.c
   testing_zgetrf_nopiv.c
   testing_zgetrs_nopiv.c
   testing_zgeqrf.c
