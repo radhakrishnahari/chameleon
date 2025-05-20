@@ -59,7 +59,7 @@ if (NOT CHAMELEON_SIMULATION)
     # LU
     set( TESTS ${TESTS} getrf_nopiv getrs_nopiv gesv_nopiv )
     if ( CHAMELEON_SCHED_STARPU )
-      set( TESTS ${TESTS} laswp )
+      set( TESTS ${TESTS} laswp lapmt )
       if ( HAVE_STARPU_NONE_NONZERO )
         set( TESTS ${TESTS} getrf getrs gesv )
       endif()
@@ -159,7 +159,7 @@ if (NOT CHAMELEON_SIMULATION)
           # endif()
         endif()
 
-        list( REMOVE_ITEM TESTSTMP print gepdf_qr laswp )
+        list( REMOVE_ITEM TESTSTMP print gepdf_qr laswp lapmt )
 
         if ( NOT (${cat} STREQUAL "mpi"))
           foreach( test ${TESTSTMP} )
