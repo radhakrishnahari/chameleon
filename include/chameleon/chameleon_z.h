@@ -372,6 +372,7 @@ int CHAMELEON_zTile_to_Lapack( CHAM_desc_t *A, CHAMELEON_Complex64_t *Af77, int 
 int CHAMELEON_zLap2Desc( cham_uplo_t uplo, CHAMELEON_Complex64_t *Af77, int LDA, CHAM_desc_t *A );
 int CHAMELEON_zDesc2Lap( cham_uplo_t uplo, CHAM_desc_t *A, CHAMELEON_Complex64_t *Af77, int LDA );
 void CHAMELEON_Ipiv_Init( CHAM_ipiv_t *descIPIV );
+void CHAMELEON_Perm_Init( cham_dir_t dir, CHAM_ipiv_t *descIPIV, int *PERM );
 
 /**
  *  User Builder function prototypes
