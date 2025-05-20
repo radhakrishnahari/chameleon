@@ -240,6 +240,7 @@ set(ZSRC
     #zhegvd.c
     zhetrd.c
     zlaswp.c
+    zlapmt.c
     #zlaswpc.c
     #ztrsmrv.c
     ##################
