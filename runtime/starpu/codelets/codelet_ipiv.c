@@ -26,6 +26,12 @@ struct cl_laswp_args_s {
     int  *data;
 };
 
+struct cl_lapmt_args_s {
+    int  n;
+    int *perm;
+    int *invp;
+};
+
 static void cl_ipiv_init_cpu_func( void *descr[], void *cl_arg )
 {
 #if !defined(CHAMELEON_SIMULATION)
@@ -34,7 +40,7 @@ static void cl_ipiv_init_cpu_func( void *descr[], void *cl_arg )
 
     starpu_codelet_unpack_args( cl_arg, &m0, &n );
 
-    for( i = 0; i < n; i++ ) {
+    for( i = 0; i < n; i ++ ) {
         ipiv[i] = m0 + i + 1;
     }
 #endif
@@ -53,7 +59,7 @@ void INSERT_TASK_ipiv_init( const RUNTIME_option_t *options,
     int64_t mb = ipiv->mb;
     int     m;
 
-    for ( m = 0; m < mt; m++ ) {
+    for ( m = 0; m < mt; m ++ ) {
         starpu_data_handle_t ipiv_src = RUNTIME_ipiv_getaddr( ipiv, m );
         int m0 = m * mb;
         int n  = ( m == ( mt - 1 ) ) ? ipiv->m - m0 : mb;
@@ -76,7 +82,7 @@ static void cl_ipiv_init_data_cpu_func( void *descr[], void *cl_arg )
     int  n    = clargs->n;
     int  i;
 
-    for( i = 0; i < n; i++ ) {
+    for( i = 0; i < n; i ++ ) {
         ipiv[i] = clargs->data[i];
     }
 #endif
@@ -100,7 +106,7 @@ void INSERT_TASK_ipiv_init_data( const RUNTIME_option_t *options,
         return;
     }
 
-    for ( m = 0; m < mt; m++ ) {
+    for ( m = 0; m < mt; m ++ ) {
         starpu_data_handle_t    ipiv_src = RUNTIME_ipiv_getaddr( ipiv, m );
         struct cl_laswp_args_s *cl_args;
         int                     m0, n;
@@ -125,6 +131,136 @@ void INSERT_TASK_ipiv_init_data( const RUNTIME_option_t *options,
             STARPU_W,       ipiv_src,
             0);
     }
+}
+
+static void cl_perm_init_cpu_func( void *descr[], void *cl_arg )
+{
+#if !defined(CHAMELEON_SIMULATION)
+    struct cl_lapmt_args_s *clargs = (struct cl_lapmt_args_s *) cl_arg;
+
+    int *perm = (int *)STARPU_VECTOR_GET_PTR( descr[0] );
+    int *invp = (int *)STARPU_VECTOR_GET_PTR( descr[1] );
+    int  n    = clargs->n;
+    int  i;
+
+    for( i = 0; i < n; i ++ ) {
+        perm[i] = clargs->perm[i] - 1;
+        invp[i] = clargs->invp[i] - 1;
+    }
+
+#endif
+}
+
+struct starpu_codelet cl_perm_init = {
+    .where     = STARPU_CPU,
+    .cpu_func  = cl_perm_init_cpu_func,
+    .nbuffers  = 2,
+};
+
+void INSERT_TASK_perm_init( const RUNTIME_option_t *options,
+                            cham_dir_t              dir,
+                            CHAM_ipiv_t            *ipiv,
+                            int                    *PERM )
+{
+
+    int64_t mt    = ipiv->mt;
+    int64_t mb    = ipiv->mb;
+    int     i_idx = -1;
+    int     m, k, i;
+    int     tempmm, idx, perm_m0;
+
+    int *invp = malloc( sizeof(int) * ipiv->m );
+    int *perm = malloc( sizeof(int) * ipiv->m );
+    int *done = calloc( ipiv->m, sizeof(int) );
+
+    if ( dir == ChamDirBackward ) {
+        for ( k = 0; k < ipiv->m; k ++ ) {
+            for ( i = 0; i < ipiv->m; i ++ ) {
+                if ( PERM[i] == k + 1 ) {
+                    perm[k] = i + 1;
+                    break;
+                }
+            }
+        }
+    }
+    else {
+        memcpy( perm, PERM, sizeof(int) * ipiv->m );
+    }
+
+    for ( k = 0; k < ipiv->m; k ++ ) {
+        invp[k] = k + 1;
+    }
+
+    for ( m = 0; m < mt; m ++ ) {
+        tempmm = ( m == mt - 1 ) ? ipiv->m - ipiv->mb * m : ipiv->mb;
+
+        for ( k = 0; k < tempmm; k ++ ) {
+            idx = k + m * mb;
+            perm_m0  = ( perm[idx] - 1 ) / mb;
+
+            if ( perm_m0 > m ) {
+                continue;
+            }
+
+            done[perm[idx] - 1] = 1;
+        }
+
+        for ( k = 0; k < tempmm; k ++ ) {
+            idx = k + m * mb;
+            perm_m0  = ( perm[idx] - 1 ) / mb;
+
+            if ( perm_m0 <= m ) {
+                continue;
+            }
+
+            for ( i = 0; i < mb; i ++ ) {
+                if ( done[i + m * mb] == 0 ) {
+                    invp[i + m * mb] = perm[idx];
+                    i_idx = i + m * mb;
+                    done[i + m * mb] = 1;
+                    break;
+                }
+            }
+
+            assert( idx != -1 );
+
+            for ( i = m * mb; i < ipiv->m; i ++ ) {
+                if( ( perm[i] == i_idx + 1 ) && ( i >= idx ) ) {
+                    perm[i] = perm[idx];
+                    break;
+                }
+            }
+        }
+    }
+
+    for ( m = 0; m < mt; m ++ ) {
+        starpu_data_handle_t    perm_src = RUNTIME_perm_getaddr( ipiv, m ) ;
+        starpu_data_handle_t    invp_src = RUNTIME_invp_getaddr( ipiv, m ) ;
+        struct cl_lapmt_args_s *cl_args;
+        int                     m0, n;
+
+        m0 = m * mb;
+        n = ( m == ( mt-1 ) ) ? ipiv->m - m0 : mb;
+
+        cl_args     = malloc( sizeof(struct cl_lapmt_args_s) );
+        cl_args->n  = n;
+
+        cl_args->perm = perm + m0;
+        cl_args->invp = invp + m0;
+
+        rt_starpu_insert_task(
+            &cl_perm_init,
+            STARPU_CL_ARGS, cl_args, sizeof(struct cl_lapmt_args_s),
+            STARPU_W,       perm_src,
+            STARPU_W,       invp_src,
+            0);
+    }
+    starpu_task_wait_for_all();
+
+    free(invp);
+    free(perm);
+    free(done);
+    (void)i;
 }
 
 void INSERT_TASK_ipiv_reducek( const RUNTIME_option_t *options,
