@@ -353,11 +353,18 @@ zperm_reduce_chameleon_starpu_task( const RUNTIME_option_t *options,
     int  np_involved   = reduce->np_involved;
     int  P             = chameleon_desc_datadist_get_iparam( A, 0 );
     int  Q             = chameleon_desc_datadist_get_iparam( A, 1 );
-    int  p_recv, p_send, p;
+    int  me            = A->myrank;
+    int  arity         = reduce->arity;
+    int  root          = A->get_rankof( A, Am, An );
+    int  next_np_involved;
+    int  step;
+    int  me_in_step;
+    int  root_in_step;
+    int  p_recv, p;
     int  tempkn, tempkm, tempkk;
 
     if( np_involved == 1 ){
-        assert( proc_involved[0] == A->myrank );
+        assert( proc_involved[0] == me );
         return;
     }
 
@@ -369,21 +376,45 @@ zperm_reduce_chameleon_starpu_task( const RUNTIME_option_t *options,
                                    Am, An, Wu, Wum, Wun, ws, Wm, Wn );
 
     /* Submit reduction tree */
-    if ( A->myrank == A->get_rankof( A, Am, An ) ) {
-        for ( p = 0; p < np_involved; p ++ ) {
-            p_recv = proc_involved[p];
+    while ( np_involved != 1 ) {
+            next_np_involved = ( np_involved % arity == 0 )
+                               ? np_involved / arity
+                               : np_involved / arity + 1;
 
-            if ( p_recv == A->myrank ) {
-                continue;
+        for ( step = 0; step < next_np_involved; step ++ ) {
+            me_in_step = 0;
+            root_in_step = 0;
+
+            for ( p = step*arity; ( p < np_involved ) && ( p < (step + 1) * arity ); p ++ ) {
+                if ( proc_involved[p] == root ) {
+                    root_in_step = 1;
+                }
+                if ( proc_involved[p] == me ) {
+                    me_in_step = 1;
+                }
             }
 
-            insert_task_zperm_reduce_recv( options, ws, A->myrank, p_recv, Wm, Wn );
-        }
-    }
-    else {
-        p_send = A->get_rankof( A, Am, An );
+            p_recv = ( root_in_step ) ? root : proc_involved[step * arity];
 
-        insert_task_zperm_reduce_send( options, ws, A->myrank, p_send, Wm, Wn );
+            if( me == p_recv ) {
+
+                for ( p = step*arity; ( p < np_involved ) && ( p < (step + 1) * arity ); p ++ ) {
+                    if ( proc_involved[p] == me ) {
+                        continue;
+                    }
+                    insert_task_zperm_reduce_recv( options, ws, me, proc_involved[p], Wm, Wn);
+
+                }
+            }
+
+            else if ( me_in_step ) {
+
+                insert_task_zperm_reduce_send( options, ws, me, p_recv, Wm, Wn );
+            }
+            proc_involved[step] = p_recv;
+
+        }
+        np_involved = next_np_involved;
     }
 }
 
