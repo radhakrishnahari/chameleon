@@ -52,8 +52,9 @@ CHAMELEON_zlaswp_WS_Alloc( cham_side_t side, const CHAM_desc_t *A )
     CHAM_context_t             *chamctxt;
     struct chameleon_pzlaswp_s *ws;
     CHAM_reduce_t              *reduce;
-    int                         P = chameleon_desc_datadist_get_iparam( A, 0 );
-    int                         Q = chameleon_desc_datadist_get_iparam( A, 1 );
+    int                         P            = chameleon_desc_datadist_get_iparam( A, 0 );
+    int                         Q            = chameleon_desc_datadist_get_iparam( A, 1 );
+    int                         max_involved = ( side == ChamLeft ) ? P : Q;
 
     chamctxt = chameleon_context_self();
     if ( chamctxt == NULL ) {
@@ -71,6 +72,7 @@ CHAMELEON_zlaswp_WS_Alloc( cham_side_t side, const CHAM_desc_t *A )
     reduce->proc_involved = malloc( sizeof( int ) * P );
     reduce->involved      = 0;
     reduce->np_involved   = 0;
+    reduce->arity         = chameleon_getenv_get_value_int( "CHAMELEON_ARITY", max_involved );
 #else
     reduce->np_involved = 1;
 #endif
@@ -109,22 +111,22 @@ CHAMELEON_zlaswp_WS_Alloc( cham_side_t side, const CHAM_desc_t *A )
     if ( ws->batch_size_swap > CHAMELEON_BATCH_SIZE ) {
         chameleon_warning( "CHAMELEON_BATCH_SIZE",
                            "CHAMELEON_LASWP_BATCH_SIZE must be smaller than CHAMELEON_BATCH_SIZE:\n"
-                                " please recompile with the right CHAMELEON_BATCH_SIZE, or reduce the CHAMELEON_LASWP_BATCH_SIZE value\n" );
+                           " please recompile with the right CHAMELEON_BATCH_SIZE, or reduce the CHAMELEON_LASWP_BATCH_SIZE value\n" );
         ws->batch_size_swap = CHAMELEON_BATCH_SIZE;
     }
     if ( side == ChamLeft ) {
         chameleon_desc_init( &(ws->Wu), CHAMELEON_MAT_ALLOC_TILE,
-                            ChamComplexDouble, A->mb, A->nb, A->mb*A->nb,
-                            A->mb * P * Q, A->n, 0, 0,
-                            A->mb * P * Q, A->n, P * Q, 1,
-                            NULL, NULL, NULL, A->get_rankof_init_arg );
+                             ChamComplexDouble, A->mb, A->nb, A->mb*A->nb,
+                             A->mb * P * Q, A->n, 0, 0,
+                             A->mb * P * Q, A->n, P * Q, 1,
+                             NULL, NULL, NULL, A->get_rankof_init_arg );
     }
     else {
         chameleon_desc_init( &(ws->Wu), CHAMELEON_MAT_ALLOC_TILE,
-                            ChamComplexDouble, A->mb, A->nb, A->mb*A->nb,
-                            A->m, A->nb * P * Q, 0, 0,
-                            A->m, A->nb * P * Q, 1, P * Q,
-                            NULL, NULL, NULL, A->get_rankof_init_arg );
+                             ChamComplexDouble, A->mb, A->nb, A->mb*A->nb,
+                             A->m, A->nb * P * Q, 0, 0,
+                             A->m, A->nb * P * Q, 1, P * Q,
+                             NULL, NULL, NULL, A->get_rankof_init_arg );
     }
 
     ws->ws.mt   = A->mt;
@@ -138,6 +140,7 @@ CHAMELEON_zlaswp_WS_Alloc( cham_side_t side, const CHAM_desc_t *A )
     ws->ws.NP   = P * Q;
     RUNTIME_cpui_create( &(ws->ws) );
 
+    (void)max_involved;
     return ws;
 }
 
@@ -546,7 +549,7 @@ int CHAMELEON_zlaswp_Tile_Async( cham_side_t         side,
                     continue;
                 }
                 INSERT_TASK_ipiv_to_perm( &options, m0, tempkm, tempkm, K1 - 1, K2 - 1,
-                                               IPIV, k );
+                                          IPIV, k );
                 RUNTIME_ipiv_flushk( sequence, IPIV, k);
             }
         }
@@ -560,7 +563,7 @@ int CHAMELEON_zlaswp_Tile_Async( cham_side_t         side,
                     continue;
                 }
                 INSERT_TASK_ipiv_to_perm( &options, n0, tempkn, tempkn, K1 - 1, K2 - 1,
-                                           IPIV, k );
+                                          IPIV, k );
                 RUNTIME_ipiv_flushk( sequence, IPIV, k);
             }
         }
