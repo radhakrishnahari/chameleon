@@ -133,12 +133,12 @@ chameleon_pzlaswpc_panel( struct chameleon_pzlaswp_s *ws,
     int                      tempmm, tempkn;
 
 #if defined(CHAMELEON_USE_MPI)
-    chameleon_get_proc_involved_in_rowpanelk_2dbc( A, m, k, reduce );
+    chameleon_get_proc_involved_in_rowpanelk( A, m, k, reduce );
     if ( A->myrank == ipiv->get_rankof( ipiv, k, k ) ) {
         INSERT_TASK_zperm_allreduce_send_perm( options, dir, ipiv, k, A->myrank, reduce->np_involved, reduce->proc_involved );
         INSERT_TASK_zperm_allreduce_send_invp_col( options, dir, ipiv, k, A, m, k );
     }
-    if ( A->myrank == chameleon_getrankof_2d( A, m, k ) ) {
+    if ( A->myrank == A->get_rankof( A, m, k ) ) {
         INSERT_TASK_zperm_allreduce_send_A( options, A, m, k, A->myrank, reduce->np_involved, reduce->proc_involved );
     }
 
@@ -154,7 +154,7 @@ chameleon_pzlaswpc_panel( struct chameleon_pzlaswp_s *ws,
         chameleon_pzlaswpc_panel_permute_batched( ws, dir, A, ipiv, m, k, options );
     }
 
-    if ( A->myrank == chameleon_getrankof_2d( A, m, k ) ) {
+    if ( A->myrank == A->get_rankof( A, m, k ) ) {
 
         if ( ws->reduce.np_involved == 1 ) {
             tempmm = A->get_blkdim( A, m, DIM_m, A->m );
