@@ -15,7 +15,8 @@
  * @author Mathieu Faverge
  * @author Cedric Castagnede
  * @author Florent Pruvost
- * @date 2025-06-16
+ * @author Matteo Marcos
+ * @date 2025-07-15
  *
  */
 /**
@@ -102,6 +103,7 @@ struct chameleon_reduce_s {
     int                    *proc_involved; /**< Specifies the processes involved in the reduction operation             */
     unsigned int            involved;      /**< Specifies if the current process is involved in the reduction operation */
     int                     np_involved;   /**< Specifies the number of involved processes in the reduction operation   */
+    int                     arity;         /**< Specifies the arity of the reduction tree                               */
 };
 typedef struct chameleon_reduce_s CHAM_reduce_t;
 
