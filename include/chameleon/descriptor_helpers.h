@@ -48,8 +48,9 @@ extern "C" {
 int chameleon_getrankof_2d          ( const CHAM_desc_t *A,    int m, int n );
 int chameleon_getrankof_2d_diag     ( const CHAM_desc_t *A,    int m, int n );
 int chameleon_getrankof_ipiv_2d_row ( const CHAM_ipiv_t *ipiv, int m, int n );
-int chameleon_getrankof_ipiv_2d_col ( const CHAM_ipiv_t *ipiv, int m, int n );
 int chameleon_getrankof_ipiv_2d_diag( const CHAM_ipiv_t *ipiv, int m, int n );
+int chameleon_getrankof_ipiv        ( const CHAM_ipiv_t *ipiv, int m, int n );
+int chameleon_getrankof_ipiv_diag   ( const CHAM_ipiv_t *ipiv, int m, int n );
 
 typedef struct custom_dist_s{
     int *blocks_dist;         // Matrix of size dist_m times dist_n with values from 1 to number of process MPI
@@ -67,18 +68,27 @@ int chameleon_getrankof_custom        ( const CHAM_desc_t *A, int m, int n );
  * @{
  */
 
-int chameleon_involved_in_panelk_2dbc( const CHAM_desc_t *A, int An );
-int chameleon_p_involved_in_panelk_2dbc( const CHAM_desc_t *A, int k, int p );
+int chameleon_involved_in_panelk_2dbc   ( const CHAM_desc_t *A, int An );
+int chameleon_involved_in_rowpanelk_2dbc( const CHAM_desc_t *A, int Am );
+int chameleon_p_involved_in_panelk_2dbc ( const CHAM_desc_t *A, int k, int p );
+int chameleon_involved_in_panelk        ( const CHAM_desc_t *A, int An );
+int chameleon_involved_in_rowpanelk     ( const CHAM_desc_t *A, int Am );
+int chameleon_p_involved_in_panelk      ( const CHAM_desc_t *A, int k, int p );
 void chameleon_get_proc_involved_in_panelk_2dbc( const CHAM_desc_t *A,
                                                  int                k,
                                                  int                n,
                                                  void              *ws_reduce );
+void chameleon_get_proc_involved_in_panelk( const CHAM_desc_t *A,
+                                            int                k,
+                                            int                n,
+                                            void              *ws_reduce );
 
-void chameleon_get_proc_involved_in_rowpanelk_2dbc( const CHAM_desc_t *A,
-                                                    int                m,
-                                                    int                k,
-                                                    void              *ws_reduce );
+void chameleon_get_proc_involved_in_rowpanelk( const CHAM_desc_t *A,
+                                               int                m,
+                                               int                k,
+                                               void              *ws_reduce );
 
+int chameleon_get_rankof_internal( custom_dist_t *dist, int m, int n, int p, int q );
 /**
  * @}
  * @name Block address functions
