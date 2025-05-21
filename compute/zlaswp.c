@@ -54,7 +54,7 @@ CHAMELEON_zlaswp_WS_Alloc( cham_side_t side, const CHAM_desc_t *A )
     CHAM_reduce_t              *reduce;
     int                         P            = chameleon_desc_datadist_get_iparam( A, 0 );
     int                         Q            = chameleon_desc_datadist_get_iparam( A, 1 );
-    int                         max_involved = ( side == ChamLeft ) ? P : Q;
+    int                         max_involved = P * Q;
 
     chamctxt = chameleon_context_self();
     if ( chamctxt == NULL ) {
@@ -69,7 +69,7 @@ CHAMELEON_zlaswp_WS_Alloc( cham_side_t side, const CHAM_desc_t *A )
     reduce->alg_allreduce = ChamStarPUTasks;
 
 #if defined (CHAMELEON_USE_MPI)
-    reduce->proc_involved = malloc( sizeof( int ) * P );
+    reduce->proc_involved = malloc( sizeof(int) * P * Q );
     reduce->involved      = 0;
     reduce->np_involved   = 0;
     reduce->arity         = chameleon_getenv_get_value_int( "CHAMELEON_ARITY", max_involved );
