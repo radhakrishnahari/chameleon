@@ -200,17 +200,19 @@ INSERT_TASK_zipiv_allreduce_recv( const RUNTIME_option_t *options,
 
 static void
 zipiv_allreduce_chameleon_starpu_task( const RUNTIME_option_t *options,
+                                       CHAM_perm_t            *ws,
                                        CHAM_desc_t            *A,
                                        CHAM_desc_pivot_t      *pivot,
-                                       int                    *proc_involved,
                                        int                     k,
                                        int                     h,
-                                       int                     n )
+                                       int                     n,
+                                       CHAM_reduce_t          *reduce )
 {
-    int np_involved = chameleon_min( chameleon_desc_datadist_get_iparam(A, 0), A->mt - k);
-    int np_iter     = np_involved;
-    int p_recv, p_send, me;
-    int shift = 1;
+    int  np_involved   = reduce->np_involved;
+    int *proc_involved = reduce->proc_involved;
+    int  np_iter       = np_involved;
+    int  shift         = 1;
+    int  p_recv, p_send, me;
 
     if ( h > 0 ) {
         starpu_data_invalidate_submit( RUNTIME_pivot_getaddr( pivot, A->myrank, k, h-1 ) );
@@ -221,24 +223,24 @@ zipiv_allreduce_chameleon_starpu_task( const RUNTIME_option_t *options,
 
     if ( np_involved == 1 ) {
         assert( proc_involved[0] == A->myrank );
+        return;
     }
-    else {
-        for( me = 0; me < np_involved; me++ ) {
-            if ( proc_involved[me] == A->myrank ) {
-                break;
-            }
-        }
-        assert( me < np_involved );
-        while ( np_iter > 1 ) {
-            p_send = proc_involved[ ( me + shift               ) % np_involved ];
-            p_recv = proc_involved[ ( me - shift + np_involved ) % np_involved ];
 
-            INSERT_TASK_zipiv_allreduce_send( options, pivot, A->myrank, p_send, k, h    );
-            INSERT_TASK_zipiv_allreduce_recv( options, pivot, A->myrank, p_recv, k, h, n );
-
-            shift   = shift << 1;
-            np_iter = chameleon_ceil( np_iter, 2 );
+    for( me = 0; me < np_involved; me++ ) {
+        if ( proc_involved[me] == A->myrank ) {
+            break;
         }
+    }
+    assert( me < np_involved );
+    while ( np_iter > 1 ) {
+        p_send = proc_involved[ ( me + shift               ) % np_involved ];
+        p_recv = proc_involved[ ( me - shift + np_involved ) % np_involved ];
+
+        INSERT_TASK_zipiv_allreduce_send( options, pivot, A->myrank, p_send, k, h    );
+        INSERT_TASK_zipiv_allreduce_recv( options, pivot, A->myrank, p_recv, k, h, n );
+
+        shift   = shift << 1;
+        np_iter = chameleon_ceil( np_iter, 2 );
     }
 }
 
@@ -256,7 +258,7 @@ INSERT_TASK_zipiv_allreduce( const RUNTIME_option_t *options,
     switch( alg ) {
     case ChamStarPUTasks:
     default:
-        zipiv_allreduce_chameleon_starpu_task( options, A, pivot, tmp->reduce.proc_involved, k, h, n );
+        zipiv_allreduce_chameleon_starpu_task( options, &(tmp->ws), A, pivot, k, h, n, &(tmp->reduce) );
     }
 }
 #else
