@@ -388,30 +388,7 @@ void RUNTIME_ipiv_gather( const RUNTIME_sequence_t *sequence,
         starpu_data_handle_t ipiv_src = RUNTIME_ipiv_getaddr( desc, m );
 
 #if defined(CHAMELEON_USE_MPI)
-        int owner = starpu_mpi_data_get_rank( ipiv_src );
-        if ( node != owner ) {
-            starpu_mpi_tag_t tag = starpu_mpi_data_get_tag( ipiv_src );
-
-            if ( rank == node )
-            {
-                /* Need to receive the data */
-                int already_received = starpu_mpi_cached_receive_set( ipiv_src );
-                if (already_received == 0)
-                {
-                    MPI_Status status;
-                    starpu_mpi_recv( ipiv_src, owner, tag, sequence->comm, &status );
-                }
-            }
-            else if ( rank == owner )
-            {
-                /* Need to send the data */
-                int already_sent = starpu_mpi_cached_send_set( ipiv_src, node );
-                if (already_sent == 0)
-                {
-                    starpu_mpi_send( ipiv_src, node, tag, sequence->comm );
-                }
-            }
-        }
+        starpu_mpi_get_data_on_node( sequence->comm, ipiv_src, node );
         if ( rank == node )
 #endif
         {
