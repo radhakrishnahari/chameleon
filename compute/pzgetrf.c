@@ -18,7 +18,7 @@
  * @author Matthieu Kuhn
  * @author Alycia Lisito
  * @author Matteo Marcos
- * @date 2025-03-24
+ * @date 2025-06-12
  * @precisions normal z -> s d c
  *
  */
@@ -739,7 +739,7 @@ void chameleon_pzgetrf( struct chameleon_pzgetrf_s *ws,
 {
     CHAM_context_t    *chamctxt;
     RUNTIME_option_t   options;
-    CHAM_desc_pivot_t  pivot;
+    CHAM_desc_pivot_t *pivot = &(ws->pivot);
 
     int k, m, n;
     int min_mnt = chameleon_min( A->mt, A->nt );
@@ -749,8 +749,6 @@ void chameleon_pzgetrf( struct chameleon_pzgetrf_s *ws,
         return;
     }
     RUNTIME_options_init( &options, chamctxt, sequence, request );
-
-    chameleon_pivot_init( &pivot, A );
 
     for (k = 0; k < min_mnt; k++) {
         RUNTIME_iteration_push( chamctxt, k );
@@ -762,7 +760,7 @@ void chameleon_pzgetrf( struct chameleon_pzgetrf_s *ws,
          */
         options.forcesub = chameleon_involved_in_panelk_2dbc( A, k );
         if ( chameleon_involved_in_panelk_2dbc( A, k ) ) {
-            chameleon_pzgetrf_panel_facto( ws, A, IPIV, &pivot, k, &options );
+            chameleon_pzgetrf_panel_facto( ws, A, IPIV, pivot, k, &options );
         }
         options.forcesub = 0;
 
@@ -787,7 +785,7 @@ void chameleon_pzgetrf( struct chameleon_pzgetrf_s *ws,
     }
     CHAMELEON_Desc_Flush( &(ws->Wl), sequence );
     CHAMELEON_Ipiv_Flush( IPIV, sequence );
-    chameleon_pivot_destroy( &pivot );
+    chameleon_pivot_destroy_submit( pivot, sequence );
 
     /* Backward pivoting */
     for (k = 1; k < min_mnt; k++) {
