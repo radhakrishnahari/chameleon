@@ -22,7 +22,8 @@
  * @author Lionel Eyraud-Dubois
  * @author Alycia Lisito
  * @author Pierre Esterie
- * @date 2024-11-13
+ * @author Matteo Marcos
+ * @date 2025-06-12
  *
  */
 #ifndef _chameleon_descriptor_h_
@@ -82,8 +83,11 @@ int chameleon_ipiv_init( CHAM_ipiv_t *ipiv, cham_side_t side, int mb, int m,
                          blkrankof_ipiv_fct_t get_rankof );
 void chameleon_ipiv_destroy( CHAM_ipiv_t *ipiv );
 
-int  chameleon_pivot_init   ( CHAM_desc_pivot_t *pivot, const CHAM_desc_t *desc );
-void chameleon_pivot_destroy( CHAM_desc_pivot_t *pivot );
+int chameleon_pivot_init( CHAM_desc_pivot_t *pivot,
+                          const CHAM_desc_t *desc );
+int chameleon_pivot_destroy( CHAM_desc_pivot_t *pivot );
+int chameleon_pivot_destroy_submit( CHAM_desc_pivot_t        *pivot,
+                                    const RUNTIME_sequence_t *sequence );
 
 /**
  *  Internal function to return address of block (m,n) with m,n = block indices

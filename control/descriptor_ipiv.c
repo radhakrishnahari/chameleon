@@ -14,7 +14,8 @@
  * @author Matthieu Kuhn
  * @author Alycia Lisito
  * @author Florent Pruvost
- * @date 2025-03-24
+ * @author Matteo Marcos
+ * @date 2025-06-12
  *
  ***
  *
@@ -173,27 +174,6 @@ void chameleon_ipiv_destroy( CHAM_ipiv_t *ipiv )
 }
 
 /**
- ******************************************************************************
- *
- * @ingroup Descriptor
- *
- * @brief Internal function to destroy a tiled descriptor associated to a pivot array.
- *
- ******************************************************************************
- *
- * @param[in,out] pivot
- *          The pointer to the pivot descriptor to destroy.
- *
- * @param[in] desc
- *          The tile descriptor for which an associated pivot descriptor must be generated.
- *
- */
-void chameleon_pivot_destroy( CHAM_desc_pivot_t *pivot )
-{
-    RUNTIME_pivot_destroy( pivot );
-}
-
-/**
  *****************************************************************************
  *
  * @ingroup Descriptor
@@ -246,6 +226,50 @@ int CHAMELEON_Ipiv_Create( CHAM_ipiv_t **ipivptr, cham_side_t side, int mb, int 
     chameleon_ipiv_init( ipiv, side, mb, m, p, np, data, NULL );
 
     *ipivptr = ipiv;
+    return CHAMELEON_SUCCESS;
+}
+
+/**
+ ******************************************************************************
+ *
+ * @ingroup Descriptor
+ *
+ * @brief Asynchronously destroy a tiled descriptor associated to a pivot array.
+ *
+ ******************************************************************************
+ *
+ * @param[in,out] pivot
+ *          The pointer to the pivot descriptor to destroy.
+ *
+ * @param[in] desc
+ *          The tile descriptor for which an associated pivot descriptor must be generated.
+ *
+ */
+int chameleon_pivot_destroy_submit( CHAM_desc_pivot_t *pivot, const RUNTIME_sequence_t *sequence )
+{
+    RUNTIME_pivot_destroy_submit( sequence, pivot );
+    return CHAMELEON_SUCCESS;
+}
+
+/**
+ ******************************************************************************
+ *
+ * @ingroup Descriptor
+ *
+ * @brief Destroy a tiled descriptor associated to a pivot array.
+ *
+ ******************************************************************************
+ *
+ * @param[in,out] pivot
+ *          The pointer to the pivot descriptor to destroy.
+ *
+ * @param[in] desc
+ *          The tile descriptor for which an associated pivot descriptor must be generated.
+ *
+ */
+int chameleon_pivot_destroy( CHAM_desc_pivot_t *pivot )
+{
+    RUNTIME_pivot_destroy( pivot );
     return CHAMELEON_SUCCESS;
 }
 
