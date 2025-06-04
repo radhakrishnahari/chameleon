@@ -302,7 +302,7 @@ int CHAMELEON_zlaswp( cham_side_t            side,
     P = chameleon_desc_datadist_get_iparam( &descAt, 0 );
     Q = chameleon_desc_datadist_get_iparam( &descAt, 1 );
 
-    CHAMELEON_Ipiv_Create( &descIPIV, side, descAt.mb, K, P, P*Q, IPIV );
+    CHAMELEON_Ipiv_Create( &descIPIV, &descAt, side, descAt.mb, K, P, P*Q, IPIV );
 
     CHAMELEON_Ipiv_Init( descIPIV );
 
