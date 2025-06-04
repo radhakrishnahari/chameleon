@@ -80,7 +80,9 @@ int          chameleon_desc_check    ( const CHAM_desc_t *desc );
 
 int chameleon_ipiv_init( CHAM_ipiv_t *ipiv, cham_side_t side, int mb, int m,
                          int p, int np, void *data,
-                         blkrankof_ipiv_fct_t get_rankof );
+                         blkrankof_ipiv_fct_t get_rankof,
+                         void                *get_rankof_init_arg,
+                         cham_data_dist_t    *data_dist );
 void chameleon_ipiv_destroy( CHAM_ipiv_t *ipiv );
 
 int chameleon_pivot_init( CHAM_desc_pivot_t *pivot,

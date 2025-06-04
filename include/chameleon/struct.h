@@ -195,6 +195,8 @@ typedef int (*blkrankof_ipiv_fct_t) ( const CHAM_ipiv_t*, int, int );
 struct chameleon_ipiv_s {
     blkdim_ipiv_fct_t    get_blkdim; /**> function to get chameleon tiles dimension within algorithms                                 */
     blkrankof_ipiv_fct_t get_rankof; /**> function to get chameleon tiles MPI rank                                                    */
+    cham_data_dist_t    *data_dist;  /**> data distribution type used to retrieve the distributed layout                              */
+    void                *get_rankof_init_arg;
 
     int         *data;               /**> Pointer to the data                                                                         */
     void        *ipiv;               /**> Opaque array of pointers for the runtimes to handle the ipiv array                          */
