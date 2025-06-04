@@ -59,10 +59,11 @@ void RUNTIME_ipiv_create( CHAM_ipiv_t *ipiv )
 void RUNTIME_pivot_create( CHAM_desc_pivot_t *pivot )
 {
     assert( pivot );
-    size_t                nbhandles = 2 * pivot->P;
+    int                   NP        = pivot->P * pivot->Q;
+    size_t                nbhandles = 2 * NP;
     starpu_data_handle_t *handles   = calloc( nbhandles, sizeof(starpu_data_handle_t) );
     pivot->nextpiv = handles;
-    handles += pivot->P;
+    handles += NP;
     pivot->prevpiv = handles;
 #if defined(CHAMELEON_USE_MPI)
     /*
@@ -76,7 +77,7 @@ void RUNTIME_pivot_create( CHAM_desc_pivot_t *pivot )
             chameleon_fatal_error("RUNTIME_pivot_create", "Can't pursue computation since no more tags are available for pivot structure");
             return;
         }
-        pivot->mpitag_prevpiv = pivot->mpitag_nextpiv + pivot->P;
+        pivot->mpitag_prevpiv = pivot->mpitag_nextpiv + NP;
     }
 #endif
 }
@@ -114,8 +115,9 @@ void RUNTIME_pivot_destroy_submit( const RUNTIME_sequence_t *sequence,
                                    CHAM_desc_pivot_t        *pivot )
 {
     int                   i;
-    starpu_data_handle_t *handle = (starpu_data_handle_t*)(pivot->nextpiv);
-    size_t                nbhandles = 2 * pivot->P;
+    int                   NP        = pivot->P * pivot->Q;
+    starpu_data_handle_t *handle    = (starpu_data_handle_t*)(pivot->nextpiv);
+    size_t                nbhandles = 2 * NP;
 
     if ( !handle ) {
         return;
@@ -192,9 +194,8 @@ void *RUNTIME_ipiv_getaddr( const CHAM_ipiv_t *ipiv, int m )
 void *RUNTIME_nextpiv_getaddr( const CHAM_desc_pivot_t *pivot, int rank, int k, int h )
 {
     starpu_data_handle_t *nextpiv = (starpu_data_handle_t*)(pivot->nextpiv);
-    int                   Q       = pivot->Q;
 
-    nextpiv += rank/Q;
+    nextpiv += rank;
     assert( nextpiv );
 
     if ( *nextpiv != NULL ) {
@@ -202,7 +203,7 @@ void *RUNTIME_nextpiv_getaddr( const CHAM_desc_pivot_t *pivot, int rank, int k, 
     }
     int     owner = rank;
     int     ncols = pivot->nb;
-    int64_t tag   = pivot->mpitag_nextpiv + owner/Q;
+    int64_t tag   = pivot->mpitag_nextpiv + owner;
 
     cppi_register( nextpiv, pivot->dtyp, ncols, tag, owner );
 
@@ -214,9 +215,8 @@ void *RUNTIME_nextpiv_getaddr( const CHAM_desc_pivot_t *pivot, int rank, int k, 
 void *RUNTIME_prevpiv_getaddr( const CHAM_desc_pivot_t *pivot, int rank, int k, int h )
 {
     starpu_data_handle_t *prevpiv = (starpu_data_handle_t*)(pivot->prevpiv);
-    int                   Q       = pivot->Q;
 
-    prevpiv += rank/Q;
+    prevpiv += rank;
     assert( prevpiv );
 
     if ( *prevpiv != NULL ) {
@@ -225,7 +225,7 @@ void *RUNTIME_prevpiv_getaddr( const CHAM_desc_pivot_t *pivot, int rank, int k, 
 
     int     owner = rank;
     int     ncols = pivot->nb;
-    int64_t tag   = pivot->mpitag_prevpiv + owner/Q;
+    int64_t tag   = pivot->mpitag_prevpiv + owner;
 
     cppi_register( prevpiv, pivot->dtyp, ncols, tag, owner );
 
