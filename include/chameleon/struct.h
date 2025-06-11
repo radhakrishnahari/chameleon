@@ -20,7 +20,8 @@
  * @author Matthieu Kuhn
  * @author Lionel Eyraud-Dubois
  * @author Pierre Esterie
- * @date 2025-01-24
+ * @author Matteo Marcos
+ * @date 2025-07-15
  *
  */
 #ifndef _chameleon_struct_h_
@@ -57,6 +58,16 @@ typedef struct chameleon_tile_s {
     int8_t format;
     int8_t flttype;
 } CHAM_tile_t;
+
+/**
+ * @brief CHAMELEON interface representing the cpui workspace used for the permutation of LASWP and GETRF
+ */
+typedef struct chameleon_laswp_ws_s {
+    int  *index;  /**< The array of indexes where the corresponding rows should be copied */
+    void *rows;   /**< The array of rows to be moved depending of index                   */
+    int   nindex; /**< The number of rows stored in the workspace                         */
+    int   offset; /**< Offset to align the data after the indices array                   */
+} CHAM_laswpws_t;
 
 /**
  *  Tile matrix descriptor
@@ -201,6 +212,23 @@ struct chameleon_ipiv_s {
     int          P;                  /**> The number of processes per column on a tiled matrix                                        */
     int          NP;                 /**> The total number of processes                                                               */
 };
+
+/**
+ * @brief CHAMELEON structure used for the permutation in LASWP and GETRF
+ */
+typedef struct chameleon_perm_s {
+    void              *ws;        /**< Workspace handle used for the row/column permutation */
+    cham_side_t        side;      /**< Specifies the side of the permutation                */
+    int64_t            mpitag_ws; /**< Initial MPI tag for the workspace handle             */
+    int                NP;        /**< Total number of processes                            */
+    int                m;         /**< Total number of rows of the matrix                   */
+    int                n;         /**< Total number of columns of the matrix                */
+    int                mb;        /**< Number of rows per tile                              */
+    int                nb;        /**< Number of columns per tile                           */
+    int                mt;        /**< Number of rows tile                                  */
+    int                nt;        /**< Number of columns tile                               */
+    cham_flttype_t     dtyp;      /**> Arithmetic used to store the rows/columns to swap    */
+} CHAM_perm_t;
 
 /**
  *  CHAMELEON structure to hold pivot informations for the LU factorization with partial pivoting
