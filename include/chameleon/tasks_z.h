@@ -205,18 +205,6 @@ void INSERT_TASK_zlaswp_set( const RUNTIME_option_t *options,
                              const CHAM_ipiv_t *tIPIV, int tIPIVk,
                              const CHAM_desc_t *tileA, int tileAm, int tileAn,
                              const CHAM_desc_t *tileB, int tileBm, int tileBn );
-void INSERT_TASK_zlaswpc_get( const RUNTIME_option_t *options, CHAM_perm_t *ws, cham_dir_t dir,
-                             int n0, int m, int n, int k,
-                             const CHAM_ipiv_t *tIPIV, int tIPIVk,
-                             const CHAM_desc_t *tileA, int tileAm, int tileAn );
-void INSERT_TASK_zlaswpc_set( const RUNTIME_option_t *options, cham_dir_t dir,
-                             int n0, int m, int n, int k,
-                             const CHAM_ipiv_t *tIPIV, int tIPIVk,
-                             const CHAM_desc_t *tileA, int tileAm, int tileAn,
-                             const CHAM_desc_t *tileB, int tileBm, int tileBn );
-void INSERT_TASK_zlaswpc_ret( const RUNTIME_option_t *options, cham_dir_t dir,
-                              CHAM_perm_t       *ws,    int Wm,     int Wn,
-                              const CHAM_desc_t *tileA, int tileAm, int tileAn );
 void INSERT_TASK_zlaswp_batched( const RUNTIME_option_t *options,
                                  cham_side_t             side,
                                  cham_dir_t              dir,
