@@ -15,7 +15,9 @@
  * @author Alycia Lisito
  * @author Florent Pruvost
  * @author Pierre Esterie
- * @date 2024-12-18
+ * @author Matteo Marcos
+ * @author Samuel Thibault
+ * @date 2025-06-12
  *
  */
 #include "chameleon_starpu_internal.h"
@@ -88,31 +90,38 @@ void RUNTIME_ipiv_destroy( CHAM_ipiv_t *ipiv )
     starpu_data_handle_t *handle = (starpu_data_handle_t*)(ipiv->ipiv);
     size_t                nbhandles = 3 * ipiv->mt;
 
-    for(i=0; i<nbhandles; i++) {
-        if ( *handle != NULL ) {
-            starpu_data_unregister( *handle );
-            *handle = NULL;
+    if ( handle ) {
+        for(i=0; i<nbhandles; i++) {
+            if ( *handle != NULL ) {
+                starpu_data_unregister( *handle );
+                *handle = NULL;
+            }
+            handle++;
         }
-        handle++;
-    }
 
-    free( ipiv->ipiv    );
-    ipiv->ipiv    = NULL;
-    ipiv->perm    = NULL;
-    ipiv->invp    = NULL;
-    chameleon_starpu_tag_release( ipiv->mpitag_ipiv );
+        free( ipiv->ipiv    );
+        ipiv->ipiv    = NULL;
+        ipiv->perm    = NULL;
+        ipiv->invp    = NULL;
+        chameleon_starpu_tag_release( ipiv->mpitag_ipiv );
+    }
 }
 
 /**
- *  Destroy ws_pivot runtime structures
+ *  Asynchronously destroy ws_pivot runtime structures
  */
-void RUNTIME_pivot_destroy( CHAM_desc_pivot_t *pivot )
+void RUNTIME_pivot_destroy_submit( const RUNTIME_sequence_t *sequence,
+                                   CHAM_desc_pivot_t        *pivot )
 {
     int                   i;
     starpu_data_handle_t *handle = (starpu_data_handle_t*)(pivot->nextpiv);
     size_t                nbhandles = 2 * pivot->P;
 
-    for(i=0; i<nbhandles; i++) {
+    if ( !handle ) {
+        return;
+    }
+
+    for ( i = 0; i < nbhandles; i++ ) {
         if ( *handle != NULL ) {
             starpu_data_unregister_submit( *handle );
             *handle = NULL;
@@ -123,6 +132,32 @@ void RUNTIME_pivot_destroy( CHAM_desc_pivot_t *pivot )
     free( pivot->nextpiv );
     pivot->nextpiv = NULL;
     pivot->prevpiv = NULL;
+    (void)sequence;
+}
+
+/**
+ *  Destroy ws_pivot runtime structures
+ */
+void RUNTIME_pivot_destroy( CHAM_desc_pivot_t *pivot )
+{
+    starpu_data_handle_t *handle = (starpu_data_handle_t*)(pivot->nextpiv);
+
+    if ( handle ) {
+        int    i;
+        size_t nbhandles = 2 * pivot->P;
+
+        for ( i = 0; i < nbhandles; i++ ) {
+            if ( *handle != NULL ) {
+                starpu_data_unregister( *handle );
+                *handle = NULL;
+            }
+            handle++;
+        }
+
+        free( pivot->nextpiv );
+        pivot->nextpiv = NULL;
+        pivot->prevpiv = NULL;
+    }
     chameleon_starpu_tag_release( pivot->mpitag_nextpiv );
 }
 

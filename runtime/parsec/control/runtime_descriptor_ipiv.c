@@ -14,7 +14,8 @@
  * @author Matthieu Kuhn
  * @author Alycia Lisito
  * @author Florent Pruvost
- * @date 2024-08-29
+ * @author Matteo Marcos
+ * @date 2025-06-12
  *
  */
 #include "chameleon_parsec.h"
@@ -35,6 +36,14 @@ void RUNTIME_ipiv_destroy( CHAM_ipiv_t *ipiv )
 {
     assert( 0 );
     (void)ipiv;
+}
+
+void RUNTIME_pivot_destroy_submit( const RUNTIME_sequence_t *sequence,
+                                   CHAM_desc_pivot_t        *pivot )
+{
+    assert( 0 );
+    (void)sequence;
+    (void)pivot;
 }
 
 void RUNTIME_pivot_destroy( CHAM_desc_pivot_t *pivot )

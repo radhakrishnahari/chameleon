@@ -24,7 +24,8 @@
  * @author Lionel Eyraud-Dubois
  * @author Ana Hourcau
  * @author Pierre Esterie
- * @date 2025-03-24
+ * @author Matteo Marcos
+ * @date 2025-06-12
  * @precisions normal z -> c d s
  *
  */
@@ -55,6 +56,7 @@ struct chameleon_pzlaswp_s {
  */
 struct chameleon_pzgetrf_s {
     struct chameleon_pzlaswp_s *laswp;            /**< Structure containing the permutation workspace and the reduce data   */
+    CHAM_desc_pivot_t           pivot;            /**< Structure containing the workspace used for the panel factorisation  */
     cham_getrf_t                alg;              /**< Define the algorithm used to compute the getrf                       */
     int                         ib;               /**< Internal blocking parameter                                          */
     int                         batch_size_blas2; /**< Batch size for the blas 2 operations of the panel factorization      */

@@ -22,7 +22,8 @@
  * @author Alycia Lisito
  * @author Xavier Lacoste
  * @author Pierre Esterie
- * @date 2024-12-09
+ * @author Matteo Marcos
+ * @date 2025-06-12
  *
  * @precisions normal z -> s d c
  *
@@ -156,6 +157,8 @@ CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A )
                              NULL, NULL, A->get_rankof_init, A->get_rankof_init_arg );
     }
 
+    chameleon_pivot_init( &(ws->pivot), A );
+
     return ws;
 }
 
@@ -200,6 +203,8 @@ CHAMELEON_zgetrf_WS_Free( void *user_ws )
     {
         chameleon_desc_destroy( &(ws->Wl) );
     }
+
+    chameleon_pivot_destroy( &ws->pivot );
     free( ws );
 }
 
@@ -332,6 +337,7 @@ CHAMELEON_zgetrf( int M, int N, CHAMELEON_Complex64_t *A, int LDA, int *IPIV )
     if ( ( ws->alg == ChamGetrfPPivPerColumn ) ||
          ( ws->alg == ChamGetrfPPiv ) )
     {
+        chameleon_pivot_destroy( &(ws->pivot) );
         chameleon_ipiv_destroy( &descIPIV );
     }
     CHAMELEON_zgetrf_WS_Free( ws );
