@@ -18,7 +18,7 @@
  * @author Henricus Bouwmeester
  * @author Mathieu Faverge
  * @author Florent Pruvost
- * @date 2024-02-18
+ * @date 2025-06-16
  * @precisions normal z -> c d s
  *
  */
@@ -74,9 +74,9 @@
  *
  */
 
-void CORE_zlange(cham_normtype_t norm, int M, int N,
-                 const CHAMELEON_Complex64_t *A, int LDA,
-                 double *work, double *normA)
+void CORE_zlange( cham_normtype_t norm, int M, int N,
+                  const CHAMELEON_Complex64_t *A, int LDA,
+                  double *work, double *normA )
 {
     *normA = LAPACKE_zlange_work(
         LAPACK_COL_MAJOR,

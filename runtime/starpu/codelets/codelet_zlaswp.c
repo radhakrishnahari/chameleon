@@ -13,7 +13,8 @@
  * @author Mathieu Faverge
  * @author Matthieu Kuhn
  * @author Alycia Lisito
- * @date 2025-03-24
+ * @author Matteo Marcos
+ * @date 2025-06-16
  * @precisions normal z -> c d s
  *
  */
@@ -57,7 +58,7 @@ void INSERT_TASK_zlaswp_get( const RUNTIME_option_t *options,
 {
     void                  *ipiv_handle;
     struct starpu_codelet *codelet = &cl_zlaswp_get;
-    if ( A->get_rankof( A, Am, An) != A->myrank ) {
+    if ( A->get_rankof( A, Am, An ) != A->myrank ) {
         return;
     }
 
