@@ -16,7 +16,7 @@
  * @author Hatem Ltaief
  * @author Lionel Eyraud-Dubois
  * @author Pierre Esterie
- * @date 2024-11-13
+ * @date 2025-06-16
  * @precisions normal z -> s d c
  *
  */
@@ -240,16 +240,18 @@ chameleon_pzgepdf_qdwh_fini( libhqr_tree_t *qrtreeT, libhqr_tree_t *qrtreeB,
 }
 
 /**
- * @brief Compute an estimation of the condition number with a QR factorization.
+ * @brief Estimates the reciprocal of the condition number of a general complex
+ * matrix A in the 1-norm, using a QR factorization.
+ *
+ * An estimate is obtained for norm(inv(A)), and the reciprocal of the
+ * condition number is computed as
+ * \f[ rcond = 1 / ( norm(A) * norm(inv(A)) ) \f]
  *
  * @param[in] chamctxt
  *        The chameleon context.
  *
  * @param[in] Anorm
  *        The One norm of the scaled matrix A.
- *
- * @param[in] normest
- *        The estimated Two-norm of the matrix A.
  *
  * @param[in] qrtree
  *        The reduction tree to be used by the QR factorization of A.
@@ -275,7 +277,7 @@ chameleon_pzgepdf_qdwh_fini( libhqr_tree_t *qrtreeT, libhqr_tree_t *qrtreeB,
  */
 static inline double
 chameleon_pzgeqdwh_condest_qr( CHAM_context_t *chamctxt,
-                               double Anorm, double normest, const libhqr_tree_t *qrtree,
+                               double Anorm, const libhqr_tree_t *qrtree,
                                CHAM_desc_t *A, CHAM_desc_t *TS, CHAM_desc_t *TT,
                                CHAM_desc_t *D, CHAM_desc_t *W,
                                RUNTIME_sequence_t *sequence, RUNTIME_request_t *request )
@@ -308,9 +310,7 @@ chameleon_pzgeqdwh_condest_qr( CHAM_context_t *chamctxt,
     chameleon_sequence_wait( chamctxt, sequence );
     free( upperA );
 
-    Li = ((double)1.0 / Ainvnorm) / Anorm;
-    Li = normest / 1.1 * Li;
-
+    Li = (double)1.0 / ( Ainvnorm * Anorm );
     return Li;
 }
 
@@ -699,9 +699,11 @@ chameleon_pzgepdf_qdwh( cham_mtxtype_t mtxtype, CHAM_desc_t *descU, CHAM_desc_t 
     /*
      * Estimate of the condition number
      */
-    Li = chameleon_pzgeqdwh_condest_qr( chamctxt, Unorm, normest, &qrtreeT,
+    Li = chameleon_pzgeqdwh_condest_qr( chamctxt, Unorm, &qrtreeT,
                                         &descB1, &descTS1, &descTT1, D1ptr,
                                         &descB2, sequence, request );
+    Li = ( normest / 1.1 ) * Li;
+
     if ( info ) {
         info->flops += flops_zgeqrf( descB1.m, descB1.n );
         info->flops += flops_ztrtri( descB1.n );
