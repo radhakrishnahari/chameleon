@@ -792,11 +792,10 @@ if (TARGET Threads::Threads)
 endif()
 
 # see https://cmake.org/cmake/help/latest/module/CMakePackageConfigHelpers.html
-include(CMakePackageConfigHelpers)
 
-set(BIN_INSTALL_DIR "bin/" CACHE STRING "where to install executables relative to prefix" )
-set(INC_INSTALL_DIR "include/" CACHE STRING "where to install headers relative to prefix" )
-set(LIB_INSTALL_DIR "lib/" CACHE STRING "where to install libraries relative to prefix" )
+set(BIN_INSTALL_DIR "bin/"     CACHE PATH "Location of binary files" )
+set(INC_INSTALL_DIR "include/" CACHE PATH "Location of header files" )
+set(LIB_INSTALL_DIR "lib/"     CACHE PATH "Location of library files" )
 
 set(PREFIX_PATH "")
 if (CMAKE_PREFIX_PATH)
@@ -808,17 +807,20 @@ if (DEFINED ENV{CMAKE_PREFIX_PATH})
   list(APPEND PREFIX_PATH ${ENV_PREFIX_PATH})
 endif()
 
+include(CMakePackageConfigHelpers)
 configure_package_config_file(cmake_modules/CHAMELEONConfig.cmake.in
                               ${CMAKE_CURRENT_BINARY_DIR}/CHAMELEONConfig.cmake
-                              INSTALL_DESTINATION ${LIB_INSTALL_DIR}/cmake/chameleon
+                              INSTALL_DESTINATION lib/cmake/chameleon
                               PATH_VARS BIN_INSTALL_DIR INC_INSTALL_DIR LIB_INSTALL_DIR PREFIX_PATH)
 write_basic_package_version_file(CHAMELEONConfigVersion.cmake
                                  VERSION ${CHAMELEON_VERSION}
                                  COMPATIBILITY AnyNewerVersion)
 
-# Install config files
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/CHAMELEONConfig.cmake ${CMAKE_CURRENT_BINARY_DIR}/CHAMELEONConfigVersion.cmake
-        DESTINATION ${LIB_INSTALL_DIR}/cmake/chameleon)
+# # Install config files
+install( FILES
+   ${CMAKE_CURRENT_BINARY_DIR}/CHAMELEONConfig.cmake
+   ${CMAKE_CURRENT_BINARY_DIR}/CHAMELEONConfigVersion.cmake
+   DESTINATION lib/cmake/chameleon )
 
 ###############################################################################
 # Config files (pkg_config) #
