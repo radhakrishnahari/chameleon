@@ -38,7 +38,7 @@ $TOOLSDIR/find_sources.sh
 export UNDEFINITIONS="-UCHAMELEON_USE_OPENCL -UWIN32 -UWIN64 -U_MSC_EXTENSIONS -U_MSC_VER -U__SUNPRO_C -U__SUNPRO_CC -U__sun -Usun -U__cplusplus"
 
 # run cppcheck analysis
-CPPCHECK_OPT=" -v -f --language=c --platform=unix64 --enable=all --xml --xml-version=2 --suppress=missingIncludeSystem ${UNDEFINITIONS}"
+CPPCHECK_OPT=" -v -f --language=c --platform=unix64 --enable=all --xml --xml-version=2  --suppress=checkersReport --suppress=missingIncludeSystem ${UNDEFINITIONS}"
 cppcheck $CPPCHECK_OPT --file-list=./filelist_none.txt 2> chameleon_cppcheck.xml
 cppcheck $CPPCHECK_OPT -DPRECISION_s -UPRECISION_d -UPRECISION_c -UPRECISION_z --file-list=./filelist_s.txt 2>> chameleon_cppcheck.xml
 cppcheck $CPPCHECK_OPT -DPRECISION_d -UPRECISION_s -UPRECISION_c -UPRECISION_z --file-list=./filelist_d.txt 2>> chameleon_cppcheck.xml
