@@ -26,7 +26,7 @@
 #  @date 2024-02-18
 #
 ###
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.12)
 
 find_package(OpenMP REQUIRED)
 morse_export_imported_target(OpenMP::OpenMP_C openmp chameleon)

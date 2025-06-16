@@ -28,7 +28,7 @@ if (NOT EZTRACE_FOUND)
     find_package(EZTRACE)
 endif()
 
-if (EZTRACE_FOUND)
+if (EZTRACE_FOUND AND CHAMELEON_USE_EZTRACE)
 
     set(EZTRACE_eztrace_create_plugin_DIR "EZTRACE_eztrace_create_plugin_DIR-NOTFOUND")
     find_path(EZTRACE_eztrace_create_plugin_DIR
@@ -75,7 +75,7 @@ if (EZTRACE_FOUND)
         endforeach()
     endif (EZTRACE_eztrace_create_plugin_DIR)
 
-endif (EZTRACE_FOUND)
+endif()
 
 ###
 ### END CMakeLists.txt

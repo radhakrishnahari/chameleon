@@ -22,7 +22,7 @@
 #  @date 2024-02-18
 #
 ###
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.12)
 project(LINK_CHAMELEON Fortran C CXX)
 
 find_package(CHAMELEON)
