@@ -34,7 +34,7 @@
 #  @date 2024-12-06
 #
 ###
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.12)
 project(CHAMELEON Fortran C CXX)
 
 # directly make an error if in-source build
