@@ -15,7 +15,8 @@
  * @author Mathieu Faverge
  * @author Matthieu Kuhn
  * @author Alycia Lisito
- * @date 2024-10-18
+ * @author Matteo Marcos
+ * @date 2025-06-16
  * @precisions normal z -> c d s
  *
  */
@@ -120,6 +121,11 @@ void INSERT_TASK_zgetrf_blocked_diag( const RUNTIME_option_t *options,
     }
 #endif
 
+    /* Handle cache */
+    CHAMELEON_BEGIN_ACCESS_DECLARATION;
+    CHAMELEON_ACCESS_RW( A, Am, An );
+    CHAMELEON_END_ACCESS_DECLARATION;
+
     /* Set codelet parameters */
     struct cl_zgetrf_blocked_args_s *clargs;
     clargs = malloc( sizeof( struct cl_zgetrf_blocked_args_s ) );
@@ -146,11 +152,6 @@ void INSERT_TASK_zgetrf_blocked_diag( const RUNTIME_option_t *options,
     else if ( ( h%ib == 1 ) || ( ib == 1 ) ) {
         accessU = STARPU_W;
     }
-
-    /* Handle cache */
-    CHAMELEON_BEGIN_ACCESS_DECLARATION;
-    CHAMELEON_ACCESS_RW( A, Am, An );
-    CHAMELEON_END_ACCESS_DECLARATION;
 
     /* Refine name */
     cl_name = chameleon_codelet_name( cl_name, 1,
@@ -345,6 +346,14 @@ void INSERT_TASK_zgetrf_blocked_offdiag( const RUNTIME_option_t *options,
     }
 #endif
 
+    /* Handle cache */
+    CHAMELEON_BEGIN_ACCESS_DECLARATION;
+    CHAMELEON_ACCESS_RW( A, Am, An );
+    if ((h%ib == 0) && (h > 0)) {
+        CHAMELEON_ACCESS_R( U, Um, Un );
+    }
+    CHAMELEON_END_ACCESS_DECLARATION;
+
     /* Set codelet parameters */
     struct cl_zgetrf_blocked_args_s *clargs;
     clargs = malloc( sizeof( struct cl_zgetrf_blocked_args_s ) );
@@ -358,14 +367,6 @@ void INSERT_TASK_zgetrf_blocked_offdiag( const RUNTIME_option_t *options,
 
     void (*callback)(void*) = options->profiling ? cl_zgetrf_blocked_offdiag_callback : NULL;
     const char *cl_name = "zgetrf_blocked_offdiag";
-
-    /* Handle cache */
-    CHAMELEON_BEGIN_ACCESS_DECLARATION;
-    CHAMELEON_ACCESS_RW( A, Am, An );
-    if ((h%ib == 0) && (h > 0)) {
-        CHAMELEON_ACCESS_R( U, Um, Un );
-    }
-    CHAMELEON_END_ACCESS_DECLARATION;
 
     /* Refine name */
     cl_name = chameleon_codelet_name( cl_name, 1,
