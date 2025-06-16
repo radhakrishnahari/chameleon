@@ -23,7 +23,7 @@
  * @author Xavier Lacoste
  * @author Pierre Esterie
  * @author Matteo Marcos
- * @date 2025-06-12
+ * @date 2025-06-16
  *
  * @precisions normal z -> s d c
  *
@@ -267,7 +267,6 @@ CHAMELEON_zgetrf( int M, int N, CHAMELEON_Complex64_t *A, int LDA, int *IPIV )
     RUNTIME_sequence_t         *sequence = NULL;
     RUNTIME_request_t           request  = RUNTIME_REQUEST_INITIALIZER;
     struct chameleon_pzgetrf_s *ws;
-    int                         P, Q;
 
     chamctxt = chameleon_context_self();
     if ( chamctxt == NULL ) {
@@ -307,16 +306,14 @@ CHAMELEON_zgetrf( int M, int N, CHAMELEON_Complex64_t *A, int LDA, int *IPIV )
     chameleon_zlap2tile( chamctxt, &descAl, &descAt, ChamDescInout, ChamUpperLower,
                          A, NB, NB, LDA, N, M, N, sequence, &request );
 
-    P = chameleon_desc_datadist_get_iparam( &descAt, 0 );
-    Q = chameleon_desc_datadist_get_iparam( &descAt, 1 );
-
     /* Allocate workspace for partial pivoting */
     ws = CHAMELEON_zgetrf_WS_Alloc( &descAt );
 
     if ( ( ws->alg == ChamGetrfPPivPerColumn ) ||
          ( ws->alg == ChamGetrfPPiv ) )
     {
-        chameleon_ipiv_init( &descIPIV, ChamLeft, descAt.mb, chameleon_min( M, N ), P, P*Q, IPIV, chameleon_getrankof_ipiv_2d_diag);
+        chameleon_ipiv_init( &descIPIV, ChamLeft, descAt.mb, chameleon_min( M, N ),
+                             1, 1, IPIV, chameleon_getrankof_ipiv_2d_diag );
     }
 
     /* Call the tile interface */
