@@ -16,23 +16,14 @@
  *          from Plasma 2.6.0 for CHAMELEON 0.9.2
  * @author Mathieu Faverge
  * @author Florent Pruvost
- * @date 2024-02-18
+ * @date 2025-06-16
  * @precisions normal z -> c d s
  *
  */
 #include <math.h>
 #include "coreblas/lapacke.h"
 #include "coreblas.h"
-
-#define UPDATE( __nb, __value )                                         \
-    if (__value != 0. ){                                                \
-        if ( *scale < __value ) {                                       \
-            *sumsq = __nb + (*sumsq) * ( *scale / __value ) * ( *scale / __value ); \
-            *scale = __value;                                           \
-        } else {                                                        \
-            *sumsq = *sumsq + __nb * ( __value / *scale ) *  ( __value / *scale ); \
-        }                                                               \
-    }
+#include "coreblas/sumsq_update.h"
 
 /**
  *
@@ -87,19 +78,17 @@
  * @retval -k, the k-th argument had an illegal value
  *
  */
-
-int CORE_ztrssq(cham_uplo_t uplo, cham_diag_t diag, int M, int N,
-                const CHAMELEON_Complex64_t *A, int LDA,
-                double *scale, double *sumsq)
+int CORE_ztrssq( cham_uplo_t uplo, cham_diag_t diag, int M, int N,
+                 const CHAMELEON_Complex64_t *A, int LDA,
+                 double *scale, double *sumsq )
 {
     int i, j, imax;
     int idiag = (diag == ChamUnit) ? 1 : 0;
-    double tmp;
     double *ptr;
 
     if ( diag == ChamUnit ){
-        tmp = sqrt( chameleon_min(M, N) );
-        UPDATE( 1., tmp );
+        double tmp = sqrt( chameleon_min(M, N) );
+        sumsq_update( 1, scale, sumsq, &tmp );
     }
 
     if  (uplo == ChamUpper ) {
@@ -110,13 +99,11 @@ int CORE_ztrssq(cham_uplo_t uplo, cham_diag_t diag, int M, int N,
             imax = chameleon_min(j+1-idiag, M);
 
             for(i=0; i<imax; i++, ptr++) {
-                tmp = fabs(*ptr);
-                UPDATE( 1., tmp );
+		sumsq_update( 1, scale, sumsq, ptr );
 
 #if defined(PRECISION_z) || defined(PRECISION_c)
                 ptr++;
-                tmp = fabs(*ptr);
-                UPDATE( 1., tmp );
+		sumsq_update( 1, scale, sumsq, ptr );
 #endif
             }
         }
@@ -128,13 +115,11 @@ int CORE_ztrssq(cham_uplo_t uplo, cham_diag_t diag, int M, int N,
             ptr = (double*) ( A + j * (LDA+1) + idiag );
 
             for(i=j+idiag; i<M; i++, ptr++) {
-                tmp = fabs(*ptr);
-                UPDATE( 1., tmp );
+                sumsq_update( 1., scale, sumsq, ptr );
 
 #if defined(PRECISION_z) || defined(PRECISION_c)
                 ptr++;
-                tmp = fabs(*ptr);
-                UPDATE( 1., tmp );
+                sumsq_update( 1., scale, sumsq, ptr );
 #endif
             }
         }
