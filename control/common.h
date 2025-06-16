@@ -15,7 +15,7 @@
  * @author Mathieu Faverge
  * @author Cedric Castagnede
  * @author Florent Pruvost
- * @date 2024-03-14
+ * @date 2025-06-16
  *
  */
 /**
@@ -25,7 +25,9 @@
 #ifndef _chameleon_common_h_
 #define _chameleon_common_h_
 
+#if !defined(_GNU_SOURCE)
 #define _GNU_SOURCE 1
+#endif
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>

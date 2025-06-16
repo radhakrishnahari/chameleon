@@ -15,7 +15,7 @@
  * @author Alycia Lisito
  * @author Florent Pruvost
  * @author Matteo Marcos
- * @date 2025-06-12
+ * @date 2025-06-16
  *
  ***
  *
@@ -23,12 +23,11 @@
  * @brief Group descriptor routines exposed to users to manipulate IPIV data structures
  *
  */
-#define _GNU_SOURCE 1
+#include "control/common.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
-#include "control/common.h"
 #include "control/descriptor.h"
 #include "chameleon/runtime.h"
 
