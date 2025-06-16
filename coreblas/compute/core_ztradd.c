@@ -16,7 +16,7 @@
  *          from Plasma 2.5.0 for CHAMELEON 0.9.2
  * @author Mathieu Faverge
  * @author Florent Pruvost
- * @date 2024-12-17
+ * @date 2025-06-16
  * @precisions normal z -> c d s
  *
  */
@@ -28,7 +28,7 @@
  *
  * @ingroup CORE_CHAMELEON_Complex64_t
  *
- *  CORE_ztradd adds to matrices together as in PBLAS pztradd.
+ * CORE_ztradd adds two matrices together as in PBLAS pztradd.
  *
  *       B <- alpha * op(A)  + beta * B,
  *
