@@ -1,8 +1,10 @@
 #
 # Rule to generate the full coverage of the testings in the branches.
-# Not used by the master, as it is done in the analysis script for sonarqube
+# Not used by the master, as it is done in the analysis script for
+# sonarqube
 #
-# Rk: We do not take into account the simgrid lcov file for now, as it is empty with new testings
+# Rk: We do not take into account the simgrid lcov file for now, as it
+# is empty with new testings
 #
 ---
 .coverage:
@@ -31,10 +33,19 @@ coverage_master:
   extends:
     - .coverage
     - .only-master
-  needs: [test_openmp_master,test_parsec_master,test_quark_master,test_starpu_master,test_starpu_simgrid_simu_all]
+  needs: [test_openmp_master,
+          test_parsec_master,
+          test_quark_master,
+          test_starpu_master,
+          test_starpu_simgrid_simu_all]
 
 coverage_mr:
   extends: .coverage
   rules:
-    - if: ($CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME !~ /^notest-.*$/)
-  needs: [test_openmp_mr,test_parsec_mr,test_quark_mr,test_starpu_mr,test_starpu_simgrid_simu_all]
+    - if: ($CI_PIPELINE_SOURCE == "merge_request_event" &&
+           $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME !~ /^notest-.*$/)
+  needs: [test_openmp_mr,
+          test_parsec_mr,
+          test_quark_mr,
+          test_starpu_mr,
+          test_starpu_simgrid_simu_all]

@@ -9,24 +9,34 @@ default:
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
 
-# push event: executed only if the source branch name is master or starts with ci-
+# push event: executed only if the source branch name is master or
+# starts with "ci-"
 # schedule event: not executed
 .only-master:
   rules:
-    - if: ($CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH || $CI_COMMIT_BRANCH =~ /^ci-.*$/) && $CI_PIPELINE_SOURCE != "schedule"
+    - if: ($CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH ||
+           $CI_COMMIT_BRANCH =~ /^ci-.*$/) &&
+           $CI_PIPELINE_SOURCE != "schedule"
 
-# push event: executed only if the source branch name is master or starts with ci-
-# merge request event: executed if the source branch name does not start with notest-
+# push event: executed only if the source branch name is master or
+# starts with "ci-"
+# merge request event: executed if the source branch name does not
+# start with "notest-"
 # schedule event: not executed
 .only-master-mr:
   rules:
-    - if: ($CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH || $CI_COMMIT_BRANCH =~ /^ci-.*$/) && $CI_PIPELINE_SOURCE != "schedule"
-    - if: ($CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME !~ /^notest-.*$/)
+    - if: ($CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH ||
+           $CI_COMMIT_BRANCH =~ /^ci-.*$/) &&
+           $CI_PIPELINE_SOURCE != "schedule"
+    - if: ($CI_PIPELINE_SOURCE == "merge_request_event" &&
+           $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME !~ /^notest-.*$/)
 
-# merge request event: executed if the source branch name does not start with notest-
+# merge request event: executed if the source branch name does not
+# start with "notest-"
 .only-mr:
   rules:
-    - if: ($CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME !~ /^notest-.*$/)
+    - if: ($CI_PIPELINE_SOURCE == "merge_request_event" &&
+           $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME !~ /^notest-.*$/)
 
 .test_script_linux:
   stage: test
