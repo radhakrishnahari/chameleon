@@ -22,7 +22,7 @@
  * @author Florent Pruvost
  * @author Samuel Thibault
  * @author Terry Cojean
- * @date 2025-01-24
+ * @date 2025-06-16
  * @precisions normal z -> s d c
  *
  */
@@ -32,8 +32,10 @@
 /**
  *  Parallel tile Cholesky factorization - dynamic scheduling
  */
-void chameleon_pzpotrf(cham_uplo_t uplo, CHAM_desc_t *A,
-                   RUNTIME_sequence_t *sequence, RUNTIME_request_t *request)
+void chameleon_pzpotrf( cham_uplo_t         uplo,
+                        CHAM_desc_t        *A,
+                        RUNTIME_sequence_t *sequence,
+                        RUNTIME_request_t  *request )
 {
     CHAM_context_t *chamctxt;
     RUNTIME_option_t options;

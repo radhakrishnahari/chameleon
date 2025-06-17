@@ -25,18 +25,28 @@
       - chameleon_cppcheck.xml
       - sonar-project.properties
       - sonar.log
-    when: always
 
 sonarqube_master:
   extends:
     - .sonarqube
     - .only-master
-  needs: [test_openmp_master,test_parsec_master,test_quark_master,test_starpu_master,test_starpu_simgrid_simu_all,coverage_master]
+  needs: [test_openmp_master,
+          test_parsec_master,
+          test_quark_master,
+          test_starpu_master,
+          test_starpu_simgrid_simu_all,
+          coverage_master]
 
 sonarqube_mr:
   extends: .sonarqube
   rules:
-    - if: ($CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME !~ /^notest-.*$/)
+    - if: ($CI_PIPELINE_SOURCE == "merge_request_event" &&
+           $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME !~ /^notest-.*$/)
       when: manual
       allow_failure: true
-  needs: [test_openmp_mr,test_parsec_mr,test_quark_mr,test_starpu_mr,test_starpu_simgrid_simu_all,coverage_mr]
+  needs: [test_openmp_mr,
+          test_parsec_mr,
+          test_quark_mr,
+          test_starpu_mr,
+          test_starpu_simgrid_simu_all,
+          coverage_mr]

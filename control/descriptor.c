@@ -20,7 +20,7 @@
  * @author Samuel Thibault
  * @author Lionel Eyraud-Dubois
  * @author Pierre Esterie
- * @date 2025-01-29
+ * @date 2025-06-16
  *
  ***
  *
@@ -28,12 +28,11 @@
  * @brief Group descriptor routines exposed to users
  *
  */
-#define _GNU_SOURCE 1
+#include "control/common.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
-#include "control/common.h"
 #include "control/descriptor.h"
 #include "chameleon/runtime.h"
 

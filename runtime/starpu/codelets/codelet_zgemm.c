@@ -24,7 +24,8 @@
  * @author Lucas Nesi
  * @author Loris Lucido
  * @author Terry Cojean
- * @date 2024-12-18
+ * @author Alycia Lisito
+ * @date 2025-06-16
  * @precisions normal z -> c d s
  *
  */
@@ -328,6 +329,7 @@ void __INSERT_TASK_zgemm( const RUNTIME_option_t *options,
      * Not involved, let's return
      */
     if ( nbdata == 0 ) {
+        assert( params.exchange_needed == 0 );
         return;
     }
 

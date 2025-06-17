@@ -21,7 +21,7 @@
  * @author Alycia Lisito
  * @author Brieuc Nicolas
  * @author Matteo Marcos
- * @date 2025-06-12
+ * @date 2025-06-16
  *
  */
 #ifndef _chameleon_runtime_h_
@@ -597,7 +597,7 @@ CHAM_tile_t *RUNTIME_handle2tile( void *ptr );
  */
 void
 RUNTIME_options_init( RUNTIME_option_t   *options,
-                      CHAM_context_t  *context,
+                      CHAM_context_t     *context,
                       RUNTIME_sequence_t *sequence,
                       RUNTIME_request_t  *request );
 
@@ -613,8 +613,8 @@ RUNTIME_options_init( RUNTIME_option_t   *options,
  *
  */
 void
-RUNTIME_options_finalize( RUNTIME_option_t  *options,
-                          CHAM_context_t *context );
+RUNTIME_options_finalize( RUNTIME_option_t *options,
+                          CHAM_context_t   *context );
 
 /**
  * @brief Declare and initialize the workspaces for the given options structure

@@ -13,4 +13,3 @@ preliminary_checks:
       - TEST: [rebase, draft, header]
   script:
     - .gitlab/check_ci.sh $TEST
-

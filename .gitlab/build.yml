@@ -24,7 +24,9 @@ build_hmat:
   variables:
     VERSION: hmat
     LOGNAME: "chameleon-build-${SYSTEM}-${VERSION}"
-    BUILD_OPTIONS: "-DCHAMELEON_USE_CUDA=OFF -DCHAMELEON_USE_MPI=ON -DCHAMELEON_USE_HMATOSS=ON"
+    BUILD_OPTIONS: "-DCHAMELEON_USE_CUDA=OFF
+                    -DCHAMELEON_USE_MPI=ON
+                    -DCHAMELEON_USE_HMATOSS=ON"
 
 build_openmp:
   extends: .build_script_linux
@@ -62,7 +64,9 @@ build_starpu:
     CMAKE_BUILD_PARALLEL_LEVEL: 20
   script:
     - guix describe -f channels
-    - guix shell --pure --preserve=SYSTEM --preserve=VERSION --preserve=LOGNAME --preserve=BUILD_OPTIONS --preserve=CMAKE_BUILD_PARALLEL_LEVEL
+    - guix shell --pure --preserve=SYSTEM --preserve=VERSION
+                 --preserve=LOGNAME --preserve=BUILD_OPTIONS
+                 --preserve=CMAKE_BUILD_PARALLEL_LEVEL
                  -D chameleon-${GPU_BACKEND} ${BLAS} coreutils bash-minimal --
                  bash .gitlab/build.sh | tee ${LOGNAME}.log
 
@@ -73,7 +77,9 @@ build_starpu_cuda:
     GPU_BACKEND: cuda
     BLAS: "--with-input=openblas=intel-oneapi-mkl"
     LOGNAME: "chameleon-build-${SYSTEM}-${VERSION}"
-    BUILD_OPTIONS: "-DCHAMELEON_USE_CUDA=ON -DCHAMELEON_USE_MPI=OFF -DBLA_VENDOR=Intel10_64lp_seq"
+    BUILD_OPTIONS: "-DCHAMELEON_USE_CUDA=ON
+                    -DCHAMELEON_USE_MPI=OFF
+                    -DBLA_VENDOR=Intel10_64lp_seq"
 
 build_starpu_hip:
   extends: .build_script_guix
@@ -81,7 +87,11 @@ build_starpu_hip:
     VERSION: starpu_hip
     GPU_BACKEND: hip
     LOGNAME: "chameleon-build-${SYSTEM}-${VERSION}"
-    BUILD_OPTIONS: "-DCHAMELEON_USE_HIP_ROC=ON -DCHAMELEON_USE_MPI=OFF -DBLA_VENDOR=OpenBLAS -DCMAKE_C_COMPILER=gcc -DCMAKE_Fortran_COMPILER=gfortran"
+    BUILD_OPTIONS: "-DCHAMELEON_USE_HIP_ROC=ON
+                    -DCHAMELEON_USE_MPI=OFF
+                    -DBLA_VENDOR=OpenBLAS
+                    -DCMAKE_C_COMPILER=gcc
+                    -DCMAKE_Fortran_COMPILER=gfortran"
 
 build_starpu_simgrid:
   extends: .build_script_linux
@@ -89,7 +99,9 @@ build_starpu_simgrid:
     VERSION: starpu_simgrid
     LOGNAME: "chameleon-build-${SYSTEM}-${VERSION}"
     CHAM_CI_ENV_ARG: simgrid
-    BUILD_OPTIONS: "-DCHAMELEON_SIMULATION=ON -DCHAMELEON_USE_CUDA=ON -DCHAMELEON_USE_MPI=OFF"
+    BUILD_OPTIONS: "-DCHAMELEON_SIMULATION=ON
+                    -DCHAMELEON_USE_CUDA=ON
+                    -DCHAMELEON_USE_MPI=OFF"
 
 build_starpu_macosx:
   extends: .only-master-mr

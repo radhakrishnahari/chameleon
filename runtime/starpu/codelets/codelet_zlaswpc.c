@@ -11,11 +11,10 @@
  *
  * @version 1.3.0
  * @author Matteo Marcos
- * @date 2025-03-27
+ * @date 2025-06-16
  * @precisions normal z -> c d s
  *
  */
-#include "chameleon/constants.h"
 #include "chameleon_starpu_internal.h"
 #include "runtime_codelet_z.h"
 

@@ -612,8 +612,8 @@ Feel free to use the following publications to reference Chameleon:
     - Agullo, Emmanuel and Aumage, Olivier and Faverge, Mathieu and
       Furmento, Nathalie and Pruvost, Florent and Sergent, Marc and
       Thibault, Samuel, *Achieving High Performance on Supercomputers
-      with a Sequential Task-based Programming Model*, /Research Report/,
-      [[https://hal.inria.fr/hal-01332774][First Online: 16 June 2016]].
+      with a Sequential Task-based Programming Model*, /IEEE Transactions on Parallel and Distributed Systems/,
+      [[https://inria.hal.science/hal-01618526][First Online: 16 June 2016]].
 
 * Licence
 :PROPERTIES:

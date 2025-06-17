@@ -12,7 +12,9 @@
  * @version 1.3.0
  * @author Alycia Lisito
  * @author Pierre Esterie
- * @date 2024-11-14
+ * @author Matteo Marcos
+ * @author Philippe Swartvagher
+ * @date 2025-06-16
  * @precisions normal z -> c d s
  *
  */
@@ -37,12 +39,12 @@ struct cl_redux_col_args_s {
 static void
 cl_zperm_allreduce_col_cpu_func( void *descr[], void *cl_arg )
 {
-    struct cl_redux_col_args_s      *clargs     = (struct cl_redux_col_args_s *) cl_arg;
-    const CHAM_tile_t               *tileUinout = cti_interface_get( descr[0] );
-    const CHAM_tile_t               *tileUin    = cti_interface_get( descr[1] );
-    const int                       *perm       = (int *)STARPU_VECTOR_GET_PTR( descr[2] );
-    CHAMELEON_Complex64_t           *Uinout     = CHAM_tile_get_ptr( tileUinout );
-    const CHAMELEON_Complex64_t     *Uin        = CHAM_tile_get_ptr( tileUin );
+    struct cl_redux_col_args_s  *clargs     = (struct cl_redux_col_args_s *) cl_arg;
+    const CHAM_tile_t           *tileUinout = cti_interface_get( descr[0] );
+    const CHAM_tile_t           *tileUin    = cti_interface_get( descr[1] );
+    const int                   *perm       = (int *)STARPU_VECTOR_GET_PTR( descr[2] );
+    CHAMELEON_Complex64_t       *Uinout     = CHAM_tile_get_ptr( tileUinout );
+    const CHAMELEON_Complex64_t *Uin        = CHAM_tile_get_ptr( tileUin );
 
     int tempnn  = clargs->tempnn;
     int nb      = clargs->nb;

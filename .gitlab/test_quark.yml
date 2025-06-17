@@ -11,7 +11,9 @@
 test_quark_master:
   extends: .test_quark
   rules:
-    - if: ($CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH || $CI_COMMIT_BRANCH =~ /^ci-.*$/) && $CI_PIPELINE_SOURCE != "schedule"
+    - if: ($CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH ||
+           $CI_COMMIT_BRANCH =~ /^ci-.*$/) &&
+          $CI_PIPELINE_SOURCE != "schedule"
   parallel:
     matrix:
       - PRECISION: [s, d, c, z]
@@ -19,7 +21,8 @@ test_quark_master:
 test_quark_mr:
   extends: .test_quark
   rules:
-    - if: ($CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME !~ /^notest-.*$/)
+    - if: ($CI_PIPELINE_SOURCE == "merge_request_event" &&
+           $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME !~ /^notest-.*$/)
   parallel:
     matrix:
       - PRECISION: [s]
