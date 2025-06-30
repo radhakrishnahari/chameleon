@@ -236,6 +236,7 @@ int CHAMELEON_zpotri_Tile_Async( cham_uplo_t uplo, CHAM_desc_t *A,
                              RUNTIME_sequence_t *sequence, RUNTIME_request_t *request )
 {
     CHAM_context_t *chamctxt;
+    int             flush;
 
     chamctxt = chameleon_context_self();
     if (chamctxt == NULL) {
@@ -277,8 +278,11 @@ int CHAMELEON_zpotri_Tile_Async( cham_uplo_t uplo, CHAM_desc_t *A,
      if (chameleon_max(N, 0) == 0)
      return CHAMELEON_SUCCESS;
      */
+    flush = request->flush;
+    request->flush = CHAMELEON_FALSE;
     chameleon_pztrtri( uplo, ChamNonUnit, A, sequence, request );
 
+    request->flush = flush;
     chameleon_pzlauum( uplo, A, sequence, request );
 
     return CHAMELEON_SUCCESS;
