@@ -39,6 +39,25 @@ int chameleon_request_create   (CHAM_context_t *CHAMELEON, RUNTIME_request_t **r
 int chameleon_request_destroy  (CHAM_context_t *CHAMELEON, RUNTIME_request_t *request);
 int chameleon_request_set      (CHAM_context_t *chamctxt, RUNTIME_request_t *request, int param, int value);
 
+/**
+ * @brief Internal function to protect the RUNTIME_data_flush with a test if:
+ *    - We are in a recursive task or not
+ *    - We are in asynchronous mode and we may not want to flush data for the next
+ *      algorithm to run.
+ *
+ * This wrapper is needed because the flush field is stored in the request and
+ * not in the sequence.
+ */
+static inline void
+chameleon_data_flush( const RUNTIME_sequence_t *sequence,
+                      const CHAM_desc_t *A, int m, int n, int flush )
+{
+    if ( !flush ) {
+        return;
+    }
+    RUNTIME_data_flush( sequence, A, m, n );
+}
+
 #ifdef __cplusplus
 }
 #endif
