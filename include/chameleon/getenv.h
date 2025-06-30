@@ -128,6 +128,31 @@ chameleon_getenv_get_value_int( char * string, int default_value ) {
     return (int)ret;
 }
 
+static inline cham_fixdbl_t
+chameleon_getenv_get_value_fixdbl( char * string, cham_fixdbl_t default_value ) {
+    extern int    errno;
+    cham_fixdbl_t ret;
+    int           rc;
+    char         *str = chameleon_getenv(string);
+
+    if ( str == NULL ) {
+        return default_value;
+    }
+
+    rc = sscanf( str, "%le", &ret );
+    if ( rc != 1 ) {
+        if ( ( rc == EOF ) && ( errno != 0 ) ) {
+            perror( "chameleon_getenv_get_value_fixdbl(sscanf)" );
+        }
+        else {
+            fprintf( stderr, "%s: env variable %s expects a floating point value value\n", __func__, string );
+        }
+        return default_value;
+    }
+
+    return ret;
+}
+
 #ifdef __cplusplus
 }
 #endif

@@ -99,19 +99,49 @@ CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A )
         chameleon_cleanenv( algostr );
     }
 
-    batch_size = chameleon_getenv_get_value_int( "CHAMELEON_BATCH_SIZE", 0 );
+    /*
+     * Get the batch size for the LU factorization
+     *
+     * 1) By default (-1), set the automatic batch size
+     * 2) Check, the common environment variable and the getrf specific one
+     * 3) Get the different batching parameters if set differently from the first one
+     */
+    batch_size = chameleon_getenv_get_value_int( "CHAMELEON_BATCH_SIZE",       -1         );
     batch_size = chameleon_getenv_get_value_int( "CHAMELEON_GETRF_BATCH_SIZE", batch_size );
+
     if ( batch_size > CHAMELEON_BATCH_SIZE ) {
-        chameleon_warning( "CHAMELEON_BATCH_SIZE", "CHAMELEON_GETRF_BATCH_SIZE must be smaller than CHAMELEON_BATCH_SIZE, please recompile with the right CHAMELEON_BATCH_SIZE, or reduce the CHAMELEON_GETRF_BATCH_SIZE value\n" );
+        chameleon_warning( "CHAMELEON_BATCH_SIZE",
+                           "The main chameleon batch size environment variable (CHAMELEON_BATCH_SIZE or CHAMELEON_GETRF_BATCH_SIZE) is incorrect !!!\n"
+                           "It must be set to a value smaller than the compiled time CHAMELEON_BATCH_SIZE parameter,\n"
+                           "please recompile with the right CHAMELEON_BATCH_SIZE, or reduce the environment variable value\n" );
+        batch_size = CHAMELEON_BATCH_SIZE;
     }
+
+    if ( batch_size < 0 ) {
+        batch_size         = 0;
+        ws->batch_adaptive = 1;
+    }
+    else {
+        ws->batch_adaptive = 0;
+    }
+
     ws->batch_size_blas2 = chameleon_getenv_get_value_int( "CHAMELEON_GETRF_BATCH_SIZE_BLAS2", batch_size );
     ws->batch_size_blas2 = ( ws->batch_size_blas2 > CHAMELEON_BATCH_SIZE ) ? CHAMELEON_BATCH_SIZE : ws->batch_size_blas2;
     ws->batch_size_blas3 = chameleon_getenv_get_value_int( "CHAMELEON_GETRF_BATCH_SIZE_BLAS3", batch_size );
     ws->batch_size_blas3 = ( ws->batch_size_blas3 > CHAMELEON_BATCH_SIZE ) ? CHAMELEON_BATCH_SIZE : ws->batch_size_blas3;
 
-    ws->laswp->batch_size_swap = ( ws->laswp->batch_size_swap == 0 ) ? batch_size : ws->laswp->batch_size_swap;
-    ws->laswp->batch_size_swap = ( ws->laswp->batch_size_swap > CHAMELEON_BATCH_SIZE ) ? CHAMELEON_BATCH_SIZE : ws->laswp->batch_size_swap;
+    /*
+     * Get the flops minimal threshold for the automatic batch size system
+     * The value is given in MFlops, since the task duration targeted is in the order of a few ms.
+     */
+    ws->flops_min = chameleon_getenv_get_value_fixdbl( "CHAMELEON_GETRF_BATCH_MIN_MFLOPS", 26. ) * 1e6;
+    if ( ws->flops_min <= 0. ) {
+        ws->flops_min = 26e6;
+    }
 
+    /*
+     * Get the minimal iteration index after which the communication scheme should switch to a ring.
+     */
     ws->ringswitch = chameleon_getenv_get_value_int( "CHAMELEON_GETRF_RINGSWITCH", INT_MAX );
 
     /* Allocation of U for permutation of the panels */
