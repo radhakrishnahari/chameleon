@@ -115,8 +115,8 @@ void chameleon_pzungqr( int genD, CHAM_desc_t *A, CHAM_desc_t *Q,
                     Q(k, n),
                     Q(m, n));
             }
-            RUNTIME_data_flush( sequence, A(m, k) );
-            RUNTIME_data_flush( sequence, T(m, k) );
+            chameleon_data_flush( sequence, A(m, k), request->flush );
+            chameleon_data_flush( sequence, T(m, k), request->flush );
         }
 
         if ( genD ) {
@@ -150,8 +150,8 @@ void chameleon_pzungqr( int genD, CHAM_desc_t *A, CHAM_desc_t *Q,
                 T(k, k),
                 Q(k, n));
         }
-        RUNTIME_data_flush( sequence, D(k) );
-        RUNTIME_data_flush( sequence, T(k, k) );
+        chameleon_data_flush( sequence, D(k), request->flush );
+        chameleon_data_flush( sequence, T(k, k), request->flush );
 
         RUNTIME_iteration_pop(chamctxt);
     }

@@ -132,8 +132,8 @@ void chameleon_pzunmqr( int genD, cham_side_t side, cham_trans_t trans,
                         C(k, n));
                 }
 
-                RUNTIME_data_flush( sequence, D(k)    );
-                RUNTIME_data_flush( sequence, T(k, k) );
+                chameleon_data_flush( sequence, D(k)   , request->flush );
+                chameleon_data_flush( sequence, T(k, k), request->flush );
 
                 for (m = k+1; m < C->mt; m++) {
                     tempmm = C->get_blkdim( C, m, DIM_m, C->m );
@@ -154,8 +154,8 @@ void chameleon_pzunmqr( int genD, cham_side_t side, cham_trans_t trans,
                             C(m, n));
                     }
 
-                    RUNTIME_data_flush( sequence, A(m, k) );
-                    RUNTIME_data_flush( sequence, T(m, k) );
+                    chameleon_data_flush( sequence, A(m, k), request->flush );
+                    chameleon_data_flush( sequence, T(m, k), request->flush );
                 }
 
                 /* Restore the original location of the tiles */
@@ -195,8 +195,8 @@ void chameleon_pzunmqr( int genD, cham_side_t side, cham_trans_t trans,
                             C(k, n),
                             C(m, n));
                     }
-                    RUNTIME_data_flush( sequence, A(m, k) );
-                    RUNTIME_data_flush( sequence, T(m, k) );
+                    chameleon_data_flush( sequence, A(m, k), request->flush );
+                    chameleon_data_flush( sequence, T(m, k), request->flush );
                 }
 
                 if ( genD ) {
@@ -229,8 +229,8 @@ void chameleon_pzunmqr( int genD, cham_side_t side, cham_trans_t trans,
                         T(k, k),
                         C(k, n));
                 }
-                RUNTIME_data_flush( sequence, D(k)    );
-                RUNTIME_data_flush( sequence, T(k, k) );
+                chameleon_data_flush( sequence, D(k)   , request->flush );
+                chameleon_data_flush( sequence, T(k, k), request->flush );
                 RUNTIME_iteration_pop(chamctxt);
             }
         }
@@ -265,8 +265,8 @@ void chameleon_pzunmqr( int genD, cham_side_t side, cham_trans_t trans,
                             C(m, n));
                     }
 
-                    RUNTIME_data_flush( sequence, A(n, k) );
-                    RUNTIME_data_flush( sequence, T(n, k) );
+                    chameleon_data_flush( sequence, A(n, k), request->flush );
+                    chameleon_data_flush( sequence, T(n, k), request->flush );
                 }
 
                 if ( genD ) {
@@ -300,8 +300,8 @@ void chameleon_pzunmqr( int genD, cham_side_t side, cham_trans_t trans,
                         C(m, k));
                 }
 
-                RUNTIME_data_flush( sequence, D(k)    );
-                RUNTIME_data_flush( sequence, T(k, k) );
+                chameleon_data_flush( sequence, D(k)   , request->flush );
+                chameleon_data_flush( sequence, T(k, k), request->flush );
 
                 RUNTIME_iteration_pop(chamctxt);
             }
@@ -343,8 +343,8 @@ void chameleon_pzunmqr( int genD, cham_side_t side, cham_trans_t trans,
                         C(m, k));
                 }
 
-                RUNTIME_data_flush( sequence, D(k)    );
-                RUNTIME_data_flush( sequence, T(k, k) );
+                chameleon_data_flush( sequence, D(k)   , request->flush );
+                chameleon_data_flush( sequence, T(k, k), request->flush );
 
                 for (n = k+1; n < C->nt; n++) {
                     tempnn = C->get_blkdim( C, n, DIM_n, C->n );
@@ -365,8 +365,8 @@ void chameleon_pzunmqr( int genD, cham_side_t side, cham_trans_t trans,
                             C(m, n));
                     }
 
-                    RUNTIME_data_flush( sequence, A(n, k) );
-                    RUNTIME_data_flush( sequence, T(n, k) );
+                    chameleon_data_flush( sequence, A(n, k), request->flush );
+                    chameleon_data_flush( sequence, T(n, k), request->flush );
                 }
 
                 /* Restore the original location of the tiles */

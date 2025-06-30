@@ -120,8 +120,8 @@ void chameleon_pztpgqrt_param( int genD, cham_uplo_t uplo, int K,
                     Q(   p, n));
             }
 
-            RUNTIME_data_flush( sequence, A(p, k) );
-            RUNTIME_data_flush( sequence, T(p, k) );
+            chameleon_data_flush( sequence, A(p, k), request->flush );
+            chameleon_data_flush( sequence, T(p, k), request->flush );
         }
 
         chameleon_pzungqr_param_step( genD, uplo, k, ib,

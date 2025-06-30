@@ -147,6 +147,7 @@ chameleon_pzgetrf_panel_facto_nopiv_percol( struct chameleon_pzgetrf_s *ws,
                                             int                         k,
                                             RUNTIME_option_t           *options )
 {
+    const RUNTIME_request_t *request = options->request;
     int m, h;
     int tempkm, tempkn, tempmm, minmn;
 
@@ -170,7 +171,7 @@ chameleon_pzgetrf_panel_facto_nopiv_percol( struct chameleon_pzgetrf_s *ws,
         }
     }
 
-    RUNTIME_data_flush( options->sequence, U(k, k) );
+    chameleon_data_flush( options->sequence, U(k, k), request->flush );
 }
 
 static inline void
@@ -276,6 +277,7 @@ chameleon_pzgetrf_panel_facto_blocked( struct chameleon_pzgetrf_s *ws,
                                        int                         k,
                                        RUNTIME_option_t           *options )
 {
+    const RUNTIME_request_t *request = options->request;
     int m, h, b, nbblock;
     int tempkm, tempkn, tempmm, minmn;
 
@@ -324,7 +326,7 @@ chameleon_pzgetrf_panel_facto_blocked( struct chameleon_pzgetrf_s *ws,
             }
         }
     }
-    RUNTIME_data_flush( options->sequence, Up(k, k) );
+    chameleon_data_flush( options->sequence, Up(k, k), request->flush );
 
     /* Flush temporary data used for the pivoting */
     INSERT_TASK_ipiv_to_perm( options, k * A->mb, tempkm, minmn, 0, A->m, ipiv, k );
@@ -594,6 +596,7 @@ chameleon_pzgetrf_panel_permute_backward( struct chameleon_pzgetrf_s *ws,
                                           RUNTIME_option_t           *options,
                                           RUNTIME_sequence_t         *sequence )
 {
+    const RUNTIME_request_t *request = options->request;
     CHAM_reduce_t *reduce = &(ws->laswp->reduce);
     int            tempkm, tempnn;
 
@@ -625,7 +628,7 @@ chameleon_pzgetrf_panel_permute_backward( struct chameleon_pzgetrf_s *ws,
         tempnn = A->get_blkdim( A, n, DIM_n, A->n );
         INSERT_TASK_zlacpy( options, ChamUpperLower, tempkm, tempnn,
                             Wu(A->myrank, n), A(k, n) );
-        RUNTIME_data_flush( sequence, A(k, n) );
+        chameleon_data_flush( sequence, A(k, n), request->flush );
     }
     (void)reduce;
 }
@@ -637,7 +640,8 @@ chameleon_pzgetrf_panel_update_ws( struct chameleon_pzgetrf_s *ws,
                                    int                         k,
                                    RUNTIME_option_t           *options )
 {
-    CHAM_context_t  *chamctxt = chameleon_context_self();
+    CHAM_context_t          *chamctxt = chameleon_context_self();
+    const RUNTIME_request_t *request  = options->request;
     int m, n, tempmm, tempkn, tempkm, p, q, involved, np;
     int lookahead = chamctxt->lookahead;
     int P         = chameleon_desc_datadist_get_iparam(A, 0);
@@ -665,7 +669,7 @@ chameleon_pzgetrf_panel_update_ws( struct chameleon_pzgetrf_s *ws,
                     Wl( m, ( ( k + q - 1 ) % Q ) + lq ),
                     Wl( m, ( ( k + q )     % Q ) + lq ) );
             }
-            RUNTIME_data_flush( options->sequence, A(m, k) );
+            chameleon_data_flush( options->sequence, A(m, k), request->flush );
         }
     }
     else {
@@ -680,7 +684,7 @@ chameleon_pzgetrf_panel_update_ws( struct chameleon_pzgetrf_s *ws,
                     A( m, k ),
                     Wl( m, ( ( k + q )% Q ) + lq ) );
             }
-            RUNTIME_data_flush( options->sequence, A(m, k) );
+            chameleon_data_flush( options->sequence, A(m, k), request->flush );
         }
     }
 
@@ -716,7 +720,7 @@ chameleon_pzgetrf_panel_update_ws( struct chameleon_pzgetrf_s *ws,
                                 A(k, k), Wu(A->myrank, k) );
         }
     }
-    RUNTIME_data_flush( options->sequence, A(k, k) );
+    chameleon_data_flush( options->sequence, A(k, k), request->flush );
 }
 #endif
 
@@ -731,6 +735,7 @@ chameleon_pzgetrf_panel_update( struct chameleon_pzgetrf_s *ws,
     const CHAMELEON_Complex64_t zone  = (CHAMELEON_Complex64_t) 1.0;
     const CHAMELEON_Complex64_t mzone = (CHAMELEON_Complex64_t)-1.0;
     CHAM_context_t             *chamctxt = chameleon_context_self();
+    const RUNTIME_request_t    *request  = options->request;
     CHAM_reduce_t              *reduce   = &(ws->laswp->reduce);
 
     int m, tempkm, tempmm, tempnn;
@@ -800,8 +805,8 @@ chameleon_pzgetrf_panel_update( struct chameleon_pzgetrf_s *ws,
 
 #endif
 
-    RUNTIME_data_flush( options->sequence, Wu(A->myrank, n) );
-    RUNTIME_data_flush( options->sequence, A(k, n) );
+    chameleon_data_flush( options->sequence, Wu(A->myrank, n), request->flush );
+    chameleon_data_flush( options->sequence, A(k, n), request->flush );
     (void)reduce;
     (void)chamctxt;
 }
@@ -857,9 +862,9 @@ void chameleon_pzgetrf( struct chameleon_pzgetrf_s *ws,
 
         /* Flush panel k */
         for (m = k+1; m < A->mt; m++) {
-            RUNTIME_data_flush( sequence, A(m, k) );
+            chameleon_data_flush( sequence, A(m, k), request->flush );
         }
-        RUNTIME_data_flush( sequence, Wu(A->myrank, k) );
+        chameleon_data_flush( sequence, Wu(A->myrank, k), request->flush );
 
         RUNTIME_iteration_pop( chamctxt );
     }
@@ -875,7 +880,7 @@ void chameleon_pzgetrf( struct chameleon_pzgetrf_s *ws,
             {
                 chameleon_pzgetrf_panel_permute_backward( ws, A, IPIV, k, n, &options, sequence );
             }
-            RUNTIME_data_flush( sequence, Wu(A->myrank, n) );
+            chameleon_data_flush( sequence, Wu(A->myrank, n), request->flush );
         }
         RUNTIME_perm_flushk( sequence, IPIV, k );
     }

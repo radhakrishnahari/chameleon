@@ -127,8 +127,8 @@ void chameleon_pzunmlq_param( int genD, const libhqr_tree_t *qrtree,
                             T(k, p),
                             C(p, n));
                     }
-                    RUNTIME_data_flush( sequence, D(k, p) );
-                    RUNTIME_data_flush( sequence, T(k, p) );
+                    chameleon_data_flush( sequence, D(k, p), request->flush );
+                    chameleon_data_flush( sequence, T(k, p), request->flush );
                 }
 
                 /* Setting the order of the tiles*/
@@ -165,8 +165,8 @@ void chameleon_pzunmlq_param( int genD, const libhqr_tree_t *qrtree,
                             C(p, n),
                             C(m, n));
                     }
-                    RUNTIME_data_flush( sequence, A(k, m) );
-                    RUNTIME_data_flush( sequence, T(k, m) );
+                    chameleon_data_flush( sequence, A(k, m), request->flush );
+                    chameleon_data_flush( sequence, T(k, m), request->flush );
                 }
 
                 /* Restore the original location of the tiles */
@@ -221,8 +221,8 @@ void chameleon_pzunmlq_param( int genD, const libhqr_tree_t *qrtree,
                             C(p, n),
                             C(m, n));
                     }
-                    RUNTIME_data_flush( sequence, A(k, m) );
-                    RUNTIME_data_flush( sequence, T(k, m) );
+                    chameleon_data_flush( sequence, A(k, m), request->flush );
+                    chameleon_data_flush( sequence, T(k, m), request->flush );
                 }
 
                 T = TS;
@@ -264,8 +264,8 @@ void chameleon_pzunmlq_param( int genD, const libhqr_tree_t *qrtree,
                             C(p, n));
                     }
 
-                    RUNTIME_data_flush( sequence, D(k, p) );
-                    RUNTIME_data_flush( sequence, T(k, p) );
+                    chameleon_data_flush( sequence, D(k, p), request->flush );
+                    chameleon_data_flush( sequence, T(k, p), request->flush );
                 }
                 RUNTIME_iteration_pop(chamctxt);
             }
@@ -316,8 +316,8 @@ void chameleon_pzunmlq_param( int genD, const libhqr_tree_t *qrtree,
                             C(m, p),
                             C(m, n));
                     }
-                    RUNTIME_data_flush( sequence, A(k, n) );
-                    RUNTIME_data_flush( sequence, T(k, n) );
+                    chameleon_data_flush( sequence, A(k, n), request->flush );
+                    chameleon_data_flush( sequence, T(k, n), request->flush );
                 }
 
                 T = TS;
@@ -357,8 +357,8 @@ void chameleon_pzunmlq_param( int genD, const libhqr_tree_t *qrtree,
                             T(k, p),
                             C(m, p));
                     }
-                    RUNTIME_data_flush( sequence, D(k, p) );
-                    RUNTIME_data_flush( sequence, T(k, p) );
+                    chameleon_data_flush( sequence, D(k, p), request->flush );
+                    chameleon_data_flush( sequence, T(k, p), request->flush );
                 }
                 RUNTIME_iteration_pop(chamctxt);
             }
@@ -405,8 +405,8 @@ void chameleon_pzunmlq_param( int genD, const libhqr_tree_t *qrtree,
                             T(k, p),
                             C(m, p));
                     }
-                    RUNTIME_data_flush( sequence, D(k, p) );
-                    RUNTIME_data_flush( sequence, T(k, p) );
+                    chameleon_data_flush( sequence, D(k, p), request->flush );
+                    chameleon_data_flush( sequence, T(k, p), request->flush );
                 }
 
                 /* Setting the order of tiles */
@@ -444,8 +444,8 @@ void chameleon_pzunmlq_param( int genD, const libhqr_tree_t *qrtree,
                             C(m, p),
                             C(m, n));
                     }
-                    RUNTIME_data_flush( sequence, A(k, n) );
-                    RUNTIME_data_flush( sequence, T(k, n) );
+                    chameleon_data_flush( sequence, A(k, n), request->flush );
+                    chameleon_data_flush( sequence, T(k, n), request->flush );
                 }
 
                 /* Restore the original location of the tiles */

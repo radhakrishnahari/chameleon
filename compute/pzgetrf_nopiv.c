@@ -113,11 +113,11 @@ void chameleon_pzgetrf_nopiv_generic( CHAM_desc_t        *A,
                     zone,  A(m, n));
             }
 
-            RUNTIME_data_flush( sequence, A(k, n) );
+            chameleon_data_flush( sequence, A(k, n), request->flush );
         }
 
         for (m = k; m < A->mt; m++) {
-            RUNTIME_data_flush( sequence, A(m, k) );
+            chameleon_data_flush( sequence, A(m, k), request->flush );
         }
 
         RUNTIME_iteration_pop(chamctxt);
@@ -198,7 +198,7 @@ void chameleon_pzgetrf_nopiv_ws( CHAM_desc_t        *A,
                     WU( ((k+p)   % chameleon_desc_datadist_get_iparam(A, 0)) + lp, k ) );
             }
         }
-        RUNTIME_data_flush( sequence, A( k, k ) );
+        chameleon_data_flush( sequence, A( k, k ), request->flush );
 
         for (m = k+1; m < A->mt; m++) {
 
@@ -235,7 +235,7 @@ void chameleon_pzgetrf_nopiv_ws( CHAM_desc_t        *A,
                         WL( m, ((k+q)   % chameleon_desc_datadist_get_iparam(A, 1)) + lq ) );
                 }
             }
-            RUNTIME_data_flush( sequence, A( m, k ) );
+            chameleon_data_flush( sequence, A( m, k ), request->flush );
         }
 
         for (n = k+1; n < A->nt; n++) {
@@ -273,7 +273,7 @@ void chameleon_pzgetrf_nopiv_ws( CHAM_desc_t        *A,
                         WU( ((k+p)   % chameleon_desc_datadist_get_iparam(A, 0)) + lp, n ) );
                 }
             }
-            RUNTIME_data_flush( sequence, A( k, n ) );
+            chameleon_data_flush( sequence, A( k, n ), request->flush );
 
             for (m = k+1; m < A->mt; m++) {
 

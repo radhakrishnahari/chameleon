@@ -69,7 +69,7 @@ void chameleon_pzlauum(cham_uplo_t uplo, CHAM_desc_t *A,
                 }
             }
             for (n = 0; n < k; n++) {
-                RUNTIME_data_flush( sequence, A(k, n) );
+                chameleon_data_flush( sequence, A(k, n), request->flush );
                 INSERT_TASK_ztrmm(
                     &options,
                     ChamLeft, uplo, ChamConjTrans, ChamNonUnit,
@@ -77,7 +77,7 @@ void chameleon_pzlauum(cham_uplo_t uplo, CHAM_desc_t *A,
                     1.0, A(k, k),
                          A(k, n));
             }
-            RUNTIME_data_flush( sequence, A(k, k) );
+            chameleon_data_flush( sequence, A(k, k), request->flush );
             INSERT_TASK_zlauum(
                 &options,
                 uplo, tempkm, A->mb,
@@ -110,7 +110,7 @@ void chameleon_pzlauum(cham_uplo_t uplo, CHAM_desc_t *A,
                 }
             }
             for (m = 0; m < k; m++) {
-                RUNTIME_data_flush( sequence, A(m, k) );
+                chameleon_data_flush( sequence, A(m, k), request->flush );
                 INSERT_TASK_ztrmm(
                     &options,
                     ChamRight, uplo, ChamConjTrans, ChamNonUnit,
@@ -118,7 +118,7 @@ void chameleon_pzlauum(cham_uplo_t uplo, CHAM_desc_t *A,
                     1.0, A(k, k),
                          A(m, k));
             }
-            RUNTIME_data_flush( sequence, A(k, k) );
+            chameleon_data_flush( sequence, A(k, k), request->flush );
             INSERT_TASK_zlauum(
                 &options,
                 uplo, tempkn, A->mb,

@@ -127,8 +127,9 @@ chameleon_pzlaswpc_panel( struct chameleon_pzlaswp_s *ws,
                           RUNTIME_option_t           *options,
                           RUNTIME_sequence_t         *sequence )
 {
-    CHAM_reduce_t *reduce = &(ws->reduce);
-    int            tempmm, tempkn;
+    const RUNTIME_request_t *request = options->request;
+    CHAM_reduce_t           *reduce  = &(ws->reduce);
+    int                      tempmm, tempkn;
 
 #if defined(CHAMELEON_USE_MPI)
     chameleon_get_proc_involved_in_rowpanelk_2dbc( A, m, k, reduce );
@@ -158,7 +159,7 @@ chameleon_pzlaswpc_panel( struct chameleon_pzlaswp_s *ws,
         tempkn = A->get_blkdim( A, k, DIM_n, A->n );
         INSERT_TASK_zlacpy( options, ChamUpperLower, tempmm, tempkn,
                             W(m, A->myrank), A(m, k) );
-        RUNTIME_data_flush( sequence, A(m, k) );
+        chameleon_data_flush( sequence, A(m, k), request->flush );
     }
     (void)reduce;
 }

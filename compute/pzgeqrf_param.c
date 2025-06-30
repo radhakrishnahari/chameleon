@@ -44,6 +44,7 @@ int chameleon_pzgeqrf_param_step( int genD, cham_uplo_t uplo, int k, int ib,
                                   CHAM_desc_t *A, CHAM_desc_t *TS, CHAM_desc_t *TT, CHAM_desc_t *D,
                                   RUNTIME_option_t *options, RUNTIME_sequence_t *sequence )
 {
+    RUNTIME_request_t *request = options->request;
     CHAM_desc_t *T;
     int m, n, i, p;
     int L, nbgeqrt;
@@ -101,9 +102,9 @@ int chameleon_pzgeqrf_param_step( int genD, cham_uplo_t uplo, int k, int ib,
         }
 
         if ( genD || ((k+1) < A->nt)) {
-            RUNTIME_data_flush( sequence, D(p, k) );
+            chameleon_data_flush( sequence, D(p, k), request->flush );
         }
-        RUNTIME_data_flush( sequence, T(p, k) );
+        chameleon_data_flush( sequence, T(p, k), request->flush );
     }
 
     /* Setting the order of the tiles */
@@ -158,8 +159,8 @@ int chameleon_pzgeqrf_param_step( int genD, cham_uplo_t uplo, int k, int ib,
                 A(p, n),
                 A(m, n));
         }
-        RUNTIME_data_flush( sequence, A(m, k) );
-        RUNTIME_data_flush( sequence, T(m, k) );
+        chameleon_data_flush( sequence, A(m, k), request->flush );
+        chameleon_data_flush( sequence, T(m, k), request->flush );
     }
 
     return tiles[nbtiles];

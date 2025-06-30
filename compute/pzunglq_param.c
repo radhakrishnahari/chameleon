@@ -123,8 +123,8 @@ void chameleon_pzunglq_param( int genD, const libhqr_tree_t *qrtree, CHAM_desc_t
                     Q(m, p),
                     Q(m, n));
             }
-            RUNTIME_data_flush( sequence, A(k, n) );
-            RUNTIME_data_flush( sequence, T(k, n) );
+            chameleon_data_flush( sequence, A(k, n), request->flush );
+            chameleon_data_flush( sequence, T(k, n), request->flush );
         }
 
         T = TS;
@@ -163,8 +163,8 @@ void chameleon_pzunglq_param( int genD, const libhqr_tree_t *qrtree, CHAM_desc_t
                     T(k, p),
                     Q(m, p));
             }
-            RUNTIME_data_flush( sequence, D(k, p) );
-            RUNTIME_data_flush( sequence, T(k, p) );
+            chameleon_data_flush( sequence, D(k, p), request->flush );
+            chameleon_data_flush( sequence, T(k, p), request->flush );
         }
 
         RUNTIME_iteration_pop(chamctxt);

@@ -129,8 +129,8 @@ void chameleon_pzunmqrrh( int genD, int BS, cham_side_t side, cham_trans_t trans
                             T(p, k),
                             C(p, n));
                     }
-                    RUNTIME_data_flush( sequence, D(p, k) );
-                    RUNTIME_data_flush( sequence, T(p, k) );
+                    chameleon_data_flush( sequence, D(p, k), request->flush );
+                    chameleon_data_flush( sequence, T(p, k), request->flush );
 
                     for (m = p+1; m < chameleon_min(p+BS, C->mt); m++) {
                         tempmm = C->get_blkdim( C, m, DIM_m, C->m );
@@ -151,8 +151,8 @@ void chameleon_pzunmqrrh( int genD, int BS, cham_side_t side, cham_trans_t trans
                                 C(p, n),
                                 C(m, n));
                         }
-                        RUNTIME_data_flush( sequence, A(m, k) );
-                        RUNTIME_data_flush( sequence, T(m, k) );
+                        chameleon_data_flush( sequence, A(m, k), request->flush );
+                        chameleon_data_flush( sequence, T(m, k), request->flush );
                     }
                 }
                 for (RD = BS; RD < C->mt-k; RD *= 2) {
@@ -177,8 +177,8 @@ void chameleon_pzunmqrrh( int genD, int BS, cham_side_t side, cham_trans_t trans
                                 C (p, n),
                                 C (m, n));
                         }
-                        RUNTIME_data_flush( sequence, A (m, k) );
-                        RUNTIME_data_flush( sequence, T2(m, k) );
+                        chameleon_data_flush( sequence, A (m, k), request->flush );
+                        chameleon_data_flush( sequence, T2(m, k), request->flush );
                     }
                 }
 
@@ -224,8 +224,8 @@ void chameleon_pzunmqrrh( int genD, int BS, cham_side_t side, cham_trans_t trans
                                 C (p, n),
                                 C (m, n));
                         }
-                        RUNTIME_data_flush( sequence, A (m, k) );
-                        RUNTIME_data_flush( sequence, T2(m, k) );
+                        chameleon_data_flush( sequence, A (m, k), request->flush );
+                        chameleon_data_flush( sequence, T2(m, k), request->flush );
                     }
                 }
                 for (p = k; p < C->mt; p += BS) {
@@ -249,8 +249,8 @@ void chameleon_pzunmqrrh( int genD, int BS, cham_side_t side, cham_trans_t trans
                                 C(p, n),
                                 C(m, n));
                         }
-                        RUNTIME_data_flush( sequence, A(m, k) );
-                        RUNTIME_data_flush( sequence, T(m, k) );
+                        chameleon_data_flush( sequence, A(m, k), request->flush );
+                        chameleon_data_flush( sequence, T(m, k), request->flush );
                     }
 
                     temppm = C->get_blkdim( C, p, DIM_m, C->m );
@@ -286,8 +286,8 @@ void chameleon_pzunmqrrh( int genD, int BS, cham_side_t side, cham_trans_t trans
                             T(p, k),
                             C(p, n));
                     }
-                    RUNTIME_data_flush( sequence, D(p, k) );
-                    RUNTIME_data_flush( sequence, T(p, k) );
+                    chameleon_data_flush( sequence, D(p, k), request->flush );
+                    chameleon_data_flush( sequence, T(p, k), request->flush );
                 }
                 RUNTIME_iteration_pop(chamctxt);
             }
@@ -328,8 +328,8 @@ void chameleon_pzunmqrrh( int genD, int BS, cham_side_t side, cham_trans_t trans
                                 C (m, p),
                                 C (m, n));
                         }
-                        RUNTIME_data_flush( sequence, A (n, k) );
-                        RUNTIME_data_flush( sequence, T2(n, k) );
+                        chameleon_data_flush( sequence, A (n, k), request->flush );
+                        chameleon_data_flush( sequence, T2(n, k), request->flush );
                     }
                 }
                 for (p = k; p < C->nt; p += BS) {
@@ -354,8 +354,8 @@ void chameleon_pzunmqrrh( int genD, int BS, cham_side_t side, cham_trans_t trans
                                 C(m, p),
                                 C(m, n));
                         }
-                        RUNTIME_data_flush( sequence, A(n, k) );
-                        RUNTIME_data_flush( sequence, T(n, k) );
+                        chameleon_data_flush( sequence, A(n, k), request->flush );
+                        chameleon_data_flush( sequence, T(n, k), request->flush );
                     }
 
                     temppn = C->get_blkdim( C, p, DIM_n, C->n );
@@ -391,8 +391,8 @@ void chameleon_pzunmqrrh( int genD, int BS, cham_side_t side, cham_trans_t trans
                             T(p, k),
                             C(m, p));
                     }
-                    RUNTIME_data_flush( sequence, D(p, k) );
-                    RUNTIME_data_flush( sequence, T(p, k) );
+                    chameleon_data_flush( sequence, D(p, k), request->flush );
+                    chameleon_data_flush( sequence, T(p, k), request->flush );
                 }
                 RUNTIME_iteration_pop(chamctxt);
             }
@@ -437,8 +437,8 @@ void chameleon_pzunmqrrh( int genD, int BS, cham_side_t side, cham_trans_t trans
                             T(p, k),
                             C(m, p));
                     }
-                    RUNTIME_data_flush( sequence, D(p, k) );
-                    RUNTIME_data_flush( sequence, T(p, k) );
+                    chameleon_data_flush( sequence, D(p, k), request->flush );
+                    chameleon_data_flush( sequence, T(p, k), request->flush );
 
                     for (n = p+1; n < chameleon_min(p+BS,  C->nt); n++) {
                         tempnn = C->get_blkdim( C, n, DIM_n, C->n );
@@ -458,8 +458,8 @@ void chameleon_pzunmqrrh( int genD, int BS, cham_side_t side, cham_trans_t trans
                                 C(m, p),
                                 C(m, n));
                         }
-                        RUNTIME_data_flush( sequence, A(n, k) );
-                        RUNTIME_data_flush( sequence, T(n, k) );
+                        chameleon_data_flush( sequence, A(n, k), request->flush );
+                        chameleon_data_flush( sequence, T(n, k), request->flush );
                     }
                 }
                 for (RD = BS; RD < C->nt-k; RD *= 2) {
@@ -483,8 +483,8 @@ void chameleon_pzunmqrrh( int genD, int BS, cham_side_t side, cham_trans_t trans
                                 C (m, p),
                                 C (m, n));
                         }
-                        RUNTIME_data_flush( sequence, A (n, k) );
-                        RUNTIME_data_flush( sequence, T2(n, k) );
+                        chameleon_data_flush( sequence, A (n, k), request->flush );
+                        chameleon_data_flush( sequence, T2(n, k), request->flush );
                     }
                 }
 

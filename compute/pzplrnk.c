@@ -36,7 +36,8 @@ chameleon_pzplrnk_generic( CHAM_context_t         *chamctxt,
                            unsigned long long int  seedB,
                            RUNTIME_option_t       *options )
 {
-    RUNTIME_sequence_t   *sequence = options->sequence;
+    RUNTIME_sequence_t      *sequence = options->sequence;
+    const RUNTIME_request_t *request  = options->request;
     CHAMELEON_Complex64_t zbeta;
     int  m, n, k, KT;
     int  tempmm, tempnn, tempkk;
@@ -86,12 +87,12 @@ chameleon_pzplrnk_generic( CHAM_context_t         *chamctxt,
                 }
             }
             if ( initA ) {
-                RUNTIME_data_flush( sequence, WA(m, myrank) );
+                chameleon_data_flush( sequence, WA(m, myrank), request->flush );
             }
         }
         for (n = 0; n < C->nt; n++) {
             if ( initB[n] ) {
-                RUNTIME_data_flush( sequence, WB(myrank, n) );
+                chameleon_data_flush( sequence, WB(myrank, n), request->flush );
             }
         }
     }
@@ -112,8 +113,9 @@ chameleon_pzplrnk_2dbc( CHAM_context_t         *chamctxt,
                         unsigned long long int  seedB,
                         RUNTIME_option_t       *options )
 {
-    RUNTIME_sequence_t   *sequence = options->sequence;
-    CHAMELEON_Complex64_t zbeta;
+    RUNTIME_sequence_t      *sequence = options->sequence;
+    const RUNTIME_request_t *request  = options->request;
+    CHAMELEON_Complex64_t    zbeta;
     int m, n, k, KT;
     int tempmm, tempnn, tempkk;
     int p, q, myp, myq;
@@ -156,10 +158,10 @@ chameleon_pzplrnk_2dbc( CHAM_context_t         *chamctxt,
                            WB(myp, n),
                     zbeta,  C(m, n));
             }
-            RUNTIME_data_flush( sequence, WA(m, myq) );
+            chameleon_data_flush( sequence, WA(m, myq), request->flush );
         }
         for (n = myq; n < C->nt; n+=q) {
-            RUNTIME_data_flush( sequence, WB(myp, n) );
+            chameleon_data_flush( sequence, WB(myp, n), request->flush );
         }
     }
 }
