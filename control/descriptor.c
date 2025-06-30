@@ -39,6 +39,32 @@
 static int nbdesc = 0;
 
 /**
+ * Generate a automatic name startix by 'w' and then alphabetical order for non named matrices.
+ */
+char *
+__chamdesc_get_name() {
+    static int counter = 0;
+    char      *name    = malloc( sizeof(char) * 4 );
+    int        idx     = 0;
+
+    name[idx] = 'w';
+    idx++;
+
+    if ( counter > 26 ) {
+        name[idx] = 'A' + ( ( counter / 26 ) % 26 );
+        idx++;
+    }
+
+    name[idx] = 'A' + counter % 26;
+    idx++;
+
+    name[idx] = '\0';
+
+    counter++;
+    return name;
+}
+
+/**
  *
  */
 int chameleon_desc_mat_alloc( CHAM_desc_t *desc )
@@ -212,7 +238,12 @@ int chameleon_desc_init_internal( CHAM_desc_t *desc, const char *name, void *mat
 
     memset( desc, 0, sizeof(CHAM_desc_t) );
 
-    desc->name = name;
+    if ( name ) {
+        desc->name = strdup( name );
+    }
+    else {
+        desc->name = __chamdesc_get_name();
+    }
 
     chamctxt = chameleon_context_self();
     if (chamctxt == NULL) {
