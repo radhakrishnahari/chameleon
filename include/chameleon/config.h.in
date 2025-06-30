@@ -90,10 +90,9 @@
 /* chameleon runtime starpu */
 #cmakedefine CHAMELEON_ENABLE_PRUNING_STATS
 
-/* Parallel insertion of tasks within bubbles */
-#cmakedefine CHAMELEON_USE_BUBBLE
-#cmakedefine CHAMELEON_BUBBLE_PARALLEL_INSERT
-#cmakedefine CHAMELEON_BUBBLE_PROFILE
+/* Support for StarPU Recursive tasks */
+#cmakedefine CHAMELEON_USE_RECURSIVE_TASKS
+#cmakedefine CHAMELEON_RECURSIVE_TASKS_PARALLEL_INSERT
 
 #cmakedefine HAVE_FALLTHROUGH
 #if defined(HAVE_FALLTHROUGH)
