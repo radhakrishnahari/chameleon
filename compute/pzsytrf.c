@@ -74,7 +74,7 @@ void chameleon_pzsytrf(cham_uplo_t uplo, CHAM_desc_t *A,
                     zone, A(k, k),
                           A(m, k));
             }
-            RUNTIME_data_flush( sequence, A(k, k) );
+            chameleon_data_flush( sequence, A(k, k), request->flush );
 
             for (n = k+1; n < A->nt; n++) {
                 tempnn = A->get_blkdim( A, n, DIM_n, A->n );
@@ -95,7 +95,7 @@ void chameleon_pzsytrf(cham_uplo_t uplo, CHAM_desc_t *A,
                                A(n, k),
                         zone,  A(m, n));
                 }
-                RUNTIME_data_flush( sequence, A(n, k) );
+                chameleon_data_flush( sequence, A(n, k), request->flush );
             }
 
             RUNTIME_iteration_pop(chamctxt);
@@ -124,7 +124,7 @@ void chameleon_pzsytrf(cham_uplo_t uplo, CHAM_desc_t *A,
                     zone, A(k, k),
                           A(k, n));
             }
-            RUNTIME_data_flush( sequence, A(k, k) );
+            chameleon_data_flush( sequence, A(k, k), request->flush );
 
             for (m = k+1; m < A->mt; m++) {
                 tempmm = A->get_blkdim( A, m, DIM_m, A->m );
@@ -147,7 +147,7 @@ void chameleon_pzsytrf(cham_uplo_t uplo, CHAM_desc_t *A,
                                A(k, n),
                         zone,  A(m, n));
                 }
-                RUNTIME_data_flush( sequence, A(k, m) );
+                chameleon_data_flush( sequence, A(k, m), request->flush );
             }
 
             RUNTIME_iteration_pop(chamctxt);

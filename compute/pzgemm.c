@@ -44,6 +44,7 @@ chameleon_pzgemm_Astat( CHAM_context_t *chamctxt, cham_trans_t transA, cham_tran
 {
     const CHAMELEON_Complex64_t zone = (CHAMELEON_Complex64_t)1.0;
     RUNTIME_sequence_t *sequence = options->sequence;
+    RUNTIME_request_t  *request  = options->request;
     int                 m, n, k;
     int                 tempmm, tempnn, tempkn, tempkm;
     int                 myrank  = RUNTIME_comm_rank( chamctxt );
@@ -164,7 +165,7 @@ chameleon_pzgemm_Astat( CHAM_context_t *chamctxt, cham_trans_t transA, cham_tran
                 }
             }
             RUNTIME_zgersum_submit_tree( options, C(m, n) );
-            RUNTIME_data_flush( sequence, C(m, n) );
+            chameleon_data_flush( sequence, C(m, n), request->flush );
         }
     }
     options->forcesub = 0;
@@ -185,6 +186,7 @@ chameleon_pzgemm_summa( CHAM_context_t *chamctxt, cham_trans_t transA, cham_tran
                         RUNTIME_option_t *options )
 {
     RUNTIME_sequence_t *sequence = options->sequence;
+    RUNTIME_request_t  *request  = options->request;
     int m, n, k, p, q, KT, K, lp, lq;
     int tempmm, tempnn, tempkk;
     int lookahead, myp, myq, DIM_k;
@@ -228,7 +230,7 @@ chameleon_pzgemm_summa( CHAM_context_t *chamctxt, cham_trans_t transA, cham_tran
                     A(  m,  k ),
                     WA( m, (k % chameleon_desc_datadist_get_iparam(C, 1)) + lq ) );
 
-                RUNTIME_data_flush( sequence, A( m, k ) );
+                chameleon_data_flush( sequence, A( m, k ), request->flush );
 
                 for ( q=1; q < chameleon_desc_datadist_get_iparam(C, 1); q++ ) {
                     INSERT_TASK_zlacpy(
@@ -245,7 +247,7 @@ chameleon_pzgemm_summa( CHAM_context_t *chamctxt, cham_trans_t transA, cham_tran
                     A(  k,  m ),
                     WA( m, (m % chameleon_desc_datadist_get_iparam(C, 1)) + lq ) );
 
-                RUNTIME_data_flush( sequence, A( k, m ) );
+                chameleon_data_flush( sequence, A( k, m ), request->flush );
 
                 for ( q=1; q < chameleon_desc_datadist_get_iparam(C, 1); q++ ) {
                     INSERT_TASK_zlacpy(
@@ -268,7 +270,7 @@ chameleon_pzgemm_summa( CHAM_context_t *chamctxt, cham_trans_t transA, cham_tran
                     B(   k,              n ),
                     WB( (k % chameleon_desc_datadist_get_iparam(C, 0)) + lp, n ) );
 
-                RUNTIME_data_flush( sequence, B( k, n ) );
+                chameleon_data_flush( sequence, B( k, n ), request->flush );
 
                 for ( p=1; p < chameleon_desc_datadist_get_iparam(C, 0); p++ ) {
                     INSERT_TASK_zlacpy(
@@ -285,7 +287,7 @@ chameleon_pzgemm_summa( CHAM_context_t *chamctxt, cham_trans_t transA, cham_tran
                     B(   n,              k ),
                     WB( (n % chameleon_desc_datadist_get_iparam(C, 0)) + lp, n ) );
 
-                RUNTIME_data_flush( sequence, B( n, k ) );
+                chameleon_data_flush( sequence, B( n, k ), request->flush );
 
                 for ( p=1; p < chameleon_desc_datadist_get_iparam(C, 0); p++ ) {
                     INSERT_TASK_zlacpy(
@@ -329,6 +331,7 @@ chameleon_pzgemm_generic( CHAM_context_t *chamctxt, cham_trans_t transA, cham_tr
                           RUNTIME_option_t *options )
 {
     RUNTIME_sequence_t *sequence = options->sequence;
+    RUNTIME_request_t  *request  = options->request;
 
     int m, n, k;
     int tempmm, tempnn, tempkn, tempkm;
@@ -408,15 +411,15 @@ chameleon_pzgemm_generic( CHAM_context_t *chamctxt, cham_trans_t transA, cham_tr
                     }
                 }
             }
-            RUNTIME_data_flush( sequence, C(m, n) );
+            chameleon_data_flush( sequence, C(m, n), request->flush );
         }
         if (transA == ChamNoTrans) {
             for (k = 0; k < A->nt; k++) {
-                RUNTIME_data_flush( sequence, A(m, k) );
+                chameleon_data_flush( sequence, A(m, k), request->flush );
             }
         } else {
             for (k = 0; k < A->mt; k++) {
-                RUNTIME_data_flush( sequence, A(k, m) );
+                chameleon_data_flush( sequence, A(k, m), request->flush );
             }
         }
     }

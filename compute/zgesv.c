@@ -319,8 +319,9 @@ int CHAMELEON_zgesv_Tile_Async( CHAM_desc_t        *A,
                                 RUNTIME_sequence_t *sequence,
                                 RUNTIME_request_t  *request )
 {
-    CHAM_context_t *chamctxt;
+    CHAM_context_t             *chamctxt;
     struct chameleon_pzgetrf_s *wsA, *wsB;
+    int                         flush;
 
     chamctxt = chameleon_context_self();
     if ( chamctxt == NULL ) {
@@ -374,8 +375,11 @@ int CHAMELEON_zgesv_Tile_Async( CHAM_desc_t        *A,
 
     IPIV->get_rankof = chameleon_getrankof_ipiv_2d_diag;
 
+    flush = request->flush;
+    request->flush = CHAMELEON_FALSE;
     chameleon_pzgetrf( wsA, A, IPIV, sequence, request );
 
+    request->flush = flush;
     CHAMELEON_zgetrs_Tile_Async( ChamNoTrans, A, IPIV, B, wsB, sequence, request );
 
     if ( user_wsA == NULL ) {

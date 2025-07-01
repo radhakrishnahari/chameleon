@@ -76,10 +76,10 @@ void chameleon_pztrtri(cham_uplo_t uplo, cham_diag_t diag, CHAM_desc_t *A,
                               A(k, n),
                         zone, A(m, n));
                 }
-                RUNTIME_data_flush( sequence, A(m, k) );
+                chameleon_data_flush( sequence, A(m, k), request->flush );
             }
             for (n = 0; n < k; n++) {
-                RUNTIME_data_flush( sequence, A(k, n) );
+                chameleon_data_flush( sequence, A(k, n), request->flush );
                 INSERT_TASK_ztrsm(
                     &options,
                     ChamLeft, uplo, ChamNoTrans, diag,
@@ -87,7 +87,7 @@ void chameleon_pztrtri(cham_uplo_t uplo, cham_diag_t diag, CHAM_desc_t *A,
                     zone, A(k, k),
                           A(k, n));
             }
-            RUNTIME_data_flush( sequence, A(k, k) );
+            chameleon_data_flush( sequence, A(k, k), request->flush );
             INSERT_TASK_ztrtri(
                 &options,
                 uplo, diag,
@@ -125,10 +125,10 @@ void chameleon_pztrtri(cham_uplo_t uplo, cham_diag_t diag, CHAM_desc_t *A,
                               A(k, n),
                         zone, A(m, n));
                 }
-                RUNTIME_data_flush( sequence, A(k, n) );
+                chameleon_data_flush( sequence, A(k, n), request->flush );
             }
             for (m = 0; m < k; m++) {
-                RUNTIME_data_flush( sequence, A(m, k) );
+                chameleon_data_flush( sequence, A(m, k), request->flush );
                 INSERT_TASK_ztrsm(
                     &options,
                     ChamRight, uplo, ChamNoTrans, diag,
@@ -136,7 +136,7 @@ void chameleon_pztrtri(cham_uplo_t uplo, cham_diag_t diag, CHAM_desc_t *A,
                     zone, A(k, k),
                           A(m, k));
             }
-            RUNTIME_data_flush( sequence, A(k, k) );
+            chameleon_data_flush( sequence, A(k, k), request->flush );
             INSERT_TASK_ztrtri(
                 &options,
                 uplo, diag,

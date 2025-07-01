@@ -43,6 +43,7 @@ int chameleon_pzgelqf_step( int genD, int k, int ib,
                             CHAM_desc_t *A, CHAM_desc_t *T, CHAM_desc_t *D,
                             RUNTIME_option_t *options, RUNTIME_sequence_t *sequence )
 {
+    RUNTIME_request_t *request = options->request;
     int m, n;
     int tempkm, tempkn, tempmm, tempnn;
 
@@ -81,8 +82,8 @@ int chameleon_pzgelqf_step( int genD, int k, int ib,
             T(k, k),
             A(m, k));
     }
-    RUNTIME_data_flush( sequence, D(k)    );
-    RUNTIME_data_flush( sequence, T(k, k) );
+    chameleon_data_flush( sequence, D(k)   , request->flush );
+    chameleon_data_flush( sequence, T(k, k), request->flush );
 
     for (n = k+1; n < A->nt; n++) {
         tempnn = A->get_blkdim( A, n, DIM_n, A->n );
@@ -112,8 +113,8 @@ int chameleon_pzgelqf_step( int genD, int k, int ib,
                 A(m, k),
                 A(m, n));
         }
-        RUNTIME_data_flush( sequence, A(k, n) );
-        RUNTIME_data_flush( sequence, T(k, n) );
+        chameleon_data_flush( sequence, A(k, n), request->flush );
+        chameleon_data_flush( sequence, T(k, n), request->flush );
     }
 
     return 1;

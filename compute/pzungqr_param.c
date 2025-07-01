@@ -47,6 +47,7 @@ void chameleon_pzungqr_param_step( int genD, cham_uplo_t uplo, int k, int ib,
                                    CHAM_desc_t *TS, CHAM_desc_t *TT, CHAM_desc_t *D,
                                    RUNTIME_option_t *options, RUNTIME_sequence_t *sequence )
 {
+    RUNTIME_request_t *request = options->request;
     CHAM_desc_t *T;
     int m, n, i, p, L;
     int tempmm, tempnn, tempkmin, tempkn;
@@ -92,8 +93,8 @@ void chameleon_pzungqr_param_step( int genD, cham_uplo_t uplo, int k, int ib,
                 Q(p, n),
                 Q(m, n));
         }
-        RUNTIME_data_flush( sequence, A(m, k) );
-        RUNTIME_data_flush( sequence, T(m, k) );
+        chameleon_data_flush( sequence, A(m, k), request->flush );
+        chameleon_data_flush( sequence, T(m, k), request->flush );
     }
 
     T = TS;
@@ -142,8 +143,8 @@ void chameleon_pzungqr_param_step( int genD, cham_uplo_t uplo, int k, int ib,
                 T(m, k),
                 Q(m, n));
         }
-        RUNTIME_data_flush( sequence, D(m, k) );
-        RUNTIME_data_flush( sequence, T(m, k) );
+        chameleon_data_flush( sequence, D(m, k), request->flush );
+        chameleon_data_flush( sequence, T(m, k), request->flush );
     }
 }
 

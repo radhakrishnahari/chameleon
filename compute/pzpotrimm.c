@@ -79,7 +79,7 @@ void chameleon_pzpotrimm(cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B, CHAM_
                     zone, A(k, k),
                           A(m, k));
             }
-            RUNTIME_data_flush( sequence, A(k, k) );
+            chameleon_data_flush( sequence, A(k, k), request->flush );
 
             for (n = k+1; n < A->nt; n++) {
                 tempnn = A->get_blkdim( A, n, DIM_n, A->n );
@@ -100,7 +100,7 @@ void chameleon_pzpotrimm(cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B, CHAM_
                                A(n, k),
                         zone,  A(m, n));
                 }
-                RUNTIME_data_flush( sequence, A(n, k) );
+                chameleon_data_flush( sequence, A(n, k), request->flush );
             }
 
             RUNTIME_iteration_pop(chamctxt);
@@ -132,10 +132,10 @@ void chameleon_pzpotrimm(cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B, CHAM_
                               A(k, n),
                         zone, A(m, n));
                 }
-                RUNTIME_data_flush( sequence, A(m, k) );
+                chameleon_data_flush( sequence, A(m, k), request->flush );
             }
             for (n = 0; n < k; n++) {
-                RUNTIME_data_flush( sequence, A(k, n) );
+                chameleon_data_flush( sequence, A(k, n), request->flush );
                 INSERT_TASK_ztrsm(
                     &options,
                     ChamLeft, uplo, ChamNoTrans, ChamNonUnit,
@@ -143,7 +143,7 @@ void chameleon_pzpotrimm(cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B, CHAM_
                     zone, A(k, k),
                           A(k, n));
             }
-            RUNTIME_data_flush( sequence, A(k, k) );
+            chameleon_data_flush( sequence, A(k, k), request->flush );
             INSERT_TASK_ztrtri(
                 &options,
                 uplo, ChamNonUnit,
@@ -178,7 +178,7 @@ void chameleon_pzpotrimm(cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B, CHAM_
                 }
             }
             for (n = 0; n < k; n++) {
-                RUNTIME_data_flush( sequence, A(k, n) );
+                chameleon_data_flush( sequence, A(k, n), request->flush );
                 INSERT_TASK_ztrmm(
                     &options,
                     ChamLeft, uplo, ChamConjTrans, ChamNonUnit,
@@ -186,7 +186,7 @@ void chameleon_pzpotrimm(cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B, CHAM_
                     1.0, A(k, k),
                          A(k, n));
             }
-            RUNTIME_data_flush( sequence, A(k, k) );
+            chameleon_data_flush( sequence, A(k, k), request->flush );
             INSERT_TASK_zlauum(
                 &options,
                 uplo, tempkm, A->mb,
@@ -239,10 +239,10 @@ void chameleon_pzpotrimm(cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B, CHAM_
                         }
                     }
                 }
-                RUNTIME_data_flush( sequence, B(m, k) );
+                chameleon_data_flush( sequence, B(m, k), request->flush );
             }
             for (n = 0; n <= k; n++) {
-                RUNTIME_data_flush( sequence, A(k, n) );
+                chameleon_data_flush( sequence, A(k, n), request->flush );
             }
 
             RUNTIME_iteration_pop(chamctxt);
@@ -274,7 +274,7 @@ void chameleon_pzpotrimm(cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B, CHAM_
                     zone, A(k, k),
                           A(k, n));
             }
-            RUNTIME_data_flush( sequence, A(k, k) );
+            chameleon_data_flush( sequence, A(k, k), request->flush );
 
             for (m = k+1; m < A->mt; m++) {
                 tempmm = A->get_blkdim( A, m, DIM_m, A->m );
@@ -297,7 +297,7 @@ void chameleon_pzpotrimm(cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B, CHAM_
                                A(k, n),
                         zone,  A(m, n));
                 }
-                RUNTIME_data_flush( sequence, A(k, m) );
+                chameleon_data_flush( sequence, A(k, m), request->flush );
             }
 
             RUNTIME_iteration_pop(chamctxt);
@@ -329,10 +329,10 @@ void chameleon_pzpotrimm(cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B, CHAM_
                               A(k, n),
                         zone, A(m, n));
                 }
-                RUNTIME_data_flush( sequence, A(k, n) );
+                chameleon_data_flush( sequence, A(k, n), request->flush );
             }
             for (m = 0; m < k; m++) {
-                RUNTIME_data_flush( sequence, A(m, k) );
+                chameleon_data_flush( sequence, A(m, k), request->flush );
                 INSERT_TASK_ztrsm(
                     &options,
                     ChamRight, uplo, ChamNoTrans, ChamNonUnit,
@@ -340,7 +340,7 @@ void chameleon_pzpotrimm(cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B, CHAM_
                     zone, A(k, k),
                           A(m, k));
             }
-            RUNTIME_data_flush( sequence, A(k, k) );
+            chameleon_data_flush( sequence, A(k, k), request->flush );
             INSERT_TASK_ztrtri(
                 &options,
                 uplo, ChamNonUnit,
@@ -376,7 +376,7 @@ void chameleon_pzpotrimm(cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B, CHAM_
                 }
             }
             for (m = 0; m < k; m++) {
-                RUNTIME_data_flush( sequence, A(m, k) );
+                chameleon_data_flush( sequence, A(m, k), request->flush );
                 INSERT_TASK_ztrmm(
                     &options,
                     ChamRight, uplo, ChamConjTrans, ChamNonUnit,
@@ -384,7 +384,7 @@ void chameleon_pzpotrimm(cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B, CHAM_
                     1.0, A(k, k),
                          A(m, k));
             }
-            RUNTIME_data_flush( sequence, A(k, k) );
+            chameleon_data_flush( sequence, A(k, k), request->flush );
             INSERT_TASK_zlauum(
                 &options,
                 uplo, tempkn, A->mb,
@@ -437,10 +437,10 @@ void chameleon_pzpotrimm(cham_uplo_t uplo, CHAM_desc_t *A, CHAM_desc_t *B, CHAM_
                         }
                     }
                 }
-                RUNTIME_data_flush( sequence, B(m, k) );
+                chameleon_data_flush( sequence, B(m, k), request->flush );
             }
             for (m = 0; m <= k; m++) {
-                RUNTIME_data_flush( sequence, A(m, k) );
+                chameleon_data_flush( sequence, A(m, k), request->flush );
             }
 
             RUNTIME_iteration_pop(chamctxt);

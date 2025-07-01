@@ -294,9 +294,9 @@ void RUNTIME_data_flush( const RUNTIME_sequence_t *sequence,
                          const CHAM_desc_t *A, int m, int n )
 {
     int local, i, imax = 1;
-    int64_t mm = m + (A->i / A->mb);
-    int64_t nn = n + (A->j / A->nb);
-    int64_t shift   = ((int64_t)A->lmt) * nn + mm;
+    int64_t mm      = m + (A->i / A->mb);
+    int64_t nn      = n + (A->j / A->nb);
+    int64_t shift   = ((int64_t)(A->lmt)) * nn + mm;
     int64_t nbtiles = ((int64_t)(A->lmt)) * ((int64_t)(A->lnt));
     starpu_data_handle_t *handle = A->schedopt;
     handle += shift;
@@ -305,7 +305,7 @@ void RUNTIME_data_flush( const RUNTIME_sequence_t *sequence,
 
     if ( cham_is_mixed( A->dtyp ) ) {
         imax = 3;
-     }
+    }
 
     for( i=0; i<imax; i++ ) {
         starpu_data_handle_t *handlebis;

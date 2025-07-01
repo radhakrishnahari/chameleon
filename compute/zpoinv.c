@@ -252,8 +252,8 @@ int CHAMELEON_zpoinv_Tile( cham_uplo_t uplo, CHAM_desc_t *A )
 int CHAMELEON_zpoinv_Tile_Async( cham_uplo_t uplo, CHAM_desc_t *A,
                                  RUNTIME_sequence_t *sequence, RUNTIME_request_t *request )
 {
-    CHAM_context_t *chamctxt;
-    int change_distribution_for_trtri = 0;
+    CHAM_context_t  *chamctxt;
+    int              flush, change_distribution_for_trtri = 0;
     custom_dist_t   *trtri_custom_get_rankof_arg;
     custom_dist_t   *original_get_rankof_arg;
     blkrankof_fct_t  original_get_rankof;
@@ -318,6 +318,8 @@ int CHAMELEON_zpoinv_Tile_Async( cham_uplo_t uplo, CHAM_desc_t *A,
         chameleon_cleanenv( custom_dist );
     }
 
+    flush = request->flush;
+    request->flush = CHAMELEON_FALSE;
     chameleon_pzpotrf( uplo, A, sequence, request );
 
     if ( change_distribution_for_trtri ) {
@@ -330,6 +332,7 @@ int CHAMELEON_zpoinv_Tile_Async( cham_uplo_t uplo, CHAM_desc_t *A,
         CHAMELEON_Desc_Change_Distribution_Async( uplo, A, original_get_rankof, original_get_rankof_arg, sequence );
     }
 
+    request->flush = flush;
     chameleon_pzlauum( uplo, A, sequence, request );
 
     return CHAMELEON_SUCCESS;

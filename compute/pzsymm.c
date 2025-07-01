@@ -47,6 +47,7 @@ chameleon_pzsymm_Astat( CHAM_context_t *chamctxt, cham_side_t side, cham_uplo_t 
 {
     const CHAMELEON_Complex64_t zone = (CHAMELEON_Complex64_t)1.0;
     RUNTIME_sequence_t *sequence = options->sequence;
+    RUNTIME_request_t  *request  = options->request;
     int                 k, m, n, l, Am, An;
     int                 tempmm, tempnn, tempkn, tempkm;
     int                 myrank = RUNTIME_comm_rank( chamctxt );
@@ -271,7 +272,7 @@ chameleon_pzsymm_Astat( CHAM_context_t *chamctxt, cham_side_t side, cham_uplo_t 
             }
 
             RUNTIME_zgersum_submit_tree( options, C(m, n) );
-            RUNTIME_data_flush( sequence, C(m, n) );
+            chameleon_data_flush( sequence, C(m, n), request->flush );
         }
     }
     options->forcesub = 0;
@@ -293,6 +294,7 @@ chameleon_pzsymm_summa_left( CHAM_context_t *chamctxt, cham_uplo_t uplo,
                              RUNTIME_option_t *options )
 {
     RUNTIME_sequence_t *sequence = options->sequence;
+    RUNTIME_request_t  *request  = options->request;
     cham_trans_t transA;
     int m, n, k, p, q, KT, lp, lq;
     int tempmm, tempnn, tempkk;
@@ -342,7 +344,7 @@ chameleon_pzsymm_summa_left( CHAM_context_t *chamctxt, cham_uplo_t uplo,
                 A( Am, Ak ),
                 WA( m, (Ak % chameleon_desc_datadist_get_iparam(C, 1)) + lq ) );
 
-            RUNTIME_data_flush( sequence, A( Am, Ak ) );
+            chameleon_data_flush( sequence, A( Am, Ak ), request->flush );
 
             for ( q=1; q < chameleon_desc_datadist_get_iparam(C, 1); q++ ) {
                 INSERT_TASK_zlacpy(
@@ -364,7 +366,7 @@ chameleon_pzsymm_summa_left( CHAM_context_t *chamctxt, cham_uplo_t uplo,
                 B(   k,              n ),
                 WB( (k % chameleon_desc_datadist_get_iparam(C, 0)) + lp, n ) );
 
-            RUNTIME_data_flush( sequence, B( k, n ) );
+            chameleon_data_flush( sequence, B( k, n ), request->flush );
 
             for ( p=1; p < chameleon_desc_datadist_get_iparam(C, 0); p++ ) {
                 INSERT_TASK_zlacpy(
@@ -428,6 +430,7 @@ chameleon_pzsymm_summa_right( CHAM_context_t *chamctxt, cham_uplo_t uplo,
                               RUNTIME_option_t *options )
 {
     RUNTIME_sequence_t *sequence = options->sequence;
+    RUNTIME_request_t  *request  = options->request;
     cham_trans_t transA;
     int m, n, k, p, q, KT, lp, lq;
     int tempmm, tempnn, tempkk;
@@ -458,7 +461,7 @@ chameleon_pzsymm_summa_right( CHAM_context_t *chamctxt, cham_uplo_t uplo,
                 B(  m,  k ),
                 WA( m, (k % chameleon_desc_datadist_get_iparam(C, 1)) + lq ) );
 
-            RUNTIME_data_flush( sequence, B( m, k ) );
+            chameleon_data_flush( sequence, B( m, k ), request->flush );
 
             for ( q=1; q < chameleon_desc_datadist_get_iparam(C, 1); q++ ) {
                 INSERT_TASK_zlacpy(
@@ -498,7 +501,7 @@ chameleon_pzsymm_summa_right( CHAM_context_t *chamctxt, cham_uplo_t uplo,
                 A(  Ak,              An ),
                 WB( (Ak % chameleon_desc_datadist_get_iparam(C, 0)) + lp, n  ) );
 
-            RUNTIME_data_flush( sequence, A( Ak, An ) );
+            chameleon_data_flush( sequence, A( Ak, An ), request->flush );
 
             for ( p=1; p < chameleon_desc_datadist_get_iparam(C, 0); p++ ) {
                 INSERT_TASK_zlacpy(
