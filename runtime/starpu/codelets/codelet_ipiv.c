@@ -14,7 +14,7 @@
  * @author Matthieu Kuhn
  * @author Alycia Lisito
  * @author Matteo Marcos
- * @date 2025-03-24
+ * @date 2025-07-15
  *
  */
 #include "chameleon_starpu_internal.h"
@@ -104,6 +104,10 @@ void INSERT_TASK_ipiv_init_data( const RUNTIME_option_t *options,
         starpu_data_handle_t    ipiv_src = RUNTIME_ipiv_getaddr( ipiv, m );
         struct cl_laswp_args_s *cl_args;
         int                     m0, n;
+
+        if ( ipiv->get_rankof( ipiv, m, m ) != ipiv->myrank ) {
+            continue;
+        }
 
         m0 = m * mb;
         n = ( m == ( mt-1 ) ) ? ipiv->m - m0 : mb;
