@@ -11,7 +11,9 @@
  @author Florent Pruvost
  @author Nathalie Furmento
  @author Alycia Lisito
- @date 2024-11-14
+ @author Brieuc Nicolas
+ @author Matteo Marcos
+ @date 2025-07-09
 
 """
 _extra_blas = [
@@ -74,6 +76,7 @@ subs = {
         ('dsgels',               'zcgels'                 ),
         ('dsorgesv',             'zcungesv'               ),
         ('codelet_ds',           'codelet_zc'             ),
+        ('core_ds',              'core_zc'                ),
     ],
     # ------------------------------------------------------------
     # replacements applied to mixed precision files.
@@ -126,6 +129,7 @@ subs = {
         ('testing_p',            'testing_s',            'testing_d',            'testing_c',            'testing_z'           ),
         ('workspace_p',          'workspace_s',          'workspace_d',          'workspace_c',          'workspace_z'         ),
         ('check_p',              'check_s',              'check_d',              'check_c',              'check_z'             ),
+        ('core_p',               'core_s',               'core_d',               'core_c',               'core_z'             ),
 #        ('CORE_P',               'CORE_S',               'CORE_D',               'CORE_C',               'CORE_Z'              ),
 #        ('vec_p',                'vec_s',                'vec_d',                'vec_c',                'vec_z'               ),
 
