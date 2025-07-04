@@ -20,7 +20,8 @@
 # @version 1.3.0
 #  @author Florent Pruvost
 #  @author Mathieu Faverge
-#  @date 2024-02-18
+#  @author Brieuc Nicolas
+#  @date 2025-07-09
 #
 ###
 
@@ -28,50 +29,92 @@ if (NOT EZTRACE_FOUND)
     find_package(EZTRACE)
 endif()
 
-if (EZTRACE_FOUND AND EZTRACE_DIR_FOUND AND CHAMELEON_USE_EZTRACE)
+if (EZTRACE_FOUND AND CHAMELEON_USE_EZTRACE)
 
-    set(EZTRACE_eztrace_create_plugin_DIR "EZTRACE_eztrace_create_plugin_DIR-NOTFOUND")
-    find_path(EZTRACE_eztrace_create_plugin_DIR
-      NAMES eztrace_create_plugin
-      HINTS ${EZTRACE_DIR_FOUND}/bin)
-    mark_as_advanced(EZTRACE_eztrace_create_plugin_DIR)
+    if( EZTRACE_VERSION VERSION_GREATER "2.0.0" )
+        set( MODULE_SRCS gpucublas_z.c)
 
-    if (EZTRACE_eztrace_create_plugin_DIR)
+        if ( GPUCUBLAS_HAVE_CUDA_TOOLKIT )
+            list(APPEND MODULE_SRCS gpucublas_zc.c)
+        endif()
 
-        set(EZTRACE_CREATE_PLUGIN "${EZTRACE_eztrace_create_plugin_DIR}/eztrace_create_plugin")
+        precisions_rules_py(MODULE_SRCS_GENERATED "${MODULE_SRCS}"
+        PRECISIONS "${CHAMELEON_PRECISION}")
 
-        add_custom_command(
-            OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/output
-            COMMAND ${EZTRACE_CREATE_PLUGIN}
-            ARGS ${CMAKE_CURRENT_SOURCE_DIR}/gpucublas_eztrace_module
-            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/gpucublas_eztrace_module
-            )
-        add_custom_target(
-            eztrace-module-chameleon_cuda-dir ALL
-            DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/output
-            )
-        add_custom_command(
-            OUTPUT libeztrace-convert-chameleon_cuda.so
-            COMMAND make
-            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/output
-            DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/output
-            )
-        add_custom_target(
-            eztrace-module-chameleon_cuda-libs ALL
-            DEPENDS libeztrace-convert-chameleon_cuda.so
-            )
-        # installation
-        # ------------
+        if ( GPUCUBLAS_HAVE_CUDA_HALF OR GPUCUBLAS_HAVE_CUBLASGEMMEX )
+            list(APPEND MODULE_SRCS_GENERATED gpucublas_h.c)
+        endif()
+
+        add_library(eztrace-gpucublas SHARED ${MODULE_SRCS_GENERATED} gpucublas.c)
+        add_dependencies(eztrace-gpucublas
+            gpucublas_include)
+        target_link_libraries(eztrace-gpucublas
+            PUBLIC
+            ${EZTRACE_LINK_LIBRARIES}
+        )
+
+        target_link_libraries(eztrace-gpucublas PRIVATE coreblas CUDA::CUBLAS)
+
+        target_include_directories(eztrace-gpucublas PUBLIC
+            $<BUILD_INTERFACE:${CHAMELEON_SOURCE_DIR}/gpucublas/include>
+            $<BUILD_INTERFACE:${CHAMELEON_BINARY_DIR}/gpucublas/include>
+            $<BUILD_INTERFACE:${CHAMELEON_SOURCE_DIR}/include>
+            $<BUILD_INTERFACE:${CHAMELEON_BINARY_DIR}/include>
+            $<INSTALL_INTERFACE:include>)
+
+        target_include_directories(eztrace-gpucublas
+            PRIVATE
+            ${EZTRACE_INCLUDE_DIRS}
+        )
+
+
+        # Install the shared library
         install(
-            FILES
-            ${CMAKE_CURRENT_BINARY_DIR}/output/libeztrace-autostart-chameleon_cuda.so
-            ${CMAKE_CURRENT_BINARY_DIR}/output/libeztrace-chameleon_cuda.so
-            ${CMAKE_CURRENT_BINARY_DIR}/output/libeztrace-convert-chameleon_cuda.so
-            DESTINATION ${EZTRACE_LIBRARY_DIRS}
-            )
+            TARGETS eztrace-gpucublas
+            LIBRARY DESTINATION ${EZTRACE_LIBRARY_DIRS}
+        )
+    else()
+        set(EZTRACE_eztrace_create_plugin_DIR "EZTRACE_eztrace_create_plugin_DIR-NOTFOUND")
+        find_path(EZTRACE_eztrace_create_plugin_DIR
+        NAMES eztrace_create_plugin
+        HINTS ${EZTRACE_DIR_FOUND}/bin)
+        mark_as_advanced(EZTRACE_eztrace_create_plugin_DIR)
 
-    endif (EZTRACE_eztrace_create_plugin_DIR)
+        if (EZTRACE_eztrace_create_plugin_DIR)
 
+            set(EZTRACE_CREATE_PLUGIN "${EZTRACE_eztrace_create_plugin_DIR}/eztrace_create_plugin")
+
+            add_custom_command(
+                OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/output
+                COMMAND ${EZTRACE_CREATE_PLUGIN}
+                ARGS ${CMAKE_CURRENT_SOURCE_DIR}/gpucublas_eztrace_module
+                DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/gpucublas_eztrace_module
+                )
+            add_custom_target(
+                eztrace-module-chameleon_cuda-dir ALL
+                DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/output
+                )
+            add_custom_command(
+                OUTPUT libeztrace-convert-chameleon_cuda.so
+                COMMAND make
+                WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/output
+                DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/output
+                )
+            add_custom_target(
+                eztrace-module-chameleon_cuda-libs ALL
+                DEPENDS libeztrace-convert-chameleon_cuda.so
+                )
+            # installation
+            # ------------
+            install(
+                FILES
+                ${CMAKE_CURRENT_BINARY_DIR}/output/libeztrace-autostart-chameleon_cuda.so
+                ${CMAKE_CURRENT_BINARY_DIR}/output/libeztrace-chameleon_cuda.so
+                ${CMAKE_CURRENT_BINARY_DIR}/output/libeztrace-convert-chameleon_cuda.so
+                DESTINATION ${EZTRACE_LIBRARY_DIRS}
+                )
+        endif (EZTRACE_eztrace_create_plugin_DIR)
+    endif()
 endif ()
 
 ###
