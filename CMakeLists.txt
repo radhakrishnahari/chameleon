@@ -283,6 +283,23 @@ if(CHAMELEON_SCHED_STARPU)
       "CHAMELEON_SIMULATION" OFF)
 endif()
 
+# Option to enable the parallel submission of tasks
+# -------------------------------------------------
+cmake_dependent_option( CHAMELEON_USE_RECURSIVE_TASKS
+  "Enable recursive tasks to be inserted through the recursive tasks mechanism of StarPU" OFF
+  "CHAMELEON_SCHED_STARPU" OFF )
+
+cmake_dependent_option( CHAMELEON_RECURSIVE_TASKS_PARALLEL_INSERT
+  "Enable parallel recursive tasks insertion" ON
+  "CHAMELEON_USE_RECURSIVE_TASKS;NOT CHAMELEON_RUNTIME_SYNC" OFF )
+
+if ( CHAMELEON_USE_RECURSIVE_TASKS )
+  if ( BUILD_SHARED_LIBS )
+    message( WARNING "Shared libraries are not available when compiling with recursive tasks (Force static libraries)" )
+  endif()
+  set( BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE )
+endif()
+
 # Initially we need to generate files for different precisions
 # TODO: use this option to avoid generate multiple precisions each time we launch cmake
 #option(CHAMELEON_GEN_PREC "Generate source files precisions" ON)

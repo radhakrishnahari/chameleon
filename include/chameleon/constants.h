@@ -195,6 +195,16 @@ typedef enum chameleon_normtype_e {
 } cham_normtype_t;
 
 /**
+ * @brief Recursive algorithm used to partition the matrix
+ */
+typedef enum chameleon_rec_e {
+    ChamRecFull   = 181, /**< Fully partitioned matrix */
+    ChamRecRandom = 182, /**< Randomly partitioned matrix */
+    ChamRecDiag   = 183, /**< Diagonaly partitioned matrix */
+    ChamRecSmart  = 184, /**< Partitioning optimized for GEMM */
+} cham_rec_t;
+
+/**
  * @brief Random distribution for matrix generator
  */
 typedef enum chameleon_dist_e {

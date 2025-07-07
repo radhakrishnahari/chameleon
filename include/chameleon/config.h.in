@@ -90,6 +90,10 @@
 /* chameleon runtime starpu */
 #cmakedefine CHAMELEON_ENABLE_PRUNING_STATS
 
+/* Support for StarPU Recursive tasks */
+#cmakedefine CHAMELEON_USE_RECURSIVE_TASKS
+#cmakedefine CHAMELEON_RECURSIVE_TASKS_PARALLEL_INSERT
+
 #cmakedefine HAVE_FALLTHROUGH
 #if defined(HAVE_FALLTHROUGH)
 #define chameleon_attr_fallthrough __attribute__((fallthrough))

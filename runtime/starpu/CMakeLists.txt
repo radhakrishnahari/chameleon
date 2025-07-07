@@ -209,6 +209,18 @@ int main() {
     endif()
   endif()
 
+  # Check that recursive tasks are available if requested
+  # -----------------------------------------------------
+  if ( CHAMELEON_USE_RECURSIVE_TASKS )
+    check_symbol_exists( STARPU_RECURSIVE_TASKS "starpu_config.h" HAVE_STARPU_RECURSIVE_TASKS )
+    if ( HAVE_STARPU_RECURSIVE_TASKS )
+      message("-- ${Blue}Add definition HAVE_STARPU_RECURSIVE_TASKS${ColourReset}")
+    else()
+      message( FATAL_ERROR "StarPU has not been compiled with Recursive Tasks support (--enable-recursive-tasks) and CHAMELEON_USE_RECURSIVE_TASKS is enabled\n"
+        "  Please disable CHAMELEON_USE_RECURSIVE_TASKS, or recompile StarPU with Recursive Tasks support" )
+    endif()
+  endif()
+
   morse_cmake_required_unset()
 endif ( STARPU_FOUND )
 

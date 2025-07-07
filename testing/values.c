@@ -429,6 +429,44 @@ val_t pread_norm( const char *str )
 }
 
 /**
+ * @brief Convert the input string to a cham_rec_t
+ * @param[in] str
+ *    The input string
+ * @return The cham_rec_t read.
+ */
+val_t pread_rec( const char *str )
+{
+    val_t val;
+    val.ntype = ChamRecFull;
+    if ( strcasecmp("full", str) == 0 )
+    {
+        val.rec = ChamRecFull;
+    }
+    else if ( strcasecmp("random", str) == 0 )
+    {
+        val.rec = ChamRecRandom;
+    }
+    else if ( strcasecmp("diag", str) == 0 )
+    {
+        val.rec = ChamRecDiag;
+    }
+    else if ( strcasecmp("smart", str) == 0 )
+    {
+        val.rec = ChamRecSmart;
+    }
+    else {
+        int v = atoi( str );
+        if ( (v == ChamRecRandom) || (v == (ChamRecRandom-ChamRecFull)) ) {
+            val.rec = ChamRecRandom;
+        }
+        else if ( (v == ChamRecDiag) || (v == (ChamRecDiag-ChamRecFull)) ) {
+            val.rec = ChamRecDiag;
+        }
+    }
+    return val;
+}
+
+/**
  * @brief Convert the input string to a string
  * @param[in] str
  *    The input string
@@ -701,6 +739,38 @@ char *sprint_norm( val_t val, int human, int nbchar, char *str_in )
             break;
         case ChamFrobeniusNorm:
             name = "Frb";
+            break;
+        default:
+            name = "ERR";
+        }
+        rc = sprintf( str_in, " %-*s", nbchar, name );
+    }
+    else {
+        rc = sprintf( str_in, ";%d", val.ntype );
+    }
+    return str_in+rc;
+}
+
+/**
+ * @brief Convert the input string to a cham_rec_t
+ * @param[in] str
+ *    The input string
+ * @return The cham_rec_t read.
+ */
+char *sprint_rec( val_t val, int human, int nbchar, char *str_in )
+{
+    int rc;
+    if ( human ) {
+        char *name;
+        switch( val.rec ) {
+        case ChamRecFull:
+            name = "Full";
+            break;
+        case ChamRecRandom:
+            name = "Rand";
+            break;
+        case ChamRecDiag:
+            name = "Diag";
             break;
         default:
             name = "ERR";
