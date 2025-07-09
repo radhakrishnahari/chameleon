@@ -36,11 +36,7 @@
 #include <eztrace-instrumentation/pptrace.h>
 #include <eztrace-lib/eztrace.h>
 #include <eztrace-lib/eztrace_module.h>
-#include "chameleon/struct.h"
-#include "chameleon/constants.h"
-#include "chameleon/types.h"
-
-
+#include "common.h"
 
 /* set to 1 when all the hooks are set.
  * This is usefull in order to avoid recursive calls to mutex_lock for example
