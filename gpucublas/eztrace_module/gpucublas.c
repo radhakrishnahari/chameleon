@@ -171,8 +171,7 @@ static void _gpucublas_init(void)
 #endif
 
     /* Add the final element */
-    //*current_list_start = (struct ezt_instrumented_function)MODULE_END;
-    *current_list_start = FUNCTION_NONE_ELT;
+    *current_list_start = (struct ezt_instrumented_function)FUNCTION_NONE_ELT;
 
     eztrace_log(dbg_lvl_debug, "eztrace_gpucublas constructor starts\n");
     EZT_REGISTER_MODULE(gpucublas, "Module for the gpucublas library",

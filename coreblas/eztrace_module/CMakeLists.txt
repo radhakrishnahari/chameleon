@@ -52,6 +52,8 @@ if (EZTRACE_FOUND AND CHAMELEON_USE_EZTRACE)
             )
 
             target_include_directories(eztrace-coreblas_${_module} PUBLIC
+                $<BUILD_INTERFACE:${CHAMELEON_SOURCE_DIR}/coreblas/include>
+                $<BUILD_INTERFACE:${CHAMELEON_BINARY_DIR}/coreblas/include>
                 $<BUILD_INTERFACE:${CHAMELEON_SOURCE_DIR}/include>
                 $<BUILD_INTERFACE:${CHAMELEON_BINARY_DIR}/include>
             )

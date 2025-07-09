@@ -80,7 +80,7 @@ _coreblas_tcore_init( void )
     size_t sizez  = 0;
     size_t sizec  = 0;
     size_t sized  = 0;
-    size_t sized  = 0;
+    size_t sizes  = 0;
     size_t sizezc = 0;
     size_t sizeds = 0;
 
@@ -159,8 +159,7 @@ _coreblas_tcore_init( void )
 #endif
 
     /* Add the final element */
-    //*current_list_start = (struct ezt_instrumented_function)MODULE_END;
-    *current_list_start = FUNCTION_NONE_ELT;
+    *current_list_start = (struct ezt_instrumented_function)FUNCTION_NONE_ELT;
 
     eztrace_log( dbg_lvl_debug, "eztrace_coreblas_tcore constructor starts\n" );
     EZT_REGISTER_MODULE( coreblas_tcore,
