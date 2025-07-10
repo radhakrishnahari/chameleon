@@ -1,8 +1,8 @@
 /**
  *
- * @file starpu/codelet_zperm_allreduce.c
+ * @file starpu/codelet_zperm_allreduce_col.c
  *
- * @copyright 2012-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2024-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  ***
@@ -14,7 +14,7 @@
  * @author Pierre Esterie
  * @author Matteo Marcos
  * @author Philippe Swartvagher
- * @date 2025-06-16
+ * @date 2025-07-09
  * @precisions normal z -> c d s
  *
  */

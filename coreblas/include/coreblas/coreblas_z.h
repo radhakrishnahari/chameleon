@@ -108,6 +108,7 @@ void CORE_zhe2ge(cham_uplo_t uplo, int M, int N,
 void CORE_zhegst(int itype, cham_uplo_t uplo, int N,
                  CHAMELEON_Complex64_t *A, int LDA,
                  CHAMELEON_Complex64_t *B, int LDB, int *INFO);
+#if defined(PRECISION_z) || defined(PRECISION_c)
 void CORE_zhemm(cham_side_t side, cham_uplo_t uplo,
                 int M, int N,
                 CHAMELEON_Complex64_t alpha, const CHAMELEON_Complex64_t *A, int LDA,
@@ -125,6 +126,7 @@ void CORE_zher2k(cham_uplo_t uplo, cham_trans_t trans,
 int  CORE_zhessq(cham_store_t storev, cham_uplo_t uplo, int N,
                  const CHAMELEON_Complex64_t *A, int LDA,
                  double *sclssq);
+#endif
 int  CORE_zherfb(cham_uplo_t uplo, int N, int K, int IB, int NB,
                  const CHAMELEON_Complex64_t *A,    int LDA,
                  const CHAMELEON_Complex64_t *T,    int LDT,
@@ -136,9 +138,11 @@ void CORE_zlacpy(cham_uplo_t uplo, int M, int N,
 void CORE_zlange(cham_normtype_t norm, int M, int N,
                  const CHAMELEON_Complex64_t *A, int LDA,
                  double *work, double *normA);
+#if defined(PRECISION_z) || defined(PRECISION_c)
 void CORE_zlanhe(cham_normtype_t norm, cham_uplo_t uplo, int N,
                  const CHAMELEON_Complex64_t *A, int LDA,
                  double *work, double *normA);
+#endif
 void CORE_zlansy(cham_normtype_t norm, cham_uplo_t uplo, int N,
                  const CHAMELEON_Complex64_t *A, int LDA,
                  double *work, double *normA);
@@ -227,8 +231,10 @@ int CORE_zpemv(cham_trans_t trans, cham_store_t storev,
                CHAMELEON_Complex64_t BETA,
                CHAMELEON_Complex64_t *Y, int INCY,
                CHAMELEON_Complex64_t *WORK);
+#if defined(PRECISION_z) || defined(PRECISION_c)
 void CORE_zplghe(double bump, int m, int n, CHAMELEON_Complex64_t *A, int lda,
                  int bigM, int m0, int n0, unsigned long long int seed );
+#endif
 void CORE_zplgsy(CHAMELEON_Complex64_t bump, int m, int n, CHAMELEON_Complex64_t *A, int lda,
                  int bigM, int m0, int n0, unsigned long long int seed );
 void CORE_zplrnt(int m, int n, CHAMELEON_Complex64_t *A, int lda,

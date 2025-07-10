@@ -1,8 +1,8 @@
 /**
  *
- * @file starpu/codelet_zperm_reduce.c
+ * @file starpu/codelet_zperm_reduce_col.c
  *
- * @copyright 2012-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2014-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  ***
@@ -12,7 +12,7 @@
  * @version 1.3.0
  * @author Alycia Lisito
  * @author Matteo Marcos
- * @date 2025-04-11
+ * @date 2025-07-09
  * @precisions normal z -> c d s
  *
  */
