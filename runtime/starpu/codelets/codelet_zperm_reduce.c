@@ -51,7 +51,7 @@ cl_cpui_reduce_init_cpu_func( void *descr[], void *cl_args )
     int                          An      = clargs->An;
     CHAMELEON_Complex64_t       *rows;
     int                          nindex;
-    int                          i, idx, idx_rank;
+    int                          i, idx, owner;
     int                          lda, A_inc;
 
     if ( side == ChamLeft ) {
@@ -63,26 +63,25 @@ cl_cpui_reduce_init_cpu_func( void *descr[], void *cl_args )
         lda   = 1;
     }
 
-    if( (ws->Am != clargs->Am) || (ws->An != clargs->An) ) {
-        ws->ws.nindex = 0;
-        memset( ws->ws.index, -1, sizeof(int) * ws->m );
-        ws->Am = Am;
-        ws->An = An;
-    }
-    nindex = ws->ws.nindex;
+    /* Initialize the workspace */
+    nindex        = 0;
+    ws->ws.nindex = 0;
+    memset( ws->ws.index, 0xff, sizeof(int) * ws->m );
 
     rows = (CHAMELEON_Complex64_t*) ws->ws.rows;
 
     for ( i = 0; i < clargs->k; i++ ) {
         idx = perm[i] / mb_full;
-        idx_rank = ( side == ChamLeft ) ? (idx % p) * q + (An  % q) :
-                                          (Am  % p) * q + (idx % q);
-        if ( idx_rank == myrank ) {
-            ws->ws.index[i] = nindex;
-            cblas_zcopy( ws->n, A    + i      * A_inc, lda,
-                                rows + nindex * ldb,   1 );
-            nindex++;
+        owner = ( side == ChamLeft ) ? (idx % p) * q + (An  % q) :
+                                       (Am  % p) * q + (idx % q);
+        if ( owner != myrank ) {
+            continue;
         }
+
+        ws->ws.index[i] = nindex;
+        cblas_zcopy( ws->n, A    + i      * A_inc, lda,
+                     rows + nindex * ldb,   1 );
+        nindex++;
     }
     ws->ws.nindex = nindex;
 }
@@ -92,8 +91,11 @@ CODELETS_CPU( zperm_reduce, cl_cpui_redux_cpu_func )
 
 #if defined(CHAMELEON_STARPU_USE_INSERT)
 
-static void
-INSERT_TASK_zperm_reduce_init( const RUNTIME_option_t *options,
+/*
+ * @brief Initialize ws by copying the lines to be permuted from Wu once all the gets are done.
+ */
+static inline void
+insert_task_zperm_reduce_init( const RUNTIME_option_t *options,
                                cham_dir_t              dir,
                                int                     me,
                                int                     k,
@@ -127,18 +129,21 @@ INSERT_TASK_zperm_reduce_init( const RUNTIME_option_t *options,
 
     rt_starpu_insert_task(
         &cl_zperm_reduce_init,
-        STARPU_CL_ARGS,             clargs, sizeof(struct cl_zperm_init_args_s),
-        STARPU_R,                   ipiv_handle,
-        STARPU_R,                   RTBLKADDR( Wu, ChamComplexDouble, Wum, Wun ),
-        STARPU_RW | STARPU_COMMUTE, RUNTIME_cpui_getaddr( ws, Wm, Wn ),
-        STARPU_EXECUTE_ON_NODE,     me,
-        STARPU_EXECUTE_ON_WORKER,   options->workerid,
-        STARPU_PRIORITY,            options->priority,
+        STARPU_CL_ARGS,           clargs, sizeof(struct cl_zperm_init_args_s),
+        STARPU_R,                 ipiv_handle,
+        STARPU_R,                 RTBLKADDR( Wu, ChamComplexDouble, Wum, Wun ),
+        STARPU_W,                 RUNTIME_cpui_getaddr( ws, Wm, Wn ),
+        STARPU_EXECUTE_ON_NODE,   me,
+        STARPU_EXECUTE_ON_WORKER, options->workerid,
+        STARPU_PRIORITY,          options->priority,
         0 );
 }
 
-static void
-INSERT_TASK_zperm_reduce_send( const RUNTIME_option_t *options,
+/*
+ * @brief Task to send ws to another process for the reduction
+ */
+static inline void
+insert_task_zperm_reduce_send( const RUNTIME_option_t *options,
                                CHAM_perm_t            *ws,
                                int                     me,
                                int                     dst,
@@ -153,8 +158,11 @@ INSERT_TASK_zperm_reduce_send( const RUNTIME_option_t *options,
         0 );
 }
 
-static void
-INSERT_TASK_zperm_reduce_recv( const RUNTIME_option_t *options,
+/*
+ * @brief Task to recieve ws from another process and proceed with the reduction.
+ */
+static inline void
+insert_task_zperm_reduce_recv( const RUNTIME_option_t *options,
                                CHAM_perm_t            *ws,
                                int                     me,
                                int                     src,
@@ -176,8 +184,11 @@ INSERT_TASK_zperm_reduce_recv( const RUNTIME_option_t *options,
 
 #else /* defined(CHAMELEON_STARPU_USE_INSERT) */
 
-static void
-INSERT_TASK_zperm_reduce_init( const RUNTIME_option_t *options,
+/*
+ * @brief Initialize ws by copying the lines to be permuted from Wu once all the gets are done on Wu.
+ */
+static inline void
+insert_task_zperm_reduce_init( const RUNTIME_option_t *options,
                                cham_dir_t              dir,
                                int                     me,
                                int                     k,
@@ -210,7 +221,7 @@ INSERT_TASK_zperm_reduce_init( const RUNTIME_option_t *options,
                                                   ipiv_handle, STARPU_R );
     starpu_cham_exchange_handle_before_execution( options, &params, &nbdata, descrs,
                                                   RTBLKADDR( Wu, ChamComplexDouble, Wum, Wun), STARPU_R );
-    starpu_cham_register_descr( &nbdata, descrs, RUNTIME_cpui_getaddr( ws, Wm, Wn ), STARPU_RW | STARPU_COMMUTE );
+    starpu_cham_register_descr( &nbdata, descrs, RUNTIME_cpui_getaddr( ws, Wm, Wn ), STARPU_W );
 
     task = starpu_task_create();
     task->cl = cl;
@@ -242,14 +253,17 @@ INSERT_TASK_zperm_reduce_init( const RUNTIME_option_t *options,
     if ( ret == -ENODEV ) {
         task->destroy = 0;
         starpu_task_destroy( task );
-        chameleon_error( "INSERT_TASK_zperm_allreduce_init", "Failed to submit the task to StarPU" );
+        chameleon_error( "INSERT_TASK_zperm_reduce_init", "Failed to submit the task to StarPU" );
         return;
     }
     starpu_cham_task_exchange_data_after_execution( options, params, nbdata, descrs );
 }
 
-static void
-INSERT_TASK_zperm_reduce_send( const RUNTIME_option_t *options,
+/*
+ * @brief Task to send ws to another process for the reduction
+ */
+static inline void
+insert_task_zperm_reduce_send( const RUNTIME_option_t *options,
                                CHAM_perm_t            *ws,
                                int                     me,
                                int                     dst,
@@ -267,8 +281,11 @@ INSERT_TASK_zperm_reduce_send( const RUNTIME_option_t *options,
     (void)cl_name;
 }
 
-static void
-INSERT_TASK_zperm_reduce_recv( const RUNTIME_option_t *options,
+/*
+ * @brief Task to recieve ws from another process and proceed with the reduction.
+ */
+static inline void
+insert_task_zperm_reduce_recv( const RUNTIME_option_t *options,
                                CHAM_perm_t            *ws,
                                int                     me,
                                int                     src,
@@ -316,7 +333,7 @@ INSERT_TASK_zperm_reduce_recv( const RUNTIME_option_t *options,
 
 #endif /* defined(CHAMELEON_STARPU_USE_INSERT) */
 
-static void
+static inline void
 zperm_reduce_chameleon_starpu_task( const RUNTIME_option_t *options,
                                     cham_dir_t              dir,
                                     const CHAM_desc_t      *A,
@@ -337,7 +354,7 @@ zperm_reduce_chameleon_starpu_task( const RUNTIME_option_t *options,
     int  P             = chameleon_desc_datadist_get_iparam( A, 0 );
     int  Q             = chameleon_desc_datadist_get_iparam( A, 1 );
     int  p_recv, p_send, p;
-    int  tempkn, tempkm;
+    int  tempkn, tempkm, tempkk;
 
     if( np_involved == 1 ){
         assert( proc_involved[0] == A->myrank );
@@ -346,14 +363,12 @@ zperm_reduce_chameleon_starpu_task( const RUNTIME_option_t *options,
 
     tempkm = A->get_blkdim( A, ipivk, DIM_m, A->m );
     tempkn = A->get_blkdim( A, ipivk, DIM_n, A->n );
+    tempkk = ( ws->side == ChamLeft ) ? tempkm : tempkn;
 
-    if ( ws->side == ChamLeft ) {
-        INSERT_TASK_zperm_reduce_init( options, dir, A->myrank, tempkm, P, Q, ipiv, ipivk, Am, An, Wu, Wum, Wun, ws, Wm, Wn );
-    }
-    else {
-        INSERT_TASK_zperm_reduce_init( options, dir, A->myrank, tempkn, P, Q, ipiv, ipivk, Am, An, Wu, Wum, Wun, ws, Wm, Wn );
-    }
+    insert_task_zperm_reduce_init( options, dir, A->myrank, tempkk, P, Q, ipiv, ipivk,
+                                   Am, An, Wu, Wum, Wun, ws, Wm, Wn );
 
+    /* Submit reduction tree */
     if ( A->myrank == A->get_rankof( A, Am, An ) ) {
         for ( p = 0; p < np_involved; p ++ ) {
             p_recv = proc_involved[p];
@@ -362,16 +377,14 @@ zperm_reduce_chameleon_starpu_task( const RUNTIME_option_t *options,
                 continue;
             }
 
-            INSERT_TASK_zperm_reduce_recv( options, ws, A->myrank, p_recv, Wm, Wn );
-
+            insert_task_zperm_reduce_recv( options, ws, A->myrank, p_recv, Wm, Wn );
         }
     }
     else {
         p_send = A->get_rankof( A, Am, An );
 
-        INSERT_TASK_zperm_reduce_send( options, ws, A->myrank, p_send, Wm, Wn );
+        insert_task_zperm_reduce_send( options, ws, A->myrank, p_send, Wm, Wn );
     }
-
 }
 
 void
