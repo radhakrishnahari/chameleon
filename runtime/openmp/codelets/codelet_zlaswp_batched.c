@@ -11,7 +11,8 @@
  *
  * @version 1.3.0
  * @author Alycia Lisito
- * @date 2024-11-12
+ * @author Matteo Marcos
+ * @date 2025-07-15
  * @precisions normal z -> c d s
  *
  */
@@ -19,25 +20,20 @@
 #include "chameleon/tasks_z.h"
 
 void INSERT_TASK_zlaswp_batched( const RUNTIME_option_t *options,
+                                 cham_side_t             side,
                                  cham_dir_t              dir,
                                  int                     m0,
                                  int                     m,
                                  int                     n,
                                  int                     k,
                                  void                   *ws,
-                                 const CHAM_ipiv_t      *ipiv,
-                                 int                     ipivk,
-                                 const CHAM_desc_t      *Am,
-                                 int                     Amm,
-                                 int                     Amn,
-                                 const CHAM_desc_t      *Ak,
-                                 int                     Akm,
-                                 int                     Akn,
-                                 const CHAM_desc_t      *U,
-                                 int                     Um,
-                                 int                     Un,
+                                 const CHAM_ipiv_t      *ipiv, int ipivk,
+                                 const CHAM_desc_t      *Am,   int Amm, int Amn,
+                                 const CHAM_desc_t      *Ak,   int Akm, int Akn,
+                                 const CHAM_desc_t      *U,    int Um,  int Un,
                                  void                  **clargs_ptr )
 {
+    assert( 0 );
     (void)options;
     (void)dir;
     (void)m0;
@@ -61,14 +57,9 @@ void INSERT_TASK_zlaswp_batched( const RUNTIME_option_t *options,
 
 void INSERT_TASK_zlaswp_batched_flush( const RUNTIME_option_t *options,
                                        cham_dir_t              dir,
-                                       const CHAM_ipiv_t      *ipiv,
-                                       int                     ipivk,
-                                       const CHAM_desc_t      *Ak,
-                                       int                     Akm,
-                                       int                     Akn,
-                                       const CHAM_desc_t      *U,
-                                       int                     Um,
-                                       int                     Un,
+                                       const CHAM_ipiv_t      *ipiv, int ipivk,
+                                       const CHAM_desc_t      *Ak,   int Akm, int Akn,
+                                       const CHAM_desc_t      *U,    int Um,  int Un,
                                        void                  **clargs_ptr )
 {
     (void)options;

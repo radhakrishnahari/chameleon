@@ -11,7 +11,8 @@
  *
  * @version 1.3.0
  * @author Mathieu Faverge
- * @date 2025-03-24
+ * @author Matteo Marcos
+ * @date 2025-07-15
  * @precisions normal z -> c d s
  *
  */
@@ -20,29 +21,31 @@
 #include "coreblas/coreblas_ztile.h"
 
 void INSERT_TASK_zlaswp_get( const RUNTIME_option_t *options,
-                             cham_dir_t dir, int m0, int m, int n, int k,
+                             cham_side_t side, cham_dir_t dir,
+                             int m0, int m, int n, int k,
                              const CHAM_ipiv_t *ipiv, int ipivk,
                              const CHAM_desc_t *A, int Am, int An,
                              const CHAM_desc_t *U, int Um, int Un )
 {
-    CHAM_tile_t *tileA = A->get_blktile( A, Am, An );
-    CHAM_tile_t *tileU = U->get_blktile( U, Um, Un );
-    int         *perm  = NULL; // get perm from ipiv
-
-    assert( tileA->format & CHAMELEON_TILE_FULLRANK );
-    assert( tileU->format & CHAMELEON_TILE_FULLRANK );
-
-#pragma omp task firstprivate( m0, k, ipiv, tileA, tileU ) depend( in:perm ) depend( in:tileA[0] ) depend( inout:tileU[0] )
-    {
-        TCORE_zlaswp_get( m0, m, n, k, tileA, tileU, perm );
-    }
-
+    assert( 0 );
     (void)options;
+    (void)side;
     (void)dir;
+    (void)m0;
+    (void)m;
+    (void)n;
+    (void)k;
+    (void)ipiv;
+    (void)ipivk;
+    (void)A;
+    (void)Am;
+    (void)An;
 }
 
 void INSERT_TASK_zlaswp_set( const RUNTIME_option_t *options,
-                             cham_dir_t dir, int m0, int m, int n, int k,
+                             cham_side_t             side,
+                             cham_dir_t              dir,
+                             int m0, int m, int n, int k,
                              const CHAM_ipiv_t *ipiv, int ipivk,
                              const CHAM_desc_t *A, int Am, int An,
                              const CHAM_desc_t *B, int Bm, int Bn )
@@ -51,14 +54,30 @@ void INSERT_TASK_zlaswp_set( const RUNTIME_option_t *options,
     CHAM_tile_t *tileB = B->get_blktile( B, Bm, Bn );
     int         *invp  = NULL; // get invp from ipiv
 
-    assert( tileA->format & CHAMELEON_TILE_FULLRANK );
-    assert( tileB->format & CHAMELEON_TILE_FULLRANK );
+    assert( A->format & CHAMELEON_TILE_FULLRANK );
+    assert( B->format & CHAMELEON_TILE_FULLRANK );
 
-#pragma omp task firstprivate( m0, k, ipiv, tileA, tileB ) depend( in:invp ) depend( in:tileA[0] ) depend( inout:tileB[0] )
+#pragma omp task firstprivate( m0, k, ipiv, A, B ) depend( in:invp ) depend( in:tileA[0] ) depend( inout:tileB[0] )
     {
-        TCORE_zlaswp_set( m0, m, n, k, tileA, tileB, invp );
+        TCORE_zlaswp_set( ChamLeft, m0, m, n, k, tileA, tileB, invp );
     }
 
     (void)options;
+    (void)side;
     (void)dir;
 }
+
+void INSERT_TASK_zlaswp_ret( const RUNTIME_option_t *options,
+                             CHAM_perm_t       *ws, int Wm, int Wn,
+                             const CHAM_desc_t *A,  int Am, int An )
+{
+    assert( 0 );
+    (void)options;
+    (void)ws;
+    (void)Wm;
+    (void)Wn;
+    (void)A;
+    (void)Am;
+    (void)An;
+}
+

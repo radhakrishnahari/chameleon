@@ -27,7 +27,8 @@
 #  @author Loris Lucido
 #  @author Terry Cojean
 #  @author Alycia Lisito
-#  @date 2024-08-29
+#  @author Matteo Marcos
+#  @date 2025-07-15
 #
 ###
 cmake_minimum_required(VERSION 3.12)
@@ -294,6 +295,7 @@ set(RUNTIME_COMMON
   control/runtime_workspace.c
   interface/cham_tile_interface.c
   interface/cppi_interface.c
+  interface/cpui_interface.c
   ${RUNTIME_COMMON_GENERATED}
   )
 

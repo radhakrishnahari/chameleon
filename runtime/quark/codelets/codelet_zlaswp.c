@@ -11,7 +11,8 @@
  *
  * @version 1.3.0
  * @author Mathieu Faverge
- * @date 2025-03-24
+ * @author Matteo Marcos
+ * @date 2025-07-15
  * @precisions normal z -> c d s
  *
  */
@@ -23,14 +24,16 @@ static void CORE_zlaswp_get_quark( Quark *quark )
 {
     int          m0, k, *perm;
     CHAM_tile_t *A, *B;
+    cham_side_t  side;
 
-    quark_unpack_args_5( quark, m0, k, perm, A, B );
+    quark_unpack_args_6( quark, side, m0, k, perm, A, B );
 
-    TCORE_zlaswp_get( m0, A->m, A->n, k, A, B, perm );
+    TCORE_zlaswp_get( side, m0, A->m, A->n, k, A, B, perm );
 }
 
 void INSERT_TASK_zlaswp_get( const RUNTIME_option_t *options,
-                             cham_dir_t dir, int m0, int m, int n, int k,
+                             cham_side_t side, cham_dir_t dir,
+                             int m0, int m, int n, int k,
                              const CHAM_ipiv_t *ipiv, int ipivk,
                              const CHAM_desc_t *A, int Am, int An,
                              const CHAM_desc_t *U, int Um, int Un )
@@ -40,8 +43,9 @@ void INSERT_TASK_zlaswp_get( const RUNTIME_option_t *options,
 
     QUARK_Insert_Task(
         opt->quark, CORE_zlaswp_get_quark, (Quark_Task_Flags*)opt,
-        sizeof(int),          &m0, VALUE,
-        sizeof(int),          &k,  VALUE,
+        sizeof(cham_side_t),  &side, VALUE,
+        sizeof(int),          &m0,   VALUE,
+        sizeof(int),          &k,    VALUE,
         sizeof(int*),         RUNTIME_perm_getaddr( ipiv, ipivk ),     INPUT,
         sizeof(CHAM_tile_t*), RTBLKADDR(A, ChamComplexDouble, Am, An), INPUT,
         sizeof(CHAM_tile_t*), RTBLKADDR(U, ChamComplexDouble, Um, Un), INOUT,
@@ -59,11 +63,13 @@ static void CORE_zlaswp_set_quark( Quark *quark )
 
     quark_unpack_args_5( quark, m0, k, invp, A, B );
 
-    TCORE_zlaswp_set( m0, A->m, A->n, k, A, B, invp );
+    TCORE_zlaswp_set( ChamLeft, m0, A->m, A->n, k, A, B, invp );
 }
 
 void INSERT_TASK_zlaswp_set( const RUNTIME_option_t *options,
-                             cham_dir_t dir, int m0, int m, int n, int k,
+                             cham_side_t             side,
+                             cham_dir_t              dir,
+                             int m0, int m, int n, int k,
                              const CHAM_ipiv_t *ipiv, int ipivk,
                              const CHAM_desc_t *A, int Am, int An,
                              const CHAM_desc_t *B, int Bm, int Bn )
@@ -81,6 +87,22 @@ void INSERT_TASK_zlaswp_set( const RUNTIME_option_t *options,
         0 );
 
     (void)dir;
+    (void)side;
     (void)m;
     (void)n;
 }
+
+void INSERT_TASK_zlaswp_ret( const RUNTIME_option_t *options,
+                             CHAM_perm_t       *ws, int Wm, int Wn,
+                             const CHAM_desc_t *A,  int Am, int An )
+{
+    assert( 0 );
+    (void)options;
+    (void)ws;
+    (void)Wm;
+    (void)Wn;
+    (void)A;
+    (void)Am;
+    (void)An;
+}
+

@@ -25,7 +25,7 @@
 #  @author Guillaume Sylvand
 #  @author Matthieu Kuhn
 #  @author Abel Calluaud
-#  @date 2024-03-27
+#  @date 2025-07-15
 #
 ###
 
@@ -72,7 +72,6 @@ set(ZSRC
     core_zlaset.c
     core_zlaset2.c
     core_zlaswp.c
-    core_zlaswpc.c
     core_zlatro.c
     core_zlauum.c
     core_zpamm.c

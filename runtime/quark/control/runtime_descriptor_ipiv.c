@@ -15,7 +15,7 @@
  * @author Alycia Lisito
  * @author Florent Pruvost
  * @author Matteo Marcos
- * @date 2025-06-12
+ * @date 2025-07-15
  *
  */
 #include "chameleon_quark.h"
@@ -148,3 +148,41 @@ void RUNTIME_ipiv_gather( const RUNTIME_sequence_t *sequence,
     (void)ipiv;
     (void)node;
 }
+
+void RUNTIME_cpui_create( CHAM_perm_t *ws )
+{
+    assert( 0 );
+    (void)ws;
+}
+
+void *RUNTIME_cpui_getaddr( const CHAM_perm_t *ws,
+                            int                m,
+                            int                n )
+{
+    assert( 0 );
+    (void)ws;
+    (void)m;
+    (void)n;
+    return NULL;
+}
+
+void RUNTIME_cpui_destroy( CHAM_perm_t *ws )
+{
+    assert( 0 );
+    (void)ws;
+}
+
+void RUNTIME_cpui_flushk( const RUNTIME_sequence_t *sequence,
+                          int                       rank,
+                          const CHAM_perm_t        *ws,
+                          int                       m,
+                          int                       n )
+{
+    assert( 0 );
+    (void)sequence;
+    (void)ws;
+    (void)rank;
+    (void)m;
+    (void)n;
+}
+
