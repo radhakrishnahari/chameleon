@@ -163,9 +163,9 @@ CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A )
         lookahead = chamctxt->lookahead;
         chameleon_desc_init( &(ws->Wl), CHAMELEON_MAT_ALLOC_TILE,
                              ChamComplexDouble, A->mb, A->nb, (A->mb * A->nb),
-                             A->mt * A->mb, A->nb * Q * lookahead, 0, 0,
-                             A->mt * A->mb, A->nb * Q * lookahead, P, Q,
-                             NULL, NULL, A->get_rankof_init, A->get_rankof_init_arg );
+                             A->mt * A->mb, A->nb * P * Q * lookahead, 0, 0,
+                             A->mt * A->mb, A->nb * P * Q * lookahead, 1, P * Q,
+                             NULL, NULL, NULL, A->get_rankof_init_arg );
     }
 
     /* Set ib to 1 if per column algorithm */
