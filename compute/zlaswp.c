@@ -119,14 +119,14 @@ CHAMELEON_zlaswp_WS_Alloc( cham_side_t side, const CHAM_desc_t *A )
                              ChamComplexDouble, A->mb, A->nb, A->mb*A->nb,
                              A->mb * P * Q, A->n, 0, 0,
                              A->mb * P * Q, A->n, P * Q, 1,
-                             NULL, NULL, NULL, A->get_rankof_init_arg );
+                             NULL, NULL, NULL, NULL );
     }
     else {
         chameleon_desc_init( &(ws->Wu), CHAMELEON_MAT_ALLOC_TILE,
                              ChamComplexDouble, A->mb, A->nb, A->mb*A->nb,
                              A->m, A->nb * P * Q, 0, 0,
                              A->m, A->nb * P * Q, 1, P * Q,
-                             NULL, NULL, NULL, A->get_rankof_init_arg );
+                             NULL, NULL, NULL, NULL );
     }
 
     ws->ws.mt   = A->mt;
