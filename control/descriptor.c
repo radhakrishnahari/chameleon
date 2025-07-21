@@ -1242,6 +1242,8 @@ int CHAMELEON_Desc_Change_Distribution_Async( cham_uplo_t         uplo,
     }
 #endif
 
+    /* Update the get_rankof function and argument for the new one */
+    desc->get_rankof_init     = new_get_rankof;
     desc->get_rankof_init_arg = new_get_rankof_arg;
 
     for ( n = 0; n < desc->nt; n++ ) {
@@ -1249,15 +1251,14 @@ int CHAMELEON_Desc_Change_Distribution_Async( cham_uplo_t         uplo,
         mmax = ( uplo == ChamUpper ) ? chameleon_min( n+1, desc->mt ) : desc->mt;
         for ( m = mmin; m < mmax; m++ ) {
             CHAM_tile_t *tile = desc->get_blktile( desc, m, n );
-            int rank = new_get_rankof( desc, m, n );
+            int         rank  = new_get_rankof( desc, m, n );
 
-            RUNTIME_data_migrate( sequence, desc, m, n, new_get_rankof( desc, m, n ) );
-            tile->rank = rank;
+            if ( rank != tile->rank ) {
+                RUNTIME_data_migrate( sequence, desc, m, n, rank );
+                tile->rank = rank;
+            }
         }
     }
-
-    /* Actually change data location in Chameleon */
-    desc->get_rankof_init = new_get_rankof;
 
     return CHAMELEON_SUCCESS;
 }

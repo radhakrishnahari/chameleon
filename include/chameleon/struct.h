@@ -134,9 +134,13 @@ struct chameleon_desc_s {
     blkldd_fct_t    get_blkldd;      /**> function to get chameleon tiles leading dimension           */
     blkdim_fct_t    get_blkdim;      /**> function to get chameleon tiles dimension within algorithms */
     blkrankof_fct_t get_rankof;      /**> function to get chameleon tiles MPI rank                    */
-    blkrankof_fct_t get_rankof_init; /**> function to get chameleon tiles MPI rank                    */
 
-    void* get_rankof_init_arg;
+    blkrankof_fct_t get_rankof_init;     /**> Pointer to the function used to set the data distribution
+                                              (used only for checking purpose)                           */
+    void           *get_rankof_init_arg; /**> Pointer to the data used by the data distribution function
+                                              (used only to give the same prototype as get_blktile
+                                              (should be modified) */
+
     CHAM_tile_t *tiles;  /**> pointer to the array of tiles descriptors  */
     void *mat;           /**> pointer to the beginning of the matrix     */
     size_t A21;          /**> pointer to the beginning of the matrix A21 */

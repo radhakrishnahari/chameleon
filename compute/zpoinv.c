@@ -310,7 +310,7 @@ int CHAMELEON_zpoinv_Tile_Async( cham_uplo_t uplo, CHAM_desc_t *A,
                 chameleon_error( "CHAMELEON_zpoinv", "CHAMELEON_POINV_REMAP: could not open the custom distribution file, keeping the original distribution");
             } else {
                 change_distribution_for_trtri = 1;
-                original_get_rankof = A->get_rankof_init;
+                original_get_rankof     = A->get_rankof_init;
                 original_get_rankof_arg = A->get_rankof_init_arg;
             }
         }
