@@ -44,6 +44,8 @@ void chameleon_pzgetrf_nopiv_generic( CHAM_desc_t        *A,
 
     int k, m, n, ib;
     int tempkm, tempkn, tempmm, tempnn;
+    int P = chameleon_desc_datadist_get_iparam( A, 0 );
+    int Q = chameleon_desc_datadist_get_iparam( A, 1 );
 
     CHAMELEON_Complex64_t zone  = (CHAMELEON_Complex64_t) 1.0;
     CHAMELEON_Complex64_t mzone = (CHAMELEON_Complex64_t)-1.0;
@@ -58,7 +60,7 @@ void chameleon_pzgetrf_nopiv_generic( CHAM_desc_t        *A,
 
     if ( chamctxt->autominmax_enabled && (chamctxt->scheduler == RUNTIME_SCHED_STARPU) ) {
         int lookahead = chamctxt->lookahead;
-        int nbtasks_per_step = (A->mt * A->nt) / (chameleon_desc_datadist_get_iparam(A, 0) * chameleon_desc_datadist_get_iparam(A, 1));
+        int nbtasks_per_step = (A->mt * A->nt) / (P * Q);
         int mintasks = nbtasks_per_step *  lookahead;
         int maxtasks = nbtasks_per_step * (lookahead+1);
 
@@ -135,9 +137,20 @@ void chameleon_pzgetrf_nopiv_ws( CHAM_desc_t        *A,
     CHAM_context_t  *chamctxt;
     RUNTIME_option_t options;
 
-    int k, m, n, ib, p, q, lp, lq;
-    int tempkm, tempkn, tempmm, tempnn;
-    int lookahead, myp, myq;
+    int            k, m, n, ib, p, q, lp, lq;
+    int            tempkm, tempkn, tempmm, tempnn;
+    int            lookahead;
+    int            rankAmk, rankAkn;
+    int            Wu_rank, Wl_rank, Wl_prev_rank, Wu_prev_rank;
+    int            P      = chameleon_desc_datadist_get_iparam( A, 0 );
+    int            Q      = chameleon_desc_datadist_get_iparam( A, 1 );
+    int           *Wl_idx = malloc( sizeof(int) * P * Q );
+    int           *Wu_idx = malloc( sizeof(int) * P * Q );
+    custom_dist_t *dist   = A->get_rankof_init_arg;
+    int            max_q  = ( dist ) ? chameleon_min( dist->dist_n, A->nt ) :
+                                       chameleon_min( Q           , A->nt );
+    int            max_p  = ( dist ) ? chameleon_min( dist->dist_m, A->mt ) :
+                                       chameleon_min( P           , A->mt );
 
     CHAMELEON_Complex64_t zone  = (CHAMELEON_Complex64_t) 1.0;
     CHAMELEON_Complex64_t mzone = (CHAMELEON_Complex64_t)-1.0;
@@ -150,16 +163,16 @@ void chameleon_pzgetrf_nopiv_ws( CHAM_desc_t        *A,
 
     ib = CHAMELEON_IB;
     lookahead = chamctxt->lookahead;
-    myp = A->myrank / chameleon_desc_datadist_get_iparam(A, 1);
-    myq = A->myrank % chameleon_desc_datadist_get_iparam(A, 1);
 
-    for (k = 0; k < chameleon_min(A->mt, A->nt); k++) {
+    for ( k = 0; k < chameleon_min(A->mt, A->nt); k++ ) {
         RUNTIME_iteration_push(chamctxt, k);
-        lp = (k % lookahead) * chameleon_desc_datadist_get_iparam(A, 0);
-        lq = (k % lookahead) * chameleon_desc_datadist_get_iparam(A, 1);
+        lp = (k % lookahead) * P * Q;
+        lq = (k % lookahead) * P * Q;
 
         tempkm = A->get_blkdim( A, k, DIM_m, A->m );
         tempkn = A->get_blkdim( A, k, DIM_n, A->n );
+        memset( Wl_idx, 0x00, P * Q * sizeof(int) );
+        memset( Wu_idx, 0x00, P * Q * sizeof(int) );
 
         options.priority = 2*A->nt - 2*k;
         INSERT_TASK_zgetrf_nopiv(
@@ -171,134 +184,188 @@ void chameleon_pzgetrf_nopiv_ws( CHAM_desc_t        *A,
          * Broadcast of A(k,k) along rings in both directions
          */
         {
+            Wl_rank = A->get_rankof( A, k, k );
+            Wu_rank = A->get_rankof( A, k, k );
             INSERT_TASK_zlacpy(
                 &options,
                 ChamUpperLower, tempkm, tempkn,
                 A(  k, k ),
-                WL( k, (k % chameleon_desc_datadist_get_iparam(A, 1)) + lq ) );
+                WL( k, Wl_rank + lq ) );
             INSERT_TASK_zlacpy(
                 &options,
                 ChamUpperLower, tempkm, tempkn,
                 A(  k, k ),
-                WU( (k % chameleon_desc_datadist_get_iparam(A, 0)) + lp, k ) );
+                WU( Wu_rank + lp, k ) );
 
-            for ( q=1; q < chameleon_desc_datadist_get_iparam(A, 1); q++ ) {
+            Wl_idx[Wl_rank] = 1;
+            Wu_idx[Wu_rank] = 1;
+            Wl_prev_rank = Wl_rank;
+            Wu_prev_rank = Wu_rank;
+            for ( q = 0; q < max_q; q++ ) {
+                Wl_rank = A->get_rankof( A, k, q );
+
+                /* Skip if already sent to process */
+                if ( Wl_idx[Wl_rank] != 0 ) {
+                    continue;
+                }
+
                 INSERT_TASK_zlacpy(
                     &options,
                     ChamUpperLower, tempkm, tempkn,
-                    WL( k, ((k+q-1) % chameleon_desc_datadist_get_iparam(A, 1)) + lq ),
-                    WL( k, ((k+q)   % chameleon_desc_datadist_get_iparam(A, 1)) + lq ) );
+                    WL( k, Wl_prev_rank + lq ),
+                    WL( k, Wl_rank      + lq ) );
+                Wl_idx[Wl_rank] = 1;
+                Wl_prev_rank    = Wl_rank;
             }
 
-            for ( p=1; p < chameleon_desc_datadist_get_iparam(A, 0); p++ ) {
+            for ( p = 0; p < max_p; p++ ) {
+                Wu_rank = A->get_rankof( A, p, k );
+
+                /* Skip if already sent to process */
+                if ( Wu_idx[Wu_rank] != 0 ) {
+                    continue;
+                }
+
                 INSERT_TASK_zlacpy(
                     &options,
                     ChamUpperLower, tempkm, tempkn,
-                    WU( ((k+p-1) % chameleon_desc_datadist_get_iparam(A, 0)) + lp, k ),
-                    WU( ((k+p)   % chameleon_desc_datadist_get_iparam(A, 0)) + lp, k ) );
+                    WU( Wu_prev_rank + lp, k ),
+                    WU( Wu_rank + lp, k ) );
+                Wu_idx[Wu_rank] = 1;
+                Wu_prev_rank    = Wu_rank;
             }
         }
         chameleon_data_flush( sequence, A( k, k ), request->flush );
 
-        for (m = k+1; m < A->mt; m++) {
+        for ( m = k + 1; m < A->mt; m++ ) {
 
             /* Skip the row if you are not involved with */
-            if ( m%chameleon_desc_datadist_get_iparam(A, 0) != myp ) {
+            if ( !chameleon_involved_in_rowpanelk( A, m ) ) {
                 continue;
             }
 
             options.priority = 2*A->nt - 2*k - m;
-            tempmm = A->get_blkdim( A, m, DIM_m, A->m );
+            tempmm           = A->get_blkdim( A, m, DIM_m, A->m );
+            rankAmk          = A->get_rankof( A, m, k );
 
-            assert( A->get_rankof( A, m, k ) == WU->get_rankof( WU, myp + lp, k) );
+            assert( rankAmk == WU->get_rankof( WU, rankAmk + lp, k) );
             INSERT_TASK_ztrsm(
                 &options,
                 ChamRight, ChamUpper, ChamNoTrans, ChamNonUnit,
                 tempmm, tempkn, A->mb,
-                zone, WU( myp + lp, k ),
+                zone, WU( rankAmk + lp, k ),
                       A( m, k ) );
 
             /* Broadcast A(m,k) into temp buffers through a ring */
             {
-                assert( A->get_rankof( A, m, k ) == WL->get_rankof( WL,  m, (k % chameleon_desc_datadist_get_iparam(A, 1)) + lq) );
+                memset( Wl_idx, 0x00, P * Q * sizeof(int) );
+                Wl_rank = A->get_rankof(A, m, k);
+
+                assert( A->get_rankof( A, m, k ) == WL->get_rankof( WL,  m, Wl_rank + lq) );
                 INSERT_TASK_zlacpy(
                     &options,
                     ChamUpperLower, tempmm, tempkn,
                     A(  m, k ),
-                    WL( m, (k % chameleon_desc_datadist_get_iparam(A, 1)) + lq) );
+                    WL( m, Wl_rank + lq) );
 
-                for ( q=1; q < chameleon_desc_datadist_get_iparam(A, 1); q++ ) {
+                Wl_idx[Wl_rank] = 1;
+                Wl_prev_rank    = Wl_rank;
+
+                for ( q = 0; q < max_q; q++ ) {
+                    Wl_rank = A->get_rankof( A, m, q );
+
+                    /* Skip if already sent to process */
+                    if ( Wl_idx[Wl_rank] != 0 ) {
+                        continue;
+                    }
                     INSERT_TASK_zlacpy(
                         &options,
                         ChamUpperLower, tempmm, tempkn,
-                        WL( m, ((k+q-1) % chameleon_desc_datadist_get_iparam(A, 1)) + lq ),
-                        WL( m, ((k+q)   % chameleon_desc_datadist_get_iparam(A, 1)) + lq ) );
+                        WL( m, Wl_prev_rank + lq ),
+                        WL( m, Wl_rank + lq ) );
+                    Wl_idx[Wl_rank] = 1;
+                    Wl_prev_rank    = Wl_rank;
                 }
             }
             chameleon_data_flush( sequence, A( m, k ), request->flush );
         }
 
-        for (n = k+1; n < A->nt; n++) {
+        for ( n = k + 1; n < A->nt; n++ ) {
 
             /* Skip the column if you are not involved with */
-            if ( n%chameleon_desc_datadist_get_iparam(A, 1) != myq ) {
+            if ( !chameleon_involved_in_panelk(A, n) ) {
                 continue;
             }
 
-            tempnn = A->get_blkdim( A, n, DIM_n, A->n );
             options.priority = 2*A->nt - 2*k - n;
+            tempnn           = A->get_blkdim( A, n, DIM_n, A->n );
+            rankAkn          = A->get_rankof( A, k, n );
 
-            assert( A->get_rankof( A, k, n ) == WL->get_rankof( WL, k, myq+lq) );
+            assert( rankAkn == WL->get_rankof( WL, k, rankAkn + lq) );
             INSERT_TASK_ztrsm(
                 &options,
                 ChamLeft, ChamLower, ChamNoTrans, ChamUnit,
                 tempkm, tempnn, A->mb,
-                zone, WL( k, myq + lq ),
-                      A( k, n ));
+                zone, WL( k, rankAkn + lq ),
+                A( k, n ));
 
             /* Broadcast A(k,n) into temp buffers through a ring */
             {
-                assert( A->get_rankof( A, k, n ) == WU->get_rankof( WU, (k%chameleon_desc_datadist_get_iparam(A, 0)) + lp, n) );
+                Wu_rank = A->get_rankof( A, k, n );
+                assert( rankAkn == WU->get_rankof( WU, Wu_rank + lp, n) );
+                memset( Wu_idx, 0x00, P * Q * sizeof(int) );
                 INSERT_TASK_zlacpy(
                     &options,
                     ChamUpperLower, tempkm, tempnn,
                     A(  k, n ),
-                    WU( (k % chameleon_desc_datadist_get_iparam(A, 0)) + lp, n ) );
+                    WU( Wu_rank + lp, n ) );
+                Wu_idx[Wu_rank] = 1;
+                Wu_prev_rank    = Wu_rank;
 
-                for ( p=1; p < chameleon_desc_datadist_get_iparam(A, 0); p++ ) {
+                for ( p=0; p < max_p; p++ ) {
+                    Wu_rank = A->get_rankof( A, p, n );
+
+                    /* Skip if already sent to process */
+                    if ( Wu_idx[Wu_rank] != 0 ) {
+                        continue;
+                    }
                     INSERT_TASK_zlacpy(
                         &options,
                         ChamUpperLower, tempkm, tempnn,
-                        WU( ((k+p-1) % chameleon_desc_datadist_get_iparam(A, 0)) + lp, n ),
-                        WU( ((k+p)   % chameleon_desc_datadist_get_iparam(A, 0)) + lp, n ) );
+                        WU( Wu_prev_rank + lp, n ),
+                        WU( Wu_rank      + lp, n ) );
+                    Wu_idx[Wu_rank] = 1;
+                    Wu_prev_rank    = Wu_rank;
                 }
             }
             chameleon_data_flush( sequence, A( k, n ), request->flush );
 
-            for (m = k+1; m < A->mt; m++) {
+            for ( m = k+1; m < A->mt; m++ ) {
 
                 /* Skip the row if you are not involved with */
-                if ( m%chameleon_desc_datadist_get_iparam(A, 0) != myp ) {
+                if ( !chameleon_involved_in_rowpanelk( A, m ) ) {
                     continue;
                 }
 
                 tempmm = A->get_blkdim( A, m, DIM_m, A->m );
                 options.priority = 2*A->nt - 2*k  - n - m;
 
-                assert( A->get_rankof( A, m, n ) == WL->get_rankof( WL, m, myq + lq) );
-                assert( A->get_rankof( A, m, n ) == WU->get_rankof( WU, myp + lp, n) );
+                assert( A->get_rankof( A, m, n ) == WL->get_rankof( WL, m, A->myrank + lq) );
+                assert( A->get_rankof( A, m, n ) == WU->get_rankof( WU, A->myrank + lp, n) );
 
                 INSERT_TASK_zgemm(
                     &options,
                     ChamNoTrans, ChamNoTrans,
                     tempmm, tempnn, A->mb, A->mb,
-                    mzone, WL( m, myq + lq ),
-                           WU( myp + lp, n ),
+                    mzone, WL( m, A->myrank + lq ),
+                           WU( A->myrank + lp, n ),
                     zone,  A( m, n ));
             }
         }
         RUNTIME_iteration_pop( chamctxt );
     }
+    free( Wl_idx );
+    free( Wu_idx );
 
     CHAMELEON_Desc_Flush( WL, sequence );
     CHAMELEON_Desc_Flush( WU, sequence );

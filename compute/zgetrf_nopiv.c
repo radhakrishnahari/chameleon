@@ -53,6 +53,8 @@ void *CHAMELEON_zgetrf_nopiv_WS_Alloc( const CHAM_desc_t *A )
 {
     CHAM_context_t *chamctxt;
     struct chameleon_pzgetrf_nopiv_s *options;
+    int P = chameleon_desc_datadist_get_iparam( A, 0 );
+    int Q = chameleon_desc_datadist_get_iparam( A, 1 );
 
     chamctxt = chameleon_context_self();
     if ( chamctxt == NULL ) {
@@ -62,7 +64,7 @@ void *CHAMELEON_zgetrf_nopiv_WS_Alloc( const CHAM_desc_t *A )
     options = calloc( 1, sizeof(struct chameleon_pzgetrf_nopiv_s) );
     options->use_workspace = 0;
 
-    if ( ( ( chameleon_desc_datadist_get_iparam(A, 0) > 1 ) || ( chameleon_desc_datadist_get_iparam(A, 1) > 1 ) ) &&
+    if ( ( ( P > 1 ) || ( Q > 1 ) ) &&
          ( A->get_rankof_init == chameleon_getrankof_2d ) &&
          ( chamctxt->generic_enabled != CHAMELEON_TRUE ) )
     {
@@ -71,20 +73,16 @@ void *CHAMELEON_zgetrf_nopiv_WS_Alloc( const CHAM_desc_t *A )
 
         chameleon_desc_init( &(options->WL), CHAMELEON_MAT_ALLOC_TILE,
                              ChamComplexDouble, A->mb, A->nb, (A->mb * A->nb),
-                             A->mt * A->mb, A->nb * chameleon_desc_datadist_get_iparam(A, 1) * lookahead, 0, 0,
-                             A->mt * A->mb, A->nb * chameleon_desc_datadist_get_iparam(A, 1) * lookahead,
-                             chameleon_desc_datadist_get_iparam(A, 0),
-                             chameleon_desc_datadist_get_iparam(A, 1),
-                             NULL, NULL, A->get_rankof_init, A->get_rankof_init_arg );
+                             A->mt * A->mb, A->nb * P * Q * lookahead, 0, 0,
+                             A->mt * A->mb, A->nb * P * Q * lookahead, 1, P * Q,
+                             NULL, NULL, NULL, A->get_rankof_init_arg );
 
         chameleon_desc_init( &(options->WU), CHAMELEON_MAT_ALLOC_TILE,
                              ChamComplexDouble,
                              A->mb, A->nb, (A->mb * A->nb),
-                             A->mb * chameleon_desc_datadist_get_iparam(A, 0) * lookahead, A->nt * A->nb, 0, 0,
-                             A->mb * chameleon_desc_datadist_get_iparam(A, 0) * lookahead, A->nt * A->nb,
-                             chameleon_desc_datadist_get_iparam(A, 0),
-                             chameleon_desc_datadist_get_iparam(A, 1),
-                             NULL, NULL, A->get_rankof_init, A->get_rankof_init_arg );
+                             A->mb * P * Q * lookahead, A->nt * A->nb, 0, 0,
+                             A->mb * P * Q * lookahead, A->nt * A->nb, P * Q, 1,
+                             NULL, NULL, NULL, A->get_rankof_init_arg );
     }
 
     return (void*)options;
