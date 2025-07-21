@@ -152,6 +152,7 @@ int RUNTIME_init( CHAM_context_t *chamctxt,
     CHAM_context_starpu_t *sched_opt = (CHAM_context_starpu_t*)(chamctxt->schedopt);
     struct starpu_conf *conf = &sched_opt->starpu_conf;
     int hres = CHAMELEON_ERR_NOT_INITIALIZED;
+    char *schedenv;
 
     /* StarPU was already initialized by an external library */
     if (conf == NULL) {
@@ -165,7 +166,8 @@ int RUNTIME_init( CHAM_context_t *chamctxt,
     conf->nopencl = 0;
 
     /* By default, use the dmdas strategy */
-    if (!getenv("STARPU_SCHED")) {
+    schedenv = chameleon_getenv( "STARPU_SCHED" );
+    if ( schedenv == NULL ) {
         if (conf->ncuda > 0) {
             conf->sched_policy_name = "dmdas";
         }
@@ -183,6 +185,7 @@ int RUNTIME_init( CHAM_context_t *chamctxt,
 #endif
         }
     }
+    chameleon_cleanenv( schedenv );
 
     if ((ncpus == -1)||(nthreads_per_worker == -1))
     {
