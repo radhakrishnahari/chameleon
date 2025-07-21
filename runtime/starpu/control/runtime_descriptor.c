@@ -125,7 +125,7 @@ void RUNTIME_desc_create( CHAM_desc_t *desc )
 #endif
 
     if (desc->ooc) {
-        char   *backend = getenv("STARPU_DISK_SWAP_BACKEND");
+        char *backend = chameleon_getenv( "STARPU_DISK_SWAP_BACKEND" );
 
         if (backend && strcmp(backend, "unistd_o_direct") == 0) {
             int     lastmm   = desc->lm - (desc->lmt-1) * desc->mb;
@@ -138,10 +138,14 @@ void RUNTIME_desc_create( CHAM_desc_t *desc )
                  ((desc->mb * lastnn   * eltsze) % pagesize != 0) ||
                  ((lastmm   * lastnn   * eltsze) % pagesize != 0) )
             {
-                chameleon_error("RUNTIME_desc_create", "Matrix and tile size not suitable for out-of-core: all tiles have to be multiples of the system page size. Tip : choose 'n' and 'nb' as both multiples of 32.");
+                chameleon_error("RUNTIME_desc_create",
+                                "Matrix and tile size not suitable for out-of-core: all tiles have to be multiples of the system page size.\n"
+                                      "Tip : choose 'n' and 'nb' as both multiples of 32." );
+                chameleon_cleanenv( backend );
                 return;
             }
         }
+        chameleon_cleanenv( backend );
     }
 
 #if defined(CHAMELEON_USE_MPI)
