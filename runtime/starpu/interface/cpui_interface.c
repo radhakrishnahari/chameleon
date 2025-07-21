@@ -14,7 +14,6 @@
  * @date 2025-07-15
  *
  */
-#include "chameleon.h"
 #include "chameleon_starpu_internal.h"
 #undef HAVE_STARPU_REUSE_DATA_ON_NODE
 
