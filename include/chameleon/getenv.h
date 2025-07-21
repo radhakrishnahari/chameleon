@@ -85,11 +85,14 @@ chameleon_cleanenv( char *str ) {
 
 static inline int
 chameleon_env_is_set_to(char * str, char * value) {
-    char * val;
-    if ( (val = chameleon_getenv(str)) &&
-         !strcmp(val, value))
-        return 1;
-    return 0;
+    char *val = chameleon_getenv(str);
+    int   rc  = 0;
+
+    if ( (val != NULL) && !strcmp(val, value) ) {
+        rc = 1;
+    }
+    chameleon_cleanenv( val );
+    return rc;
 }
 
 static inline int
@@ -106,9 +109,9 @@ chameleon_env_on_off( char * str, int default_value ) {
 static inline int
 chameleon_getenv_get_value_int( char * string, int default_value ) {
     extern int errno;
-    long int ret;
-    int      rc;
-    char    *str = chameleon_getenv(string);
+    long int   ret;
+    int        rc;
+    char      *str = chameleon_getenv(string);
 
     if ( str == NULL ) {
         return default_value;
@@ -122,9 +125,10 @@ chameleon_getenv_get_value_int( char * string, int default_value ) {
         else {
             fprintf( stderr, "%s: env variable %s expects an int value\n", __func__, string );
         }
-        return default_value;
+        ret = default_value;
     }
 
+    chameleon_cleanenv(str);
     return (int)ret;
 }
 
@@ -147,9 +151,10 @@ chameleon_getenv_get_value_fixdbl( char * string, cham_fixdbl_t default_value ) 
         else {
             fprintf( stderr, "%s: env variable %s expects a floating point value value\n", __func__, string );
         }
-        return default_value;
+        ret = default_value;
     }
 
+    chameleon_cleanenv(str);
     return ret;
 }
 
