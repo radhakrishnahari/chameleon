@@ -169,8 +169,6 @@ void RUNTIME_desc_create( CHAM_desc_t *desc )
  */
 void RUNTIME_desc_destroy( CHAM_desc_t *desc )
 {
-    desc->occurences--;
-
     /*
      * If this is the last descriptor using the matrix, we release the handle
      * and unregister the GPU data

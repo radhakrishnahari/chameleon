@@ -115,6 +115,7 @@ chameleon_recdesc_create( const char *name, CHAM_desc_t **descptr, void *mat, ch
                                            i, j,             /* Used when rec = diag */
                                            chameleon_getaddr_cm, chameleon_getblkldd_cm,
                                            NULL, NULL );
+            free( subname );
 
             tile->format = CHAMELEON_TILE_DESC;
             tile->mat    = tiledesc;

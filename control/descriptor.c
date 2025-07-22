@@ -457,8 +457,15 @@ CHAM_desc_t* chameleon_desc_submatrix( CHAM_desc_t *descA, int i, int j, int m, 
 
 void chameleon_desc_destroy( CHAM_desc_t *desc )
 {
+    /* Decrease the number of occurences using the descrptor */
+    desc->occurences--;
+
     RUNTIME_desc_destroy( desc );
     chameleon_desc_mat_free( desc );
+    if ( ( desc->occurences == 0 ) && desc->name ) {
+        free( desc->name );
+        desc->name = NULL;
+    }
 }
 
 /**
@@ -975,10 +982,6 @@ int CHAMELEON_Desc_Destroy(CHAM_desc_t **descptr)
             if ( tile->format == CHAMELEON_TILE_DESC ) {
                 CHAM_desc_t *tiledesc = tile->mat;
 
-                /* Recursive names are allocated internally, we need to free them */
-                if ( tiledesc->name ) {
-                    free( (void*)(tiledesc->name) );
-                }
                 CHAMELEON_Desc_Destroy( &tiledesc );
                 assert( tiledesc == NULL );
             }

@@ -501,7 +501,11 @@ parameters_desc_create( const char *id, CHAM_desc_t **descptr, cham_flttype_t dt
         int Q = parameters_compute_q( P );
         rc = CHAMELEON_Desc_Create(
             descptr, (void*)mtxfmt, dtyp, mb, nb, mb * nb, lm, ln, 0, 0, m, n, P, Q );
-        (*descptr)->name = id;
+        /* Dirty hack to name the decriptor as wanted by the testing, should be modified in the future */
+        if ( (*descptr)->name ) {
+            free( (*descptr)->name );
+        }
+        (*descptr)->name = strdup(id);
         return rc;
     }
 
@@ -518,7 +522,11 @@ parameters_desc_create( const char *id, CHAM_desc_t **descptr, cham_flttype_t dt
     rc = CHAMELEON_Desc_Create_User(
         descptr, (void*)mtxfmt, dtyp, mb, nb, mb * nb, lm, ln, 0, 0, m, n, CHAMELEON_Comm_size(), 1,
         NULL, NULL, chameleon_getrankof_custom, custom_args );
-    (*descptr)->name = id;
+    /* Dirty hack to name the decriptor as wanted by the testing, should be modified in the future */
+    if ( (*descptr)->name ) {
+        free( (*descptr)->name );
+    }
+    (*descptr)->name = strdup(id);
     return rc;
 }
 
