@@ -18,7 +18,7 @@
  * @author Lucas Barros de Assis
  * @author Florent Pruvost
  * @author Samuel Thibault
- * @date 2024-10-18
+ * @date 2025-07-22
  * @precisions mixed zc -> ds
  *
  */
@@ -42,7 +42,7 @@ cl_zlag2c_cpu_func( void *descr[], void *cl_arg )
     TCORE_zlag2c( m, n, tileA, tileB, &info );
 }
 
-#if defined(CHAMELEON_USE_CUDA)
+#if defined(CHAMELEON_USE_CUDA) && defined(GPUCUBLAS_HAVE_CUDA_TOOLKIT)
 static void
 cl_zlag2c_cuda_func( void *descr[], void *cl_arg )
 {
@@ -69,13 +69,17 @@ cl_zlag2c_cuda_func( void *descr[], void *cl_arg )
         fprintf( stderr, "core_zlag2c failed with info(%d)\n", rc );
     }
 }
-#endif /* defined(CHAMELEON_USE_CUDA) */
+#endif /* defined(CHAMELEON_USE_CUDA) && defined(GPUCUBLAS_HAVE_CUDA_TOOLKIT) */
 #endif /* !defined(CHAMELEON_SIMULATION) */
 
 /*
  * Codelet definition
  */
+#if defined(CHAMELEON_USE_CUDA) && defined(GPUCUBLAS_HAVE_CUDA_TOOLKIT)
 CODELETS( zlag2c, cl_zlag2c_cpu_func, cl_zlag2c_cuda_func, STARPU_CUDA_ASYNC )
+#else
+CODELETS_CPU( zlag2c, cl_zlag2c_cpu_func )
+#endif
 
 /**
  *
@@ -123,7 +127,7 @@ static void cl_clag2z_cpu_func(void *descr[], void *cl_arg)
     TCORE_clag2z( m, n, tileA, tileB);
 }
 
-#if defined(CHAMELEON_USE_CUDA)
+#if defined(CHAMELEON_USE_CUDA) && defined(GPUCUBLAS_HAVE_CUDA_TOOLKIT)
 static void
 cl_clag2z_cuda_func( void *descr[], void *cl_arg )
 {
@@ -149,13 +153,17 @@ cl_clag2z_cuda_func( void *descr[], void *cl_arg )
         fprintf( stderr, "core_clag2z failed with info(%d)\n", rc );
     }
 }
-#endif /* defined(CHAMELEON_USE_CUDA) */
+#endif /* defined(CHAMELEON_USE_CUDA) && defined(GPUCUBLAS_HAVE_CUDA_TOOLKIT) */
 #endif /* !defined(CHAMELEON_SIMULATION) */
 
 /*
  * Codelet definition
  */
+#if defined(CHAMELEON_USE_CUDA) && defined(GPUCUBLAS_HAVE_CUDA_TOOLKIT)
 CODELETS( clag2z, cl_clag2z_cpu_func, cl_clag2z_cuda_func, STARPU_CUDA_ASYNC )
+#else
+CODELETS_CPU( clag2z, cl_clag2z_cpu_func )
+#endif
 
 void INSERT_TASK_clag2z( const RUNTIME_option_t *options,
                          int m, int n, int nb,
