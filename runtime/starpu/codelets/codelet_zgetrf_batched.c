@@ -161,7 +161,7 @@ INSERT_TASK_zgetrf_panel_offdiag_batched_flush( const RUNTIME_option_t *options,
         return;
     }
     int access_npiv = ( clargs->h == pivot->n ) ? STARPU_R    : STARPU_REDUX;
-    int access_ppiv = ( clargs->h == 0 )       ? STARPU_NONE : STARPU_R;
+    int access_ppiv = ( clargs->h == 0 )        ? STARPU_NONE : STARPU_R;
 
     rt_starpu_insert_task(
         &cl_zgetrf_panel_offdiag_batched,
