@@ -71,7 +71,7 @@ if (EZTRACE_FOUND AND CHAMELEON_USE_EZTRACE)
         # Install the shared library
         install(
             TARGETS eztrace-gpucublas
-            LIBRARY DESTINATION ${EZTRACE_LIBRARY_DIRS}
+            LIBRARY DESTINATION lib
         )
     else()
         set(EZTRACE_eztrace_create_plugin_DIR "EZTRACE_eztrace_create_plugin_DIR-NOTFOUND")
@@ -111,7 +111,7 @@ if (EZTRACE_FOUND AND CHAMELEON_USE_EZTRACE)
                 ${CMAKE_CURRENT_BINARY_DIR}/output/libeztrace-autostart-chameleon_cuda.so
                 ${CMAKE_CURRENT_BINARY_DIR}/output/libeztrace-chameleon_cuda.so
                 ${CMAKE_CURRENT_BINARY_DIR}/output/libeztrace-convert-chameleon_cuda.so
-                DESTINATION ${EZTRACE_LIBRARY_DIRS}
+                DESTINATION lib
                 )
         endif (EZTRACE_eztrace_create_plugin_DIR)
     endif()

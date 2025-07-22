@@ -21,7 +21,7 @@
 #  @author Florent Pruvost
 #  @author Mathieu Faverge
 #  @author Brieuc Nicolas
-#  @date 2025-07-09
+#  @date 2025-07-22
 #
 ###
 
@@ -61,7 +61,7 @@ if (EZTRACE_FOUND AND CHAMELEON_USE_EZTRACE)
             # Install the shared library
             install(
                 TARGETS eztrace-coreblas_${_module}
-                LIBRARY DESTINATION ${EZTRACE_LIBRARY_DIRS}
+                LIBRARY DESTINATION lib
             )
             unset(MODULE_SRCS_GENERATED)
         endforeach()
@@ -107,7 +107,7 @@ if (EZTRACE_FOUND AND CHAMELEON_USE_EZTRACE)
                     ${CMAKE_CURRENT_BINARY_DIR}/${_module}/libeztrace-autostart-chameleon_${_module}.so
                     ${CMAKE_CURRENT_BINARY_DIR}/${_module}/libeztrace-chameleon_${_module}.so
                     ${CMAKE_CURRENT_BINARY_DIR}/${_module}/libeztrace-convert-chameleon_${_module}.so
-                    DESTINATION ${EZTRACE_LIBRARY_DIRS}
+                    LIBRARY DESTINATION lib
                     )
             endforeach()
         endif (EZTRACE_eztrace_create_plugin_DIR)
