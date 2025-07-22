@@ -18,7 +18,7 @@
  * @author Lucas Barros de Assis
  * @author Florent Pruvost
  * @author Samuel Thibault
- * @date 2024-10-18
+ * @date 2025-07-22
  * @precisions normal d -> d s
  *
  */
@@ -26,6 +26,15 @@
 #include "runtime_codelet_d.h"
 
 #if !defined(CHAMELEON_SIMULATION)
+
+#if !defined(GPUCUBLAS_HAVE_CUDA_HALF)
+#error "GPUCUBLAS_HAVE_CUDA_HALF should be enabled to compile this file\n"
+#endif
+
+#if !defined(CHAMELEON_USE_CUDA)
+#error "CHAMELEON_USE_CUDA should be enabled to compile this file since the codelet is only available on CUDA GPUs\n"
+#endif
+
 #if defined(CHAMELEON_USE_CUDA)
 static void
 cl_dlag2h_cuda_func( void *descr[], void *cl_arg )
