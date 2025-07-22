@@ -12,7 +12,7 @@
  * @version 1.3.0
  *
  * @author Brieuc Nicolas
- * @date 2025-07-09
+ * @date 2025-07-22
  *
  */
 /* -*- c-file-style: "GNU" -*- */
@@ -85,29 +85,6 @@ int CUDA_gemmex( cham_trans_t transa, cham_trans_t transb,
 }
 #endif
 
-#if defined(GPUCUBLAS_HAVE_CUDA_HALF)
-int (*libCUDA_dlag2h)( int m, int n, const double *A, int lda, CHAMELEON_Real16_t *B, int ldb, cublasHandle_t handle ) = NULL;
-int (*libCUDA_hlag2d)( int m, int n, const CHAMELEON_Real16_t *A, int lda, double *B, int ldb, cublasHandle_t handle ) = NULL;
-
-
-
-int CUDA_dlag2h( int m, int n, const double *A, int lda, CHAMELEON_Real16_t *B, int ldb, cublasHandle_t handle ) {
-    FUNCTION_ENTRY;
-    int ret = CUDA_dlag2h( m, n, A, lda, B, ldb, handle );
-    FUNCTION_EXIT;
-    return ret;
-}
-
-
-
-int CUDA_hlag2d( int m, int n, const CHAMELEON_Real16_t *A, int lda, double *B, int ldb, cublasHandle_t handle ) {
-    FUNCTION_ENTRY;
-    int ret = CUDA_hlag2d( m, n, A, lda, B, ldb, handle );
-    FUNCTION_EXIT;
-    return ret;
-}
-#endif
-
 
 PPTRACE_START_INTERCEPT_FUNCTIONS(gpucublas_h)
 #if defined(CGPUCUBLAS_HAVE_CUBLASHGEMM)
@@ -115,9 +92,5 @@ PPTRACE_START_INTERCEPT_FUNCTIONS(gpucublas_h)
 #endif
 #if defined(CGPUCUBLAS_HAVE_CUBLASGEMMEX)
 INTERCEPT3("CUDA_gemmex", libCUDA_gemmex)
-#endif
-#if defined(GPUCUBLAS_HAVE_CUDA_HALF)
-INTERCEPT3("CUDA_dlag2h", libCUDA_dlag2h)
-INTERCEPT3("CUDA_hlag2d", libCUDA_hlag2d)
 #endif
 PPTRACE_END_INTERCEPT_FUNCTIONS(gpucublas_h)
