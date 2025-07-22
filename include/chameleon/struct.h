@@ -128,7 +128,8 @@ typedef struct cham_data_dist_s {
 void chameleon_desc_set_datadist( CHAM_desc_t *to, cham_data_dist_t *from );
 
 struct chameleon_desc_s {
-    const char *name;
+    char           *name; /**> Name of the descriptor for debug purpose */
+
     blktile_fct_t   get_blktile;     /**> function to get chameleon tiles address                     */
     blkaddr_fct_t   get_blkaddr;     /**> function to get chameleon tiles address                     */
     blkldd_fct_t    get_blkldd;      /**> function to get chameleon tiles leading dimension           */

@@ -24,6 +24,7 @@
 #include "coreblas.h"
 #include <stdarg.h>
 #include <stdlib.h>
+#include "chameleon/getenv.h"
 
 int _coreblas_silent = 0;
 static int coreblas_gemm3m_enabled = 0;
@@ -31,10 +32,7 @@ static int coreblas_gemm3m_enabled = 0;
 __attribute__((unused)) __attribute__((constructor)) static void
 __coreblas_lib_init()
 {
-    char *silent = getenv("CHAMELEON_COREBLAS_SILENT");
-    if ( silent && !(strcmp( silent, "0" ) == 0) ) {
-        _coreblas_silent = 1;
-    }
+    _coreblas_silent = chameleon_getenv_get_value_int( "CHAMELEON_COREBLAS_SILENT", _coreblas_silent );
 }
 
 #if defined(CHAMELEON_KERNELS_TRACE)

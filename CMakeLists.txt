@@ -190,7 +190,7 @@ endif()
 # Additional options
 # ------------------
 
-option(CHAMELEON_USE_EZTRACE "Enable if available the EZTrace modules" ON)
+option(CHAMELEON_USE_EZTRACE "Enable if available the EZTrace modules" OFF)
 
 # Enable the distributed interface (allowed only when StarPU is enabled)
 # TODO: Default should be changed to ON/OFF when it will be ok
