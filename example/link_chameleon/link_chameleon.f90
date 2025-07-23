@@ -12,18 +12,20 @@
 ! @version 1.3.0
 ! @author Florent Pruvost
 ! @author Mathieu Faverge
-! @date 2024-02-18
+! @date 2025-07-23
 program fortran_example
     implicit none
     include 'chameleon_fortran.h'
-    integer, parameter:: dp=kind(0.d0) ! double precision
-    integer, parameter :: NCPU=2, NGPU=0
-    integer, parameter :: N=500, NRHS=1
+    integer, parameter :: dp   = kind(0.d0) ! double precision
+    integer, parameter :: NCPU = -1
+    integer, parameter :: NGPU = 0
+    integer, parameter :: N    = 500
+    integer, parameter :: NRHS = 1
     double precision, dimension(N*N)    :: A, Acpy
     double precision, dimension(N*NRHS) :: B, X
     double precision :: anorm, bnorm, xnorm, res, eps=1.11022d-16
     integer :: info
-    integer :: UPLO=ChamUpper
+    integer :: UPLO = ChamUpper
     logical :: hres
 
 

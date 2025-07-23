@@ -12,17 +12,18 @@
  * @version 1.3.0
  * @author Florent Pruvost
  * @author Mathieu Faverge
- * @date 2024-06-17
+ * @date 2025-07-23
  *
  */
 #include <chameleon.h>
 #include <stdlib.h>
+
 /**
  * @brief Matrix multiplication example to check library linking with Chameleon
  */
 int main() {
     /* number of threads */
-    int NT = 2;
+    int NT = -1;
     /* number of gpus */
     int NG = 0;
     /* size of the matrices */

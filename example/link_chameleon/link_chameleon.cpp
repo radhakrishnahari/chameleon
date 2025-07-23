@@ -15,14 +15,14 @@
  * @date 2025-07-23
  *
  */
-#include <complex>
 #include <chameleon.h>
+
 /**
  * @brief Matrix multiplication example to check library linking with Chameleon
  */
 int main() {
     /* number of threads */
-    int NT = 2;
+    int NT = -1;
     /* number of gpus */
     int NG = 0;
     /* size of the matrices */
