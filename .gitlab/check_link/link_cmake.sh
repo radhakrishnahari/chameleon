@@ -8,7 +8,7 @@
 #  @version 1.3.0
 #  @author Florent Pruvost
 #  @author Mathieu Faverge
-#  @date 2024-12-03
+#  @date 2025-07-23
 #
 # Check that linking with the project is ok when using cmake.
 #
@@ -20,8 +20,10 @@ then
     echo "usage: ./link_cmake.sh path_to_install"
     exit 1
 fi
-cmake -B build -DCMAKE_PREFIX_PATH=$1
+
+cmake -S ../../example/link_chameleon -B build -DCMAKE_PREFIX_PATH=$1
 cmake --build build --verbose
+
 if [[ "$VERSION" != "starpu_simgrid" ]]; then
     ctest --test-dir build --verbose
 fi
