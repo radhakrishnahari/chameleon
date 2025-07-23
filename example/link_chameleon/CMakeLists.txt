@@ -2,8 +2,6 @@
 #
 # @file CMakeLists.txt
 #
-# @copyright 2009-2014 The University of Tennessee and The University of
-#                      Tennessee Research Foundation. All rights reserved.
 # @copyright 2012-2025 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                      Univ. Bordeaux. All rights reserved.
 #
@@ -23,14 +21,13 @@
 #
 ###
 cmake_minimum_required(VERSION 3.12)
-project(LINK_CHAMELEON Fortran C CXX)
+project(LINK_CHAMELEON C)
 
-option(CHAMELEON_PREC_S "Enable single precision example" ON)
-option(CHAMELEON_PREC_D "Enable double precision example" ON)
-option(CHAMELEON_PREC_C "Enable complex precision example" ON)
+#
+# By default the Fortran example is not enabled as the fortran wrapper is no longer maintained
+#
 option(FORTRAN "Enable Fortran example" OFF)
-option(CPP "Enable C++ example" OFF)
-option(MPI "Set to ON if Chameleon is configured with MPI" OFF)
+option(CXX     "Enable C++ example"     ON )
 
 find_package(CHAMELEON REQUIRED)
 
@@ -42,30 +39,58 @@ else()
   message(FATAL_ERROR "Target CHAMELEON::chameleon is not found, check your CHAMELEONConfig.cmake.")
 endif()
 
+include(CheckSymbolExists)
+set(CMAKE_REQUIRED_INCLUDES "${CHAMELEON_INC_DIR}")
+check_symbol_exists( CHAMELEON_PREC_S "chameleon/config.h" HAVE_CHAMELEON_PREC_S )
+check_symbol_exists( CHAMELEON_PREC_D "chameleon/config.h" HAVE_CHAMELEON_PREC_D )
+check_symbol_exists( CHAMELEON_PREC_C "chameleon/config.h" HAVE_CHAMELEON_PREC_C )
+unset(CMAKE_REQUIRED_INCLUDES)
+
 set(CMAKE_BUILD_RPATH ${CHAMELEON_LIB_DIR})
 enable_testing()
 include(CTest)
 
-if (CHAMELEON_PREC_S)
+include(CheckLanguage)
+
+#
+# Check link in C
+#
+if (HAVE_CHAMELEON_PREC_S)
   add_executable(link_chameleon_c link_chameleon.c)
   target_link_libraries(link_chameleon_c PRIVATE CHAMELEON::chameleon)
   add_test(link_chameleon_c link_chameleon_c)
 endif()
-if (CHAMELEON_PREC_D AND FORTRAN)
-  add_executable(link_chameleon_f link_chameleon.f90)
-  target_link_libraries(link_chameleon_f PRIVATE CHAMELEON::chameleon)
-  add_test(link_chameleon_f link_chameleon_f)
-endif()
-if (CHAMELEON_PREC_C AND CPP)
-  add_executable(link_chameleon_cpp link_chameleon.cpp)
-  if (MPI)
-    find_package(MPI REQUIRED COMPONENTS CXX)
-    target_link_libraries(link_chameleon_cpp PRIVATE CHAMELEON::chameleon MPI::MPI_CXX)
+
+#
+# Check link in Fortran
+#
+if (HAVE_CHAMELEON_PREC_D AND FORTRAN)
+  check_language(Fortran)
+  if( NOT CMAKE_Fortran_COMPILER)
+    message(STATUS "No Fortran support")
   else()
-    target_link_libraries(link_chameleon_cpp PRIVATE CHAMELEON::chameleon)
+    enable_language(Fortran)
+
+    add_executable(link_chameleon_f link_chameleon.f90)
+    target_link_libraries(link_chameleon_f PRIVATE CHAMELEON::chameleon)
+    add_test(link_chameleon_f link_chameleon_f)
   endif()
-  target_compile_definitions(link_chameleon_cpp PRIVATE CHAMELEON_COMPLEX_CPP)
-  add_test(link_chameleon_cpp link_chameleon_cpp)
+endif()
+
+#
+# Check link in C++
+#
+if (HAVE_CHAMELEON_PREC_C AND CXX)
+  check_language(CXX)
+  if( NOT CMAKE_CXX_COMPILER)
+    message(STATUS "No C++ support")
+  else()
+    enable_language(CXX)
+
+    add_executable(link_chameleon_cpp link_chameleon.cpp)
+    target_link_libraries(link_chameleon_cpp PRIVATE CHAMELEON::chameleon)
+    add_test(link_chameleon_cpp link_chameleon_cpp)
+  endif()
 endif()
 ###
 ### END CMakeLists.txt
