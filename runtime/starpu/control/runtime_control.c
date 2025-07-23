@@ -159,6 +159,10 @@ int RUNTIME_init( CHAM_context_t *chamctxt,
         return 0;
     }
 
+    if ( ncpus == 0 ) {
+        fprintf( stderr, "[CHAMELEON][starpu] ERROR: Many codelets have only CPU implementations, at least one CPU worker is required\n" );
+        return CHAMELEON_ERR_ILLEGAL_VALUE;
+    }
     if (ncpus != -1) {
         conf->ncpus = ncpus;
     }
