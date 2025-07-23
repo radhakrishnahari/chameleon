@@ -14,7 +14,8 @@
  * @version 1.3.0
  * @author Florent Pruvost
  * @author Mathieu Faverge
- * @date 2024-07-15
+ * @author Brieuc Nicolas
+ * @date 2025-07-22
  * @precisions normal z -> c d s
  *
  */
@@ -25,8 +26,10 @@
  *  Declarations of cuda kernels - alphabetical order
  */
 #if defined(GPUCUBLAS_HAVE_CUDA_HALF)
+#if defined(PRECISION_d) || defined(PRECISION_s)
 int CUDA_dlag2h( int m, int n, const double *A, int lda, CHAMELEON_Real16_t *B, int ldb, cublasHandle_t handle );
 int CUDA_hlag2d( int m, int n, const CHAMELEON_Real16_t *A, int lda, double *B, int ldb, cublasHandle_t handle );
+#endif
 #endif
 int CUDA_zgeadd( cham_trans_t trans, int m, int n, const cuDoubleComplex *alpha, const cuDoubleComplex *A, int lda, const cuDoubleComplex *beta, cuDoubleComplex *B, int ldb, cublasHandle_t handle );
 int CUDA_zgemerge( cham_side_t side, cham_diag_t diag, int M, int N, const cuDoubleComplex *A, int LDA, cuDoubleComplex *B, int LDB, cublasHandle_t handle );

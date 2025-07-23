@@ -11,7 +11,7 @@
  *
  * @version 1.3.0
  * @author Brieuc Nicolas
- * @date 2025-07-09
+ * @date 2025-07-22
  *
  */
 #include <eztrace-core/eztrace_config.h>
@@ -77,7 +77,7 @@ static void _gpucublas_init(void)
     size_t sizez  = 0;
     size_t sizec  = 0;
     size_t sized  = 0;
-    size_t sized  = 0;
+    size_t sizes  = 0;
     size_t sizezc = 0;
     size_t sizeds = 0;
     size_t sizeh  = 0;
@@ -112,7 +112,7 @@ static void _gpucublas_init(void)
 #endif
 
     /* Compute the total number of elements + the final FUNCTION_NONE element */
-    size = sizez + sizec + sized +sizes + sizezc + sizeds + sizeh + 1;
+    size = sizez + sizec + sized + sizes + sizezc + sizeds + sizeh + 1;
 
     PPTRACE_SYMBOL_LIST(gpucublas) = malloc( sizeof(struct ezt_instrumented_function) * size );
 

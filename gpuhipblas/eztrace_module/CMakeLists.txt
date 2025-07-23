@@ -68,7 +68,7 @@ if (EZTRACE_FOUND AND EZTRACE_DIR_FOUND AND CHAMELEON_USE_EZTRACE)
             ${CMAKE_CURRENT_BINARY_DIR}/output/libeztrace-autostart-chameleon_hip.so
             ${CMAKE_CURRENT_BINARY_DIR}/output/libeztrace-chameleon_hip.so
             ${CMAKE_CURRENT_BINARY_DIR}/output/libeztrace-convert-chameleon_hip.so
-            DESTINATION ${EZTRACE_LIBRARY_DIRS}
+            DESTINATION lib
             )
 
     endif (EZTRACE_eztrace_create_plugin_DIR)

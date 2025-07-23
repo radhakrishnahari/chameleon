@@ -54,7 +54,9 @@ build_starpu:
   variables:
     VERSION: starpu
     LOGNAME: "chameleon-build-${SYSTEM}-${VERSION}"
-    BUILD_OPTIONS: "-DCHAMELEON_USE_CUDA=OFF -DCHAMELEON_USE_MPI=ON"
+    BUILD_OPTIONS: "-DCHAMELEON_USE_CUDA=OFF
+                    -DCHAMELEON_USE_MPI=ON
+                    -DCHAMELEON_USE_EZTRACE=ON"
 
 .build_script_guix:
   tags: ['plafrim']
@@ -67,7 +69,7 @@ build_starpu:
     - guix shell --pure --preserve=SYSTEM --preserve=VERSION
                  --preserve=LOGNAME --preserve=BUILD_OPTIONS
                  --preserve=CMAKE_BUILD_PARALLEL_LEVEL
-                 -D chameleon-${GPU_BACKEND} ${BLAS} coreutils bash-minimal --
+                 -D chameleon-${GPU_BACKEND} ${BLAS} eztrace coreutils bash-minimal --
                  bash .gitlab/build.sh | tee ${LOGNAME}.log
 
 build_starpu_cuda:
@@ -79,6 +81,7 @@ build_starpu_cuda:
     LOGNAME: "chameleon-build-${SYSTEM}-${VERSION}"
     BUILD_OPTIONS: "-DCHAMELEON_USE_CUDA=ON
                     -DCHAMELEON_USE_MPI=OFF
+                    -DCHAMELEON_USE_EZTRACE=ON
                     -DBLA_VENDOR=Intel10_64lp_seq"
 
 build_starpu_hip:

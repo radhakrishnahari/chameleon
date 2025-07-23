@@ -11,7 +11,8 @@
  *
  * @version 1.3.0
  * @author Brieuc Nicolas
- * @date 2025-07-09
+ * @author Florent Pruvost
+ * @date 2025-07-22
  * @precisions normal z -> z c d s
  *
  */
@@ -71,10 +72,8 @@ void (*libTCORE_zlantr)(cham_normtype_t norm, cham_uplo_t uplo, cham_diag_t diag
 int (*libTCORE_zlascal)(cham_uplo_t uplo, int m, int n, CHAMELEON_Complex64_t alpha, CHAM_tile_t * A) = NULL;
 void (*libTCORE_zlaset)(cham_uplo_t uplo, int n1, int n2, CHAMELEON_Complex64_t alpha, CHAMELEON_Complex64_t beta, CHAM_tile_t * A) = NULL;
 void (*libTCORE_zlaset2)(cham_uplo_t uplo, int n1, int n2, CHAMELEON_Complex64_t alpha, CHAM_tile_t * A) = NULL;
-int (*libTCORE_zlaswp_get)(int m0, int m, int n, int k, CHAM_tile_t * A, CHAM_tile_t * B, const int *perm) = NULL;
-int (*libTCORE_zlaswp_set)(int m0, int m, int n, int k, CHAM_tile_t * A, CHAM_tile_t * B, const int *invp) = NULL;
-int (*libTCORE_zlaswpc_get)(int n0, int m, int n, int k, CHAM_tile_t * A, CHAM_tile_t * B, const int *perm) = NULL;
-int (*libTCORE_zlaswpc_set)(int n0, int m, int n, int k, CHAM_tile_t * A, CHAM_tile_t * B, const int *invp) = NULL;
+int (*libTCORE_zlaswp_get)(cham_side_t side, int m0, int m, int n, int k, CHAM_tile_t * A, CHAM_tile_t * B, const int *perm) = NULL;
+int (*libTCORE_zlaswp_set)(cham_side_t side, int m0, int m, int n, int k, CHAM_tile_t * A, CHAM_tile_t * B, const int *invp) = NULL;
 int (*libTCORE_zlatro)(cham_uplo_t uplo, cham_trans_t trans, int M, int N, const CHAM_tile_t * A, CHAM_tile_t * B) = NULL;
 void (*libTCORE_zlauum)(cham_uplo_t uplo, int N, CHAM_tile_t * A) = NULL;
 #if defined(PRECISION_z) || defined(PRECISION_c)
@@ -318,30 +317,16 @@ void TCORE_zlaset2(cham_uplo_t uplo, int n1, int n2, CHAMELEON_Complex64_t alpha
 
 }
 
-int TCORE_zlaswp_get(int m0, int m, int n, int k, CHAM_tile_t * A, CHAM_tile_t * B, const int *perm) {
+int TCORE_zlaswp_get(cham_side_t side, int m0, int m, int n, int k, CHAM_tile_t * A, CHAM_tile_t * B, const int *perm) {
     FUNCTION_ENTRY;
-    int ret = libTCORE_zlaswp_get(m0, m, n, k, A, B, perm);
+    int ret = libTCORE_zlaswp_get(side, m0, m, n, k, A, B, perm);
     FUNCTION_EXIT;
     return ret;
 }
 
-int TCORE_zlaswp_set(int m0, int m, int n, int k, CHAM_tile_t * A, CHAM_tile_t * B, const int *invp) {
+int TCORE_zlaswp_set(cham_side_t side, int m0, int m, int n, int k, CHAM_tile_t * A, CHAM_tile_t * B, const int *invp) {
     FUNCTION_ENTRY;
-    int ret = libTCORE_zlaswp_set(m0, m, n, k, A, B, invp);
-    FUNCTION_EXIT;
-    return ret;
-}
-
-int TCORE_zlaswpc_get(int n0, int m, int n, int k, CHAM_tile_t * A, CHAM_tile_t * B, const int *perm) {
-    FUNCTION_ENTRY;
-    int ret = libTCORE_zlaswpc_get(n0, m, n, k, A, B, perm);
-    FUNCTION_EXIT;
-    return ret;
-}
-
-int TCORE_zlaswpc_set(int n0, int m, int n, int k, CHAM_tile_t * A, CHAM_tile_t * B, const int *invp) {
-    FUNCTION_ENTRY;
-    int ret = libTCORE_zlaswpc_set(n0, m, n, k, A, B, invp);
+    int ret = libTCORE_zlaswp_set(side, m0, m, n, k, A, B, invp);
     FUNCTION_EXIT;
     return ret;
 }
@@ -605,8 +590,6 @@ INTERCEPT3("TCORE_zlaset", libTCORE_zlaset)
 INTERCEPT3("TCORE_zlaset2", libTCORE_zlaset2)
 INTERCEPT3("TCORE_zlaswp_get", libTCORE_zlaswp_get)
 INTERCEPT3("TCORE_zlaswp_set", libTCORE_zlaswp_set)
-INTERCEPT3("TCORE_zlaswpc_get", libTCORE_zlaswpc_get)
-INTERCEPT3("TCORE_zlaswpc_set", libTCORE_zlaswpc_set)
 INTERCEPT3("TCORE_zlatro", libTCORE_zlatro)
 INTERCEPT3("TCORE_zlauum", libTCORE_zlauum)
 #if defined(PRECISION_z) || defined(PRECISION_c)

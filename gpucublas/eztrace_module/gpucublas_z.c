@@ -11,7 +11,7 @@
  *
  * @version 1.3.0
  * @author Brieuc Nicolas
- * @date 2025-07-09
+ * @date 2025-07-22
  * @precisions normal z -> z c d s
  *
  */
@@ -36,8 +36,10 @@ DECLARE_CURRENT_MODULE;
 /* pointers to actual gpucublas_z functions */
 
 #if defined(GPUCUBLAS_HAVE_CUDA_HALF)
+#if defined(PRECISION_d) || defined(PRECISION_s)
 int (*libCUDA_dlag2h)(int m, int n, const double *A, int lda, CHAMELEON_Real16_t * B, int ldb, cublasHandle_t handle) = NULL;
 int (*libCUDA_hlag2d)(int m, int n, const CHAMELEON_Real16_t * A, int lda, double *B, int ldb, cublasHandle_t handle) = NULL;
+#endif
 #endif
 int (*libCUDA_zgeadd)(cham_trans_t trans, int m, int n, const cuDoubleComplex * alpha, const cuDoubleComplex * A, int lda, const cuDoubleComplex * beta, cuDoubleComplex * B, int ldb, cublasHandle_t handle) = NULL;
 int (*libCUDA_zgemerge)(cham_side_t side, cham_diag_t diag, int M, int N, const cuDoubleComplex * A, int LDA, cuDoubleComplex * B, int LDB, cublasHandle_t handle) = NULL;
@@ -69,6 +71,7 @@ int (*libCUDA_zunmqrt)(cham_side_t side, cham_trans_t trans, int M, int N, int K
 /* Wrapper functions */
 
 #if defined(GPUCUBLAS_HAVE_CUDA_HALF)
+#if defined(PRECISION_d) || defined(PRECISION_s)
 
 int CUDA_dlag2h(int m, int n, const double *A, int lda, CHAMELEON_Real16_t * B, int ldb, cublasHandle_t handle) {
     FUNCTION_ENTRY;
@@ -83,6 +86,7 @@ int CUDA_hlag2d(int m, int n, const CHAMELEON_Real16_t * A, int lda, double *B, 
     FUNCTION_EXIT;
     return ret;
 }
+#endif
 #endif
 
 int CUDA_zgeadd(cham_trans_t trans, int m, int n, const cuDoubleComplex * alpha, const cuDoubleComplex * A, int lda, const cuDoubleComplex * beta, cuDoubleComplex * B, int ldb, cublasHandle_t handle) {
@@ -244,8 +248,10 @@ int CUDA_zunmqrt(cham_side_t side, cham_trans_t trans, int M, int N, int K, int 
 
 PPTRACE_START_INTERCEPT_FUNCTIONS(gpucublas_z)
 #if defined(GPUCUBLAS_HAVE_CUDA_HALF)
+#if defined(PRECISION_d) || defined(PRECISION_s)
 INTERCEPT3("CUDA_dlag2h", libCUDA_dlag2h)
 INTERCEPT3("CUDA_hlag2d", libCUDA_hlag2d)
+#endif
 #endif
 INTERCEPT3("CUDA_zgeadd", libCUDA_zgeadd)
 INTERCEPT3("CUDA_zgemerge", libCUDA_zgemerge)

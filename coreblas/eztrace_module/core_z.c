@@ -11,7 +11,8 @@
  *
  * @version 1.3.0
  * @author Brieuc Nicolas
- * @date 2025-07-09
+ * @author Florent Pruvost
+ * @date 2025-07-22
  * @precisions normal z -> z c d s
  *
  */
@@ -80,12 +81,9 @@ void (*libCORE_zlarfy)(int N, CHAMELEON_Complex64_t * A, int LDA, const CHAMELEO
 void (*libCORE_zlaset)(cham_uplo_t uplo, int n1, int n2, CHAMELEON_Complex64_t alpha, CHAMELEON_Complex64_t beta, CHAMELEON_Complex64_t * tileA, int ldtilea) = NULL;
 void (*libCORE_zlaset2)(cham_uplo_t uplo, int n1, int n2, CHAMELEON_Complex64_t alpha, CHAMELEON_Complex64_t * tileA, int ldtilea) = NULL;
 void (*libCORE_zlaswp)(int N, CHAMELEON_Complex64_t * A, int LDA, int I1, int I2, const int *IPIV, int INC) = NULL;
-int (*libCORE_zlaswp_get)(int m0, int m, int n, int k, const CHAMELEON_Complex64_t * A, int lda, CHAMELEON_Complex64_t * B, int ldb, const int *perm) = NULL;
-int (*libCORE_zlaswp_set)(int m0, int m, int n, int k, const CHAMELEON_Complex64_t * A, int lda, CHAMELEON_Complex64_t * B, int ldb, const int *invp) = NULL;
-int (*libCORE_zlaswpc_get)(int n0, int m, int n, int k, const CHAMELEON_Complex64_t * A, int lda, CHAMELEON_Complex64_t * B, int ldb, const int *perm) = NULL;
-int (*libCORE_zlaswpc_set)(int n0, int m, int n, int k, const CHAMELEON_Complex64_t * A, int lda, CHAMELEON_Complex64_t * B, int ldb, const int *invp) = NULL;
+int (*libCORE_zlaswp_get)(cham_side_t side, int m0, int m, int n, int k, const CHAMELEON_Complex64_t * A, int lda, CHAMELEON_Complex64_t * B, int ldb, const int *perm) = NULL;
+int (*libCORE_zlaswp_set)(cham_side_t side, int m0, int m, int n, int k, const CHAMELEON_Complex64_t * A, int lda, CHAMELEON_Complex64_t * B, int ldb, const int *invp) = NULL;
 int (*libCORE_zlaswp_ontile)(CHAM_desc_t descA, int i1, int i2, const int *ipiv, int inc) = NULL;
-int (*libCORE_zlaswpc_ontile)(CHAM_desc_t descA, int i1, int i2, const int *ipiv, int inc) = NULL;
 int (*libCORE_zlatro)(cham_uplo_t uplo, cham_trans_t trans, int M, int N, const CHAMELEON_Complex64_t * A, int LDA, CHAMELEON_Complex64_t * B, int LDB) = NULL;
 int (*libCORE_zlatm1)(int MODE, double COND, int IRSIGN, cham_dist_t DIST, unsigned long long int seed, CHAMELEON_Complex64_t * D, int N) = NULL;
 void (*libCORE_zlauum)(cham_uplo_t uplo, int N, CHAMELEON_Complex64_t * A, int LDA) = NULL;
@@ -432,30 +430,16 @@ void CORE_zlaswp(int N, CHAMELEON_Complex64_t * A, int LDA, int I1, int I2, cons
 
 }
 
-int CORE_zlaswp_get(int m0, int m, int n, int k, const CHAMELEON_Complex64_t * A, int lda, CHAMELEON_Complex64_t * B, int ldb, const int *perm) {
+int CORE_zlaswp_get(cham_side_t side, int m0, int m, int n, int k, const CHAMELEON_Complex64_t * A, int lda, CHAMELEON_Complex64_t * B, int ldb, const int *perm) {
     FUNCTION_ENTRY;
-    int ret = libCORE_zlaswp_get(m0, m, n, k, A, lda, B, ldb, perm);
+    int ret = libCORE_zlaswp_get(side, m0, m, n, k, A, lda, B, ldb, perm);
     FUNCTION_EXIT;
     return ret;
 }
 
-int CORE_zlaswp_set(int m0, int m, int n, int k, const CHAMELEON_Complex64_t * A, int lda, CHAMELEON_Complex64_t * B, int ldb, const int *invp) {
+int CORE_zlaswp_set(cham_side_t side, int m0, int m, int n, int k, const CHAMELEON_Complex64_t * A, int lda, CHAMELEON_Complex64_t * B, int ldb, const int *invp) {
     FUNCTION_ENTRY;
-    int ret = libCORE_zlaswp_set(m0, m, n, k, A, lda, B, ldb, invp);
-    FUNCTION_EXIT;
-    return ret;
-}
-
-int CORE_zlaswpc_get(int n0, int m, int n, int k, const CHAMELEON_Complex64_t * A, int lda, CHAMELEON_Complex64_t * B, int ldb, const int *perm) {
-    FUNCTION_ENTRY;
-    int ret = libCORE_zlaswpc_get(n0, m, n, k, A, lda, B, ldb, perm);
-    FUNCTION_EXIT;
-    return ret;
-}
-
-int CORE_zlaswpc_set(int n0, int m, int n, int k, const CHAMELEON_Complex64_t * A, int lda, CHAMELEON_Complex64_t * B, int ldb, const int *invp) {
-    FUNCTION_ENTRY;
-    int ret = libCORE_zlaswpc_set(n0, m, n, k, A, lda, B, ldb, invp);
+    int ret = libCORE_zlaswp_set(side, m0, m, n, k, A, lda, B, ldb, invp);
     FUNCTION_EXIT;
     return ret;
 }
@@ -463,13 +447,6 @@ int CORE_zlaswpc_set(int n0, int m, int n, int k, const CHAMELEON_Complex64_t * 
 int CORE_zlaswp_ontile(CHAM_desc_t descA, int i1, int i2, const int *ipiv, int inc) {
     FUNCTION_ENTRY;
     int ret = libCORE_zlaswp_ontile(descA, i1, i2, ipiv, inc);
-    FUNCTION_EXIT;
-    return ret;
-}
-
-int CORE_zlaswpc_ontile(CHAM_desc_t descA, int i1, int i2, const int *ipiv, int inc) {
-    FUNCTION_ENTRY;
-    int ret = libCORE_zlaswpc_ontile(descA, i1, i2, ipiv, inc);
     FUNCTION_EXIT;
     return ret;
 }
@@ -854,10 +831,7 @@ INTERCEPT3("CORE_zlaset2", libCORE_zlaset2)
 INTERCEPT3("CORE_zlaswp", libCORE_zlaswp)
 INTERCEPT3("CORE_zlaswp_get", libCORE_zlaswp_get)
 INTERCEPT3("CORE_zlaswp_set", libCORE_zlaswp_set)
-INTERCEPT3("CORE_zlaswpc_get", libCORE_zlaswpc_get)
-INTERCEPT3("CORE_zlaswpc_set", libCORE_zlaswpc_set)
 INTERCEPT3("CORE_zlaswp_ontile", libCORE_zlaswp_ontile)
-INTERCEPT3("CORE_zlaswpc_ontile", libCORE_zlaswpc_ontile)
 INTERCEPT3("CORE_zlatro", libCORE_zlatro)
 INTERCEPT3("CORE_zlatm1", libCORE_zlatm1)
 INTERCEPT3("CORE_zlauum", libCORE_zlauum)
