@@ -187,6 +187,11 @@ int main() {
       message("-- ${Blue}Add definition HAVE_STARPU_MPI_EXCHANGE_DATA_BEFORE_EXECUTION${ColourReset}")
     endif()
 
+    check_function_exists(starpu_mpi_tags_allocate HAVE_STARPU_MPI_TAGS_ALLOCATE)
+    if ( HAVE_STARPU_MPI_TAGS_ALLOCATE )
+      message("-- ${Blue}Add definition HAVE_STARPU_MPI_TAGS_ALLOCATE${ColourReset}")
+    endif()
+
   endif()
 
   if ( CHAMELEON_USE_MPI AND NOT HAVE_STARPU_MPI_EXCHANGE_DATA_BEFORE_EXECUTION )
