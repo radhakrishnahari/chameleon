@@ -41,9 +41,10 @@ endif()
 
 include(CheckSymbolExists)
 set(CMAKE_REQUIRED_INCLUDES "${CHAMELEON_INC_DIR}")
-check_symbol_exists( CHAMELEON_PREC_S "chameleon/config.h" HAVE_CHAMELEON_PREC_S )
-check_symbol_exists( CHAMELEON_PREC_D "chameleon/config.h" HAVE_CHAMELEON_PREC_D )
-check_symbol_exists( CHAMELEON_PREC_C "chameleon/config.h" HAVE_CHAMELEON_PREC_C )
+check_symbol_exists( CHAMELEON_PREC_S  "chameleon/config.h" HAVE_CHAMELEON_PREC_S  )
+check_symbol_exists( CHAMELEON_PREC_D  "chameleon/config.h" HAVE_CHAMELEON_PREC_D  )
+check_symbol_exists( CHAMELEON_PREC_C  "chameleon/config.h" HAVE_CHAMELEON_PREC_C  )
+check_symbol_exists( CHAMELEON_USE_MPI "chameleon/config.h" HAVE_CHAMELEON_USE_MPI )
 unset(CMAKE_REQUIRED_INCLUDES)
 
 set(CMAKE_BUILD_RPATH ${CHAMELEON_LIB_DIR})
@@ -89,6 +90,13 @@ if (HAVE_CHAMELEON_PREC_C AND CXX)
 
     add_executable(link_chameleon_cpp link_chameleon.cpp)
     target_link_libraries(link_chameleon_cpp PRIVATE CHAMELEON::chameleon)
+
+    # Add the CXX MPI library if needed
+    if (HAVE_CHAMELEON_USE_MPI)
+      find_package(MPI REQUIRED COMPONENTS CXX)
+      target_link_libraries(link_chameleon_cpp PRIVATE MPI::MPI_CXX)
+    endif()
+
     add_test(link_chameleon_cpp link_chameleon_cpp)
   endif()
 endif()
