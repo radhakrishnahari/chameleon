@@ -156,7 +156,11 @@ int RUNTIME_init( CHAM_context_t *chamctxt,
 
     /* StarPU was already initialized by an external library */
     if (conf == NULL) {
-        return 0;
+        /* Initialize local interfaces */
+        starpu_cham_tile_interface_init();
+        cppi_interface_init();
+
+        return CHAMELEON_SUCCESS;
     }
 
     if ( ncpus == 0 ) {
@@ -238,6 +242,7 @@ int RUNTIME_init( CHAM_context_t *chamctxt,
 #endif
 #endif
 
+    /* Initialize local interfaces */
     starpu_cham_tile_interface_init();
     cppi_interface_init();
 
