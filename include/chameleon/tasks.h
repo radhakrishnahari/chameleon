@@ -18,13 +18,21 @@
  * @author Matthieu Kuhn
  * @author Alycia Lisito
  * @author Matteo Marcos
- * @date 2025-03-24
+ * @date 2025-07-23
  *
  */
 #ifndef _chameleon_tasks_h_
 #define _chameleon_tasks_h_
 
 #include "chameleon/config.h"
+
+#if defined(CHAMELEON_USE_CUDA) && !defined(CHAMELEON_SIMULATION)
+#include "gpucublas.h"
+#endif
+
+#if defined(CHAMELEON_USE_HIP) && !defined(CHAMELEON_SIMULATION)
+#include "gpuhipblas.h"
+#endif
 
 BEGIN_C_DECLS
 
@@ -107,7 +115,6 @@ typedef int (*cham_map_cpu_fct_t)( void *args, cham_uplo_t uplo, int m, int n, i
                                    const CHAM_desc_t *desc, CHAM_tile_t *tile, ... );
 
 #if defined(CHAMELEON_USE_CUDA) && !defined(CHAMELEON_SIMULATION)
-#include "gpucublas.h"
 typedef int (*cham_map_cuda_fct_t)( cublasHandle_t handle, void *args,
                                     cham_uplo_t uplo, int m, int n, int ndata,
                                     const CHAM_desc_t *desc, CHAM_tile_t *tile, ... );
@@ -116,7 +123,6 @@ typedef void *cham_map_cuda_fct_t;
 #endif
 
 #if defined(CHAMELEON_USE_HIP) && !defined(CHAMELEON_SIMULATION)
-#include "gpuhipblas.h"
 typedef int (*cham_map_hip_fct_t)( hipblasHandle_t handle, void *args,
                                    cham_uplo_t uplo, int m, int n, int ndata,
                                    const CHAM_desc_t *desc, CHAM_tile_t *tile, ... );
