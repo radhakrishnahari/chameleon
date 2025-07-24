@@ -739,7 +739,12 @@ cti_allocate_datatype_node( starpu_data_handle_t handle,
     size_t ld = cham_tile_interface->tile.ld;
     size_t elemsize = CHAMELEON_Element_Size( cham_tile_interface->flttype );
 
+#if defined(CHAMELEON_HAVE_MPI_TYPE_VECTOR_C)
+    ret = MPI_Type_vector_c( n, m * elemsize, ld * elemsize, MPI_BYTE, datatype );
+#else
+    assert( ld * elemsize <= (size_t)INT_MAX );
     ret = MPI_Type_vector( n, m * elemsize, ld * elemsize, MPI_BYTE, datatype );
+#endif
     STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_vector failed");
 
     ret = MPI_Type_commit( datatype );
