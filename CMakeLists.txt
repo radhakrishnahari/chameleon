@@ -573,7 +573,12 @@ if(NOT CHAMELEON_SIMULATION)
 
         if (MPI_C_FOUND)
             message("-- ${Blue}Add definition CHAMELEON_USE_MPI"
-            " - Activate MPI in Chameleon${ColourReset}")
+              " - Activate MPI in Chameleon${ColourReset}")
+
+            morse_cmake_required_set( MPI )
+            check_function_exists(MPI_Type_vector_c CHAMELEON_HAVE_MPI_TYPE_VECTOR_C)
+            morse_cmake_required_unset()
+
         endif (MPI_C_FOUND)
 
         morse_export_imported_target(MPI::MPI_C mpi chameleon)

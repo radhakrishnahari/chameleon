@@ -53,6 +53,7 @@
 #if !defined(CHAMELEON_USE_MPI) && defined(CHAMELEON_USE_MPI_DATATYPES)
 #undef CHAMELEON_USE_MPI_DATATYPES
 #endif
+#cmakedefine CHAMELEON_HAVE_MPI_TYPE_VECTOR_C
 
 /* GPU Support */
 #cmakedefine CHAMELEON_USE_CUDA
