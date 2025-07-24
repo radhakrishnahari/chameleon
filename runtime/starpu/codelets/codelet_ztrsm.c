@@ -195,7 +195,7 @@ void INSERT_TASK_ztrsm( const RUNTIME_option_t *options,
         return;
     }
 
-   if ( params.do_execute )
+    if ( params.do_execute )
     {
         int ret;
         struct starpu_task *task = starpu_task_create();
