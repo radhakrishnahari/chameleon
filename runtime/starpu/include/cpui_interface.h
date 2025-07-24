@@ -69,7 +69,7 @@ cpui_display_dbg( cpui_interface_t *cpui_interface, FILE *f, const char *title )
 
     fprintf(stderr, "index: " );
     for( i=0; i<cpui_interface->ws.nindex; i++) {
-        fprintf(stderr, "%e ", index[i] );
+        fprintf(stderr, "%d ", index[i] );
     }
     fprintf(stderr, "\n" );
 }
