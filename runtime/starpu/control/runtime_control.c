@@ -33,6 +33,20 @@
 
 static int starpu_initialized = 0;
 
+static inline
+void cham_interfaces_init() {
+    starpu_cham_tile_interface_init();
+    cppi_interface_init();
+    cpui_interface_init();
+}
+
+static inline
+void cham_interfaces_fini() {
+    starpu_cham_tile_interface_fini();
+    cppi_interface_fini();
+    cpui_interface_fini();
+}
+
 #if defined(STARPU_HAVE_HWLOC) && defined(HAVE_STARPU_PARALLEL_WORKER)
 void chameleon_starpu_parallel_worker_init( CHAM_context_starpu_t *sched_opt )
 {
@@ -157,8 +171,7 @@ int RUNTIME_init( CHAM_context_t *chamctxt,
     /* StarPU was already initialized by an external library */
     if (conf == NULL) {
         /* Initialize local interfaces */
-        starpu_cham_tile_interface_init();
-        cppi_interface_init();
+        cham_interfaces_init();
 
         return CHAMELEON_SUCCESS;
     }
@@ -243,8 +256,7 @@ int RUNTIME_init( CHAM_context_t *chamctxt,
 #endif
 
     /* Initialize local interfaces */
-    starpu_cham_tile_interface_init();
-    cppi_interface_init();
+    cham_interfaces_init();
 
     chameleon_starpu_parallel_worker_init( sched_opt );
     return hres;
@@ -255,6 +267,9 @@ int RUNTIME_init( CHAM_context_t *chamctxt,
  */
 void RUNTIME_finalize( CHAM_context_t *chamctxt )
 {
+    /* Cleanup local interfaces */
+    cham_interfaces_fini();
+
     /* StarPU was already initialized by an external library or was not successfully initialized: */
     if ( (chamctxt->schedopt == NULL) || !starpu_initialized ) {
         return;
@@ -262,8 +277,6 @@ void RUNTIME_finalize( CHAM_context_t *chamctxt )
 
     CHAM_context_starpu_t *sched_opt = (CHAM_context_starpu_t*)(chamctxt->schedopt);
     chameleon_starpu_parallel_worker_fini( sched_opt );
-
-    starpu_cham_tile_interface_fini();
 
 #if defined(CHAMELEON_USE_CUDA) && !defined(CHAMELEON_SIMULATION)
     starpu_cublas_shutdown();

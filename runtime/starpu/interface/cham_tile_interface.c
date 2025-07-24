@@ -236,7 +236,7 @@ cti_get_size(starpu_data_handle_t handle)
                        "Error. The given data is not a cham_tile." );
 #endif
 
-    return cham_tile_interface->tile.m * cham_tile_interface->tile.n * elemsize;
+    return  elemsize * (size_t)(cham_tile_interface->tile.m) * (size_t)(cham_tile_interface->tile.n);
 }
 
 static size_t
@@ -322,10 +322,10 @@ cti_pack_data_fullrank( starpu_cham_tile_interface_t *cham_tile_interface,
         for(n=0; n<cham_tile_interface->tile.n; n++)
         {
             size_t elemsize = CHAMELEON_Element_Size( cham_tile_interface->flttype );
-            size_t size = cham_tile_interface->tile.m * elemsize;
+            size_t size = elemsize * (size_t)(cham_tile_interface->tile.m);
             memcpy( tmpptr, matrix, size );
             tmpptr += size;
-            matrix += cham_tile_interface->tile.ld * elemsize;
+            matrix += elemsize * (size_t)(cham_tile_interface->tile.ld);
         }
     }
     return 0;
@@ -430,10 +430,10 @@ cti_unpack_data_fullrank( starpu_cham_tile_interface_t *cham_tile_interface,
         for(n=0 ; n<cham_tile_interface->tile.n; n++)
         {
             size_t elemsize = CHAMELEON_Element_Size( cham_tile_interface->flttype );
-            size_t size = cham_tile_interface->tile.m * elemsize;
+            size_t size = elemsize * (size_t)(cham_tile_interface->tile.m);
             memcpy( matrix, tmpptr, size );
             tmpptr += size;
-            matrix += cham_tile_interface->tile.ld * elemsize;
+            matrix += elemsize * (size_t)(cham_tile_interface->tile.ld);
         }
     }
     return 0;
@@ -689,17 +689,17 @@ starpu_cham_tile_register( starpu_data_handle_t *handleptr,
             .flttype    = flttype,
             .dev_handle = (intptr_t)(tile->mat),
             .allocsize  = -1,
-            .tilesize   = tile->m * tile->n * elemsize,
+            .tilesize   = elemsize * (size_t)(tile->m) * (size_t)(tile->n),
         };
     memcpy( &(cham_tile_interface.tile), tile, sizeof( CHAM_tile_t ) );
     /* Overwrite the flttype in case it comes from a data conversion */
     cham_tile_interface.tile.flttype = flttype;
 
     if ( tile->format & CHAMELEON_TILE_FULLRANK ) {
-        cham_tile_interface.allocsize = tile->m * tile->n * elemsize;
+        cham_tile_interface.allocsize = cham_tile_interface.tilesize;
     }
     else if ( tile->format & CHAMELEON_TILE_DESC ) { /* Needed in case starpu ask for it */
-        cham_tile_interface.allocsize = tile->m * tile->n * elemsize;
+        cham_tile_interface.allocsize = cham_tile_interface.tilesize;
     }
     else if ( tile->format & CHAMELEON_TILE_HMAT ) {
         /* For hmat, allocated data will be handled by hmat library. StarPU cannot allocate it for the library */
@@ -739,7 +739,12 @@ cti_allocate_datatype_node( starpu_data_handle_t handle,
     size_t ld = cham_tile_interface->tile.ld;
     size_t elemsize = CHAMELEON_Element_Size( cham_tile_interface->flttype );
 
+#if defined(CHAMELEON_HAVE_MPI_TYPE_VECTOR_C)
+    ret = MPI_Type_vector_c( n, m * elemsize, ld * elemsize, MPI_BYTE, datatype );
+#else
+    assert( ld * elemsize <= (size_t)INT_MAX );
     ret = MPI_Type_vector( n, m * elemsize, ld * elemsize, MPI_BYTE, datatype );
+#endif
     STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_vector failed");
 
     ret = MPI_Type_commit( datatype );
