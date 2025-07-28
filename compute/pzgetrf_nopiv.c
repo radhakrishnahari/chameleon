@@ -33,7 +33,9 @@
 #define WU(m, n) WU, m, n
 
 /**
- *  Parallel tile LU factorization with no pivoting - dynamic scheduling
+ * @brief Generic tile algorithm of the LU factorization without pivoting
+ *
+ * This is the version to use by default.
  */
 void chameleon_pzgetrf_nopiv_generic( CHAM_desc_t        *A,
                                       RUNTIME_sequence_t *sequence,
@@ -58,11 +60,19 @@ void chameleon_pzgetrf_nopiv_generic( CHAM_desc_t        *A,
 
     ib = CHAMELEON_IB;
 
+#if defined(CHAMELEON_USE_MPI)
+    /*
+     * Estimate the number of tasks per step on each node to automatically limit
+     * the submission window and prevent the memory overflow issue dur to
+     * pre-allocation of the reception buffers.
+     */
     if ( chamctxt->autominmax_enabled && (chamctxt->scheduler == RUNTIME_SCHED_STARPU) ) {
-        int lookahead = chamctxt->lookahead;
-        int nbtasks_per_step = (A->mt * A->nt) / (chameleon_desc_datadist_get_iparam(A, 0) * chameleon_desc_datadist_get_iparam(A, 1));
-        int mintasks = nbtasks_per_step *  lookahead;
-        int maxtasks = nbtasks_per_step * (lookahead+1);
+        int P                = chameleon_desc_datadist_get_iparam(A, 0);
+        int Q                = chameleon_desc_datadist_get_iparam(A, 1);
+        int lookahead        = chamctxt->lookahead;
+        int nbtasks_per_step = (A->mt * A->nt) / (P * Q);
+        int mintasks         = nbtasks_per_step *  lookahead;
+        int maxtasks         = nbtasks_per_step * (lookahead+1);
 
         if ( CHAMELEON_Comm_rank() == 0 ) {
             chameleon_warning( "chameleon_pzgetrf_nopiv",
@@ -70,6 +80,7 @@ void chameleon_pzgetrf_nopiv_generic( CHAM_desc_t        *A,
         }
         RUNTIME_set_minmax_submitted_tasks( mintasks, maxtasks );
     }
+#endif
 
     kmin = chameleon_max( 0,       chamctxt->first_step );
     kmax = chameleon_min( min_mnt, chamctxt->last_step  );
@@ -131,6 +142,17 @@ void chameleon_pzgetrf_nopiv_generic( CHAM_desc_t        *A,
     RUNTIME_options_finalize(&options, chamctxt);
 }
 
+/**
+ * @brief Tile algorithm of the LU factorization without pivoting using
+ * workspace to optimize the communications
+ *
+ * This version should be used only the workspaces have been initialized. It
+ * used a ring of communication to propagate the column and row panel at each
+ * iteration to regulate the flow of tasks.
+ * By doing so, the row and column panel are communicated along a ring with a
+ * given lookahead. Thus the number of step of the algorithm ongoing at given
+ * instant `t` is limited to lookahead steps.
+ */
 void chameleon_pzgetrf_nopiv_ws( CHAM_desc_t        *A,
                                  CHAM_desc_t        *WL,
                                  CHAM_desc_t        *WU,
