@@ -323,6 +323,10 @@ void RUNTIME_barrier( CHAM_context_t *chamctxt )
 {
     (void)chamctxt;
 
+    if ( !starpu_initialized ) {
+        return;
+    }
+
 #if defined(CHAMELEON_USE_MPI)
 #  if defined(HAVE_STARPU_MPI_WAIT_FOR_ALL)
     starpu_mpi_wait_for_all( chamctxt->comm );
