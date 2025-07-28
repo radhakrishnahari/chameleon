@@ -19,6 +19,7 @@
  **/
 #include "chameleon_starpu_internal.h"
 
+#if defined(CHAMELEON_USE_MPI)
 #if defined(HAVE_STARPU_MPI_TAGS_ALLOCATE)
 void
 chameleon_starpu_tag_init( void )
@@ -39,7 +40,6 @@ chameleon_starpu_tag_release( int64_t min )
 }
 
 #else
-#if defined(CHAMELEON_USE_MPI)
 /**
  * @brief Structure Chameleon StarPU tag
  *
@@ -221,6 +221,7 @@ chameleon_starpu_tag_release( int64_t min )
     return;
 }
 
+#endif /* defined(HAVE_STARPU_MPI_TAGS_ALLOCATE) */
 #else /* defined(CHAMELEON_USE_MPI) */
 
 /**
@@ -280,7 +281,6 @@ chameleon_starpu_tag_release( __attribute__((unused)) int64_t min ) {
 }
 
 #endif
-#endif /* defined(HAVE_STARPU_MPI_TAGS_ALLOCATE) */
 
 /**
  * @}
