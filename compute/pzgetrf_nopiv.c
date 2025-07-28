@@ -142,6 +142,72 @@ void chameleon_pzgetrf_nopiv_generic( CHAM_desc_t        *A,
     RUNTIME_options_finalize(&options, chamctxt);
 }
 
+static inline void
+chameleon_pzgetrf_nopiv_ws_cpy_WL( CHAM_desc_t       *A,
+                                   int                Am,
+                                   int                Ak,
+                                   const CHAM_desc_t *WL,
+                                   int                Lm,
+                                   int                Lk,
+                                   int                lq,
+                                   int                Q,
+                                   RUNTIME_option_t  *options )
+{
+    int tempmm = A->get_blkdim( A, Am, DIM_m, A->m );
+    int tempkn = A->get_blkdim( A, Ak, DIM_n, A->n );
+    int q;
+
+    /* Broadcast A(m,k) into temp buffers through a ring */
+
+    assert( A->get_rankof( A, Am, Ak ) == WL->get_rankof( WL, Lm, ( Lk % Q ) + lq ) );
+    INSERT_TASK_zlacpy(
+        options,
+        ChamUpperLower, tempmm, tempkn,
+        A,  Am, Ak,
+        WL, Lm, ( Lk % Q ) + lq );
+
+    for ( q = 1; q < Q; q ++ ) {
+        INSERT_TASK_zlacpy(
+            options,
+            ChamUpperLower, tempmm, tempkn,
+            WL, Lm, ( ( Lk + q - 1 ) % Q ) + lq,
+            WL, Lm, ( ( Lk + q )     % Q ) + lq );
+    }
+}
+
+static inline void
+chameleon_pzgetrf_nopiv_ws_cpy_WU( CHAM_desc_t       *A,
+                                   int                Ak,
+                                   int                An,
+                                   const CHAM_desc_t *WU,
+                                   int                Uk,
+                                   int                Un,
+                                   int                lp,
+                                   int                P,
+                                   RUNTIME_option_t  *options )
+{
+    int tempkm = A->get_blkdim( A, Ak, DIM_m, A->m );
+    int tempnn = A->get_blkdim( A, An, DIM_n, A->n );
+    int p;
+
+    /* Broadcast A(k,n) into temp buffers through a ring */
+
+    assert( A->get_rankof( A, Ak, An ) == WU->get_rankof( WU, ( Uk % P ) + lp, Un ) );
+    INSERT_TASK_zlacpy(
+        options,
+        ChamUpperLower, tempkm, tempnn,
+        A,  Ak,              An,
+        WU, ( Uk % P ) + lp, Un );
+
+    for ( p = 1; p < P; p ++ ) {
+        INSERT_TASK_zlacpy(
+            options,
+            ChamUpperLower, tempkm, tempnn,
+            WU, ( ( Uk + p - 1 ) % P ) + lp, Un,
+            WU, ( ( Uk + p )     % P ) + lp, Un );
+    }
+}
+
 /**
  * @brief Tile algorithm of the LU factorization without pivoting using
  * workspace to optimize the communications
@@ -162,7 +228,7 @@ void chameleon_pzgetrf_nopiv_ws( CHAM_desc_t        *A,
     CHAM_context_t  *chamctxt;
     RUNTIME_option_t options;
 
-    int k, m, n, ib, p, q, lp, lq;
+    int k, m, n, ib, lp, lq;
     int tempkm, tempkn, tempmm, tempnn;
     int lookahead, myp, myq, P, Q;
 
@@ -199,34 +265,9 @@ void chameleon_pzgetrf_nopiv_ws( CHAM_desc_t        *A,
         /**
          * Broadcast of A(k,k) along rings in both directions
          */
-        {
-            INSERT_TASK_zlacpy(
-                &options,
-                ChamUpperLower, tempkm, tempkn,
-                A(  k, k ),
-                WL( k, (k % Q) + lq ) );
-            INSERT_TASK_zlacpy(
-                &options,
-                ChamUpperLower, tempkm, tempkn,
-                A(  k, k ),
-                WU( (k % P) + lp, k ) );
+        chameleon_pzgetrf_nopiv_ws_cpy_WL( A, k, k, WL, k, k, lq, Q, &options );
+        chameleon_pzgetrf_nopiv_ws_cpy_WU( A, k, k, WU, k, k, lp, P, &options );
 
-            for ( q=1; q < Q; q++ ) {
-                INSERT_TASK_zlacpy(
-                    &options,
-                    ChamUpperLower, tempkm, tempkn,
-                    WL( k, ((k+q-1) % Q) + lq ),
-                    WL( k, ((k+q)   % Q) + lq ) );
-            }
-
-            for ( p=1; p < P; p++ ) {
-                INSERT_TASK_zlacpy(
-                    &options,
-                    ChamUpperLower, tempkm, tempkn,
-                    WU( ((k+p-1) % P) + lp, k ),
-                    WU( ((k+p)   % P) + lp, k ) );
-            }
-        }
         chameleon_data_flush( sequence, A( k, k ), request->flush );
 
         for (m = k+1; m < A->mt; m++) {
@@ -248,22 +289,8 @@ void chameleon_pzgetrf_nopiv_ws( CHAM_desc_t        *A,
                       A( m, k ) );
 
             /* Broadcast A(m,k) into temp buffers through a ring */
-            {
-                assert( A->get_rankof( A, m, k ) == WL->get_rankof( WL,  m, (k % Q) + lq) );
-                INSERT_TASK_zlacpy(
-                    &options,
-                    ChamUpperLower, tempmm, tempkn,
-                    A(  m, k ),
-                    WL( m, (k % Q) + lq) );
+            chameleon_pzgetrf_nopiv_ws_cpy_WL( A, m, k, WL, m, k, lq, Q, &options );
 
-                for ( q=1; q < Q; q++ ) {
-                    INSERT_TASK_zlacpy(
-                        &options,
-                        ChamUpperLower, tempmm, tempkn,
-                        WL( m, ((k+q-1) % Q) + lq ),
-                        WL( m, ((k+q)   % Q) + lq ) );
-                }
-            }
             chameleon_data_flush( sequence, A( m, k ), request->flush );
         }
 
@@ -286,22 +313,8 @@ void chameleon_pzgetrf_nopiv_ws( CHAM_desc_t        *A,
                       A( k, n ));
 
             /* Broadcast A(k,n) into temp buffers through a ring */
-            {
-                assert( A->get_rankof( A, k, n ) == WU->get_rankof( WU, (k%P) + lp, n) );
-                INSERT_TASK_zlacpy(
-                    &options,
-                    ChamUpperLower, tempkm, tempnn,
-                    A(  k, n ),
-                    WU( (k % P) + lp, n ) );
+            chameleon_pzgetrf_nopiv_ws_cpy_WU( A, k, n, WU, k, n, lp, P, &options );
 
-                for ( p=1; p < P; p++ ) {
-                    INSERT_TASK_zlacpy(
-                        &options,
-                        ChamUpperLower, tempkm, tempnn,
-                        WU( ((k+p-1) % P) + lp, n ),
-                        WU( ((k+p)   % P) + lp, n ) );
-                }
-            }
             chameleon_data_flush( sequence, A( k, n ), request->flush );
 
             for (m = k+1; m < A->mt; m++) {
