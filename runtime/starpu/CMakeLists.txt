@@ -39,7 +39,22 @@ include(CheckCSourceRuns)
 
 set(CHAMELEON_STARPU_VERSION "1.4" CACHE STRING "necessary STARPU API version")
 
-find_package(STARPU ${CHAMELEON_STARPU_VERSION} REQUIRED)
+# Find StarPU
+# ------------
+set(STARPU_COMPONENTS_LIST "")
+if (CHAMELEON_USE_MPI)
+  list(APPEND STARPU_COMPONENTS_LIST MPI)
+endif()
+if (CHAMELEON_USE_CUDA AND NOT CHAMELEON_SIMULATION)
+  list(APPEND STARPU_COMPONENTS_LIST CUDA)
+endif()
+if (CHAMELEON_USE_HIP AND NOT CHAMELEON_SIMULATION)
+  list(APPEND STARPU_COMPONENTS_LIST HIP)
+endif()
+if (CHAMELEON_SIMULATION)
+  list(APPEND STARPU_COMPONENTS_LIST SIMGRID)
+endif()
+find_package(STARPU ${CHAMELEON_STARPU_VERSION} REQUIRED COMPONENTS ${STARPU_COMPONENTS_LIST})
 
 # Bug fix of hip defining to null the variable in the perl script used
 # by starpu, and to 1 in the cmake targe file used by chameleon
