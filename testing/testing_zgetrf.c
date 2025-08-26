@@ -18,7 +18,7 @@
  * @author Xavier Lacoste
  * @author Florent Pruvost
  * @author Matteo Marcos
- * @date 2025-03-24
+ * @date 2025-10-15
  * @precisions normal z -> c d s
  *
  */
@@ -83,7 +83,7 @@ testing_zgetrf_desc( run_arg_list_t *args, int check )
     P = chameleon_desc_datadist_get_iparam( descA, 0 );
     Q = chameleon_desc_datadist_get_iparam( descA, 1 );
 
-    CHAMELEON_Ipiv_Create( &descIPIV, ChamLeft, descA->mb, N, P, P*Q, NULL );
+    CHAMELEON_Ipiv_Create( &descIPIV, ChamLeft, descA->mb, minMN, P, P*Q, NULL );
 
     /* Fills the matrix with random values */
     if ( diag == ChamUnit ) {
@@ -122,7 +122,7 @@ testing_zgetrf_desc( run_arg_list_t *args, int check )
             CHAMELEON_zplrnt_Tile( descA0, seedA );
         }
 
-        CHAMELEON_zlaswp_Tile( ChamLeft, ChamDirForward, descA0, 1, descA0->m, descIPIV );
+        CHAMELEON_zlaswp_Tile( ChamLeft, ChamDirForward, descA0, 1, minMN, descIPIV );
 
         hres += check_zxxtrf( args, ChamGeneral, ChamUpperLower,
                               descA0, descA );
