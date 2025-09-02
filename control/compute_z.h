@@ -396,8 +396,8 @@ chameleon_zdesc_copy_and_restrict( const CHAM_desc_t *descIn,
     rc = chameleon_desc_init( descOut, CHAMELEON_MAT_ALLOC_TILE,
                               ChamComplexDouble, descIn->mb, descIn->nb, descIn->mb * descIn->nb,
                               m, n, 0, 0, m, n, chameleon_desc_datadist_get_iparam(descIn, 0), chameleon_desc_datadist_get_iparam(descIn, 1),
-                              descIn->get_blkaddr,
-                              descIn->get_blkldd,
+                              NULL,
+                              NULL,
                               descIn->get_rankof_init, descIn->get_rankof_init_arg );
     return rc;
 }
