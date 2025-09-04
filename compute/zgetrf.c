@@ -138,20 +138,13 @@ CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A )
      */
     ws->ringswitch = chameleon_getenv_get_value_int( "CHAMELEON_GETRF_RINGSWITCH", INT_MAX );
 
-    /* Allocation of U for permutation of the panels */
-    {
-        chameleon_desc_init( &(ws->U), CHAMELEON_MAT_ALLOC_TILE,
-                             ChamComplexDouble, A->mb, A->nb, A->mb*A->nb,
-                             A->m, A->n, 0, 0,
-                             A->m, A->n, P, Q,
-                             NULL, NULL, A->get_rankof_init, A->get_rankof_init_arg );
-        lookahead = chamctxt->lookahead;
-        chameleon_desc_init( &(ws->Wl), CHAMELEON_MAT_ALLOC_TILE,
-                             ChamComplexDouble, A->mb, A->nb, (A->mb * A->nb),
-                             A->mt * A->mb, A->nb * Q * lookahead, 0, 0,
-                             A->mt * A->mb, A->nb * Q * lookahead, P, Q,
-                             NULL, NULL, A->get_rankof_init, A->get_rankof_init_arg );
-    }
+    /* Allocation of Wl for permutation of the panels */
+    lookahead = chamctxt->lookahead;
+    chameleon_desc_init( &(ws->Wl), CHAMELEON_MAT_ALLOC_TILE,
+                         ChamComplexDouble, A->mb, A->nb, (A->mb * A->nb),
+                         A->mt * A->mb, A->nb * Q * lookahead, 0, 0,
+                         A->mt * A->mb, A->nb * Q * lookahead, P, Q,
+                         NULL, NULL, A->get_rankof_init, A->get_rankof_init_arg );
 
     /* Set ib to 1 if per column algorithm */
     if ( ws->alg == ChamGetrfPPivPerColumn ) {
@@ -201,7 +194,6 @@ CHAMELEON_zgetrf_WS_Free( void *user_ws )
 
     CHAMELEON_zlaswp_WS_Free( ws->laswp );
 
-    chameleon_desc_destroy( &(ws->U) );
     if ( ws->alg == ChamGetrfPPiv )
     {
         chameleon_desc_destroy( &(ws->Up) );

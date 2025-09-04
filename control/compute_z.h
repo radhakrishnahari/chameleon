@@ -25,7 +25,7 @@
  * @author Ana Hourcau
  * @author Pierre Esterie
  * @author Matteo Marcos
- * @date 2025-07-15
+ * @date 2025-10-15
  * @precisions normal z -> c d s
  *
  */
@@ -66,7 +66,6 @@ struct chameleon_pzgetrf_s {
     int                         batch_size_blas3; /**< Batch size for the blas 3 operations of the panel factorization      */
     int                         ringswitch;       /**< Define when to switch to ring bcast                                  */
     cham_fixdbl_t               flops_min;        /**< Define size of batched task in MFlops                                */
-    CHAM_desc_t                 U;                /**< Workspaces used for the panels permutation in getrf without pivoting */
     CHAM_desc_t                 Up;               /**< Workspace used for the panel factorization                           */
     CHAM_desc_t                 Wl;               /**< Workspace used for the update                                        */
 };

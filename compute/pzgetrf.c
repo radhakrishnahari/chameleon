@@ -26,7 +26,6 @@
 #include "chameleon/flops.h"
 
 #define A(m,n)   A,                m, n
-#define U(m,n)   &(ws->U),         m, n
 #define Up(m,n)  &(ws->Up),        m, n
 #define Wu(m,n)  &(ws->laswp->Wu), m, n
 #define Wl(m,n)  &(ws->Wl),        m, n
@@ -396,7 +395,7 @@ chameleon_pzgetrf_panel_permute( struct chameleon_pzgetrf_s *ws,
         tempnn = A->get_blkdim( A, n, DIM_n, A->n );
         minmn  = chameleon_min( tempkm, tempkn );
 
-        /* Extract selected rows into U */
+        /* Extract selected rows into Wu */
         withlacpy = options->withlacpy;
         options->withlacpy = 1;
         INSERT_TASK_zlacpy( options, ChamUpperLower, tempkm, tempnn,
@@ -456,7 +455,7 @@ chameleon_pzgetrf_panel_permute_batched( struct chameleon_pzgetrf_s *ws,
         tempnn = A->get_blkdim( A, n, DIM_n, A->n );
         minmn  = chameleon_min( tempkm, tempkn );
 
-        /* Extract selected rows into U */
+        /* Extract selected rows into Wu */
         withlacpy = options->withlacpy;
         options->withlacpy = 1;
         INSERT_TASK_zlacpy( options, ChamUpperLower, tempkm, tempnn,
