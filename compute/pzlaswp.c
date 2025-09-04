@@ -122,8 +122,9 @@ chameleon_pzlaswp_panel_permute_batched( struct chameleon_pzlaswp_s *ws,
     free( clargs );
 }
 
-static inline void
+void
 chameleon_pzlaswp_panel( struct chameleon_pzlaswp_s *ws,
+                         cham_bool_t                 inplace,
                          cham_dir_t                  dir,
                          CHAM_desc_t                *A,
                          CHAM_ipiv_t                *ipiv,
@@ -137,20 +138,35 @@ chameleon_pzlaswp_panel( struct chameleon_pzlaswp_s *ws,
     int                      tempkm, tempnn;
 
 #if defined(CHAMELEON_USE_MPI)
+    /* Initizalize the list of nodes invovlved in the panel n */
     chameleon_get_proc_involved_in_panelk_2dbc( A, k, n, reduce );
+
+    /* If on the rank who owns the ipiv array */
     if ( A->myrank == ipiv->get_rankof( ipiv, k, k ) ) {
-        INSERT_TASK_zperm_allreduce_send_perm( options, dir, ipiv, k, A->myrank, reduce->np_involved, reduce->proc_involved );
+        /* Exchange between all nodes involved the perm array */
+        INSERT_TASK_zperm_allreduce_send_perm( options, dir, ipiv, k, A->myrank,
+                                               reduce->np_involved, reduce->proc_involved );
+
+        /* Exchange between all nodes involved the invp array */
         INSERT_TASK_zperm_allreduce_send_invp_row( options, dir, ipiv, k, A, k, n );
     }
+
+    /* Bcast the top tile of the panel to all involved nodes */
     if ( A->myrank == chameleon_getrankof_2d( A, k, n ) ) {
-        INSERT_TASK_zperm_allreduce_send_A( options, A, k, n, A->myrank, reduce->np_involved, reduce->proc_involved );
+        INSERT_TASK_zperm_allreduce_send_A( options, A, k, n, A->myrank,
+                                            reduce->np_involved, reduce->proc_involved );
     }
 
+    /* If I'm not involved in the reduction, no need to go further */
     if ( !reduce->involved ) {
         return;
     }
 #endif
 
+    /*
+     * Perform the permutation on the panel, the final top tile is stored in
+     * Wu(..,n) or Ws(...,n) when done dpeending on the configuration.
+     */
     if ( ws->batch_size_swap == 0 ){
         chameleon_pzlaswp_panel_permute( ws, dir, A, ipiv, k, n, options );
     }
@@ -158,17 +174,29 @@ chameleon_pzlaswp_panel( struct chameleon_pzlaswp_s *ws,
         chameleon_pzlaswp_panel_permute_batched( ws, dir, A, ipiv, k, n, options );
     }
 
-    if ( A->myrank == chameleon_getrankof_2d( A, k, n ) ) {
-
+    /*
+     * Now, we need to set the final top tile to the right position. Either
+     * directly in A (when peforming a standalone swap operation), or in the
+     * temporary replicated buffer to perform a replicated trsm (LU
+     * factorization for example).
+     */
+    if ( inplace ) {
         if ( ws->reduce.np_involved == 1 ) {
+            /*
+             * If we just perform a laswp, A must be equal to Atop, then we copy the
+             * final version of the tile to its final location.
+             */
             tempkm = A->get_blkdim( A, k, DIM_m, A->m );
             tempnn = A->get_blkdim( A, n, DIM_n, A->n );
             INSERT_TASK_zlacpy( options, ChamUpperLower, tempkm, tempnn,
-                                Wu(A->myrank, n), A(k, n) );
+                                Wu(A->myrank, n), A( k, n ) );
         }
 #if defined(CHAMELEON_USE_MPI)
         else {
             if ( reduce->alg_allreduce == ChamStarPUTasks ) {
+                /*
+                 * Let's copy the final version of A to its final position
+                 */
                 INSERT_TASK_zlaswp_ret( options, Ws(A->myrank, n), A(k, n) );
                 RUNTIME_cpui_flushk( sequence, A->myrank, Ws(A->myrank, n) );
             }
@@ -176,6 +204,16 @@ chameleon_pzlaswp_panel( struct chameleon_pzlaswp_s *ws,
 #endif
         chameleon_data_flush( sequence, A(k, n), request->flush );
     }
+#if defined(CHAMELEON_USE_MPI)
+    else { /* Outofplace with replication */
+        if ( reduce->np_involved != 1 ) {
+            if ( reduce->alg_allreduce == ChamStarPUTasks ) {
+                INSERT_TASK_zlaswp_ret( options, Ws(A->myrank, n), Wu(A->myrank, n) );
+            }
+            RUNTIME_cpui_flushk( sequence, A->myrank, Ws(A->myrank, n) );
+        }
+    }
+#endif
     (void)reduce;
 }
 
@@ -203,7 +241,7 @@ chameleon_pzlaswp( struct chameleon_pzlaswp_s *ws,
             for ( n = 0; n < A->nt; n++ ) {
                 options.priority = A->nt-n;
 
-                chameleon_pzlaswp_panel( ws, dir, A, IPIV, k, n, &options, sequence );
+                chameleon_pzlaswp_panel( ws, CHAMELEON_TRUE, dir, A, IPIV, k, n, &options, sequence );
             }
             RUNTIME_perm_flushk( sequence, IPIV, k );
         }
@@ -212,7 +250,7 @@ chameleon_pzlaswp( struct chameleon_pzlaswp_s *ws,
         for ( k = IPIV->mt - 1; k > -1; k-- ) {
             for ( n = 0; n < A->nt; n++ ) {
                 options.priority = A->nt-n;
-                chameleon_pzlaswp_panel( ws, dir, A, IPIV, k, n, &options, sequence );
+                chameleon_pzlaswp_panel( ws, CHAMELEON_TRUE, dir, A, IPIV, k, n, &options, sequence );
             }
             RUNTIME_perm_flushk( sequence, IPIV, k );
         }

@@ -209,6 +209,8 @@ void chameleon_pzlaset2(cham_uplo_t uplo, CHAMELEON_Complex64_t alpha,          
                         RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 void chameleon_pzlaswp( struct chameleon_pzlaswp_s *ws, cham_dir_t dir, CHAM_desc_t *A, CHAM_ipiv_t *IPIV,
                         RUNTIME_sequence_t *sequence, RUNTIME_request_t *request );
+void chameleon_pzlaswp_panel( struct chameleon_pzlaswp_s *ws, cham_bool_t inplace, cham_dir_t dir, CHAM_desc_t *A, CHAM_ipiv_t *ipiv,
+                              int k, int n, RUNTIME_option_t *options, RUNTIME_sequence_t *sequence );
 void chameleon_pzlaswpc( struct chameleon_pzlaswp_s *ws, cham_dir_t dir, CHAM_desc_t *A, CHAM_ipiv_t *IPIV,
                          RUNTIME_sequence_t *sequence, RUNTIME_request_t *request );
 void chameleon_pzlatms( cham_dist_t idist, unsigned long long int seed, cham_sym_t sym, double *D, int mode, double cond, double dmax, CHAM_desc_t *A,
