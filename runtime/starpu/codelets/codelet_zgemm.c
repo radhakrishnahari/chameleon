@@ -25,7 +25,7 @@
  * @author Loris Lucido
  * @author Terry Cojean
  * @author Alycia Lisito
- * @date 2025-06-16
+ * @date 2025-10-06
  * @precisions normal z -> c d s
  *
  */
@@ -329,7 +329,9 @@ void __INSERT_TASK_zgemm( const RUNTIME_option_t *options,
      * Not involved, let's return
      */
     if ( nbdata == 0 ) {
+#if defined(CHAMELEON_USE_MPI)
         assert( params.exchange_needed == 0 );
+#endif
         return;
     }
 
