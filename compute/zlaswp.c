@@ -12,7 +12,7 @@
  * @version 1.3.0
  * @author Alycia Lisito
  * @author Matteo Marcos
- * @date 2025-07-15
+ * @date 2025-10-15
  * @precisions normal z -> s d c
  *
  */
@@ -138,7 +138,12 @@ CHAMELEON_zlaswp_WS_Alloc( cham_side_t side, const CHAM_desc_t *A )
     ws->ws.side = side;
     ws->ws.dtyp = A->dtyp;
     ws->ws.NP   = P * Q;
-    RUNTIME_cpui_create( &(ws->ws) );
+
+#if defined(CHAMELEON_USE_MPI)
+    if ( reduce->alg_allreduce == ChamStarPUTasks ) {
+        RUNTIME_cpui_create( &(ws->ws) );
+    }
+#endif
 
     (void)max_involved;
     return ws;
@@ -173,7 +178,11 @@ CHAMELEON_zlaswp_WS_Free( void *user_ws )
 #endif
 
     chameleon_desc_destroy( &(ws->Wu) );
-    RUNTIME_cpui_destroy( &(ws->ws) );
+#if defined(CHAMELEON_USE_MPI)
+    if ( ws->reduce.alg_allreduce == ChamStarPUTasks ) {
+        RUNTIME_cpui_destroy( &(ws->ws) );
+    }
+#endif
 
     free( ws );
 }

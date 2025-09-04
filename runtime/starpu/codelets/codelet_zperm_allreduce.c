@@ -13,7 +13,7 @@
  * @author Alycia Lisito
  * @author Pierre Esterie
  * @author Matteo Marcos
- * @date 2025-07-15
+ * @date 2025-10-15
  * @precisions normal z -> c d s
  *
  */
@@ -408,24 +408,22 @@ void
 INSERT_TASK_zperm_allreduce( const RUNTIME_option_t *options,
                              cham_dir_t              dir,
                              const CHAM_desc_t      *A,
-                             int                     Am,
-                             int                     An,
+                             CHAM_desc_t            *U,
+                             int                     Um,
+                             int                     Un,
                              CHAM_ipiv_t            *ipiv,
                              int                     ipivk,
-                             const CHAM_desc_t      *Wu,
-                             int                     Wum,
-                             int                     Wun,
-                             void                   *ws,
-                             int                     Wm,
-                             int                     Wn )
+                             int                     k,
+                             int                     n,
+                             void                   *ws )
 {
     struct chameleon_pzlaswp_s *tmp = (struct chameleon_pzlaswp_s *)ws;
     cham_getrf_allreduce_t      alg = tmp->reduce.alg_allreduce;
     switch( alg ) {
     case ChamStarPUTasks:
     default:
-        zperm_allreduce_chameleon_starpu_task( options, dir, A, Am, An, ipiv, ipivk,
-                                               Wu, Wum, Wun, &(tmp->ws), Wm, Wn, &(tmp->reduce) );
+        zperm_allreduce_chameleon_starpu_task( options, dir, A, k, n, ipiv, ipivk,
+                                               U, Um, Un, &(tmp->ws), Um, Un, &(tmp->reduce) );
     }
 }
 
@@ -539,104 +537,4 @@ INSERT_TASK_zperm_allreduce_send_invp_col( const RUNTIME_option_t *options,
     }
 }
 
-#else
-void
-INSERT_TASK_zperm_allreduce_send_A( const RUNTIME_option_t *options,
-                                    CHAM_desc_t            *A,
-                                    int                     Am,
-                                    int                     An,
-                                    int                     myrank,
-                                    int                     np,
-                                    int                    *proc_involved )
-{
-    (void)options;
-    (void)A;
-    (void)Am;
-    (void)An;
-    (void)myrank;
-    (void)np;
-    (void)proc_involved;
-}
-
-void
-INSERT_TASK_zperm_allreduce_send_perm( const RUNTIME_option_t *options,
-                                       cham_dir_t              dir,
-                                       CHAM_ipiv_t            *ipiv,
-                                       int                     ipivk,
-                                       int                     myrank,
-                                       int                     np,
-                                       int                    *proc_involved )
-{
-    (void)options;
-    (void)ipiv;
-    (void)ipivk;
-    (void)myrank;
-    (void)np;
-    (void)proc_involved;
-}
-
-void
-INSERT_TASK_zperm_allreduce_send_invp( const RUNTIME_option_t *options,
-                                       cham_dir_t              dir,
-                                       CHAM_ipiv_t            *ipiv,
-                                       int                     ipivk,
-                                       const CHAM_desc_t      *A,
-                                       int                     k,
-                                       int                     n )
-{
-    (void)options;
-    (void)ipiv;
-    (void)ipivk;
-    (void)A;
-    (void)k;
-    (void)n;
-}
-
-void
-INSERT_TASK_zperm_allreduce_send_invp_col( const RUNTIME_option_t *options,
-                                           cham_dir_t              dir,
-                                           CHAM_ipiv_t            *ipiv,
-                                           int                     ipivk,
-                                           const CHAM_desc_t      *A,
-                                           int                     m,
-                                           int                     k )
-{
-    (void)options;
-    (void)ipiv;
-    (void)ipivk;
-    (void)A;
-    (void)m;
-    (void)k;
-}
-
-void
-INSERT_TASK_zperm_allreduce( const RUNTIME_option_t *options,
-                             cham_dir_t              dir,
-                             const CHAM_desc_t      *A,
-                             int                     m,
-                             int                     n,
-                             CHAM_ipiv_t            *ipiv,
-                             int                     ipivk,
-                             const CHAM_desc_t      *Wu,
-                             int                     Wum,
-                             int                     Wun,
-                             void                   *ws,
-                             int                     Wm,
-                             int                     Wn )
-{
-    (void)options;
-    (void)A;
-    (void)m;
-    (void)n;
-    (void)ws;
-    (void)Wm;
-    (void)Wn;
-    (void)Wu;
-    (void)Wum;
-    (void)Wun;
-    (void)ipiv;
-    (void)ipivk;
-    (void)dir;
-}
-
-#endif
+#endif /* defined(CHAMELEON_USE_MPI) */

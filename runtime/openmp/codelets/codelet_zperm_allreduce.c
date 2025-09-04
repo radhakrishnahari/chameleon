@@ -12,12 +12,14 @@
  * @version 1.3.0
  * @author Alycia Lisito
  * @author Matteo Marcos
- * @date 2025-07-15
+ * @date 2025-10-15
  * @precisions normal z -> c d s
  *
  */
 #include "chameleon_openmp.h"
 #include "chameleon/tasks_z.h"
+
+#if defined(CHAMELEON_USE_MPI)
 
 void
 INSERT_TASK_zperm_allreduce_send_A( const RUNTIME_option_t *options,
@@ -74,31 +76,47 @@ INSERT_TASK_zperm_allreduce_send_invp_row( const RUNTIME_option_t *options,
 }
 
 void
+INSERT_TASK_zperm_allreduce_send_invp_col( const RUNTIME_option_t *options,
+                                           cham_dir_t              dir,
+                                           CHAM_ipiv_t            *ipiv,
+                                           int                     ipivk,
+                                           const CHAM_desc_t      *A,
+                                           int                     m,
+                                           int                     k )
+{
+    (void)options;
+    (void)dir;
+    (void)ipiv;
+    (void)ipivk;
+    (void)A;
+    (void)m;
+    (void)k;
+}
+
+void
 INSERT_TASK_zperm_allreduce( const RUNTIME_option_t *options,
                              cham_dir_t              dir,
                              const CHAM_desc_t      *A,
-                             int                     m,
-                             int                     n,
+                             CHAM_desc_t            *U,
+                             int                     Um,
+                             int                     Un,
                              CHAM_ipiv_t            *ipiv,
                              int                     ipivk,
-                             const CHAM_desc_t      *Wu,
-                             int                     Wum,
-                             int                     Wun,
-                             void                   *ws,
-                             int                     Wm,
-                             int                     Wn )
+                             int                     k,
+                             int                     n,
+                             void                   *ws )
 {
     (void)options;
+    (void)dir;
     (void)A;
-    (void)m;
-    (void)n;
-    (void)ws;
-    (void)Wm;
-    (void)Wn;
-    (void)Wu;
-    (void)Wum;
-    (void)Wun;
+    (void)U;
+    (void)Um;
+    (void)Un;
     (void)ipiv;
     (void)ipivk;
-    (void)dir;
+    (void)k;
+    (void)n;
+    (void)ws;
 }
+
+#endif /* if defined(CHAMELEON_USE_MPI) */

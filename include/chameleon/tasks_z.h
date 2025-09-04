@@ -195,9 +195,6 @@ void INSERT_TASK_zlaswp_get( const RUNTIME_option_t *options,
                              const CHAM_ipiv_t *ipiv, int ipivk,
                              const CHAM_desc_t *A, int Am, int An,
                              const CHAM_desc_t *U, int Um, int Un );
-void INSERT_TASK_zlaswp_ret( const RUNTIME_option_t *options,
-                             CHAM_perm_t       *ws,    int Wm,     int Wn,
-                             const CHAM_desc_t *tileA, int tileAm, int tileAn );
 void INSERT_TASK_zlaswp_set( const RUNTIME_option_t *options,
                              cham_side_t             side,
                              cham_dir_t              dir,
@@ -667,53 +664,47 @@ void INSERT_TASK_zipiv_allreduce( const RUNTIME_option_t *options,
  * @param[in] A
  *          The descriptor of the matrix A.
  *
- * @param[in] Am
- *          The index of the row of A to reduce.
+ * @param[inout] U
+ *          The descriptor of the worskpace used for the permutation in the LU
+ *          factorization with partial pivoting.
  *
- * @param[in] An
- *          The index of the column of A to reduce.
+ * @param[in] Um
+ *          The row index of the tile used in U.
+ *
+ * @param[in] Un
+ *          The column index of the tile used in U.
  *
  * @param[in] ipiv
- *          The descriptor of array of pivot ipiv.
+ *          The pivot structure that contains the informations for the LU
+ *          factorization with partial pivoting.
  *
  * @param[in] ipivk
- *          The index of the current tile of the pivot ipiv.
+ *          The index of the permutation.
  *
- * @param[in] Wu
- *          The workspace to handle the data in the LU factorization with
- *          partial pivoting.
+ * @param[in] k
+ *          The number of rows in the tile U(Um, Un).
  *
- * @param[in] Wum
- *          The row index of Wu.
- *
- * @param[in] Wun
- *          The column index of Wu.
+ * @param[in] n
+ *          The number of columns in the tile U(Um, Un).
  *
  * @param[in] ws
  *          The workspace to handle the data in the LU factorization with
  *          partial pivoting.
- *
- * @param[in] Wm
- *          The row index of Ws.
- *
- * @param[in] Wn
- *          The column index of Ws.
  *
  *******************************************************************************
  */
 void INSERT_TASK_zperm_allreduce( const RUNTIME_option_t *options,
                                   cham_dir_t              dir,
                                   const CHAM_desc_t      *A,
-                                  int                     Am,
-                                  int                     An,
+                                  CHAM_desc_t            *U,
+                                  int                     Um,
+                                  int                     Un,
                                   CHAM_ipiv_t            *ipiv,
                                   int                     ipivk,
-                                  const CHAM_desc_t      *Wu,
-                                  int                     Wum,
-                                  int                     Wun,
-                                  void                   *ws,
-                                  int                     Wm,
-                                  int                     Wn );
+                                  int                     k,
+                                  int                     n,
+                                  void                   *ws );
+
 /**
  ********************************************************************************
  *
@@ -960,6 +951,12 @@ void INSERT_TASK_zperm_allreduce_send_invp_col( const RUNTIME_option_t *options,
                                                 const CHAM_desc_t      *A,
                                                 int                     m,
                                                 int                     k );
+
+void INSERT_TASK_zlaswp_ret( const RUNTIME_option_t *options,
+                             CHAM_perm_t       *ws,    int Wm,     int Wn,
+                             const CHAM_desc_t *tileA, int tileAm, int tileAn );
+
+#endif /* defined(CHAMELEON_USE_MPI) */
 
 #endif /* _chameleon_tasks_z_h_ */
 

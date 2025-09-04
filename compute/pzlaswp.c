@@ -12,7 +12,7 @@
  * @version 1.3.0
  * @author Alycia Lisito
  * @author Matteo Marcos
- * @date 2025-07-15
+ * @date 2025-10-15
  * @precisions normal z -> s d c
  *
  */
@@ -61,12 +61,14 @@ chameleon_pzlaswp_panel_permute( struct chameleon_pzlaswp_s *ws,
                                 ipiv, k, A(k, n), A(m, n) );
     }
 
+#if defined(CHAMELEON_USE_MPI)
     if ( ws->allreduce ) {
-        INSERT_TASK_zperm_allreduce( options, dir, A(k, n), ipiv, k, Wu(A->myrank, n), ws, A->myrank, n );
+        INSERT_TASK_zperm_allreduce( options, dir, A, Wu(A->myrank, n), ipiv, k, k, n, ws );
     }
     else {
         INSERT_TASK_zperm_reduce( options, dir, A(k, n), ipiv, k, Wu(A->myrank, n), ws, A->myrank, n );
     }
+#endif
 }
 
 /**
@@ -108,12 +110,14 @@ chameleon_pzlaswp_panel_permute_batched( struct chameleon_pzlaswp_s *ws,
     }
     INSERT_TASK_zlaswp_batched_flush( options, dir, ipiv, k, A(k, n), Wu(A->myrank, n), clargs );
 
+#if defined(CHAMELEON_USE_MPI)
     if ( ws->allreduce ) {
-        INSERT_TASK_zperm_allreduce( options, dir, A(k, n), ipiv, k, Wu(A->myrank, n), ws, A->myrank, n );
+        INSERT_TASK_zperm_allreduce( options, dir, A, Wu(A->myrank, n), ipiv, k, k, n, ws );
     }
     else {
         INSERT_TASK_zperm_reduce( options, dir, A(k, n), ipiv, k, Wu(A->myrank, n), ws, A->myrank, n );
     }
+#endif
 
     free( clargs );
 }
@@ -162,12 +166,16 @@ chameleon_pzlaswp_panel( struct chameleon_pzlaswp_s *ws,
             INSERT_TASK_zlacpy( options, ChamUpperLower, tempkm, tempnn,
                                 Wu(A->myrank, n), A(k, n) );
         }
+#if defined(CHAMELEON_USE_MPI)
         else {
-            INSERT_TASK_zlaswp_ret( options, Ws(A->myrank, n), A(k, n) );
+            if ( reduce->alg_allreduce == ChamStarPUTasks ) {
+                INSERT_TASK_zlaswp_ret( options, Ws(A->myrank, n), A(k, n) );
+                RUNTIME_cpui_flushk( sequence, A->myrank, Ws(A->myrank, n) );
+            }
         }
+#endif
         chameleon_data_flush( sequence, A(k, n), request->flush );
     }
-    RUNTIME_cpui_flushk( sequence, A->myrank, Ws(A->myrank, n) );
     (void)reduce;
 }
 
