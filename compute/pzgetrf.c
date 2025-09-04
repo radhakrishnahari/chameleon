@@ -842,7 +842,9 @@ void chameleon_pzgetrf( struct chameleon_pzgetrf_s *ws,
 
         RUNTIME_iteration_pop( chamctxt );
     }
+#if defined(CHAMELEON_USE_MPI)
     CHAMELEON_Desc_Flush( &(ws->Wl), sequence );
+#endif
     CHAMELEON_Ipiv_Flush( IPIV, sequence );
     chameleon_pivot_destroy_submit( pivot, sequence );
 

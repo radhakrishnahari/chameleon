@@ -138,6 +138,7 @@ CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A )
      */
     ws->ringswitch = chameleon_getenv_get_value_int( "CHAMELEON_GETRF_RINGSWITCH", INT_MAX );
 
+#if defined(CHAMELEON_USE_MPI)
     /* Allocation of Wl for permutation of the panels */
     lookahead = chamctxt->lookahead;
     chameleon_desc_init( &(ws->Wl), CHAMELEON_MAT_ALLOC_TILE,
@@ -145,6 +146,7 @@ CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A )
                          A->mt * A->mb, A->nb * Q * lookahead, 0, 0,
                          A->mt * A->mb, A->nb * Q * lookahead, P, Q,
                          NULL, NULL, A->get_rankof_init, A->get_rankof_init_arg );
+#endif
 
     /* Set ib to 1 if per column algorithm */
     if ( ws->alg == ChamGetrfPPivPerColumn ) {
@@ -163,6 +165,7 @@ CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A )
 
     chameleon_pivot_init( &(ws->pivot), A );
 
+    (void)lookahead;
     return ws;
 }
 
@@ -197,7 +200,9 @@ CHAMELEON_zgetrf_WS_Free( void *user_ws )
         free( ws->Up );
         ws->Up = NULL;
     }
+#if defined(CHAMELEON_USE_MPI)
     chameleon_desc_destroy( &(ws->Wl) );
+#endif
 
     chameleon_pivot_destroy( &ws->pivot );
     free( ws );
@@ -319,7 +324,6 @@ CHAMELEON_zgetrf( int M, int N, CHAMELEON_Complex64_t *A, int LDA, int *IPIV )
     chameleon_sequence_wait( chamctxt, sequence );
 
     /* Cleanup the temporary data */
-    chameleon_pivot_destroy( &(ws->pivot) );
     chameleon_ipiv_destroy( &descIPIV );
 
     CHAMELEON_zgetrf_WS_Free( ws );
