@@ -352,7 +352,7 @@ chameleon_pzgetrf_panel_facto( struct chameleon_pzgetrf_s *ws,
     /* TODO: Should be replaced by a function pointer */
     switch( ws->alg ) {
     case ChamGetrfPPivPerColumn:
-        if ( ws->batch_size_blas2 > 0 ) {
+        if ( ( ws->batch_size_blas2 > 0 ) || ws->batch_adaptive ) {
             chameleon_pzgetrf_panel_facto_percol_batched( ws, A, ipiv, pivot, k, options );
         }
         else {
@@ -362,7 +362,7 @@ chameleon_pzgetrf_panel_facto( struct chameleon_pzgetrf_s *ws,
 
     case ChamGetrfPPiv:
     default:
-        if ( ws->batch_size_blas2 > 0 ) {
+        if ( ( ws->batch_size_blas2 > 0 ) || ws->batch_adaptive ) {
             chameleon_pzgetrf_panel_facto_blocked_batched( ws, A, ipiv, pivot, k, options );
         }
         else {
