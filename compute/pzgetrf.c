@@ -18,7 +18,7 @@
  * @author Matthieu Kuhn
  * @author Alycia Lisito
  * @author Matteo Marcos
- * @date 2025-07-15
+ * @date 2025-10-15
  * @precisions normal z -> s d c
  *
  */
@@ -109,72 +109,6 @@ chameleon_pzgetrf_batch_size( const struct chameleon_pzgetrf_s *ws,
  *   @param[inout] options
  *      The runtime options data structure to pass through all insert_task calls.
  */
-static inline void
-chameleon_pzgetrf_panel_facto_nopiv( struct chameleon_pzgetrf_s *ws,
-                                     CHAM_desc_t                *A,
-                                     CHAM_ipiv_t                *ipiv,
-                                     int                         k,
-                                     RUNTIME_option_t           *options )
-{
-    const CHAMELEON_Complex64_t zone = (CHAMELEON_Complex64_t) 1.0;
-    int m, tempkm, tempkn, tempmm;
-
-    tempkm = A->get_blkdim( A, k, DIM_m, A->m );
-    tempkn = A->get_blkdim( A, k, DIM_n, A->n );
-
-    /*
-     * Algorithm per block without pivoting
-     */
-    INSERT_TASK_zgetrf_nopiv(
-        options,
-        tempkm, tempkn, ws->ib, A->mb,
-         A(k, k), 0);
-
-    for (m = k+1; m < A->mt; m++) {
-        tempmm = A->get_blkdim( A, m, DIM_m, A->m );
-        INSERT_TASK_ztrsm(
-            options,
-            ChamRight, ChamUpper, ChamNoTrans, ChamNonUnit,
-            tempmm, tempkn, A->mb,
-            zone, A(k, k),
-                  A(m, k) );
-    }
-}
-
-static inline void
-chameleon_pzgetrf_panel_facto_nopiv_percol( struct chameleon_pzgetrf_s *ws,
-                                            CHAM_desc_t                *A,
-                                            CHAM_ipiv_t                *ipiv,
-                                            int                         k,
-                                            RUNTIME_option_t           *options )
-{
-    const RUNTIME_request_t *request = options->request;
-    int m, h;
-    int tempkm, tempkn, tempmm, minmn;
-
-    tempkm = A->get_blkdim( A, k, DIM_m, A->m );
-    tempkn = A->get_blkdim( A, k, DIM_n, A->n );
-    minmn  = chameleon_min( tempkm, tempkn );
-
-    /*
-     * Algorithm per column without pivoting
-     */
-    for(h=0; h<minmn; h++){
-        INSERT_TASK_zgetrf_nopiv_percol_diag(
-            options, tempkm, tempkn, h,
-            A( k, k ), U( k, k ), A->mb * k );
-
-        for (m = k+1; m < A->mt; m++) {
-            tempmm = A->get_blkdim( A, m, DIM_m, A->m );
-            INSERT_TASK_zgetrf_nopiv_percol_trsm(
-                options, tempmm, tempkn, h,
-                A( m, k ), U( k, k ) );
-        }
-    }
-
-    chameleon_data_flush( options->sequence, U(k, k), request->flush );
-}
-
 static inline void
 chameleon_pzgetrf_panel_facto_percol( struct chameleon_pzgetrf_s *ws,
                                       CHAM_desc_t                *A,
@@ -417,10 +351,6 @@ chameleon_pzgetrf_panel_facto( struct chameleon_pzgetrf_s *ws,
 
     /* TODO: Should be replaced by a function pointer */
     switch( ws->alg ) {
-    case ChamGetrfNoPivPerColumn:
-        chameleon_pzgetrf_panel_facto_nopiv_percol( ws, A, ipiv, k, options );
-        break;
-
     case ChamGetrfPPivPerColumn:
         if ( ws->batch_size_blas2 > 0 ) {
             chameleon_pzgetrf_panel_facto_percol_batched( ws, A, ipiv, pivot, k, options );
@@ -431,6 +361,7 @@ chameleon_pzgetrf_panel_facto( struct chameleon_pzgetrf_s *ws,
         break;
 
     case ChamGetrfPPiv:
+    default:
         if ( ws->batch_size_blas2 > 0 ) {
             chameleon_pzgetrf_panel_facto_blocked_batched( ws, A, ipiv, pivot, k, options );
         }
@@ -438,10 +369,6 @@ chameleon_pzgetrf_panel_facto( struct chameleon_pzgetrf_s *ws,
             chameleon_pzgetrf_panel_facto_blocked( ws, A, ipiv, pivot, k, options );
         }
         break;
-
-    case ChamGetrfNoPiv:
-    default:
-        chameleon_pzgetrf_panel_facto_nopiv( ws, A, ipiv, k, options );
     }
 }
 
@@ -903,13 +830,6 @@ void chameleon_pzgetrf( struct chameleon_pzgetrf_s *ws,
         RUNTIME_perm_flushk( sequence, IPIV, k );
     }
     CHAMELEON_Desc_Flush( &(ws->laswp->Wu), sequence );
-
-    /* Initialize IPIV with default values if needed */
-    if ( (ws->alg == ChamGetrfNoPivPerColumn) ||
-         (ws->alg == ChamGetrfNoPiv ) )
-    {
-        INSERT_TASK_ipiv_init( &options, IPIV );
-    }
 
     RUNTIME_options_finalize( &options, chamctxt );
 }

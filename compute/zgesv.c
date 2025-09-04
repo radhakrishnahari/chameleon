@@ -11,7 +11,8 @@
  *
  * @version 1.3.0
  * @author Matteo Marcos
- * @date 2025-03-24
+ * @author Alycia Lisito
+ * @date 2025-10-15
  * @precisions normal z -> s d c
  *
  */
@@ -138,11 +139,7 @@ int CHAMELEON_zgesv( int N, int NRHS,
     wsA = CHAMELEON_zgetrf_WS_Alloc( &descAt );
     wsB = CHAMELEON_zgetrf_WS_Alloc( &descBt );
 
-    if ( ( wsA->alg == ChamGetrfPPivPerColumn ) ||
-         ( wsA->alg == ChamGetrfPPiv ) )
-    {
-        chameleon_ipiv_init( &descIPIV, ChamLeft, descAt.mb, N, P, P*Q, IPIV, chameleon_getrankof_ipiv_2d_diag );
-    }
+    chameleon_ipiv_init( &descIPIV, ChamLeft, descAt.mb, N, P, P*Q, IPIV, chameleon_getrankof_ipiv_2d_diag );
 
     /* Call the tile interface */
     CHAMELEON_zgesv_Tile_Async( &descAt, &descIPIV, &descBt, wsA, wsB, sequence, &request );
@@ -153,20 +150,12 @@ int CHAMELEON_zgesv( int N, int NRHS,
     chameleon_ztile2lap( chamctxt, &descBl, &descBt,
                          ChamDescInout, ChamUpperLower, sequence, &request );
 
-    if ( ( wsA->alg == ChamGetrfPPivPerColumn ) ||
-         ( wsA->alg == ChamGetrfPPiv ) )
-    {
-        RUNTIME_ipiv_gather( sequence, &descIPIV, IPIV, 0 );
-    }
+    RUNTIME_ipiv_gather( sequence, &descIPIV, IPIV, 0 );
 
     chameleon_sequence_wait( chamctxt, sequence );
 
     /* Cleanup the temporary data */
-    if ( ( wsA->alg == ChamGetrfPPivPerColumn ) ||
-         ( wsA->alg == ChamGetrfPPiv ) )
-    {
-        chameleon_ipiv_destroy( &descIPIV );
-    }
+    chameleon_ipiv_destroy( &descIPIV );
 
     /* Cleanup the temporary data */
     CHAMELEON_zgetrf_WS_Free( wsA );

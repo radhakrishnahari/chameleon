@@ -23,7 +23,7 @@
  * @author Xavier Lacoste
  * @author Pierre Esterie
  * @author Matteo Marcos
- * @date 2025-06-16
+ * @date 2025-10-15
  *
  * @precisions normal z -> s d c
  *
@@ -80,20 +80,14 @@ CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A )
         char *algostr = chameleon_getenv( "CHAMELEON_GETRF_ALGO" );
 
         if ( algostr != NULL ) {
-            if ( strcasecmp( algostr, "nopiv" ) == 0 ) {
-                ws->alg = ChamGetrfNoPiv;
-            }
-            else if ( strcasecmp( algostr, "nopivpercolumn" ) == 0  ) {
-                ws->alg = ChamGetrfNoPivPerColumn;
-            }
-            else if ( strcasecmp( algostr, "ppiv" )  == 0 ) {
+            if ( strcasecmp( algostr, "ppiv" )  == 0 ) {
                 ws->alg = ChamGetrfPPiv;
             }
             else if ( strcasecmp( algostr, "ppivpercolumn" ) == 0  ) {
                 ws->alg = ChamGetrfPPivPerColumn;
             }
             else {
-                chameleon_error( "CHAMELEON_zgetrf_WS_Alloc", "CHAMELEON_GETRF_ALGO is not one of NoPiv, NoPivPerColumn, PPiv, PPivPerColumn => Switch back to NoPiv\n" );
+                chameleon_error( "CHAMELEON_zgetrf_WS_Alloc", "CHAMELEON_GETRF_ALGO is not PPiv or PPivPerColumn => Switch back to PPiv\n" );
             }
         }
         chameleon_cleanenv( algostr );
@@ -145,15 +139,6 @@ CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A )
     ws->ringswitch = chameleon_getenv_get_value_int( "CHAMELEON_GETRF_RINGSWITCH", INT_MAX );
 
     /* Allocation of U for permutation of the panels */
-    if ( ws->alg == ChamGetrfNoPivPerColumn ) {
-        chameleon_desc_init( &(ws->U), CHAMELEON_MAT_ALLOC_TILE,
-                             ChamComplexDouble, 1, A->nb, A->nb,
-                             A->mt, A->nt * A->nb, 0, 0,
-                             A->mt, A->nt * A->nb, P, Q,
-                             NULL, NULL, A->get_rankof_init, A->get_rankof_init_arg );
-    }
-    else if ( ( ws->alg == ChamGetrfPPiv )          ||
-              ( ws->alg == ChamGetrfPPivPerColumn ) )
     {
         chameleon_desc_init( &(ws->U), CHAMELEON_MAT_ALLOC_TILE,
                              ChamComplexDouble, A->mb, A->nb, A->mb*A->nb,
@@ -169,9 +154,7 @@ CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A )
     }
 
     /* Set ib to 1 if per column algorithm */
-    if ( ( ws->alg == ChamGetrfNoPivPerColumn ) ||
-         ( ws->alg == ChamGetrfPPivPerColumn ) )
-    {
+    if ( ws->alg == ChamGetrfPPivPerColumn ) {
         ws->ib = 1;
     }
 
@@ -218,21 +201,12 @@ CHAMELEON_zgetrf_WS_Free( void *user_ws )
 
     CHAMELEON_zlaswp_WS_Free( ws->laswp );
 
-    if ( ( ws->alg == ChamGetrfNoPivPerColumn ) ||
-         ( ws->alg == ChamGetrfPPiv           ) ||
-         ( ws->alg == ChamGetrfPPivPerColumn  ) )
-    {
-        chameleon_desc_destroy( &(ws->U) );
-    }
+    chameleon_desc_destroy( &(ws->U) );
     if ( ws->alg == ChamGetrfPPiv )
     {
         chameleon_desc_destroy( &(ws->Up) );
     }
-    if ( ( ws->alg == ChamGetrfPPiv           ) ||
-         ( ws->alg == ChamGetrfPPivPerColumn  ) )
-    {
-        chameleon_desc_destroy( &(ws->Wl) );
-    }
+    chameleon_desc_destroy( &(ws->Wl) );
 
     chameleon_pivot_destroy( &ws->pivot );
     free( ws );
@@ -339,12 +313,8 @@ CHAMELEON_zgetrf( int M, int N, CHAMELEON_Complex64_t *A, int LDA, int *IPIV )
     /* Allocate workspace for partial pivoting */
     ws = CHAMELEON_zgetrf_WS_Alloc( &descAt );
 
-    if ( ( ws->alg == ChamGetrfPPivPerColumn ) ||
-         ( ws->alg == ChamGetrfPPiv ) )
-    {
-        chameleon_ipiv_init( &descIPIV, ChamLeft, descAt.mb, chameleon_min( M, N ),
-                             1, 1, IPIV, chameleon_getrankof_ipiv_2d_diag );
-    }
+    chameleon_ipiv_init( &descIPIV, ChamLeft, descAt.mb, chameleon_min( M, N ),
+                         1, 1, IPIV, chameleon_getrankof_ipiv_2d_diag );
 
     /* Call the tile interface */
     CHAMELEON_zgetrf_Tile_Async( &descAt, &descIPIV, ws, sequence, &request );
@@ -353,20 +323,14 @@ CHAMELEON_zgetrf( int M, int N, CHAMELEON_Complex64_t *A, int LDA, int *IPIV )
     chameleon_ztile2lap( chamctxt, &descAl, &descAt,
                          ChamDescInout, ChamUpperLower, sequence, &request );
 
-    if ( ( ws->alg == ChamGetrfPPivPerColumn ) ||
-         ( ws->alg == ChamGetrfPPiv ) )
-    {
-        RUNTIME_ipiv_gather( sequence, &descIPIV, IPIV, 0 );
-    }
+    RUNTIME_ipiv_gather( sequence, &descIPIV, IPIV, 0 );
+
     chameleon_sequence_wait( chamctxt, sequence );
 
     /* Cleanup the temporary data */
-    if ( ( ws->alg == ChamGetrfPPivPerColumn ) ||
-         ( ws->alg == ChamGetrfPPiv ) )
-    {
-        chameleon_pivot_destroy( &(ws->pivot) );
-        chameleon_ipiv_destroy( &descIPIV );
-    }
+    chameleon_pivot_destroy( &(ws->pivot) );
+    chameleon_ipiv_destroy( &descIPIV );
+
     CHAMELEON_zgetrf_WS_Free( ws );
     chameleon_ztile2lap_cleanup( chamctxt, &descAl, &descAt );
 
