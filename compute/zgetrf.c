@@ -94,6 +94,14 @@ CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A )
     }
 
     /*
+     * Disable Backward pivoting when performing HPL computations
+     */
+    {
+       int disable_backperm = chameleon_env_on_off( "CHAMELEON_DISABLE_BACKPERM", CHAMELEON_FALSE );
+       ws->backperm_enabled = !disable_backperm;
+    }
+
+    /*
      * Get the batch size for the LU factorization
      *
      * 1) By default (-1), set the automatic batch size

@@ -59,6 +59,7 @@ struct chameleon_pzgetrf_s {
     struct chameleon_pzlaswp_s *laswp;            /**< Structure containing the permutation workspace and the reduce data   */
     CHAM_desc_pivot_t           pivot;            /**< Structure containing the workspace used for the panel factorisation  */
     cham_getrf_t                alg;              /**< Define the algorithm used to compute the getrf                       */
+    cham_bool_t                 backperm_enabled; /**< Define if the backward perumtation is enabled or not                 */
     int                         ib;               /**< Internal blocking parameter                                          */
     int                         batch_adaptive;   /**< Whether to use adaptative batch or not                               */
     int                         batch_size;       /**< Batch size                                                           */

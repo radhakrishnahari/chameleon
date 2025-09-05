@@ -681,20 +681,23 @@ void chameleon_pzgetrf( struct chameleon_pzgetrf_s *ws,
     chameleon_pivot_destroy_submit( pivot, sequence );
 
     /* Backward pivoting */
-    /* Disable allreduce for the backward permutation */
-    ws->laswp->allreduce = 0;
+    if ( ws->backperm_enabled ) {
 
-    for (k = 1; k < min_mnt; k++) {
-        for (n = 0; n < k; n++) {
-            if ( chameleon_involved_in_panelk_2dbc( A, k ) ||
-                 chameleon_involved_in_panelk_2dbc( A, n ) )
-            {
-                chameleon_pzlaswp_panel( ws->laswp, CHAMELEON_TRUE, ChamDirForward,
-                                         A, IPIV, k, n, &options, sequence );
+        /* Disable allreduce for the backward permutation */
+        ws->laswp->allreduce = 0;
+
+        for (k = 1; k < min_mnt; k++) {
+            for (n = 0; n < k; n++) {
+                if ( chameleon_involved_in_panelk_2dbc( A, k ) ||
+                     chameleon_involved_in_panelk_2dbc( A, n ) )
+                {
+                    chameleon_pzlaswp_panel( ws->laswp, CHAMELEON_TRUE, ChamDirForward,
+                                             A, IPIV, k, n, &options, sequence );
+                }
+                chameleon_data_flush( sequence, Wu(A->myrank, n), request->flush );
             }
-            chameleon_data_flush( sequence, Wu(A->myrank, n), request->flush );
+            RUNTIME_perm_flushk( sequence, IPIV, k );
         }
-        RUNTIME_perm_flushk( sequence, IPIV, k );
     }
     CHAMELEON_Desc_Flush( ws->laswp->Wu, sequence );
 
