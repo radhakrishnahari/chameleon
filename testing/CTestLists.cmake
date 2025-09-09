@@ -115,9 +115,11 @@ if (NOT CHAMELEON_SIMULATION)
         if ( CHAMELEON_SCHED_STARPU )
           set( laswp_test_prefix test_${cat}_${prec}laswp )
 
-          add_test( test_${cat}_${prec}laswp_allreduce ${PREFIX} ${CMD} -c -t ${THREADS} -g ${gpus} -P ${P} -f input/laswp.in )
-          set_tests_properties( ${laswp_test_prefix}_allreduce
-            PROPERTIES ENVIRONMENT "CHAMELEON_LASWP_ALLREDUCE=1" )
+          if ( ${cat} STREQUAL "mpi" )
+            add_test( test_${cat}_${prec}laswp_allreduce ${PREFIX} ${CMD} -c -t ${THREADS} -g ${gpus} -P ${P} -f input/laswp.in )
+            set_tests_properties( ${laswp_test_prefix}_allreduce
+                PROPERTIES ENVIRONMENT "CHAMELEON_LASWP_ALLREDUCE=1" )
+          endif()
 
           add_test( test_${cat}_${prec}laswp_batch ${PREFIX} ${CMD} -c -t ${THREADS} -g ${gpus} -P ${P} -f input/laswp.in )
           set_tests_properties( test_${cat}_${prec}laswp_batch
