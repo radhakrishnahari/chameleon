@@ -19,8 +19,10 @@
  */
 #include "chameleon_starpu_internal.h"
 #include "runtime_codelet_z.h"
+#include <coreblas/cblas_wrapper.h>
 
 #if defined(CHAMELEON_USE_MPI)
+
 struct cl_redux_args_s {
     int h;
     int n;

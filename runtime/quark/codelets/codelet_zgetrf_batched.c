@@ -15,7 +15,8 @@
  * @comment Codelets to perform batched panel factorization with partial pivoting
  *
  * @author Alycia Lisito
- * @date 2024-04-02
+ * @author Matteo Marcos
+ * @date 2025-10-15
  * @precisions normal z -> c d s
  *
  */
@@ -59,7 +60,7 @@ INSERT_TASK_zgetrf_panel_offdiag_batched_flush( const RUNTIME_option_t *options,
 
 void
 INSERT_TASK_zgetrf_panel_blocked_batched( const RUNTIME_option_t *options,
-                                          int m, int n, int h, int m0,
+                                          int m, int n, int h, int m0, int readUp,
                                           void *ws,
                                           CHAM_desc_t *A, int Am, int An,
                                           CHAM_desc_t *U, int Um, int Un,
@@ -73,6 +74,7 @@ INSERT_TASK_zgetrf_panel_blocked_batched( const RUNTIME_option_t *options,
     (void)n;
     (void)h;
     (void)m0;
+    (void)readUp;
     (void)ws;
     (void)A;
     (void)Am;
@@ -87,7 +89,7 @@ INSERT_TASK_zgetrf_panel_blocked_batched( const RUNTIME_option_t *options,
 
 void
 INSERT_TASK_zgetrf_panel_blocked_batched_flush( const RUNTIME_option_t *options,
-                                                CHAM_desc_t *A, int An,
+                                                CHAM_desc_t *A, int An, int readUp,
                                                 CHAM_desc_t *U, int Um, int Un,
                                                 void **clargs_ptr,
                                                 CHAM_ipiv_t *ipiv,
@@ -97,6 +99,7 @@ INSERT_TASK_zgetrf_panel_blocked_batched_flush( const RUNTIME_option_t *options,
     (void)options;
     (void)A;
     (void)An;
+    (void)readUp;
     (void)U;
     (void)Um;
     (void)Un;

@@ -26,7 +26,7 @@
 #  @author Matthieu Kuhn
 #  @author Alycia Lisito
 #  @author Matteo Marcos
-#  @date 2025-07-15
+#  @date 2025-10-15
 #
 ###
 
@@ -72,6 +72,7 @@ set(CODELETS_ZSRC
     codelets/codelet_zgetrf_percol.c
     codelets/codelet_zgetrf_batched.c
     codelets/codelet_zgetrf_blocked.c
+    codelets/codelet_zgetrf_blocked_trsm.c
     codelets/codelet_zhe2ge.c
     codelets/codelet_zherfb.c
     codelets/codelet_zhessq.c

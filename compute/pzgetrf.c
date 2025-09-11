@@ -223,9 +223,10 @@ chameleon_pzgetrf_panel_facto_blocked( struct chameleon_pzgetrf_s *ws,
                                        RUNTIME_option_t           *options )
 {
     const RUNTIME_request_t *request = options->request;
-    int m, h, b, nbblock, ib;
+    int m, h, b, nbblock, ib, last_ib, trsmUp;
     int tempkm, tempkn, tempmm, minmn;
-    int rankAkk;
+    int rankAkk, rankAmk, myrank;
+    int hmax, j;
 
     tempkm = A->get_blkdim( A, k, DIM_m, A->m );
     tempkn = A->get_blkdim( A, k, DIM_n, A->n );
@@ -236,28 +237,41 @@ chameleon_pzgetrf_panel_facto_blocked( struct chameleon_pzgetrf_s *ws,
     ib       = ws->ib;
     nbblock  = chameleon_ceil( minmn, ib );
     rankAkk  = A->get_rankof( A, k, k );
+    myrank   = A->myrank;
 
     /*
      * Algorithm per column with pivoting
      */
-    for ( b=0; b<nbblock; b++ ) {
-        int hmax = b == nbblock-1 ? minmn + 1 - b * ib : ib;
+    for ( b = 0; b < nbblock; b++ ) {
+        last_ib = ( b == ( nbblock - 1 ) );
+        hmax    = ( last_ib ) ? minmn + 1 - b * ib : ib;
 
-        for ( h=0; h<hmax; h++ ) {
-            int j = h + b * ib;
+        for ( h = 0; h < hmax; h++ ) {
+            j = h + b * ib;
+            trsmUp = ( ( h == 0 ) && ( j != 0 ) && ( j != minmn ) );
+
+            if ( trsmUp ) {
+                INSERT_TASK_zgetrf_blocked_trsm(
+                    options,
+                    ib, tempkn, j, ib,
+                    Up(myrank),
+                    pivot );
+            }
 
             INSERT_TASK_zgetrf_blocked_diag(
                 options,
-                tempkm, tempkn, j, k * A->mb, ib,
+                tempkm, tempkn, j, k * A->mb, ib, trsmUp,
                 A(k, k), Up(rankAkk),
                 ipiv, pivot );
 
             for ( m = k+1; m < A->mt; m++ ) {
-                tempmm = A->get_blkdim( A, m, DIM_m, A->m );
+                tempmm  = A->get_blkdim( A, m, DIM_m, A->m );
+                rankAmk = A->get_rankof( A, m, k );
+
                 INSERT_TASK_zgetrf_blocked_offdiag(
                     options,
-                    tempmm, tempkn, j, m * A->mb, ib,
-                    A(m, k), Up(rankAkk),
+                    tempmm, tempkn, j, m * A->mb, ib, trsmUp,
+                    A(m, k), Up(rankAmk),
                     pivot );
             }
 
@@ -271,16 +285,19 @@ chameleon_pzgetrf_panel_facto_blocked( struct chameleon_pzgetrf_s *ws,
             INSERT_TASK_zipiv_allreduce( options, A, pivot, k, j, tempkn, ws->laswp );
 #endif
 
-            if ( ( b < (nbblock-1) ) && ( h == hmax-1 ) ) {
-                INSERT_TASK_zgetrf_blocked_trsm(
-                    options,
-                    ib, tempkn, j+1, ib,
-                    Up(ranAkk),
-                    pivot );
+            /*
+             * Copy the row of the pivot in Up for the replicated TRSM.
+             * If b is the last inner block then we don't have a TRSM.
+             * If j+1 is a multiple of ib then we do the copy of the last
+             * pivot row in the TRSM task.
+             */
+            if ( ( !last_ib ) && ( ( ( j + 1 ) % ib ) != 0 ) ) {
+                INSERT_TASK_zgetrf_cpy_pivrow_in_Up( options, ws->Up, A->myrank,
+                                                     k, j, ib, tempkn, pivot );
             }
         }
     }
-    chameleon_data_flush( options->sequence, Up(rankAkk), request->flush );
+    chameleon_data_flush( options->sequence, Up(myrank), request->flush );
 
     /* Flush temporary data used for the pivoting */
     INSERT_TASK_ipiv_to_perm( options, k * A->mb, tempkm, minmn, 0, A->m, ipiv, k );
@@ -298,9 +315,10 @@ chameleon_pzgetrf_panel_facto_blocked_batched( struct chameleon_pzgetrf_s *ws,
                                                int                         k,
                                                RUNTIME_option_t           *options )
 {
-    int m, h, b, nbblock, ib, hmax, j;
+    const RUNTIME_request_t *request = options->request;
+    int m, h, b, nbblock, ib, hmax, j, last_ib, trsmUp;
     int tempkm, tempkn, tempmm, minmn;
-    int rankAkk;
+    int rankAmk, myrank;
     void **clargs = malloc( sizeof(char *) );
     memset( clargs, 0, sizeof(char *) );
 
@@ -312,7 +330,7 @@ chameleon_pzgetrf_panel_facto_blocked_batched( struct chameleon_pzgetrf_s *ws,
     pivot->n = minmn;
     ib       = ws->ib;
     nbblock  = chameleon_ceil( minmn, ib );
-    rankAkk  = A->get_rankof( A, k, k );
+    myrank   = A->myrank;
 
     /*
      * Algorithm per column with pivoting (no recursion)
@@ -320,19 +338,30 @@ chameleon_pzgetrf_panel_facto_blocked_batched( struct chameleon_pzgetrf_s *ws,
     /* Iterate on current panel column */
     /* Since index h scales column h-1, we need to iterate up to minmn (included) */
     for ( b = 0; b < nbblock; b++ ) {
-        hmax = b == nbblock-1 ? minmn + 1 - b * ib : ib;
+        last_ib = ( b == ( nbblock - 1 ) );
+        hmax    = ( last_ib ) ? minmn + 1 - b * ib : ib;
 
         for ( h = 0; h < hmax; h++ ) {
             j =  h + b * ib;
+            trsmUp = ( ( h == 0 ) && ( j != 0 ) && ( j != minmn ) );
+
+            if ( trsmUp ) {
+                INSERT_TASK_zgetrf_blocked_trsm(
+                    options,
+                    ib, tempkn, j, ib,
+                    Up(myrank),
+                    pivot );
+            }
 
             ws->batch_size = chameleon_pzgetrf_batch_size( ws, A->mt - k, A->nb, j );
             for ( m = k; m < A->mt; m++ ) {
                 tempmm = A->get_blkdim( A, m, DIM_m, A->m );
-                INSERT_TASK_zgetrf_panel_blocked_batched( options, tempmm, tempkn, j, m * A->mb,
-                                                          (void *)ws, A(m, k), Up(ranAkk), clargs, ipiv, pivot );
+                rankAmk = A->get_rankof( A, m, k );
+                INSERT_TASK_zgetrf_panel_blocked_batched( options, tempmm, tempkn, j, m * A->mb, trsmUp,
+                                                          (void *)ws, A(m, k), Up(rankAmk), clargs, ipiv, pivot );
             }
-            INSERT_TASK_zgetrf_panel_blocked_batched_flush( options, A, k,
-                                                            Up(rankAkk), clargs, ipiv, pivot );
+            INSERT_TASK_zgetrf_panel_blocked_batched_flush( options, A, k, trsmUp,
+                                                            Up(myrank), clargs, ipiv, pivot );
 
             assert( j <= minmn );
 
@@ -344,18 +373,21 @@ chameleon_pzgetrf_panel_facto_blocked_batched( struct chameleon_pzgetrf_s *ws,
             INSERT_TASK_zipiv_allreduce( options, A, pivot, k, j, tempkn, ws->laswp );
 #endif
 
-            if ( (b < (nbblock-1)) && (h == hmax-1) ) {
-                INSERT_TASK_zgetrf_blocked_trsm(
-                    options,
-                    ib, tempkn, b * ib + hmax, ib,
-                    Up(rankAkk),
-                    pivot );
+            /*
+             * Copy the row of the pivot in Up for the replicated TRSM.
+             * If b is the last inner block then we don't have a TRSM.
+             * If j+1 is a multiple of ib then we do the copy of the last
+             * pivot row in the TRSM task.
+             */
+            if ( ( !last_ib ) && ( ( ( j + 1 ) % ib ) != 0 ) ) {
+                INSERT_TASK_zgetrf_cpy_pivrow_in_Up( options, ws->Up, A->myrank,
+                                                     k, j, ib, tempkn, pivot );
             }
         }
     }
 
     free( clargs );
-    chameleon_data_flush( options->sequence, Up(rankAkk), request->flush );
+    chameleon_data_flush( options->sequence, Up(myrank), request->flush );
 
     /* Flush temporary data used for the pivoting */
     INSERT_TASK_ipiv_to_perm( options, k * A->mb, tempkm, minmn, 0, A->m, ipiv, k );

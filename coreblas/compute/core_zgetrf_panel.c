@@ -12,7 +12,7 @@
  * @version 1.3.0
  * @author Mathieu Faverge
  * @author Matthieu Kuhn
- * @date 2024-02-18
+ * @date 2025-10-15
  * @precisions normal z -> c d s
  *
  */
@@ -114,12 +114,6 @@ CORE_zgetrf_panel_diag( int m, int n, int h, int m0, int ib,
         {
             cblas_zcopy( n, pivrow, 1,
                          A + h-1, lda );
-        }
-
-        if( (U != NULL) && (h%ib != 0 ) )
-        {
-            cblas_zcopy( n, pivrow, 1,
-                         U + ((h-1)%ib), ldu );
         }
 
         /* Store the pivot */

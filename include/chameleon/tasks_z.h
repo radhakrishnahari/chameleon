@@ -26,7 +26,7 @@
  * @author Matthieu Kuhn
  * @author Ana Hourcau
  * @author Matteo Marcos
- * @date 2025-07-15
+ * @date 2025-10-15
  * @precisions normal z -> c d s
  *
  */
@@ -547,14 +547,14 @@ void INSERT_TASK_zgetrf_percol_offdiag( const RUNTIME_option_t *options,
                                         CHAM_desc_pivot_t *pivot );
 
 void INSERT_TASK_zgetrf_blocked_diag( const RUNTIME_option_t *options,
-                                      int m, int n, int h, int m0, int ib,
+                                      int m, int n, int h, int m0, int ib, int readUp,
                                       CHAM_desc_t *A, int Am, int An,
                                       CHAM_desc_t *U, int Um, int Un,
                                       CHAM_ipiv_t *ipiv,
                                       CHAM_desc_pivot_t *pivot );
 
 void INSERT_TASK_zgetrf_blocked_offdiag( const RUNTIME_option_t *options,
-                                         int m, int n, int h, int m0, int ib,
+                                         int m, int n, int h, int m0, int ib, int readUp,
                                          CHAM_desc_t *A, int Am, int An,
                                          CHAM_desc_t *U, int Um, int Un,
                                          CHAM_desc_pivot_t *pivot );
@@ -572,7 +572,7 @@ void INSERT_TASK_zgetrf_panel_offdiag_batched_flush( const RUNTIME_option_t *opt
                                                      CHAM_desc_pivot_t *pivot );
 
 void INSERT_TASK_zgetrf_panel_blocked_batched( const RUNTIME_option_t *options,
-                                               int m, int n, int h, int m0,
+                                               int m, int n, int h, int m0, int readUp,
                                                void *ws,
                                                CHAM_desc_t *A, int Am, int An,
                                                CHAM_desc_t *U, int Um, int Un,
@@ -581,7 +581,7 @@ void INSERT_TASK_zgetrf_panel_blocked_batched( const RUNTIME_option_t *options,
                                                CHAM_desc_pivot_t *pivot );
 
 void INSERT_TASK_zgetrf_panel_blocked_batched_flush( const RUNTIME_option_t *options,
-                                                     CHAM_desc_t *A, int An,
+                                                     CHAM_desc_t *A, int An, int readUp,
                                                      CHAM_desc_t *U, int Um, int Un,
                                                      void **clargs_ptr,
                                                      CHAM_ipiv_t *ipiv,
@@ -592,6 +592,51 @@ void INSERT_TASK_zgetrf_blocked_trsm( const RUNTIME_option_t *options,
                                       CHAM_desc_t *U, int Um, int Un,
                                       CHAM_desc_pivot_t *pivot );
 
+void INSERT_TASK_zgetrf_cpy_pivrow_in_Up( const RUNTIME_option_t *options,
+                                          CHAM_desc_t            *Up,
+                                          int                     Upm,
+                                          int                     k,
+                                          int                     h,
+                                          int                     ib,
+                                          int                     n,
+                                          CHAM_desc_pivot_t      *pivot );
+
+#if defined(CHAMELEON_USE_MPI)
+/**
+ ********************************************************************************
+ *
+ * @ingroup CHAMELEON_Complex64_t
+ *
+ *  @brief Perfoms an allreduce operation on the pivot k during the panel
+ *  factorization of the LU factorization with partial pivoting.
+ *
+ *******************************************************************************
+ *
+ * @param[in] options
+ *          The runtime options data structure to pass through all insert_task calls.
+ *
+ * @param[in] A
+ *          The descriptor of the matrix A.
+
+ * @param[in] pivot
+ *          The pivot structure that contains the informations for the LU
+ *          factorization with partial pivoting.
+*
+ * @param[in] k
+ *          The iteration k of the panel factorizatio).
+ *
+ * @param[in] h
+ *          The iteration h of the column of the panel factorization.
+ *
+ * @param[in] n
+ *          The number of columns of the row.
+ *
+ * @param[in] ws
+ *          The workspace to handle the data in the LU factorization with
+ *          partial pivoting.
+ *
+ *******************************************************************************
+ */
 void INSERT_TASK_zipiv_allreduce( const RUNTIME_option_t *options,
                                   CHAM_desc_t            *A,
                                   CHAM_desc_pivot_t      *pivot,
