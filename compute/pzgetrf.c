@@ -26,7 +26,7 @@
 #include "chameleon/flops.h"
 
 #define A(m,n)   A,                m, n
-#define Up(m,n)  &(ws->Up),        m, n
+#define Up(m)    ws->Up,           m, 0
 #define Wu(m,n)  &(ws->laswp->Wu), m, n
 #define Wl(m,n)  &(ws->Wl),        m, n
 #define Ws(m,n)  &(ws->laswp->ws), m, n
@@ -223,8 +223,9 @@ chameleon_pzgetrf_panel_facto_blocked( struct chameleon_pzgetrf_s *ws,
                                        RUNTIME_option_t           *options )
 {
     const RUNTIME_request_t *request = options->request;
-    int m, h, b, nbblock;
+    int m, h, b, nbblock, ib;
     int tempkm, tempkn, tempmm, minmn;
+    int rankAkk;
 
     tempkm = A->get_blkdim( A, k, DIM_m, A->m );
     tempkn = A->get_blkdim( A, k, DIM_n, A->n );
@@ -232,29 +233,31 @@ chameleon_pzgetrf_panel_facto_blocked( struct chameleon_pzgetrf_s *ws,
 
     /* Update the number of column */
     pivot->n = minmn;
-    nbblock = chameleon_ceil( minmn, ws->ib );
+    ib       = ws->ib;
+    nbblock  = chameleon_ceil( minmn, ib );
+    rankAkk  = A->get_rankof( A, k, k );
 
     /*
      * Algorithm per column with pivoting
      */
-    for (b=0; b<nbblock; b++){
-        int hmax = b == nbblock-1 ? minmn + 1 - b * ws->ib : ws->ib;
+    for ( b=0; b<nbblock; b++ ) {
+        int hmax = b == nbblock-1 ? minmn + 1 - b * ib : ib;
 
-        for (h=0; h<hmax; h++){
-            int j = h + b * ws->ib;
+        for ( h=0; h<hmax; h++ ) {
+            int j = h + b * ib;
 
             INSERT_TASK_zgetrf_blocked_diag(
                 options,
-                tempkm, tempkn, j, k * A->mb, ws->ib,
-                A(k, k), Up(k, k),
+                tempkm, tempkn, j, k * A->mb, ib,
+                A(k, k), Up(rankAkk),
                 ipiv, pivot );
 
-            for (m = k+1; m < A->mt; m++) {
+            for ( m = k+1; m < A->mt; m++ ) {
                 tempmm = A->get_blkdim( A, m, DIM_m, A->m );
                 INSERT_TASK_zgetrf_blocked_offdiag(
                     options,
-                    tempmm, tempkn, j, m * A->mb, ws->ib,
-                    A(m, k), Up(k, k),
+                    tempmm, tempkn, j, m * A->mb, ib,
+                    A(m, k), Up(rankAkk),
                     pivot );
             }
 
@@ -271,13 +274,13 @@ chameleon_pzgetrf_panel_facto_blocked( struct chameleon_pzgetrf_s *ws,
             if ( ( b < (nbblock-1) ) && ( h == hmax-1 ) ) {
                 INSERT_TASK_zgetrf_blocked_trsm(
                     options,
-                    ws->ib, tempkn, j+1, ws->ib,
-                    Up(k, k),
+                    ib, tempkn, j+1, ib,
+                    Up(ranAkk),
                     pivot );
             }
         }
     }
-    chameleon_data_flush( options->sequence, Up(k, k), request->flush );
+    chameleon_data_flush( options->sequence, Up(rankAkk), request->flush );
 
     /* Flush temporary data used for the pivoting */
     INSERT_TASK_ipiv_to_perm( options, k * A->mb, tempkm, minmn, 0, A->m, ipiv, k );
@@ -295,8 +298,9 @@ chameleon_pzgetrf_panel_facto_blocked_batched( struct chameleon_pzgetrf_s *ws,
                                                int                         k,
                                                RUNTIME_option_t           *options )
 {
-    int m, h, b, nbblock, hmax, j;
+    int m, h, b, nbblock, ib, hmax, j;
     int tempkm, tempkn, tempmm, minmn;
+    int rankAkk;
     void **clargs = malloc( sizeof(char *) );
     memset( clargs, 0, sizeof(char *) );
 
@@ -306,7 +310,9 @@ chameleon_pzgetrf_panel_facto_blocked_batched( struct chameleon_pzgetrf_s *ws,
 
     /* Update the number of column */
     pivot->n = minmn;
-    nbblock = chameleon_ceil( minmn, ws->ib );
+    ib       = ws->ib;
+    nbblock  = chameleon_ceil( minmn, ib );
+    rankAkk  = A->get_rankof( A, k, k );
 
     /*
      * Algorithm per column with pivoting (no recursion)
@@ -314,19 +320,19 @@ chameleon_pzgetrf_panel_facto_blocked_batched( struct chameleon_pzgetrf_s *ws,
     /* Iterate on current panel column */
     /* Since index h scales column h-1, we need to iterate up to minmn (included) */
     for ( b = 0; b < nbblock; b++ ) {
-        hmax = b == nbblock-1 ? minmn + 1 - b * ws->ib : ws->ib;
+        hmax = b == nbblock-1 ? minmn + 1 - b * ib : ib;
 
         for ( h = 0; h < hmax; h++ ) {
-            j =  h + b * ws->ib;
+            j =  h + b * ib;
 
             ws->batch_size = chameleon_pzgetrf_batch_size( ws, A->mt - k, A->nb, j );
             for ( m = k; m < A->mt; m++ ) {
                 tempmm = A->get_blkdim( A, m, DIM_m, A->m );
                 INSERT_TASK_zgetrf_panel_blocked_batched( options, tempmm, tempkn, j, m * A->mb,
-                                                          (void *)ws, A(m, k), Up(k, k), clargs, ipiv, pivot );
+                                                          (void *)ws, A(m, k), Up(ranAkk), clargs, ipiv, pivot );
             }
             INSERT_TASK_zgetrf_panel_blocked_batched_flush( options, A, k,
-                                                            Up(k, k), clargs, ipiv, pivot );
+                                                            Up(rankAkk), clargs, ipiv, pivot );
 
             assert( j <= minmn );
 
@@ -341,14 +347,15 @@ chameleon_pzgetrf_panel_facto_blocked_batched( struct chameleon_pzgetrf_s *ws,
             if ( (b < (nbblock-1)) && (h == hmax-1) ) {
                 INSERT_TASK_zgetrf_blocked_trsm(
                     options,
-                    ws->ib, tempkn, b * ws->ib + hmax, ws->ib,
-                    Up(k, k),
+                    ib, tempkn, b * ib + hmax, ib,
+                    Up(rankAkk),
                     pivot );
             }
         }
     }
 
     free( clargs );
+    chameleon_data_flush( options->sequence, Up(rankAkk), request->flush );
 
     /* Flush temporary data used for the pivoting */
     INSERT_TASK_ipiv_to_perm( options, k * A->mb, tempkm, minmn, 0, A->m, ipiv, k );

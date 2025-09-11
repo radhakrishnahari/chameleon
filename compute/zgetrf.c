@@ -152,14 +152,12 @@ CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A )
     }
 
     /* Allocation of Up for the permutation of the diagonal panel per block */
-    if ( ws->alg == ChamGetrfPPiv )
-    {
-        /* TODO: Should be restricted to diagonal tiles */
-        /* Possibly to a single handle with a permutation of the ownership */
-        chameleon_desc_init( &(ws->Up), CHAMELEON_MAT_ALLOC_TILE,
+    if ( ws->alg == ChamGetrfPPiv ) {
+        ws->Up = malloc( sizeof(CHAM_desc_t) );
+        chameleon_desc_init( ws->Up, CHAMELEON_MAT_ALLOC_TILE,
                              ChamComplexDouble, ws->ib, A->nb, ws->ib * A->nb,
-                             A->mt * ws->ib, A->nt * A->nb, 0, 0,
-                             A->mt * ws->ib, A->nt * A->nb, P, Q,
+                             P * Q * ws->ib, A->nb, 0, 0,
+                             P * Q * ws->ib, A->nb, P * Q, 1,
                              NULL, NULL, A->get_rankof_init, A->get_rankof_init_arg );
     }
 
@@ -194,9 +192,10 @@ CHAMELEON_zgetrf_WS_Free( void *user_ws )
 
     CHAMELEON_zlaswp_WS_Free( ws->laswp );
 
-    if ( ws->alg == ChamGetrfPPiv )
-    {
-        chameleon_desc_destroy( &(ws->Up) );
+    if ( ws->Up ) {
+        chameleon_desc_destroy( ws->Up );
+        free( ws->Up );
+        ws->Up = NULL;
     }
     chameleon_desc_destroy( &(ws->Wl) );
 
