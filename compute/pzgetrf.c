@@ -145,8 +145,13 @@ chameleon_pzgetrf_panel_facto_percol( struct chameleon_pzgetrf_s *ws,
                 pivot );
         }
 
+        /* Invalidate prevpiv because we don't need anymore */
+        RUNTIME_ipiv_invalidate( pivot, k, h-1, A->myrank );
+
+#if defined(CHAMELEON_USE_MPI)
         /* Reduce globally (between MPI processes) */
         INSERT_TASK_zipiv_allreduce( options, A, pivot, k, h, tempkn, ws->laswp );
+#endif
     }
 
     /* Flush temporary data used for the pivoting */
@@ -193,7 +198,13 @@ chameleon_pzgetrf_panel_facto_percol_batched( struct chameleon_pzgetrf_s *ws,
         }
         INSERT_TASK_zgetrf_panel_offdiag_batched_flush( options, A, k, clargs, pivot );
 
+        /* Invalidate prevpiv because we don't need anymore */
+        RUNTIME_ipiv_invalidate( pivot, k, h-1, A->myrank );
+
+#if defined(CHAMELEON_USE_MPI)
+        /* Reduce globally (between MPI processes) */
         INSERT_TASK_zipiv_allreduce( options, A, pivot, k, h, tempkn, ws->laswp );
+#endif
     }
 
     free( clargs );
@@ -248,8 +259,14 @@ chameleon_pzgetrf_panel_facto_blocked( struct chameleon_pzgetrf_s *ws,
             }
 
             assert( j <= minmn );
+
+            /* Invalidate prevpiv because we don't need anymore */
+            RUNTIME_ipiv_invalidate( pivot, k, j-1, A->myrank );
+
+#if defined(CHAMELEON_USE_MPI)
             /* Reduce globally (between MPI processes) */
             INSERT_TASK_zipiv_allreduce( options, A, pivot, k, j, tempkn, ws->laswp );
+#endif
 
             if ( ( b < (nbblock-1) ) && ( h == hmax-1 ) ) {
                 INSERT_TASK_zgetrf_blocked_trsm(
@@ -312,8 +329,14 @@ chameleon_pzgetrf_panel_facto_blocked_batched( struct chameleon_pzgetrf_s *ws,
                                                             Up(k, k), clargs, ipiv, pivot );
 
             assert( j <= minmn );
+
+            /* Invalidate prevpiv because we don't need anymore */
+            RUNTIME_ipiv_invalidate( pivot, k, j-1, A->myrank );
+
+#if defined(CHAMELEON_USE_MPI)
             /* Reduce globally (between MPI processes) */
             INSERT_TASK_zipiv_allreduce( options, A, pivot, k, j, tempkn, ws->laswp );
+#endif
 
             if ( (b < (nbblock-1)) && (h == hmax-1) ) {
                 INSERT_TASK_zgetrf_blocked_trsm(

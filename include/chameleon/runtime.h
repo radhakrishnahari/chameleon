@@ -21,7 +21,7 @@
  * @author Alycia Lisito
  * @author Brieuc Nicolas
  * @author Matteo Marcos
- * @date 2025-07-15
+ * @date 2025-10-15
  *
  */
 #ifndef _chameleon_runtime_h_
@@ -737,6 +737,10 @@ void RUNTIME_ipiv_flushk( const RUNTIME_sequence_t *sequence,
                           const CHAM_ipiv_t *ipiv, int m );
 void RUNTIME_ipiv_flush ( const RUNTIME_sequence_t *sequence,
                           const CHAM_ipiv_t  *ipiv );
+void RUNTIME_ipiv_invalidate( CHAM_desc_pivot_t *pivot,
+                              int                k,
+                              int                h,
+                              int                myrank );
 void RUNTIME_perm_flushk( const RUNTIME_sequence_t *sequence,
                           const CHAM_ipiv_t *ipiv, int m );
 

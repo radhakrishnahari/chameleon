@@ -15,7 +15,7 @@
  * @author Alycia Lisito
  * @author Florent Pruvost
  * @author Matteo Marcos
- * @date 2025-07-15
+ * @date 2025-10-15
  *
  */
 #include "chameleon_openmp.h"
@@ -128,6 +128,17 @@ void RUNTIME_ipiv_flushk( const RUNTIME_sequence_t *sequence,
     (void)sequence;
     (void)ipiv;
     (void)m;
+}
+
+void RUNTIME_ipiv_invalidate( CHAM_desc_pivot_t *pivot,
+                              int                k,
+                              int                h,
+                              int                myrank )
+{
+    (void)pivot;
+    (void)k;
+    (void)h;
+    (void)myrank;
 }
 
 void RUNTIME_perm_flushk( const RUNTIME_sequence_t *sequence,
