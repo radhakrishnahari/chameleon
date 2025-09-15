@@ -410,8 +410,8 @@ void *RUNTIME_data_getaddr( const CHAM_desc_t *A, int m, int n )
 #endif /* defined(CHAMELEON_USE_MPI) */
 
 #if defined(CHAMELEON_KERNELS_TRACE)
-    fprintf( stderr, "%s - %p registered with tag %ld\n",
-             tile->name, (void*)(*ptrtile), A->mpitag + A->lmt * nn + mm );
+    coreblas_kernel_trace( "%s - %p registered with tag %ld\n",
+                           tile->name, (void*)(*ptrtile), A->mpitag + A->lmt * nn + mm );
 #endif
     assert( *ptrtile );
     return (void*)(*ptrtile);

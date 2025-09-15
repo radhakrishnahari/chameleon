@@ -591,7 +591,7 @@ static int cti_copy_any_to_any( void *src_interface, unsigned src_node,
     assert( n == (size_t)(cham_tile_dst->tile.n) );
 
 #if defined(CHAMELEON_KERNELS_TRACE)
-    fprintf( stderr,
+    coreblas_kernel_trace(
              "[ANY->ANY] src(%s, type:%s, m=%d, n=%d, ld=%d, ptr:%p) dest(%s, type:%s, m=%d, n=%d, ld=%d, ptr:%p)\n",
              cham_tile_src->tile.name, CHAM_tile_get_typestr( &(cham_tile_src->tile) ),
              cham_tile_src->tile.m, cham_tile_src->tile.n, cham_tile_src->tile.ld, src_mat,
