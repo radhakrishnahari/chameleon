@@ -22,41 +22,25 @@
 #include "chameleon/runtime.h"
 
 static int
-chameleon_recdesc_create( const char *name, CHAM_desc_t **descptr, void *mat, cham_flttype_t dtyp,
+chameleon_recdesc_create( const char *name, CHAM_desc_t *desc, void *mat, cham_flttype_t dtyp,
                           cham_rec_t rec, int rarg, int *mb, int *nb,
                           int lm, int ln, int m, int n, int p, int q, int i0, int j0,
                           blkaddr_fct_t get_blkaddr, blkldd_fct_t get_blkldd,
                           blkrankof_fct_t get_rankof, void* get_rankof_arg )
 {
-    CHAM_context_t *chamctxt;
-    CHAM_desc_t    *desc, *tiledesc;
-    CHAM_tile_t    *tile;
-    char           *subname;
-    int             tempmm, tempnn;
-    int             rc, i, j;
-
-    *descptr = NULL;
-
-    chamctxt = chameleon_context_self();
-    if ( chamctxt == NULL ) {
-        chameleon_error( "CHAMELEON_Recursive_Desc_Create", "CHAMELEON not initialized" );
-        return CHAMELEON_ERR_NOT_INITIALIZED;
-    }
-    if ( chamctxt->scheduler != RUNTIME_SCHED_STARPU ) {
-        chameleon_error( "CHAMELEON_Recursive_Desc_Create", "CHAMELEON Recursive descriptors only available with StaRPU" );
-        return CHAMELEON_ERR_NOT_INITIALIZED;
-    }
+    CHAM_desc_t *tiledesc;
+    CHAM_tile_t *tile;
+    char        *subname;
+    int          tempmm, tempnn;
+    int          rc, i, j;
 
     /* Let's make sure we have at least one couple (mb, nb) defined */
     assert( (mb[0] > 0) && (nb[0] > 0) );
 
     /* Create the current layer descriptor */
-    desc = (CHAM_desc_t*)malloc(sizeof(CHAM_desc_t));
     rc = chameleon_desc_init( desc, name, mat, dtyp, mb[0], nb[0],
                               lm, ln, m, n, p, q,
                               get_blkaddr, get_blkldd, get_rankof, get_rankof_arg );
-    *descptr = desc;
-
     if ( rc != CHAMELEON_SUCCESS ) {
         return rc;
     }
@@ -107,7 +91,8 @@ chameleon_recdesc_create( const char *name, CHAM_desc_t **descptr, void *mat, ch
 
             chameleon_asprintf( &subname, "%s[%d,%d]", name, m, n );
 
-            rc = chameleon_recdesc_create( subname, &tiledesc, tile->mat, desc->dtyp,
+            tiledesc = (CHAM_desc_t*)malloc(sizeof(CHAM_desc_t));
+            rc = chameleon_recdesc_create( subname, tiledesc, tile->mat, desc->dtyp,
                                            rec, rarg, mb, nb,
                                            tile->ld, tempnn, /* Abuse as ln is not used */
                                            tempmm, tempnn,
@@ -137,6 +122,10 @@ CHAMELEON_Recursive_Desc_Create( CHAM_desc_t **descptr, void *mat, cham_flttype_
                                  blkrankof_fct_t get_rankof, void* get_rankof_arg,
                                  const char *name )
 {
+    CHAM_context_t *chamctxt;
+    CHAM_desc_t *desc;
+    int status;
+
     /*
      * The first layer must be allocated, otherwise we will give unitialized
      * pointers to the lower layers
@@ -144,9 +133,30 @@ CHAMELEON_Recursive_Desc_Create( CHAM_desc_t **descptr, void *mat, cham_flttype_
     assert( (mat != CHAMELEON_MAT_ALLOC_TILE) &&
             (mat != CHAMELEON_MAT_OOC) );
 
-    return chameleon_recdesc_create( name, descptr, mat, dtyp,
-                                     rec, rarg, mb, nb,
-                                     lm, ln, m, n, p, q, 0, 0,
-                                     get_blkaddr, get_blkldd,
-                                     get_rankof, get_rankof_arg );
+    chamctxt = chameleon_context_self();
+    if ( chamctxt == NULL ) {
+        chameleon_error( "CHAMELEON_Recursive_Desc_Create", "CHAMELEON not initialized" );
+        return CHAMELEON_ERR_NOT_INITIALIZED;
+    }
+
+    if ( chamctxt->scheduler != RUNTIME_SCHED_STARPU ) {
+        chameleon_error( "CHAMELEON_Recursive_Desc_Create", "CHAMELEON Recursive descriptors only available with StaRPU" );
+        return CHAMELEON_ERR_NOT_INITIALIZED;
+    }
+
+    /* Create the current layer descriptor */
+    desc = (CHAM_desc_t*)malloc(sizeof(CHAM_desc_t));
+    if (desc == NULL) {
+        chameleon_error("CHAMELEON_Recursive_Desc_Create", "malloc() failed");
+        return CHAMELEON_ERR_OUT_OF_RESOURCES;
+    }
+
+    status = chameleon_recdesc_create( name, desc, mat, dtyp,
+                                       rec, rarg, mb, nb,
+                                       lm, ln, m, n, p, q, 0, 0,
+                                       get_blkaddr, get_blkldd,
+                                       get_rankof, get_rankof_arg );
+
+    *descptr = desc;
+    return status;
 }
