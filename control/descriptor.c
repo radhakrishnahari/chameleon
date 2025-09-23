@@ -20,7 +20,8 @@
  * @author Samuel Thibault
  * @author Lionel Eyraud-Dubois
  * @author Pierre Esterie
- * @date 2025-06-16
+ * @author Atte Torri
+ * @date 2025-10-15
  *
  ***
  *
@@ -47,7 +48,7 @@ __chamdesc_get_name() {
     char      *name    = malloc( sizeof(char) * 4 );
     int        idx     = 0;
 
-    name[idx] = 'w';
+    name[idx] = 'x';
     idx++;
 
     if ( counter > 26 ) {
