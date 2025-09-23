@@ -12,7 +12,7 @@
  * @version 1.3.0
  * @author Alycia Lisito
  * @author Matteo Marcos
- * @date 2025-10-15
+ * @date 2025-10-16
  * @precisions normal z -> s d c
  *
  */
@@ -116,16 +116,16 @@ CHAMELEON_zlaswp_WS_Alloc( cham_side_t side, const CHAM_desc_t *A )
     }
     ws->Wu = malloc( sizeof(CHAM_desc_t) );
     if ( side == ChamLeft ) {
-        chameleon_desc_init( ws->Wu, CHAMELEON_MAT_ALLOC_TILE,
-                             ChamComplexDouble, A->mb, A->nb, A->mb*A->nb,
-                             A->mb * P * Q, A->n, 0, 0,
+        chameleon_desc_init( ws->Wu, "LASWP_Wu", CHAMELEON_MAT_ALLOC_TILE,
+                             ChamComplexDouble, A->mb, A->nb,
+                             A->mb * P * Q, A->n,
                              A->mb * P * Q, A->n, P * Q, 1,
                              NULL, NULL, NULL, NULL );
     }
     else {
-        chameleon_desc_init( ws->Wu, CHAMELEON_MAT_ALLOC_TILE,
-                             ChamComplexDouble, A->mb, A->nb, A->mb*A->nb,
-                             A->m, A->nb * P * Q, 0, 0,
+        chameleon_desc_init( ws->Wu, "LASWP_Wu", CHAMELEON_MAT_ALLOC_TILE,
+                             ChamComplexDouble, A->mb, A->nb,
+                             A->m, A->nb * P * Q,
                              A->m, A->nb * P * Q, 1, P * Q,
                              NULL, NULL, NULL, NULL );
     }

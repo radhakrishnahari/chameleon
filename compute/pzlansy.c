@@ -20,7 +20,7 @@
  * @author Alycia Lisito
  * @author Lionel Eyraud-Dubois
  * @author Pierre Esterie
- * @date 2025-01-24
+ * @date 2025-10-16
  * @precisions normal z -> c d s
  *
  */
@@ -314,6 +314,9 @@ void chameleon_pzlansy_generic( cham_normtype_t norm, cham_uplo_t uplo, cham_tra
     int workmt, worknt;
     int m, n, wcol_init = 0;
 
+    int P = chameleon_desc_datadist_get_iparam(A, 0);
+    int Q = chameleon_desc_datadist_get_iparam(A, 1);
+
     chamctxt = chameleon_context_self();
     if ( sequence->status != CHAMELEON_SUCCESS ) {
         return;
@@ -322,29 +325,26 @@ void chameleon_pzlansy_generic( cham_normtype_t norm, cham_uplo_t uplo, cham_tra
 
     *result = 0.0;
 
-    workmt = chameleon_max( A->mt, chameleon_desc_datadist_get_iparam(A, 0) );
-    worknt = chameleon_max( A->nt, chameleon_desc_datadist_get_iparam(A, 1) );
+    workmt = chameleon_max( A->mt, P );
+    worknt = chameleon_max( A->nt, Q );
 
     switch ( norm ) {
     case ChamOneNorm:
     case ChamInfNorm:
         RUNTIME_options_ws_alloc( &options, 1, 0 );
 
-        chameleon_desc_init( &Wcol, CHAMELEON_MAT_ALLOC_TILE, ChamRealDouble, A->mb, 1, A->mb,
-                             workmt * A->mb, worknt, 0, 0, workmt * A->mb, worknt,
-                             chameleon_desc_datadist_get_iparam(A, 0),
-                             chameleon_desc_datadist_get_iparam(A, 1),
-                             NULL, NULL, NULL, NULL );
+        chameleon_desc_init( &Wcol, "LANSY_Wcol", CHAMELEON_MAT_ALLOC_TILE,
+                             ChamRealDouble, A->mb, 1,
+                             workmt * A->mb, worknt, workmt * A->mb, worknt,
+                             P, Q, NULL, NULL, NULL, NULL );
         wcol_init = 1;
 
         /*
          * Use the global allocator for Welt, otherwise flush may free the data before the result is read.
          */
-        chameleon_desc_init( &Welt, CHAMELEON_MAT_ALLOC_GLOBAL, ChamRealDouble, 1, 1, 1,
-                             workmt, chameleon_desc_datadist_get_iparam(A, 1), 0, 0, workmt, chameleon_desc_datadist_get_iparam(A, 1),
-                             chameleon_desc_datadist_get_iparam(A, 0),
-                             chameleon_desc_datadist_get_iparam(A, 1),
-                             NULL, NULL, NULL, NULL );
+        chameleon_desc_init( &Welt, "LANSY_Welt", CHAMELEON_MAT_ALLOC_GLOBAL,
+                             ChamRealDouble, 1, 1, workmt, Q, workmt, Q,
+                             P, Q, NULL, NULL, NULL, NULL );
         break;
 
         /*
@@ -354,11 +354,9 @@ void chameleon_pzlansy_generic( cham_normtype_t norm, cham_uplo_t uplo, cham_tra
         RUNTIME_options_ws_alloc( &options, 1, 0 );
 
         alpha = 1.;
-        chameleon_desc_init( &Welt, CHAMELEON_MAT_ALLOC_GLOBAL, ChamRealDouble, 2, 1, 2,
-                             workmt*2, worknt, 0, 0, workmt*2, worknt,
-                             chameleon_desc_datadist_get_iparam(A, 0),
-                             chameleon_desc_datadist_get_iparam(A, 1),
-                             NULL, NULL, NULL, NULL );
+        chameleon_desc_init( &Welt, "LANSY_Welt", CHAMELEON_MAT_ALLOC_GLOBAL,
+                             ChamRealDouble, 2, 1, workmt*2, worknt, workmt*2, worknt,
+                             P, Q, NULL, NULL, NULL, NULL );
         break;
 
         /*
@@ -368,11 +366,9 @@ void chameleon_pzlansy_generic( cham_normtype_t norm, cham_uplo_t uplo, cham_tra
     default:
         RUNTIME_options_ws_alloc( &options, 1, 0 );
 
-        chameleon_desc_init( &Welt, CHAMELEON_MAT_ALLOC_GLOBAL, ChamRealDouble, 1, 1, 1,
-                             workmt, worknt, 0, 0, workmt, worknt,
-                             chameleon_desc_datadist_get_iparam(A, 0),
-                             chameleon_desc_datadist_get_iparam(A, 1),
-                             NULL, NULL, NULL, NULL );
+        chameleon_desc_init( &Welt, "LANSY_Welt", CHAMELEON_MAT_ALLOC_GLOBAL,
+                             ChamRealDouble, 1, 1, workmt, worknt, workmt, worknt,
+                             P, Q, NULL, NULL, NULL, NULL );
     }
 
     /* Initialize workspaces */

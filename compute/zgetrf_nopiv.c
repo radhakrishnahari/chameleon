@@ -20,7 +20,7 @@
  * @author Alycia Lisito
  * @author Matthieu Kuhn
  * @author Pierre Esterie
- * @date 2024-11-13
+ * @date 2025-10-16
  *
  * @precisions normal z -> s d c
  *
@@ -69,18 +69,17 @@ void *CHAMELEON_zgetrf_nopiv_WS_Alloc( const CHAM_desc_t *A )
         int lookahead = chamctxt->lookahead;
         options->use_workspace = 1;
 
-        chameleon_desc_init( &(options->WL), CHAMELEON_MAT_ALLOC_TILE,
-                             ChamComplexDouble, A->mb, A->nb, (A->mb * A->nb),
-                             A->mt * A->mb, A->nb * chameleon_desc_datadist_get_iparam(A, 1) * lookahead, 0, 0,
+        chameleon_desc_init( &(options->WL), "GETRF_NP_WL", CHAMELEON_MAT_ALLOC_TILE,
+                             ChamComplexDouble, A->mb, A->nb,
+                             A->mt * A->mb, A->nb * chameleon_desc_datadist_get_iparam(A, 1) * lookahead,
                              A->mt * A->mb, A->nb * chameleon_desc_datadist_get_iparam(A, 1) * lookahead,
                              chameleon_desc_datadist_get_iparam(A, 0),
                              chameleon_desc_datadist_get_iparam(A, 1),
                              NULL, NULL, A->get_rankof_init, A->get_rankof_init_arg );
 
-        chameleon_desc_init( &(options->WU), CHAMELEON_MAT_ALLOC_TILE,
-                             ChamComplexDouble,
-                             A->mb, A->nb, (A->mb * A->nb),
-                             A->mb * chameleon_desc_datadist_get_iparam(A, 0) * lookahead, A->nt * A->nb, 0, 0,
+        chameleon_desc_init( &(options->WU), "GETRF_NP_WU", CHAMELEON_MAT_ALLOC_TILE,
+                             ChamComplexDouble, A->mb, A->nb,
+                             A->mb * chameleon_desc_datadist_get_iparam(A, 0) * lookahead, A->nt * A->nb,
                              A->mb * chameleon_desc_datadist_get_iparam(A, 0) * lookahead, A->nt * A->nb,
                              chameleon_desc_datadist_get_iparam(A, 0),
                              chameleon_desc_datadist_get_iparam(A, 1),

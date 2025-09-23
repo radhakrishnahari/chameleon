@@ -13,7 +13,7 @@
  * @author Florent Pruvost
  * @author Lionel Eyraud-Dubois
  * @author Pierre Esterie
- * @date 2024-11-13
+ * @date 2025-10-16
  * @precisions normal z -> s d c z
  *
  */
@@ -45,9 +45,10 @@
  */
 void *CHAMELEON_zcesca_WS_Alloc( const CHAM_desc_t *A )
 {
-    CHAM_context_t *chamctxt;
+    CHAM_context_t             *chamctxt;
     struct chameleon_pzcesca_s *options;
-    int workmt, worknt;
+    int                         workmt, worknt;
+    int                         P, Q;
 
     chamctxt = chameleon_context_self();
     if ( chamctxt == NULL ) {
@@ -56,48 +57,30 @@ void *CHAMELEON_zcesca_WS_Alloc( const CHAM_desc_t *A )
 
     options = calloc( 1, sizeof(struct chameleon_pzcesca_s) );
 
-    workmt = chameleon_max( A->mt, chameleon_desc_datadist_get_iparam(A, 0) );
-    worknt = chameleon_max( A->nt, chameleon_desc_datadist_get_iparam(A, 1) );
+    P = chameleon_desc_datadist_get_iparam(A, 0);
+    Q = chameleon_desc_datadist_get_iparam(A, 1);
+    workmt = chameleon_max( A->mt, P );
+    worknt = chameleon_max( A->nt, Q );
 
-    chameleon_desc_init( &(options->Wgcol), CHAMELEON_MAT_ALLOC_TILE,
-                         ChamComplexDouble, 1, A->nb, A->nb,
-                         workmt, A->n, 0, 0,
-                         workmt, A->n,
-                         chameleon_desc_datadist_get_iparam(A, 0),
-                         chameleon_desc_datadist_get_iparam(A, 1),
-                         NULL, NULL, NULL, NULL );
+    chameleon_desc_init( &(options->Wgcol), "CESCA_Wgcol", CHAMELEON_MAT_ALLOC_TILE,
+                         ChamComplexDouble, 1, A->nb, workmt, A->n, workmt, A->n,
+                         P, Q, NULL, NULL, NULL, NULL );
 
-    chameleon_desc_init( &(options->Wgrow), CHAMELEON_MAT_ALLOC_TILE,
-                         ChamComplexDouble, A->mb, 1, A->mb,
-                         A->m, worknt, 0, 0,
-                         A->m, worknt,
-                         chameleon_desc_datadist_get_iparam(A, 0),
-                         chameleon_desc_datadist_get_iparam(A, 1),
-                         NULL, NULL, NULL, NULL );
+    chameleon_desc_init( &(options->Wgrow), "CESCA_Wgrow", CHAMELEON_MAT_ALLOC_TILE,
+                         ChamComplexDouble, A->mb, 1, A->m, worknt, A->m, worknt,
+                         P, Q, NULL, NULL, NULL, NULL );
 
-    chameleon_desc_init( &(options->Wgelt), CHAMELEON_MAT_ALLOC_TILE,
-                         ChamComplexDouble, 1, 1, 1,
-                         1, worknt, 0, 0,
-                         1, worknt,
-                         chameleon_desc_datadist_get_iparam(A, 0),
-                         chameleon_desc_datadist_get_iparam(A, 1),
-                         NULL, NULL, NULL, NULL );
+    chameleon_desc_init( &(options->Wgelt), "CESCA_Wgelt", CHAMELEON_MAT_ALLOC_TILE,
+                         ChamComplexDouble, 1, 1, 1, worknt, 1, worknt,
+                         P, Q, NULL, NULL, NULL, NULL );
 
-    chameleon_desc_init( &(options->Wdcol), CHAMELEON_MAT_ALLOC_TILE,
-                         ChamRealDouble, 2, A->nb, 2*A->nb,
-                         2*workmt, A->n, 0, 0,
-                         2*workmt, A->n,
-                         chameleon_desc_datadist_get_iparam(A, 0),
-                         chameleon_desc_datadist_get_iparam(A, 1),
-                         NULL, NULL, NULL, NULL );
+    chameleon_desc_init( &(options->Wdcol), "CESCA_Wdcol", CHAMELEON_MAT_ALLOC_TILE,
+                         ChamRealDouble, 2, A->nb, 2*workmt, A->n, 2*workmt, A->n,
+                         P, Q, NULL, NULL, NULL, NULL );
 
-    chameleon_desc_init( &(options->Wdrow), CHAMELEON_MAT_ALLOC_TILE,
-                         ChamRealDouble, A->mb, 2, 2*A->mb,
-                         A->m, 2*worknt, 0, 0,
-                         A->m, 2*worknt,
-                         chameleon_desc_datadist_get_iparam(A, 0),
-                         chameleon_desc_datadist_get_iparam(A, 1),
-                         NULL, NULL, NULL, NULL );
+    chameleon_desc_init( &(options->Wdrow), "CESCA_Wdrow", CHAMELEON_MAT_ALLOC_TILE,
+                         ChamRealDouble, A->mb, 2, A->m, 2*worknt, A->m, 2*worknt,
+                         P, Q, NULL, NULL, NULL, NULL );
 
     return (void*)options;
 }
@@ -213,7 +196,7 @@ void CHAMELEON_zcesca_WS_Free( void *user_ws )
  *
  *******************************************************************************
  *
-* @retval CHAMELEON_SUCCESS successful exit
+ * @retval CHAMELEON_SUCCESS successful exit
  *
  *******************************************************************************
  *

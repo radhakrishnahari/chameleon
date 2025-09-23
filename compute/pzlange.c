@@ -20,7 +20,7 @@
  * @author Alycia Lisito
  * @author Lionel Eyraud-Dubois
  * @author Pierre Esterie
- * @date 2025-01-24
+ * @date 2025-10-16
  * @precisions normal z -> s d c
  *
  */
@@ -388,6 +388,9 @@ void chameleon_pzlange_generic( cham_normtype_t norm, cham_uplo_t uplo, cham_dia
     int workmt, worknt;
     int m, n, wcol_init = 0;
 
+    int P = chameleon_desc_datadist_get_iparam(A, 0);
+    int Q = chameleon_desc_datadist_get_iparam(A, 1);
+
     chamctxt = chameleon_context_self();
     if ( sequence->status != CHAMELEON_SUCCESS ) {
         return;
@@ -396,29 +399,25 @@ void chameleon_pzlange_generic( cham_normtype_t norm, cham_uplo_t uplo, cham_dia
 
     *result = 0.0;
 
-    workmt = chameleon_max( A->mt, chameleon_desc_datadist_get_iparam(A, 0) );
-    worknt = chameleon_max( A->nt, chameleon_desc_datadist_get_iparam(A, 1) );
+    workmt = chameleon_max( A->mt, P );
+    worknt = chameleon_max( A->nt, Q );
 
     switch ( norm ) {
     case ChamOneNorm:
         RUNTIME_options_ws_alloc( &options, 1, 0 );
 
-        chameleon_desc_init( &Wcol, CHAMELEON_MAT_ALLOC_TILE, ChamRealDouble, 1, A->nb, A->nb,
-                             workmt, worknt * A->nb, 0, 0, workmt, worknt * A->nb,
-                             chameleon_desc_datadist_get_iparam(A, 0),
-                             chameleon_desc_datadist_get_iparam(A, 1),
-                             NULL, NULL, NULL, NULL );
+        chameleon_desc_init( &Wcol, "LANGE_Wcol", CHAMELEON_MAT_ALLOC_TILE,
+                             ChamRealDouble, 1, A->nb,
+                             workmt, worknt * A->nb, workmt, worknt * A->nb,
+                             P, Q, NULL, NULL, NULL, NULL );
         wcol_init = 1;
 
         /*
          * Use the global allocator for Welt, otherwise flush may free the data before the result is read.
          */
-        chameleon_desc_init( &Welt, CHAMELEON_MAT_ALLOC_GLOBAL, ChamRealDouble, 1, 1, 1,
-                             chameleon_desc_datadist_get_iparam(A, 0), worknt, 0, 0, chameleon_desc_datadist_get_iparam(A, 0), worknt,
-                             chameleon_desc_datadist_get_iparam(A, 0),
-                             chameleon_desc_datadist_get_iparam(A, 1),
-                             NULL, NULL, NULL, NULL );
-
+        chameleon_desc_init( &Welt, "LANGE_Welt", CHAMELEON_MAT_ALLOC_GLOBAL,
+                             ChamRealDouble, 1, 1, P, worknt, P, worknt,
+                             P, Q, NULL, NULL, NULL, NULL );
         break;
 
         /*
@@ -427,18 +426,15 @@ void chameleon_pzlange_generic( cham_normtype_t norm, cham_uplo_t uplo, cham_dia
     case ChamInfNorm:
         RUNTIME_options_ws_alloc( &options, A->mb, 0 );
 
-        chameleon_desc_init( &Wcol, CHAMELEON_MAT_ALLOC_TILE, ChamRealDouble, A->mb, 1, A->mb,
-                             workmt * A->mb, worknt, 0, 0, workmt * A->mb, worknt,
-                             chameleon_desc_datadist_get_iparam(A, 0),
-                             chameleon_desc_datadist_get_iparam(A, 1),
-                             NULL, NULL, NULL, NULL );
+        chameleon_desc_init( &Wcol, "LANGE_Wcol", CHAMELEON_MAT_ALLOC_TILE,
+                             ChamRealDouble, A->mb, 1,
+                             workmt * A->mb, worknt, workmt * A->mb, worknt,
+                             P, Q, NULL, NULL, NULL, NULL );
         wcol_init = 1;
 
-        chameleon_desc_init( &Welt, CHAMELEON_MAT_ALLOC_GLOBAL, ChamRealDouble, 1, 1, 1,
-                             workmt, chameleon_desc_datadist_get_iparam(A, 1), 0, 0, workmt, chameleon_desc_datadist_get_iparam(A, 1),
-                             chameleon_desc_datadist_get_iparam(A, 0),
-                             chameleon_desc_datadist_get_iparam(A, 1),
-                             NULL, NULL, NULL, NULL );
+        chameleon_desc_init( &Welt, "LANGE_Welt", CHAMELEON_MAT_ALLOC_GLOBAL,
+                             ChamRealDouble, 1, 1, workmt, Q, workmt, Q,
+                             P, Q, NULL, NULL, NULL, NULL );
         break;
 
         /*
@@ -448,11 +444,9 @@ void chameleon_pzlange_generic( cham_normtype_t norm, cham_uplo_t uplo, cham_dia
         RUNTIME_options_ws_alloc( &options, 1, 0 );
 
         alpha = 1.;
-        chameleon_desc_init( &Welt, CHAMELEON_MAT_ALLOC_GLOBAL, ChamRealDouble, 2, 1, 2,
-                             workmt*2, worknt, 0, 0, workmt*2, worknt,
-                             chameleon_desc_datadist_get_iparam(A, 0),
-                             chameleon_desc_datadist_get_iparam(A, 1),
-                             NULL, NULL, NULL, NULL );
+        chameleon_desc_init( &Welt, "LANGE_Welt", CHAMELEON_MAT_ALLOC_GLOBAL,
+                             ChamRealDouble, 2, 1, workmt*2, worknt, workmt*2, worknt,
+                             P, Q, NULL, NULL, NULL, NULL );
         break;
 
         /*
@@ -462,11 +456,9 @@ void chameleon_pzlange_generic( cham_normtype_t norm, cham_uplo_t uplo, cham_dia
     default:
         RUNTIME_options_ws_alloc( &options, 1, 0 );
 
-        chameleon_desc_init( &Welt, CHAMELEON_MAT_ALLOC_GLOBAL, ChamRealDouble, 1, 1, 1,
-                             workmt, worknt, 0, 0, workmt, worknt,
-                             chameleon_desc_datadist_get_iparam(A, 0),
-                             chameleon_desc_datadist_get_iparam(A, 1),
-                             NULL, NULL, NULL, NULL );
+        chameleon_desc_init( &Welt, "LANGE_Welt", CHAMELEON_MAT_ALLOC_GLOBAL,
+                             ChamRealDouble, 1, 1, workmt, worknt, workmt, worknt,
+                             P, Q, NULL, NULL, NULL, NULL );
     }
 
     /* Initialize workspaces */
