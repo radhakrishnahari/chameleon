@@ -15,7 +15,7 @@
  * @author Samuel Thibault
  * @author Abel Calluaud
  * @author Ana Hourcau
- * @date 2024-09-17
+ * @date 2025-10-16
  *
  */
 #include "chameleon_starpu_internal.h"
@@ -560,7 +560,7 @@ cti_describe( void *data_interface, char *buf, size_t size )
                      (unsigned) cham_tile_interface->tile.m,
                      (unsigned) cham_tile_interface->tile.n,
                      (unsigned) cham_tile_interface->flttype,
-                     cham_tile_interface->tile.name);
+                     cham_tile_interface->tile.name );
 #else
     return snprintf( buf, size, "M%ux%ux%u",
                      (unsigned) cham_tile_interface->tile.m,
