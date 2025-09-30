@@ -28,6 +28,42 @@
 #include "chameleon_starpu_internal.h"
 #include "runtime_codelet_z.h"
 
+#if defined(CHAMELEON_USE_MPI) && !defined(CHAMELEON_RUNTIME_SYNC)
+/**
+ * This temporary patch is here to protect the DAG creation and make sure the
+ * SUMMA algorithms are working fine. Please check
+ * https://gitlab.inria.fr/starpu/starpu/-/merge_requests/191 for further
+ * informations.
+ */
+static struct starpu_codelet cl_zlacpy_nowhere =
+{
+    .where = STARPU_NOWHERE,
+    .nbuffers = 2,
+    .modes = {STARPU_W, STARPU_RW},
+    .model = NULL
+};
+
+static inline int
+insert_task_zlacpy_nowhere( starpu_data_handle_t dst_handle,
+                            starpu_data_handle_t src_handle )
+{
+    struct starpu_task *task = starpu_task_create();
+    STARPU_ASSERT(task);
+    task->name = "zlacpy_nowhere";
+
+    task->cl = &cl_zlacpy_nowhere;
+
+    STARPU_TASK_SET_HANDLE(task, dst_handle, 0);
+    STARPU_TASK_SET_HANDLE(task, src_handle, 1);
+
+    int ret = starpu_task_submit(task);
+    STARPU_ASSERT_MSG(ret != -ENODEV, "Implementation of _starpu_data_cpy is needed for this only available architecture\n");
+    STARPU_ASSERT_MSG(!ret, "Task data copy failed with code: %d\n", ret);
+
+    return 0;
+}
+#endif
+
 struct cl_zlacpy_args_s {
     cham_uplo_t uplo;
     int m;
@@ -124,7 +160,21 @@ insert_task_zlacpy_on_remote_node( const RUNTIME_option_t *options,
 #if defined(CHAMELEON_RUNTIME_SYNC)
     starpu_mpi_data_cpy_priority( handleB, handleA, options->sequence->comm, 0, callback, NULL, options->priority );
 #else
-    starpu_mpi_data_cpy_priority( handleB, handleA, options->sequence->comm, 1, callback, NULL, options->priority );
+    {
+        int owner = starpu_mpi_data_get_rank( handleA );
+        int rank  = options->sequence->myrank;
+
+        /* Sender side */
+        if ( rank == owner ) {
+            insert_task_zlacpy_nowhere( handleB, handleA );
+            starpu_mpi_data_cpy_priority( handleB, handleA, options->sequence->comm, 1, callback, NULL, options->priority );
+            insert_task_zlacpy_nowhere( handleB, handleA );
+        }
+        /* Receiver side */
+        else {
+            starpu_mpi_data_cpy_priority( handleB, handleA, options->sequence->comm, 1, callback, NULL, options->priority );
+        }
+    }
 #endif
 }
 #endif
