@@ -196,14 +196,14 @@ void *CHAMELEON_zgemm_WS_Alloc( cham_trans_t       transA __attribute__((unused)
         int lookahead = chamctxt->lookahead;
 
         chameleon_desc_init( &(options->WA), CHAMELEON_MAT_ALLOC_TILE,
-                             ChamComplexDouble, C->mb, C->nb, (C->mb * C->nb),
-                             C->mt * C->mb, C->nb * Q * lookahead, 0, 0,
-                             C->mt * C->mb, C->nb * Q * lookahead, P, Q,
+                             ChamComplexDouble, A->mb, A->nb, (A->mb * A->nb),
+                             A->mb * C->mt, A->nb * Q * lookahead, 0, 0,
+                             A->mb * C->mt, A->nb * Q * lookahead, P, Q,
                              NULL, NULL, NULL, NULL );
         chameleon_desc_init( &(options->WB), CHAMELEON_MAT_ALLOC_TILE,
-                             ChamComplexDouble, C->mb, C->nb, (C->mb * C->nb),
-                             C->mb * P * lookahead, C->nt * C->nb, 0, 0,
-                             C->mb * P * lookahead, C->nt * C->nb, P, Q,
+                             ChamComplexDouble, B->mb, B->nb, (B->mb * B->nb),
+                             B->mb * P * lookahead, B->nb * C->nt, 0, 0,
+                             B->mb * P * lookahead, B->nb * C->nt, P, Q,
                              NULL, NULL, NULL, NULL );
     }
 
