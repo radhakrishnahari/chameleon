@@ -298,18 +298,21 @@ chameleon_pzhemm_summa_left( CHAM_context_t *chamctxt, cham_uplo_t uplo,
     int m, n, k, p, q, KT, lp, lq;
     int tempmm, tempnn, tempkk;
     int lookahead, myp, myq;
+    int P, Q;
 
     CHAMELEON_Complex64_t zbeta;
     CHAMELEON_Complex64_t zone = (CHAMELEON_Complex64_t)1.0;
 
     lookahead = chamctxt->lookahead;
     KT  = A->nt;
-    myp = C->myrank / chameleon_desc_datadist_get_iparam(C, 1);
-    myq = C->myrank % chameleon_desc_datadist_get_iparam(C, 1);
+    P   = chameleon_desc_datadist_get_iparam(C, 0);
+    Q   = chameleon_desc_datadist_get_iparam(C, 1);
+    myp = C->myrank / Q;
+    myq = C->myrank % Q;
 
     for (k = 0; k < KT; k++ ) {
-        lp = (k % lookahead) * chameleon_desc_datadist_get_iparam(C, 0);
-        lq = (k % lookahead) * chameleon_desc_datadist_get_iparam(C, 1);
+        lp = (k % lookahead) * P;
+        lq = (k % lookahead) * Q;
         tempkk = A->get_blkdim( A, k, DIM_n, A->n );
         zbeta = k == 0 ? beta : zone;
 
@@ -341,16 +344,16 @@ chameleon_pzhemm_summa_left( CHAM_context_t *chamctxt, cham_uplo_t uplo,
                 options,
                 ChamUpperLower, tempam, tempak,
                 A( Am, Ak ),
-                WA( m, (Ak % chameleon_desc_datadist_get_iparam(C, 1)) + lq ) );
+                WA( m, (k % Q) + lq ) );
 
             chameleon_data_flush( sequence, A( Am, Ak ), request->flush );
 
-            for ( q=1; q < chameleon_desc_datadist_get_iparam(C, 1); q++ ) {
+            for ( q=1; q < Q; q++ ) {
                 INSERT_TASK_zlacpy(
                     options,
                     ChamUpperLower, tempam, tempak,
-                    WA( m, ((Ak+q-1) % chameleon_desc_datadist_get_iparam(C, 1)) + lq ),
-                    WA( m, ((Ak+q)   % chameleon_desc_datadist_get_iparam(C, 1)) + lq ) );
+                    WA( m, ((k+q-1) % Q) + lq ),
+                    WA( m, ((k+q)   % Q) + lq ) );
             }
         }
 
@@ -362,26 +365,26 @@ chameleon_pzhemm_summa_left( CHAM_context_t *chamctxt, cham_uplo_t uplo,
             INSERT_TASK_zlacpy(
                 options,
                 ChamUpperLower, tempkk, tempnn,
-                B(   k,              n ),
-                WB( (k % chameleon_desc_datadist_get_iparam(C, 0)) + lp, n ) );
+                B(   k,           n ),
+                WB( (k % P) + lp, n ) );
 
             chameleon_data_flush( sequence, B( k, n ), request->flush );
 
-            for ( p=1; p < chameleon_desc_datadist_get_iparam(C, 0); p++ ) {
+            for ( p=1; p < P; p++ ) {
                 INSERT_TASK_zlacpy(
                     options,
                     ChamUpperLower, tempkk, tempnn,
-                    WB( ((k+p-1) % chameleon_desc_datadist_get_iparam(C, 0)) + lp, n ),
-                    WB( ((k+p)   % chameleon_desc_datadist_get_iparam(C, 0)) + lp, n ) );
+                    WB( ((k+p-1) % P) + lp, n ),
+                    WB( ((k+p)   % P) + lp, n ) );
             }
         }
 
         /* Perform the update of this iteration */
-        for (m = myp; m < C->mt; m+=chameleon_desc_datadist_get_iparam(C, 0)) {
+        for (m = myp; m < C->mt; m+=P) {
             tempmm = C->get_blkdim( C, m, DIM_m, C->m );
 
             if ( k == m ) {
-                for (n = myq; n < C->nt; n+=chameleon_desc_datadist_get_iparam(C, 1)) {
+                for (n = myq; n < C->nt; n+=Q) {
                     tempnn = C->get_blkdim( C, n, DIM_n, C->n );
 
                     INSERT_TASK_zhemm(
@@ -402,7 +405,7 @@ chameleon_pzhemm_summa_left( CHAM_context_t *chamctxt, cham_uplo_t uplo,
                     transA = ChamNoTrans;
                 }
 
-                for (n = myq; n < C->nt; n+=chameleon_desc_datadist_get_iparam(C, 1)) {
+                for (n = myq; n < C->nt; n+=Q) {
                     tempnn = C->get_blkdim( C, n, DIM_n, C->n );
 
                     INSERT_TASK_zgemm(
@@ -434,18 +437,21 @@ chameleon_pzhemm_summa_right( CHAM_context_t *chamctxt, cham_uplo_t uplo,
     int m, n, k, p, q, KT, lp, lq;
     int tempmm, tempnn, tempkk;
     int lookahead, myp, myq;
+    int P, Q;
 
     CHAMELEON_Complex64_t zbeta;
     CHAMELEON_Complex64_t zone = (CHAMELEON_Complex64_t)1.0;
 
     lookahead = chamctxt->lookahead;
     KT  = A->mt;
-    myp = C->myrank / chameleon_desc_datadist_get_iparam(C, 1);
-    myq = C->myrank % chameleon_desc_datadist_get_iparam(C, 1);
+    P   = chameleon_desc_datadist_get_iparam(C, 0);
+    Q   = chameleon_desc_datadist_get_iparam(C, 1);
+    myp = C->myrank / Q;
+    myq = C->myrank % Q;
 
     for (k = 0; k < KT; k++ ) {
-        lp = (k % lookahead) * chameleon_desc_datadist_get_iparam(C, 0);
-        lq = (k % lookahead) * chameleon_desc_datadist_get_iparam(C, 1);
+        lp = (k % lookahead) * P;
+        lq = (k % lookahead) * Q;
         tempkk = A->get_blkdim( A, k, DIM_m, A->m );
         zbeta = k == 0 ? beta : zone;
 
@@ -458,16 +464,16 @@ chameleon_pzhemm_summa_right( CHAM_context_t *chamctxt, cham_uplo_t uplo,
                 options,
                 ChamUpperLower, tempmm, tempkk,
                 B(  m,  k ),
-                WA( m, (k % chameleon_desc_datadist_get_iparam(C, 1)) + lq ) );
+                WA( m, (k % Q) + lq ) );
 
             chameleon_data_flush( sequence, B( m, k ), request->flush );
 
-            for ( q=1; q < chameleon_desc_datadist_get_iparam(C, 1); q++ ) {
+            for ( q=1; q < Q; q++ ) {
                 INSERT_TASK_zlacpy(
                     options,
                     ChamUpperLower, tempmm, tempkk,
-                    WA( m, ((k+q-1) % chameleon_desc_datadist_get_iparam(C, 1)) + lq ),
-                    WA( m, ((k+q)   % chameleon_desc_datadist_get_iparam(C, 1)) + lq ) );
+                    WA( m, ((k+q-1) % Q) + lq ),
+                    WA( m, ((k+q)   % Q) + lq ) );
             }
         }
 
@@ -497,26 +503,26 @@ chameleon_pzhemm_summa_right( CHAM_context_t *chamctxt, cham_uplo_t uplo,
             INSERT_TASK_zlacpy(
                 options,
                 ChamUpperLower, tempak, tempan,
-                A(  Ak,              An ),
-                WB( (Ak % chameleon_desc_datadist_get_iparam(C, 0)) + lp, n  ) );
+                A(  Ak,           An ),
+                WB( (k % P) + lp, n  ) );
 
             chameleon_data_flush( sequence, A( Ak, An ), request->flush );
 
-            for ( p=1; p < chameleon_desc_datadist_get_iparam(C, 0); p++ ) {
+            for ( p=1; p < P; p++ ) {
                 INSERT_TASK_zlacpy(
                     options,
                     ChamUpperLower, tempak, tempan,
-                    WB( ((Ak+p-1) % chameleon_desc_datadist_get_iparam(C, 0)) + lp, n ),
-                    WB( ((Ak+p)   % chameleon_desc_datadist_get_iparam(C, 0)) + lp, n ) );
+                    WB( ((k+p-1) % P) + lp, n ),
+                    WB( ((k+p)   % P) + lp, n ) );
             }
         }
 
         /* Perform the update of this iteration */
-        for (n = myq; n < C->nt; n+=chameleon_desc_datadist_get_iparam(C, 1)) {
+        for (n = myq; n < C->nt; n+=Q) {
             tempnn = C->get_blkdim( C, n, DIM_n, C->n );
 
             if ( k == n ) {
-                for (m = myp; m < C->mt; m+=chameleon_desc_datadist_get_iparam(C, 0)) {
+                for (m = myp; m < C->mt; m+=P) {
                     tempmm = C->get_blkdim( C, m, DIM_m, C->m );
 
                     /* A has been stored in WA or WB for the summa ring */
@@ -538,7 +544,7 @@ chameleon_pzhemm_summa_right( CHAM_context_t *chamctxt, cham_uplo_t uplo,
                     transA = ChamNoTrans;
                 }
 
-                for (m = myp; m < C->mt; m+=chameleon_desc_datadist_get_iparam(C, 0)) {
+                for (m = myp; m < C->mt; m+=P) {
                     tempmm = C->get_blkdim( C, m, DIM_m, C->m );
 
                     INSERT_TASK_zgemm(
