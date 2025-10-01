@@ -55,6 +55,7 @@ extern struct ezt_instrumented_function PPTRACE_SYMBOL_LIST(gpucublas_ds);
 
 static void init_gpucublas_()
 {
+    INSTRUMENT_FUNCTIONS(gpucublas);
 
     if (eztrace_autostart_enabled())
         eztrace_start();
