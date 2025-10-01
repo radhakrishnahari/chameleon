@@ -56,6 +56,8 @@ extern struct ezt_instrumented_function PPTRACE_SYMBOL_LIST(coreblas_tcore_ds);
 static void
 init_coreblas_tcore_()
 {
+    INSTRUMENT_FUNCTIONS(coreblas_tcore);
+
     if ( eztrace_autostart_enabled() ) {
         eztrace_start();
     }
