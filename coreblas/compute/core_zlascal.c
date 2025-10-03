@@ -92,8 +92,12 @@ CORE_zlascal( cham_uplo_t uplo, int m, int n,
         break;
 
     case ChamLower:
-        for(i=0; i<n; i++) {
-            cblas_zscal( chameleon_max( m, m-i ), CBLAS_SADDR(alpha), A+i*lda, 1 );
+        {
+            int minmn = chameleon_min( m, n );
+
+            for(i=0; i<minmn; i++) {
+                cblas_zscal( chameleon_min( m, m-i ), CBLAS_SADDR(alpha), A+i*(lda+1), 1 );
+            }
         }
         break;
     default:
