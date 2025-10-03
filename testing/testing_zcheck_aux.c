@@ -593,10 +593,17 @@ int check_zsum ( run_arg_list_t *args, cham_uplo_t uplo, cham_trans_t trans, CHA
  */
 int check_zscale_std( run_arg_list_t *args, cham_uplo_t uplo, int M, int N, CHAMELEON_Complex64_t alpha, CHAMELEON_Complex64_t *Ainit, CHAMELEON_Complex64_t *A, int LDA )
 {
-    int info_solution;
+    CHAMELEON_Complex64_t zone = 1.0;
+    char type = 'G';
+    int  info_solution;
 
     /* Scales using core function */
-    CORE_zlascal( uplo, M, N, alpha, Ainit, LDA );
+    if ( uplo != ChamUpperLower ) {
+        type = chameleon_lapack_const(uplo);
+    }
+
+    LAPACKE_zlascl_work( LAPACK_COL_MAJOR, type,
+                         -1, -1, zone, alpha, M, N, Ainit, LDA );
 
     /* Compares the two matrices */
     info_solution = check_zmatrices_std( args, uplo, M, N, Ainit, LDA, A, LDA );
