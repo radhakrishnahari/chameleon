@@ -21,7 +21,7 @@
  * @author Matthieu Kuhn
  * @author Loris Lucido
  * @author Terry Cojean
- * @date 2024-10-17
+ * @date 2025-10-15
  *
  ***
  *
@@ -124,25 +124,25 @@ CHAM_context_t *chameleon_context_create()
 
     /* These initializations are just in case the user
        disables autotuning and does not set nb and ib */
-    chamctxt->nb                 = chameleon_getenv_get_value_int( "CHAMELEON_TILE_SIZE",        384 );
-    chamctxt->ib                 = chameleon_getenv_get_value_int( "CHAMELEON_INNER_BLOCK_SIZE",  48 );
-    chamctxt->rhblock            = chameleon_getenv_get_value_int( "CHAMELEON_HOUSEHOLDER_SIZE",   4 );
-    chamctxt->lookahead          = chameleon_getenv_get_value_int( "CHAMELEON_LOOKAHEAD",          1 );
+    chamctxt->nb                  = chameleon_getenv_get_value_int( "CHAMELEON_TILE_SIZE",        384 );
+    chamctxt->ib                  = chameleon_getenv_get_value_int( "CHAMELEON_INNER_BLOCK_SIZE",  48 );
+    chamctxt->rhblock             = chameleon_getenv_get_value_int( "CHAMELEON_HOUSEHOLDER_SIZE",   4 );
+    chamctxt->lookahead           = chameleon_getenv_get_value_int( "CHAMELEON_LOOKAHEAD",          1 );
 
-    chamctxt->nworkers           = 1;
-    chamctxt->ncudas             = 0;
-    chamctxt->nthreads_per_worker= 1;
+    chamctxt->nworkers            = 1;
+    chamctxt->ncudas              = 0;
+    chamctxt->nthreads_per_worker = 1;
 
-    chamctxt->warnings_enabled   = chameleon_env_on_off( "CHAMELEON_WARNINGS",        CHAMELEON_TRUE  );
-    chamctxt->autotuning_enabled = chameleon_env_on_off( "CHAMELEON_AUTOTUNING",      CHAMELEON_FALSE );
-    chamctxt->parallel_enabled   = chameleon_env_on_off( "CHAMELEON_PARALLEL_KERNEL", CHAMELEON_FALSE );
-    chamctxt->statistics_enabled = chameleon_env_on_off( "CHAMELEON_GENERATE_STATS",  CHAMELEON_FALSE );
-    chamctxt->progress_enabled   = chameleon_env_on_off( "CHAMELEON_PROGRESS",        CHAMELEON_FALSE );
-    chamctxt->generic_enabled    = chameleon_env_on_off( "CHAMELEON_GENERIC",         CHAMELEON_FALSE );
-    chamctxt->autominmax_enabled = chameleon_env_on_off( "CHAMELEON_AUTOMINMAX",      CHAMELEON_TRUE  );
-    chamctxt->optlacpy_enabled   = chameleon_env_on_off( "CHAMELEON_OPTIMIZED_LACPY", CHAMELEON_TRUE  );
+    chamctxt->warnings_enabled    = chameleon_env_on_off( "CHAMELEON_WARNINGS",        CHAMELEON_TRUE  );
+    chamctxt->autotuning_enabled  = chameleon_env_on_off( "CHAMELEON_AUTOTUNING",      CHAMELEON_FALSE );
+    chamctxt->parallel_enabled    = chameleon_env_on_off( "CHAMELEON_PARALLEL_KERNEL", CHAMELEON_FALSE );
+    chamctxt->statistics_enabled  = chameleon_env_on_off( "CHAMELEON_GENERATE_STATS",  CHAMELEON_FALSE );
+    chamctxt->progress_enabled    = chameleon_env_on_off( "CHAMELEON_PROGRESS",        CHAMELEON_FALSE );
+    chamctxt->generic_enabled     = chameleon_env_on_off( "CHAMELEON_GENERIC",         CHAMELEON_FALSE );
+    chamctxt->autominmax_enabled  = chameleon_env_on_off( "CHAMELEON_AUTOMINMAX",      CHAMELEON_TRUE  );
+    chamctxt->optlacpy_enabled    = chameleon_env_on_off( "CHAMELEON_OPTIMIZED_LACPY", CHAMELEON_TRUE  );
 
-    chamctxt->runtime_paused     = CHAMELEON_FALSE;
+    chamctxt->runtime_paused      = CHAMELEON_FALSE;
 
     chamctxt->householder = chameleon_getenv_householder( "CHAMELEON_HOUSEHOLDER_MODE", ChamFlatHouseholder );
     chamctxt->translation = chameleon_getenv_translation( "CHAMELEON_TRANSLATION_MODE", ChamInPlace );
@@ -185,13 +185,13 @@ int chameleon_context_destroy(){
  *
  * @param[in] option
  *          Feature to be enabled:
- *          @arg CHAMELEON_WARNINGS   printing of warning messages,
- *          @arg CHAMELEON_AUTOTUNING autotuning for tile size and inner block size.
- *          @arg CHAMELEON_GENERATE_TRACE enable/start the trace generation
- *          @arg CHAMELEON_GENERATE_STATS enable/start the kernel statistics
- *          @arg CHAMELEON_PROGRESS enable the progress indicator
- *          @arg CHAMELEON_GEMM3M  Use z/cgemm3m for complexe matrix-matrix products
- *          @arg CHAMELEON_GENERIC  enable/disable GEMM3M  Use z/cgemm3m for complexe matrix-matrix products
+ *          @arg CHAMELEON_WARNINGS       Printing of warning messages.
+ *          @arg CHAMELEON_AUTOTUNING     Autotuning for tile size and inner block size.
+ *          @arg CHAMELEON_GENERATE_TRACE Enable/start the trace generation.
+ *          @arg CHAMELEON_GENERATE_STATS Enable/start the kernel statistics.
+ *          @arg CHAMELEON_PROGRESS       Enable the progress indicator.
+ *          @arg CHAMELEON_GEMM3M         Use z/cgemm3m for complexe matrix-matrix products.
+ *          @arg CHAMELEON_GENERIC        Enforce generic algorithms instead of 2DBC specific algotihms.
  *
  *******************************************************************************
  *
@@ -261,12 +261,13 @@ int CHAMELEON_Enable(int option)
  *
  * @param[in] option
  *          Feature to be disabled:
- *          @arg CHAMELEON_WARNINGS   printing of warning messages,
- *          @arg CHAMELEON_AUTOTUNING autotuning for tile size and inner block size.
- *          @arg CHAMELEON_GENERATE_TRACE disable/pause the trace generation
- *          @arg CHAMELEON_GENERATE_STATS disable/pause the kernel statistics
- *          @arg CHAMELEON_PROGRESS disable the progress indicator
- *          @arg CHAMELEON_GEMM3M  Use z/cgemm3m for complexe matrix-matrix products
+ *          @arg CHAMELEON_WARNINGS       Printing of warning messages.
+ *          @arg CHAMELEON_AUTOTUNING     Autotuning for tile size and inner block size.
+ *          @arg CHAMELEON_GENERATE_TRACE Disable/pause the trace generation.
+ *          @arg CHAMELEON_GENERATE_STATS Disable/pause the kernel statistics.
+ *          @arg CHAMELEON_PROGRESS       Disable the progress indicator.
+ *          @arg CHAMELEON_GEMM3M         Disabel the use of z/cgemm3m for complexe matrix-matrix products.
+ *          @arg CHAMELEON_GENERIC        Do not enforce generic algorithms instead of 2DBC specific algotihms.
  *
  *******************************************************************************
  *
