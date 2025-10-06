@@ -20,7 +20,7 @@
 
 #define A(m,n)  A,         m, n
 #define Ws(m,n) &(ws->ws), m, n
-#define Wu(m,n) &(ws->Wu), m, n
+#define Wu(m,n) ws->Wu,    m, n
 
 /**
  *  Permutation of the panel n at step k

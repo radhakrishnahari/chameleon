@@ -27,7 +27,7 @@
 
 #define A(m,n)   A,                m, n
 #define Up(m)    ws->Up,           m, 0
-#define Wu(m,n)  &(ws->laswp->Wu), m, n
+#define Wu(m,n)  ws->laswp->Wu,    m, n
 #define Wl(m,n)  ws->Wl,           m, n
 #define Ws(m,n)  &(ws->laswp->ws), m, n
 
@@ -897,7 +897,7 @@ void chameleon_pzgetrf( struct chameleon_pzgetrf_s *ws,
         }
         RUNTIME_perm_flushk( sequence, IPIV, k );
     }
-    CHAMELEON_Desc_Flush( &(ws->laswp->Wu), sequence );
+    CHAMELEON_Desc_Flush( ws->laswp->Wu, sequence );
 
     RUNTIME_options_finalize( &options, chamctxt );
 }
