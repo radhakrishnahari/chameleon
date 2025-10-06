@@ -67,7 +67,7 @@ struct chameleon_pzgetrf_s {
     int                         ringswitch;       /**< Define when to switch to ring bcast                                  */
     cham_fixdbl_t               flops_min;        /**< Define size of batched task in MFlops                                */
     CHAM_desc_t                *Up;               /**< Workspace used for the panel factorization                           */
-    CHAM_desc_t                 Wl;               /**< Workspace used for the update                                        */
+    CHAM_desc_t                *Wl;               /**< Workspace used for the update                                        */
 };
 
 /**

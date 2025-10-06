@@ -28,7 +28,7 @@
 #define A(m,n)   A,                m, n
 #define Up(m)    ws->Up,           m, 0
 #define Wu(m,n)  &(ws->laswp->Wu), m, n
-#define Wl(m,n)  &(ws->Wl),        m, n
+#define Wl(m,n)  ws->Wl,           m, n
 #define Ws(m,n)  &(ws->laswp->ws), m, n
 
 /*
@@ -721,63 +721,66 @@ chameleon_pzgetrf_panel_update( struct chameleon_pzgetrf_s *ws,
     chameleon_pzgetrf_panel_permute_forward( ws, A, ipiv, k, n, options, sequence );
 
 #if defined(CHAMELEON_USE_MPI)
-    int rankAmn;
-    int lookahead = chamctxt->lookahead;
-    int myq       = A->myrank % chameleon_desc_datadist_get_iparam(A, 1);
-    int lq        = (k % lookahead) * chameleon_desc_datadist_get_iparam(A, 1);
+    if ( RUNTIME_comm_size( chamctxt ) > 1 ) {
+        int rankAmn;
+        int lookahead = chamctxt->lookahead;
+        int myq       = A->myrank % chameleon_desc_datadist_get_iparam(A, 1);
+        int lq        = (k % lookahead) * chameleon_desc_datadist_get_iparam(A, 1);
 
-    if ( reduce->involved ) {
+        if ( reduce->involved ) {
+            INSERT_TASK_ztrsm(
+                options,
+                ChamLeft, ChamLower, ChamNoTrans, ChamUnit,
+                tempkm, tempnn, A->mb,
+                zone, Wu(A->myrank, k),
+                      Wu(A->myrank, n) );
+        }
+
+        for (m = k+1; m < A->mt; m++) {
+            tempmm = A->get_blkdim( A, m, DIM_m, A->m );
+            rankAmn = A->get_rankof( A, m, n );
+
+            if ( A->myrank == rankAmn ) {
+                INSERT_TASK_zgemm(
+                    options,
+                    ChamNoTrans, ChamNoTrans,
+                    tempmm, tempnn, A->mb, A->mb,
+                    mzone, Wl( m, myq + lq ),
+                           Wu( A->myrank, n ),
+                    zone,  A( m, n ) );
+            }
+        }
+
+        if ( A->myrank == chameleon_getrankof_2d( A, k, n ) ) {
+            INSERT_TASK_zlacpy( options, ChamUpperLower, tempkm, tempnn,
+                                Wu(A->myrank, n), A(k, n) );
+        }
+    }
+    else
+#endif
+    {
         INSERT_TASK_ztrsm(
             options,
             ChamLeft, ChamLower, ChamNoTrans, ChamUnit,
             tempkm, tempnn, A->mb,
-            zone, Wu(A->myrank, k),
-                  Wu(A->myrank, n) );
-    }
+            zone, A( k, k ),
+                  Wu( A->myrank, n ) );
 
-    for (m = k+1; m < A->mt; m++) {
-        tempmm = A->get_blkdim( A, m, DIM_m, A->m );
-        rankAmn = A->get_rankof( A, m, n );
+        for (m = k+1; m < A->mt; m++) {
+            tempmm = A->get_blkdim( A, m, DIM_m, A->m );
 
-        if ( A->myrank == rankAmn ) {
             INSERT_TASK_zgemm(
                 options,
                 ChamNoTrans, ChamNoTrans,
                 tempmm, tempnn, A->mb, A->mb,
-                mzone, Wl( m, myq + lq ),
+                mzone, A( m, k ),
                        Wu( A->myrank, n ),
                 zone,  A( m, n ) );
         }
-    }
 
-    if ( A->myrank == chameleon_getrankof_2d( A, k, n ) ) {
         INSERT_TASK_zlacpy( options, ChamUpperLower, tempkm, tempnn,
                             Wu(A->myrank, n), A(k, n) );
     }
-#else
-    INSERT_TASK_ztrsm(
-        options,
-        ChamLeft, ChamLower, ChamNoTrans, ChamUnit,
-        tempkm, tempnn, A->mb,
-        zone, A( k, k ),
-              Wu( A->myrank, n ) );
-
-    for (m = k+1; m < A->mt; m++) {
-        tempmm = A->get_blkdim( A, m, DIM_m, A->m );
-
-        INSERT_TASK_zgemm(
-            options,
-            ChamNoTrans, ChamNoTrans,
-            tempmm, tempnn, A->mb, A->mb,
-            mzone, A( m, k ),
-                   Wu( A->myrank, n ),
-            zone,  A( m, n ) );
-    }
-
-    INSERT_TASK_zlacpy( options, ChamUpperLower, tempkm, tempnn,
-                        Wu(A->myrank, n), A(k, n) );
-
-#endif
 
     chameleon_data_flush( options->sequence, Wu(A->myrank, n), request->flush );
     chameleon_data_flush( options->sequence, A(k, n), request->flush );
@@ -822,7 +825,9 @@ void chameleon_pzgetrf( struct chameleon_pzgetrf_s *ws,
         options.forcesub = 0;
 
 #if defined(CHAMELEON_USE_MPI)
-        chameleon_pzgetrf_panel_update_ws( ws, A, k, &options );
+        if ( RUNTIME_comm_size( chamctxt ) > 1 ) {
+            chameleon_pzgetrf_panel_update_ws( ws, A, k, &options );
+        }
 #endif
 
         for (n = k+1; n < A->nt; n++) {
@@ -842,9 +847,9 @@ void chameleon_pzgetrf( struct chameleon_pzgetrf_s *ws,
 
         RUNTIME_iteration_pop( chamctxt );
     }
-#if defined(CHAMELEON_USE_MPI)
-    CHAMELEON_Desc_Flush( &(ws->Wl), sequence );
-#endif
+    if ( ws->Wl ) {
+        CHAMELEON_Desc_Flush( ws->Wl, sequence );
+    }
     CHAMELEON_Ipiv_Flush( IPIV, sequence );
     chameleon_pivot_destroy_submit( pivot, sequence );
 
