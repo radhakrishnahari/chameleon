@@ -843,7 +843,8 @@ void chameleon_pzgetrf( struct chameleon_pzgetrf_s *ws,
     CHAM_desc_pivot_t *pivot = &(ws->pivot);
 
     int k, m, n;
-    int min_mnt = chameleon_min( A->mt, A->nt );
+    int min_mnt  = chameleon_min( A->mt, A->nt );
+    int nb_tasks = 0;
 
     chamctxt = chameleon_context_self();
     if (sequence->status != CHAMELEON_SUCCESS) {
@@ -884,6 +885,9 @@ void chameleon_pzgetrf( struct chameleon_pzgetrf_s *ws,
         }
         chameleon_data_flush( sequence, Wu(A->myrank, k), request->flush );
 
+        if ( chamctxt->lookahead > 0 ) {
+            nb_tasks = RUNTIME_lookahead( chamctxt, k, nb_tasks );
+        }
         RUNTIME_iteration_pop( chamctxt );
     }
     CHAMELEON_Desc_Flush( &(ws->Wl), sequence );
