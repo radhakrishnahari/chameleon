@@ -21,14 +21,15 @@
 #include <coreblas/cblas_wrapper.h>
 
 struct cl_zperm_init_args_s {
-    cham_side_t side;
-    int         p;
-    int         q;
-    int         mb;
-    int         Am;
-    int         An;
-    int         k;
-    int         myrank;
+    cham_side_t    side;
+    custom_dist_t *dist;
+    int            p;
+    int            q;
+    int            mb;
+    int            Am;
+    int            An;
+    int            k;
+    int            myrank;
 };
 
 #if defined(CHAMELEON_USE_MPI)
@@ -49,6 +50,7 @@ cl_cpui_reduce_init_cpu_func( void *descr[], void *cl_args )
     int                          myrank  = clargs->myrank;
     int                          Am      = clargs->Am;
     int                          An      = clargs->An;
+    custom_dist_t               *dist    = clargs->dist;
     CHAMELEON_Complex64_t       *rows;
     int                          nindex;
     int                          i, idx, owner;
@@ -72,15 +74,14 @@ cl_cpui_reduce_init_cpu_func( void *descr[], void *cl_args )
 
     for ( i = 0; i < clargs->k; i++ ) {
         idx = perm[i] / mb_full;
-        owner = ( side == ChamLeft ) ? (idx % p) * q + (An  % q) :
-                                       (Am  % p) * q + (idx % q);
+        owner = ( side == ChamLeft ) ? chameleon_get_rankof_internal( dist, idx, An, p, q ) :
+                                       chameleon_get_rankof_internal( dist, Am, idx, p, q );
         if ( owner != myrank ) {
             continue;
         }
-
         ws->ws.index[i] = nindex;
         cblas_zcopy( ws->n, A    + i      * A_inc, lda,
-                     rows + nindex * ldb,   1 );
+                            rows + nindex * ldb,   1 );
         nindex++;
     }
     ws->ws.nindex = nindex;
@@ -103,7 +104,7 @@ insert_task_zperm_reduce_init( const RUNTIME_option_t *options,
                                int                     q,
                                CHAM_ipiv_t            *ipiv,
                                int                     ipivk,
-                               int                     Am, int An,
+                               const CHAM_desc_t      *A,  int Am, int An,
                                const CHAM_desc_t      *Wu, int Wum, int Wun,
                                CHAM_perm_t            *ws, int Wm,  int Wn )
 {
@@ -119,6 +120,7 @@ insert_task_zperm_reduce_init( const RUNTIME_option_t *options,
     clargs->p      = p;
     clargs->q      = q;
     clargs->mb     = ipiv->mb;
+    clargs->dist   = (A->get_rankof_init_arg) ? A->get_rankof_init_arg : NULL;
 
     if ( dir == ChamDirForward ) {
         ipiv_handle = RUNTIME_perm_getaddr( ipiv, ipivk );
@@ -196,7 +198,7 @@ insert_task_zperm_reduce_init( const RUNTIME_option_t *options,
                                int                     q,
                                CHAM_ipiv_t            *ipiv,
                                int                     ipivk,
-                               int                     Am, int An,
+                               const CHAM_desc_t      *A,  int Am, int An,
                                const CHAM_desc_t      *Wu, int Wum, int Wun,
                                CHAM_perm_t            *ws, int Wm,  int Wn )
 {
@@ -235,6 +237,7 @@ insert_task_zperm_reduce_init( const RUNTIME_option_t *options,
     clargs->p      = p;
     clargs->q      = q;
     clargs->mb     = ipiv->mb;
+    clargs->dist   = (A->get_rankof_init_arg) ? A->get_rankof_init_arg : NULL;
 
     task->cl_arg      = clargs;
     task->cl_arg_size = sizeof( struct cl_zperm_init_args_s );
@@ -373,7 +376,7 @@ zperm_reduce_chameleon_starpu_task( const RUNTIME_option_t *options,
     tempkk = ( ws->side == ChamLeft ) ? tempkm : tempkn;
 
     insert_task_zperm_reduce_init( options, dir, A->myrank, tempkk, P, Q, ipiv, ipivk,
-                                   Am, An, Wu, Wum, Wun, ws, Wm, Wn );
+                                   A, Am, An, Wu, Wum, Wun, ws, Wm, Wn );
 
     /* Submit reduction tree */
     while ( np_involved != 1 ) {

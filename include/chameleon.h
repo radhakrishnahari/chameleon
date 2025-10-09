@@ -218,6 +218,7 @@ int  CHAMELEON_Recursive_Desc_Create( CHAM_desc_t **descptr, void *mat,
                                       const char *name );
 
 int CHAMELEON_Ipiv_Create ( CHAM_ipiv_t        **ipivptr,
+                            CHAM_desc_t         *A,
                             cham_side_t          side,
                             int                  mb,
                             int                  m,

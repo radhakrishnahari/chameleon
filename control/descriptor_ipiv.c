@@ -71,7 +71,9 @@
  */
 int chameleon_ipiv_init( CHAM_ipiv_t *ipiv, cham_side_t side, int mb, int m,
                          int p, int np, void *data,
-                         blkrankof_ipiv_fct_t get_rankof )
+                         blkrankof_ipiv_fct_t get_rankof,
+                         void                *get_rankof_init_arg,
+                         cham_data_dist_t    *data_dist )
 {
     CHAM_context_t *chamctxt;
     int rc = CHAMELEON_SUCCESS;
@@ -88,11 +90,12 @@ int chameleon_ipiv_init( CHAM_ipiv_t *ipiv, cham_side_t side, int mb, int m,
         ipiv->get_rankof = get_rankof;
     }
     else {
-        ipiv->get_rankof = ( side == ChamLeft ) ? chameleon_getrankof_ipiv_2d_row :
-                                                  chameleon_getrankof_ipiv_2d_col;
+        ipiv->get_rankof = chameleon_getrankof_ipiv;
     }
 
-    ipiv->get_blkdim = chameleon_getblkdim_ipiv;
+    ipiv->get_blkdim          = chameleon_getblkdim_ipiv;
+    ipiv->get_rankof_init_arg = get_rankof_init_arg;
+    ipiv->data_dist           = data_dist;
 
     ipiv->data   = data;
     ipiv->myrank = RUNTIME_comm_rank( chamctxt );
@@ -184,6 +187,9 @@ void chameleon_ipiv_destroy( CHAM_ipiv_t *ipiv )
  * @param[in,out] ipiv
  *          The pointer to the ipiv descriptor to initialize.
  *
+ * @param[in] A
+ *          The pointer to the according matrix descriptor.
+ *
  * @param[in] side
  *          Specifies whenever the permutation will be done on the rows or on the columns
  *
@@ -203,7 +209,7 @@ void chameleon_ipiv_destroy( CHAM_ipiv_t *ipiv )
  * @retval CHAMELEON_ERR_OUT_OF_RESOURCES if failed to allocated some ressources.
  *
  */
-int CHAMELEON_Ipiv_Create( CHAM_ipiv_t **ipivptr, cham_side_t side, int mb, int m,
+int CHAMELEON_Ipiv_Create( CHAM_ipiv_t **ipivptr, CHAM_desc_t *A, cham_side_t side, int mb, int m,
                            int p, int np, void *data )
 {
     CHAM_context_t *chamctxt;
@@ -222,7 +228,7 @@ int CHAMELEON_Ipiv_Create( CHAM_ipiv_t **ipivptr, cham_side_t side, int mb, int 
         return CHAMELEON_ERR_OUT_OF_RESOURCES;
     }
 
-    chameleon_ipiv_init( ipiv, side, mb, m, p, np, data, NULL );
+    chameleon_ipiv_init( ipiv, side, mb, m, p, np, data, NULL, A->get_rankof_init_arg, A->data_dist );
 
     *ipivptr = ipiv;
     return CHAMELEON_SUCCESS;

@@ -83,7 +83,7 @@ testing_zgetrf_desc( run_arg_list_t *args, int check )
     P = chameleon_desc_datadist_get_iparam( descA, 0 );
     Q = chameleon_desc_datadist_get_iparam( descA, 1 );
 
-    CHAMELEON_Ipiv_Create( &descIPIV, ChamLeft, descA->mb, N, P, P*Q, NULL );
+    CHAMELEON_Ipiv_Create( &descIPIV, descA, ChamLeft, descA->mb, N, P, P*Q, NULL );
 
     /* Fills the matrix with random values */
     if ( diag == ChamUnit ) {

@@ -143,7 +143,7 @@ int CHAMELEON_zgetrs( cham_trans_t trans, int N, int NRHS,
     Q = chameleon_desc_datadist_get_iparam( &descAt, 1 );
 
     ws = CHAMELEON_zgetrf_WS_Alloc( &descBt );
-    CHAMELEON_Ipiv_Create( &descIPIV, ChamLeft, descAt.mb, N, P, P*Q, IPIV );
+    CHAMELEON_Ipiv_Create( &descIPIV, &descAt, ChamLeft, descAt.mb, N, P, P*Q, IPIV );
     CHAMELEON_Ipiv_Init( descIPIV );
 
     /* Call the tile interface */

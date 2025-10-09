@@ -79,7 +79,7 @@ testing_zlaswp_desc( run_arg_list_t *args, int check )
 
     /* Creates the matrices */
     parameters_desc_create( "A", &descA, ChamComplexDouble, nb, nb, LDA, N, M, N );
-    CHAMELEON_Ipiv_Create( &descIPIV, side, kb, K, P, P*Q, IPIV );
+    CHAMELEON_Ipiv_Create( &descIPIV, descA, side, kb, K, P, P*Q, IPIV );
 
     /* Fill the matrices with random values */
     CHAMELEON_zplrnt_Tile( descA, seedA );

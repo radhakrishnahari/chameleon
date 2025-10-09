@@ -163,9 +163,9 @@ CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A )
         lookahead = chamctxt->lookahead;
         chameleon_desc_init( &(ws->Wl), CHAMELEON_MAT_ALLOC_TILE,
                              ChamComplexDouble, A->mb, A->nb, (A->mb * A->nb),
-                             A->mt * A->mb, A->nb * Q * lookahead, 0, 0,
-                             A->mt * A->mb, A->nb * Q * lookahead, P, Q,
-                             NULL, NULL, A->get_rankof_init, A->get_rankof_init_arg );
+                             A->mt * A->mb, A->nb * P * Q * lookahead, 0, 0,
+                             A->mt * A->mb, A->nb * P * Q * lookahead, 1, P * Q,
+                             NULL, NULL, NULL, A->get_rankof_init_arg );
     }
 
     /* Set ib to 1 if per column algorithm */
@@ -289,7 +289,8 @@ CHAMELEON_zgetrf_WS_Free( void *user_ws )
 int
 CHAMELEON_zgetrf( int M, int N, CHAMELEON_Complex64_t *A, int LDA, int *IPIV )
 {
-    int                 NB;
+    int                         NB;
+    int                         P, Q;
     int                         status;
     CHAM_desc_t                 descAl, descAt;
     CHAM_ipiv_t                 descIPIV;
@@ -329,6 +330,8 @@ CHAMELEON_zgetrf( int M, int N, CHAMELEON_Complex64_t *A, int LDA, int *IPIV )
 
     /* Set NT & NTRHS */
     NB = CHAMELEON_NB;
+    P  = chameleon_desc_datadist_get_iparam( &descAt, 0 );
+    Q  = chameleon_desc_datadist_get_iparam( &descAt, 1 );
 
     chameleon_sequence_create( chamctxt, &sequence );
 
@@ -342,8 +345,7 @@ CHAMELEON_zgetrf( int M, int N, CHAMELEON_Complex64_t *A, int LDA, int *IPIV )
     if ( ( ws->alg == ChamGetrfPPivPerColumn ) ||
          ( ws->alg == ChamGetrfPPiv ) )
     {
-        chameleon_ipiv_init( &descIPIV, ChamLeft, descAt.mb, chameleon_min( M, N ),
-                             1, 1, IPIV, chameleon_getrankof_ipiv_2d_diag );
+        chameleon_ipiv_init( &descIPIV, ChamLeft, descAt.mb, chameleon_min( M, N ), P, P*Q, IPIV, chameleon_getrankof_ipiv_2d_diag, descAt.get_rankof_init_arg, descAt.data_dist );
     }
 
     /* Call the tile interface */
@@ -547,7 +549,8 @@ CHAMELEON_zgetrf_Tile_Async( CHAM_desc_t        *A,
         ws = user_ws;
     }
 
-    IPIV->get_rankof = chameleon_getrankof_ipiv_2d_diag;
+    IPIV->get_rankof = chameleon_getrankof_ipiv_diag;
+    /*IPIV->get_rankof = chameleon_getrankof_ipiv_2d_diag;*/
 
     chameleon_pzgetrf( ws, A, IPIV, sequence, request );
 

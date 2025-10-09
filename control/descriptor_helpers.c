@@ -107,8 +107,7 @@ int chameleon_getrankof_ipiv_2d_row( const CHAM_ipiv_t *IPIV, int m, int n )
 }
 
 /**
- * @brief Return the rank of the process responsible for the column permutation of the tile (m, n)
- * in a classic 2D Block Cyclic distribution PxQ.
+ * @brief Return the rank of the process responsible for the permutation of the tile (m, n).
  *
  * @param[in] IPIV
  *        The ipiv descriptor.
@@ -119,13 +118,45 @@ int chameleon_getrankof_ipiv_2d_row( const CHAM_ipiv_t *IPIV, int m, int n )
  * @param[in] n
  *        The column index of the tile.
  *
- * @return The rank of the process responsible for the permutation of the tile (m, n)
+ * @return The rank of the process responsible for the row permutation of the tile (m, n)
  *
  */
-int chameleon_getrankof_ipiv_2d_col( const CHAM_ipiv_t *IPIV, int m, int n )
+int chameleon_getrankof_ipiv( const CHAM_ipiv_t *IPIV, int m, int n )
 {
-    int Q = IPIV->NP / IPIV->P;
-    return n % Q;
+    custom_dist_t *dist = IPIV->get_rankof_init_arg;
+
+    if ( !dist ) {
+        return chameleon_getrankof_ipiv_2d_row( IPIV, m, n );
+    }
+
+    return dist->blocks_dist[ m % dist->dist_m ];
+}
+
+/**
+ * @brief Return the rank of the process responsible for the permutation of the tile (m, n)
+ * for the GETRF.
+ *
+ * @param[in] IPIV
+ *        The ipiv descriptor.
+ *
+ * @param[in] m
+ *        The row index of the tile.
+ *
+ * @param[in] n
+ *        The column index of the tile.
+ *
+ * @return The rank of the process responsible for the row permutation of the tile (m, n)
+ *
+ */
+int chameleon_getrankof_ipiv_diag( const CHAM_ipiv_t *IPIV, int m, int n )
+{
+    custom_dist_t *dist = IPIV->get_rankof_init_arg;
+
+    if ( !dist ) {
+        return chameleon_getrankof_ipiv_2d_diag( IPIV, m, n );
+    }
+
+    return dist->blocks_dist[ (n % dist->dist_n) * dist->dist_m + (n % dist->dist_m) ];
 }
 
 /**
@@ -170,6 +201,24 @@ int chameleon_involved_in_panelk_2dbc( const CHAM_desc_t *A, int k ) {
 }
 
 /**
+ * @brief Test if the current MPI process is involved in the row panel k for 2DBC distributions.
+ *
+ * @param[in] A
+ *        The matrix descriptor.
+ *
+ * @param[in] k
+ *        The index of the panel to test.
+ *
+ * @return 1 if the current MPI process contributes to the panel k.
+ *         0 if the current MPI process doesn't contribute to the panel k.
+ *
+ */
+int chameleon_involved_in_rowpanelk_2dbc( const CHAM_desc_t *A, int k ) {
+    int myrank = A->myrank;
+    return ( myrank % chameleon_desc_datadist_get_iparam(A,0) == k % chameleon_desc_datadist_get_iparam(A,0) );
+}
+
+/**
  * @brief Test if the MPI process p is involved in the panel k for 2DBC distributions.
  *
  * @param[in] A
@@ -187,6 +236,108 @@ int chameleon_involved_in_panelk_2dbc( const CHAM_desc_t *A, int k ) {
  */
 int chameleon_p_involved_in_panelk_2dbc( const CHAM_desc_t *A, int k, int p ) {
     return ( p % chameleon_desc_datadist_get_iparam(A,1) == k % chameleon_desc_datadist_get_iparam(A,1) );
+}
+
+/**
+ * @brief Test if the current MPI process is involved in the panel k.
+ *
+ * @param[in] A
+ *        The matrix descriptor.
+ *
+ * @param[in] k
+ *        The index of the panel to test.
+ *
+ * @return 1 if the current MPI process contributes to the panel k.
+ *         0 if the current MPI process doesn't contribute to the panel k.
+ *
+ */
+int chameleon_involved_in_panelk( const CHAM_desc_t *A, int k ) {
+    custom_dist_t *dist   = A->get_rankof_init_arg;
+    int            me     = A->myrank;
+    int            rank, b, dist_m;
+
+    if ( !dist ) {
+        return chameleon_involved_in_panelk_2dbc( A, k );
+    }
+
+    dist_m = dist->dist_m;
+
+    for ( b = 0; b < dist_m; b ++ ) {
+        rank = A->get_rankof( A, b, k );
+        if ( rank == me ) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/**
+ * @brief Test if the current MPI process is involved in the row panel k.
+ *
+ * @param[in] A
+ *        The matrix descriptor.
+ *
+ * @param[in] k
+ *        The index of the panel to test.
+ *
+ * @return 1 if the current MPI process contributes to the panel k.
+ *         0 if the current MPI process doesn't contribute to the panel k.
+ *
+ */
+int chameleon_involved_in_rowpanelk( const CHAM_desc_t *A, int k ) {
+    custom_dist_t *dist   = A->get_rankof_init_arg;
+    int            me     = A->myrank;
+    int            rank, b, dist_n;
+
+    if ( !dist ) {
+        return chameleon_involved_in_rowpanelk_2dbc( A, k );
+    }
+
+    dist_n = dist->dist_n;
+
+    for ( b = 0; b < dist_n; b ++ ) {
+        rank = A->get_rankof( A, k, b );
+        if ( rank == me ) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/**
+ * @brief Test if the MPI process p is involved in the panel k.
+ *
+ * @param[in] A
+ *        The matrix descriptor.
+ *
+ * @param[in] k
+ *        The index of the panel to test.
+ *
+ * @param[in] p
+ *        The rank of the MPI process.
+ *
+ * @return 1 if the current MPI process contributes to the panel k.
+ *         0 if the current MPI process doesn't contribute to the panel k.
+ *
+ */
+int chameleon_p_involved_in_panelk( const CHAM_desc_t *A, int k, int p ) {
+    custom_dist_t *dist = A->get_rankof_init_arg;
+    int            dist_m;
+    int            rank, b;
+
+    if ( !dist ) {
+        return chameleon_p_involved_in_panelk_2dbc( A, k, p );
+    }
+
+    dist_m = dist->dist_m;
+
+    for ( b = 0; b < dist_m; b ++ ) {
+        rank = A->get_rankof( A, b, k );
+        if ( rank == p ) {
+            return 1;
+        }
+    }
+    return 0;
 }
 
 /**
@@ -225,8 +376,80 @@ void chameleon_get_proc_involved_in_panelk_2dbc( const CHAM_desc_t *A,
             reduce->involved = 1;
         }
     }
+
     reduce->proc_involved = proc_involved;
     reduce->np_involved   = np;
+#else
+    (void)A;
+    (void)k;
+    (void)n;
+    (void)ws_reduce;
+#endif
+}
+
+/**
+ * @brief Test if the current MPI process is involved in the panel k.
+ *
+ * @param[in] A
+ *        The matrix descriptor.
+ *
+ * @param[in] k
+ *        The index of the panel to test.
+ *
+ * @param[in] n
+ *        The index of the panel to test.
+ *
+ * @param[inout] ws_reduce
+ *        The i.
+ *
+ */
+void chameleon_get_proc_involved_in_panelk( const CHAM_desc_t *A,
+                                            int                k,
+                                            int                n,
+                                            void              *ws_reduce )
+{
+#if defined (CHAMELEON_USE_MPI)
+    CHAM_reduce_t *reduce        = (CHAM_reduce_t*) ws_reduce;
+    int           *proc_involved = reduce->proc_involved;
+    int            NP            = chameleon_desc_datadist_get_iparam(A, 0) *
+                                   chameleon_desc_datadist_get_iparam(A, 1);
+    custom_dist_t *dist          = A->get_rankof_init_arg;
+    int           *contributors;
+    int            b, rank, np, dist_m;
+    int            c = 0;
+
+    if ( !dist ) {
+        chameleon_get_proc_involved_in_panelk_2dbc( A, k, n, ws_reduce );
+        return;
+    }
+
+    dist_m        = dist->dist_m;
+    contributors  = calloc( NP, sizeof(int) );
+
+    np               = 0;
+    reduce->involved = 0;
+    for ( b = k; (b < A->mt) && ( (b - k) < dist_m ); b ++ ) {
+        rank = A->get_rankof( A, b, n );
+
+        if ( contributors[rank] ) {
+            continue;
+        }
+        contributors[ rank ] = 1;
+        np ++;
+        if ( rank == A->myrank ) {
+            reduce->involved = 1;
+        }
+    }
+
+    for ( b = 0; b < NP; b++ ) {
+        if ( contributors[b] ) {
+            proc_involved[c++] = b;
+        }
+    }
+
+    reduce->proc_involved = proc_involved;
+    reduce->np_involved   = np;
+    free( contributors );
 #else
     (void)A;
     (void)k;
@@ -273,6 +496,78 @@ void chameleon_get_proc_involved_in_rowpanelk_2dbc( const CHAM_desc_t *A,
     }
     reduce->proc_involved = proc_involved;
     reduce->np_involved   = np;
+#else
+    (void)A;
+    (void)k;
+    (void)m;
+    (void)ws_reduce;
+#endif
+}
+
+/**
+ * @brief Test if the current MPI process is involved in the panel k.
+ *
+ * @param[in] A
+ *        The matrix descriptor.
+ *
+ * @param[in] m
+ *        The index of the panel to test.
+ *
+ * @param[in] k
+ *        The index of the panel to test.
+ *
+ * @param[inout] ws_reduce
+ *        The i.
+ *
+ */
+void chameleon_get_proc_involved_in_rowpanelk( const CHAM_desc_t *A,
+                                               int                m,
+                                               int                k,
+                                               void              *ws_reduce )
+{
+#if defined (CHAMELEON_USE_MPI)
+    CHAM_reduce_t *reduce = (CHAM_reduce_t*) ws_reduce;
+    int           *proc_involved = reduce->proc_involved;
+    int            NP            = chameleon_desc_datadist_get_iparam(A, 0) *
+                                   chameleon_desc_datadist_get_iparam(A, 1);
+    custom_dist_t *dist          = A->get_rankof_init_arg;
+    int           *contributors;
+    int            b, rank, np, dist_n;
+    int            c = 0;
+
+    if ( !dist ) {
+        chameleon_get_proc_involved_in_rowpanelk_2dbc( A, m, k, ws_reduce );
+        return;
+    }
+
+    dist_n        = dist->dist_n;
+    contributors  = calloc( NP, sizeof(int) );
+
+    np               = 0;
+    reduce->involved = 0;
+    for ( b = k; (b < A->nt) && ( (b - k) < dist_n ); b ++ ) {
+        rank = A->get_rankof( A, m, b );
+
+        if ( contributors[rank] ) {
+            continue;
+        }
+
+        contributors[ rank ] = 1;
+        np ++;
+        if ( rank == A->myrank ) {
+            reduce->involved = 1;
+        }
+    }
+
+    for ( b = 0; b < NP; b++ ) {
+        if ( contributors[b] ) {
+            proc_involved[c++] = b;
+        }
+    }
+
+    reduce->proc_involved = proc_involved;
+    reduce->np_involved   = np;
+    free( contributors );
 #else
     (void)A;
     (void)k;
@@ -603,4 +898,21 @@ int chameleon_getblkldd_cm( const CHAM_desc_t *A, int m )
 {
     (void)m;
     return A->llm;
+}
+
+static inline int chameleon_get_rankof_2d_internal( int m, int n, int p, int q ){
+    return (m % p) * q + (n % q);
+}
+
+static inline int chameleon_get_rankof_custom_internal( custom_dist_t *dist, int m, int n ){
+    return dist->blocks_dist[(n % dist->dist_n) * dist->dist_m + (m % dist->dist_m)];
+}
+
+int chameleon_get_rankof_internal( custom_dist_t *dist, int m, int n, int p, int q ){
+    if ( dist ){
+        return chameleon_get_rankof_custom_internal( dist, m, n);
+    }
+    else {
+        return chameleon_get_rankof_2d_internal( m, n, p, q );
+    }
 }
