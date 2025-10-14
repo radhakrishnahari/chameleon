@@ -29,14 +29,95 @@
 #ifndef _chameleon_descriptor_h_
 #define _chameleon_descriptor_h_
 
-#include <assert.h>
 #include "chameleon/config.h"
+#include <assert.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 #include "chameleon/struct.h"
 #include "control/auxiliary.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/**
+ * Generate a automatic name startix by 'w' and then alphabetical order for non named matrices.
+ */
+static inline char *
+__chamdesc_get_name() {
+    static int counter = 0;
+    char      *name    = malloc( sizeof(char) * 4 );
+    int        idx     = 0;
+
+    name[idx] = 'x';
+    idx++;
+
+    if ( counter > 26 ) {
+        name[idx] = 'A' + ( ( counter / 26 ) % 26 );
+        idx++;
+    }
+
+    name[idx] = 'A' + counter % 26;
+    idx++;
+
+    name[idx] = '\0';
+
+    counter++;
+    return name;
+}
+
+/**
+ *
+ */
+static inline int chameleon_desc_mat_alloc( CHAM_desc_t *desc )
+{
+    size_t size = (size_t)(desc->llm) * (size_t)(desc->lln)
+        * (size_t)CHAMELEON_Element_Size(desc->dtyp);
+    if ((desc->mat = RUNTIME_malloc(size)) == NULL) {
+        chameleon_error("chameleon_desc_mat_alloc", "malloc() failed");
+        return CHAMELEON_ERR_OUT_OF_RESOURCES;
+    }
+
+    /* The matrix has already been registered by the Runtime alloc */
+    desc->register_mat = 0;
+
+    return CHAMELEON_SUCCESS;
+}
+
+/**
+ *
+ */
+static inline int chameleon_desc_mat_free( CHAM_desc_t *desc )
+{
+    if ( (desc->mat       != NULL) &&
+         (desc->use_mat   == 1   ) &&
+         (desc->alloc_mat == 1   ) )
+    {
+        size_t size = (size_t)(desc->llm) * (size_t)(desc->lln)
+            * (size_t)CHAMELEON_Element_Size(desc->dtyp);
+
+        RUNTIME_free(desc->mat, size);
+        desc->mat = NULL;
+    }
+
+    if ( desc->tiles ) {
+#if defined(CHAMELEON_KERNELS_TRACE)
+        CHAM_tile_t *tile = desc->tiles;
+        int ii, jj;
+        for( jj=0; jj<desc->lnt; jj++ ) {
+            for( ii=0; ii<desc->lmt; ii++, tile++ ) {
+                if ( tile->name ) {
+                    free( tile->name );
+                }
+            }
+        }
+#endif
+        free( desc->tiles );
+    }
+    free( desc->data_dist );
+    return CHAMELEON_SUCCESS;
+}
 
 /**
  *  Internal routines
