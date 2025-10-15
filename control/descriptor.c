@@ -21,7 +21,7 @@
  * @author Lionel Eyraud-Dubois
  * @author Pierre Esterie
  * @author Atte Torri
- * @date 2025-10-15
+ * @date 2025-10-16
  *
  ***
  *
@@ -226,13 +226,13 @@ void chameleon_desc_set_datadist( CHAM_desc_t *to, cham_data_dist_t *from )
  * @return  The descriptor with the matrix description parameters set.
  *
  */
-int chameleon_desc_init_internal( CHAM_desc_t *desc, const char *name, void *mat,
-                                  cham_flttype_t dtyp, int mb, int nb,
-                                  int lm, int ln, int m, int n, int p, int q,
-                                  blkaddr_fct_t   get_blkaddr,
-                                  blkldd_fct_t    get_blkldd,
-                                  blkrankof_fct_t get_rankof,
-                                  void           *get_rankof_arg )
+int chameleon_desc_init( CHAM_desc_t *desc, const char *name, void *mat,
+                         cham_flttype_t dtyp, int mb, int nb,
+                         int lm, int ln, int m, int n, int p, int q,
+                         blkaddr_fct_t   get_blkaddr,
+                         blkldd_fct_t    get_blkldd,
+                         blkrankof_fct_t get_rankof,
+                         void           *get_rankof_arg )
 {
     CHAM_context_t *chamctxt;
     int rc = CHAMELEON_SUCCESS;
@@ -690,6 +690,9 @@ int CHAMELEON_Desc_Create_User( CHAM_desc_t **descptr, void *mat, cham_flttype_t
     CHAM_desc_t *desc;
     int status;
 
+    assert( i == 0 );
+    assert( j == 0 );
+
     chamctxt = chameleon_context_self();
     if (chamctxt == NULL) {
         chameleon_error("CHAMELEON_Desc_Create_User", "CHAMELEON not initialized");
@@ -703,8 +706,8 @@ int CHAMELEON_Desc_Create_User( CHAM_desc_t **descptr, void *mat, cham_flttype_t
         return CHAMELEON_ERR_OUT_OF_RESOURCES;
     }
 
-    chameleon_desc_init( desc, mat, dtyp, mb, nb, bsiz,
-                         lm, ln, i, j, m, n, p, q,
+    chameleon_desc_init( desc, NULL, mat, dtyp, mb, nb,
+                         lm, ln, m, n, p, q,
                          get_blkaddr, get_blkldd, get_rankof, get_rankof_arg );
 
     status = chameleon_desc_check( desc );
@@ -715,6 +718,10 @@ int CHAMELEON_Desc_Create_User( CHAM_desc_t **descptr, void *mat, cham_flttype_t
     }
 
     *descptr = desc;
+
+    (void)i;
+    (void)j;
+    (void)bsiz;
     return CHAMELEON_SUCCESS;
 }
 

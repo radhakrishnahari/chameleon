@@ -25,7 +25,7 @@
  * @author Ana Hourcau
  * @author Pierre Esterie
  * @author Matteo Marcos
- * @date 2025-10-15
+ * @date 2025-10-16
  * @precisions normal z -> c d s
  *
  */
@@ -360,9 +360,9 @@ void chameleon_pzgram( struct chameleon_pzgram_s *ws, cham_uplo_t uplo, CHAM_des
 static inline int
 chameleon_zdesc_alloc_diag( CHAM_desc_t *descA, int nb, int m, int n, int p, int q ) {
     int diag_m = chameleon_min( m, n );
-    return chameleon_desc_init( descA, CHAMELEON_MAT_ALLOC_TILE,
-                                ChamComplexDouble, nb, nb, nb*nb,
-                                diag_m, nb, 0, 0, diag_m, nb, p, q,
+    return chameleon_desc_init( descA, "Diag", CHAMELEON_MAT_ALLOC_TILE,
+                                ChamComplexDouble, nb, nb,
+                                diag_m, nb, diag_m, nb, p, q,
                                 chameleon_getaddr_diag,
                                 chameleon_getblkldd_ccrb,
                                 chameleon_getrankof_2d_diag, NULL );
@@ -371,9 +371,9 @@ chameleon_zdesc_alloc_diag( CHAM_desc_t *descA, int nb, int m, int n, int p, int
 #define chameleon_zdesc_alloc( descA, mb, nb, lm, ln, i, j, m, n, free) \
     {                                                                   \
         int rc;                                                         \
-        rc = chameleon_desc_init( &(descA), CHAMELEON_MAT_ALLOC_GLOBAL, \
-                                  ChamComplexDouble, (mb), (nb), ((mb)*(nb)), \
-                                  (m), (n), (i), (j), (m), (n), 1, 1,   \
+        rc = chameleon_desc_init( &(descA), NULL, CHAMELEON_MAT_ALLOC_GLOBAL, \
+                                  ChamComplexDouble, (mb), (nb),        \
+                                  (m), (n), (m), (n), 1, 1,             \
                                   NULL, NULL, NULL, NULL );             \
         if ( rc != CHAMELEON_SUCCESS ) {                                \
             {free;}                                                     \
@@ -395,12 +395,15 @@ chameleon_zdesc_copy_and_restrict( const CHAM_desc_t *descIn,
                                    int m, int n )
 {
     int rc;
-    rc = chameleon_desc_init( descOut, CHAMELEON_MAT_ALLOC_TILE,
-                              ChamComplexDouble, descIn->mb, descIn->nb, descIn->mb * descIn->nb,
-                              m, n, 0, 0, m, n, chameleon_desc_datadist_get_iparam(descIn, 0), chameleon_desc_datadist_get_iparam(descIn, 1),
-                              NULL,
-                              NULL,
-                              descIn->get_rankof_init, descIn->get_rankof_init_arg );
+    char *subname;
+    chameleon_asprintf( &subname, "%s_restricted", descIn->name );
+    rc = chameleon_desc_init( descOut, subname, CHAMELEON_MAT_ALLOC_TILE,
+                              ChamComplexDouble, descIn->mb, descIn->nb,
+                              m, n, m, n,
+                              chameleon_desc_datadist_get_iparam(descIn, 0),
+                              chameleon_desc_datadist_get_iparam(descIn, 1),
+                              NULL, NULL, descIn->get_rankof_init, descIn->get_rankof_init_arg );
+    free( subname );
     return rc;
 }
 
@@ -417,14 +420,14 @@ chameleon_zlap2tile( CHAM_context_t *chamctxt,
 {
     if ( CHAMELEON_TRANSLATION == ChamOutOfPlace ) {
         /* Initialize the Lapack descriptor */
-        chameleon_desc_init( descAl, A, ChamComplexDouble, mb, nb, (mb)*(nb),
-                             lm, ln, 0, 0, m, n, 1, 1,
+        chameleon_desc_init( descAl, NULL, A, ChamComplexDouble, mb, nb,
+                             lm, ln, m, n, 1, 1,
                              chameleon_getaddr_cm, chameleon_getblkldd_cm, NULL, NULL );
         descAl->styp = ChamCM;
 
         /* Initialize the tile descriptor */
-        chameleon_desc_init( descAt, CHAMELEON_MAT_ALLOC_TILE, ChamComplexDouble, mb, nb, (mb)*(nb),
-                             lm, ln, 0, 0, m, n, 1, 1,
+        chameleon_desc_init( descAt, NULL, CHAMELEON_MAT_ALLOC_TILE, ChamComplexDouble, mb, nb,
+                             lm, ln, m, n, 1, 1,
                              chameleon_getaddr_ccrb, chameleon_getblkldd_ccrb, NULL, NULL );
 
         if ( mode & ChamDescInput ) {
@@ -433,8 +436,8 @@ chameleon_zlap2tile( CHAM_context_t *chamctxt,
     }
     else {
         /* Initialize the tile descriptor */
-        chameleon_desc_init( descAt, A, ChamComplexDouble, mb, nb, (mb)*(nb),
-                             lm, ln, 0, 0, m, n, 1, 1,
+        chameleon_desc_init( descAt, NULL, A, ChamComplexDouble, mb, nb,
+                             lm, ln, m, n, 1, 1,
                              chameleon_getaddr_cm, chameleon_getblkldd_cm, NULL, NULL );
     }
     return CHAMELEON_SUCCESS;
