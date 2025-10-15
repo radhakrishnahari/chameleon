@@ -16,7 +16,7 @@
  * @author Cedric Castagnede
  * @author Florent Pruvost
  * @author Matteo Marcos
- * @date 2025-07-15
+ * @date 2025-10-16
  *
  */
 /**
@@ -117,22 +117,6 @@ extern char *chameleon_lapack_constants[];
 extern "C" {
 #endif
 
-void chameleon_pmap( cham_uplo_t uplo, int ndata, cham_map_data_t *data,
-                     cham_map_operator_t *op_fct, void *op_args,
-                     RUNTIME_sequence_t *sequence, RUNTIME_request_t *request );
-
-#include "control/compute_s.h"
-#include "control/compute_d.h"
-#include "control/compute_c.h"
-#include "control/compute_z.h"
-
-/*
-void chameleon_pdlag2s(CHAM_context_t *chamctxt);
-void chameleon_pzlag2c(CHAM_context_t *chamctxt);
-void chameleon_pslag2d(CHAM_context_t *chamctxt);
-void chameleon_pclag2z(CHAM_context_t *chamctxt);
-*/
-
 #if defined(__GNUC__)
 static inline int chameleon_asprintf( char **restrict strp, const char *fmt, ... ) __attribute__((format(printf,2,3)));
 #endif
@@ -199,6 +183,22 @@ static inline const char *chameleon_codelet_name( const char *kname, int nbtiles
     return kname;
 }
 #endif
+
+void chameleon_pmap( cham_uplo_t uplo, int ndata, cham_map_data_t *data,
+                     cham_map_operator_t *op_fct, void *op_args,
+                     RUNTIME_sequence_t *sequence, RUNTIME_request_t *request );
+
+#include "control/compute_s.h"
+#include "control/compute_d.h"
+#include "control/compute_c.h"
+#include "control/compute_z.h"
+
+/*
+void chameleon_pdlag2s(CHAM_context_t *chamctxt);
+void chameleon_pzlag2c(CHAM_context_t *chamctxt);
+void chameleon_pslag2d(CHAM_context_t *chamctxt);
+void chameleon_pclag2z(CHAM_context_t *chamctxt);
+*/
 
 #ifdef __cplusplus
 }
