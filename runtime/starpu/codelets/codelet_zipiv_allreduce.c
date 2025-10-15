@@ -12,14 +12,17 @@
  * @version 1.3.0
  * @author Alycia Lisito
  * @author Pierre Esterie
- * @date 2025-01-29
+ * @author Matteo Marcos
+ * @date 2025-10-15
  * @precisions normal z -> c d s
  *
  */
 #include "chameleon_starpu_internal.h"
 #include "runtime_codelet_z.h"
+#include <coreblas/cblas_wrapper.h>
 
 #if defined(CHAMELEON_USE_MPI)
+
 struct cl_redux_args_s {
     int h;
     int n;
@@ -212,9 +215,6 @@ zipiv_allreduce_chameleon_starpu_task( const RUNTIME_option_t *options,
     int p_recv, p_send, me;
     int shift = 1;
 
-    if ( h > 0 ) {
-        starpu_data_invalidate_submit( RUNTIME_pivot_getaddr( pivot, A->myrank, k, h-1 ) );
-    }
     if ( h >= pivot->n ) {
         return;
     }
@@ -259,22 +259,5 @@ INSERT_TASK_zipiv_allreduce( const RUNTIME_option_t *options,
         zipiv_allreduce_chameleon_starpu_task( options, A, pivot, tmp->reduce.proc_involved, k, h, n );
     }
 }
-#else
-void
-INSERT_TASK_zipiv_allreduce( const RUNTIME_option_t *options,
-                             CHAM_desc_t            *A,
-                             CHAM_desc_pivot_t      *pivot,
-                             int                     k,
-                             int                     h,
-                             int                     n,
-                             void                   *ws )
-{
-    if ( h > 0 ) {
-        starpu_data_invalidate_submit( RUNTIME_pivot_getaddr( pivot, A->myrank, k, h-1 ) );
-    }
 
-    (void)options;
-    (void)ws;
-    (void)n;
-}
-#endif
+#endif /* defined(CHAMELEON_STARPU_USE_INSERT) */

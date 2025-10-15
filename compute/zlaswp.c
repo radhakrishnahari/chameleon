@@ -12,7 +12,7 @@
  * @version 1.3.0
  * @author Alycia Lisito
  * @author Matteo Marcos
- * @date 2025-07-15
+ * @date 2025-10-15
  * @precisions normal z -> s d c
  *
  */
@@ -114,15 +114,16 @@ CHAMELEON_zlaswp_WS_Alloc( cham_side_t side, const CHAM_desc_t *A )
                            " please recompile with the right CHAMELEON_BATCH_SIZE, or reduce the CHAMELEON_LASWP_BATCH_SIZE value\n" );
         ws->batch_size_swap = CHAMELEON_BATCH_SIZE;
     }
+    ws->Wu = malloc( sizeof(CHAM_desc_t) );
     if ( side == ChamLeft ) {
-        chameleon_desc_init( &(ws->Wu), CHAMELEON_MAT_ALLOC_TILE,
+        chameleon_desc_init( ws->Wu, CHAMELEON_MAT_ALLOC_TILE,
                              ChamComplexDouble, A->mb, A->nb, A->mb*A->nb,
                              A->mb * P * Q, A->n, 0, 0,
                              A->mb * P * Q, A->n, P * Q, 1,
                              NULL, NULL, NULL, NULL );
     }
     else {
-        chameleon_desc_init( &(ws->Wu), CHAMELEON_MAT_ALLOC_TILE,
+        chameleon_desc_init( ws->Wu, CHAMELEON_MAT_ALLOC_TILE,
                              ChamComplexDouble, A->mb, A->nb, A->mb*A->nb,
                              A->m, A->nb * P * Q, 0, 0,
                              A->m, A->nb * P * Q, 1, P * Q,
@@ -138,7 +139,12 @@ CHAMELEON_zlaswp_WS_Alloc( cham_side_t side, const CHAM_desc_t *A )
     ws->ws.side = side;
     ws->ws.dtyp = A->dtyp;
     ws->ws.NP   = P * Q;
-    RUNTIME_cpui_create( &(ws->ws) );
+
+#if defined(CHAMELEON_USE_MPI)
+    if ( reduce->alg_allreduce == ChamStarPUTasks ) {
+        RUNTIME_cpui_create( &(ws->ws) );
+    }
+#endif
 
     (void)max_involved;
     return ws;
@@ -172,8 +178,16 @@ CHAMELEON_zlaswp_WS_Free( void *user_ws )
     free( ws->reduce.proc_involved );
 #endif
 
-    chameleon_desc_destroy( &(ws->Wu) );
-    RUNTIME_cpui_destroy( &(ws->ws) );
+    if ( ws->Wu ) {
+        chameleon_desc_destroy( ws->Wu );
+        free( ws->Wu );
+        ws->Wu = NULL;
+    }
+#if defined(CHAMELEON_USE_MPI)
+    if ( ws->reduce.alg_allreduce == ChamStarPUTasks ) {
+        RUNTIME_cpui_destroy( &(ws->ws) );
+    }
+#endif
 
     free( ws );
 }

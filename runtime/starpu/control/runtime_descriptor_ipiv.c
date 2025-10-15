@@ -17,7 +17,7 @@
  * @author Pierre Esterie
  * @author Matteo Marcos
  * @author Samuel Thibault
- * @date 2025-07-15
+ * @date 2025-10-15
  *
  */
 #include "chameleon_starpu_internal.h"
@@ -371,6 +371,18 @@ void RUNTIME_ipiv_flushk( const RUNTIME_sequence_t *sequence,
     (void)sequence;
     (void)ipiv;
     (void)m;
+}
+
+void RUNTIME_ipiv_invalidate( CHAM_desc_pivot_t *pivot,
+                              int                k,
+                              int                h,
+                              int                myrank )
+{
+    /* Protection against incorrect h values */
+    if ( h < 0 ) {
+        return;
+    }
+    starpu_data_invalidate_submit( RUNTIME_pivot_getaddr( pivot, myrank, k, h ) );
 }
 
 void RUNTIME_perm_flushk( const RUNTIME_sequence_t *sequence,

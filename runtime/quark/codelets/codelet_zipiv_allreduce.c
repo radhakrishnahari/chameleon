@@ -11,11 +11,14 @@
  *
  * @version 1.3.0
  * @author Alycia Lisito
- * @date 2024-08-29
+ * @author Matteo Marcos
+ * @date 2025-10-15
  * @precisions normal z -> c d s
  *
  */
 #include "chameleon_quark.h"
+
+#if defined(CHAMELEON_USE_MPI)
 
 void INSERT_TASK_zipiv_allreduce( const RUNTIME_option_t *options,
                                   CHAM_desc_t            *A,
@@ -33,3 +36,5 @@ void INSERT_TASK_zipiv_allreduce( const RUNTIME_option_t *options,
     (void)n;
     (void)ws;
 }
+
+#endif

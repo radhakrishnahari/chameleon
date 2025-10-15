@@ -18,7 +18,7 @@
  * @author Matthieu Kuhn
  * @author Alycia Lisito
  * @author Matteo Marcos
- * @date 2025-07-15
+ * @date 2025-10-15
  * @precisions normal z -> s d c
  *
  */
@@ -26,10 +26,9 @@
 #include "chameleon/flops.h"
 
 #define A(m,n)   A,                m, n
-#define U(m,n)   &(ws->U),         m, n
-#define Up(m,n)  &(ws->Up),        m, n
-#define Wu(m,n)  &(ws->laswp->Wu), m, n
-#define Wl(m,n)  &(ws->Wl),        m, n
+#define Up(m)    ws->Up,           m, 0
+#define Wu(m,n)  ws->laswp->Wu,    m, n
+#define Wl(m,n)  ws->Wl,           m, n
 #define Ws(m,n)  &(ws->laswp->ws), m, n
 
 /*
@@ -110,72 +109,6 @@ chameleon_pzgetrf_batch_size( const struct chameleon_pzgetrf_s *ws,
  *      The runtime options data structure to pass through all insert_task calls.
  */
 static inline void
-chameleon_pzgetrf_panel_facto_nopiv( struct chameleon_pzgetrf_s *ws,
-                                     CHAM_desc_t                *A,
-                                     CHAM_ipiv_t                *ipiv,
-                                     int                         k,
-                                     RUNTIME_option_t           *options )
-{
-    const CHAMELEON_Complex64_t zone = (CHAMELEON_Complex64_t) 1.0;
-    int m, tempkm, tempkn, tempmm;
-
-    tempkm = A->get_blkdim( A, k, DIM_m, A->m );
-    tempkn = A->get_blkdim( A, k, DIM_n, A->n );
-
-    /*
-     * Algorithm per block without pivoting
-     */
-    INSERT_TASK_zgetrf_nopiv(
-        options,
-        tempkm, tempkn, ws->ib, A->mb,
-         A(k, k), 0);
-
-    for (m = k+1; m < A->mt; m++) {
-        tempmm = A->get_blkdim( A, m, DIM_m, A->m );
-        INSERT_TASK_ztrsm(
-            options,
-            ChamRight, ChamUpper, ChamNoTrans, ChamNonUnit,
-            tempmm, tempkn, A->mb,
-            zone, A(k, k),
-                  A(m, k) );
-    }
-}
-
-static inline void
-chameleon_pzgetrf_panel_facto_nopiv_percol( struct chameleon_pzgetrf_s *ws,
-                                            CHAM_desc_t                *A,
-                                            CHAM_ipiv_t                *ipiv,
-                                            int                         k,
-                                            RUNTIME_option_t           *options )
-{
-    const RUNTIME_request_t *request = options->request;
-    int m, h;
-    int tempkm, tempkn, tempmm, minmn;
-
-    tempkm = A->get_blkdim( A, k, DIM_m, A->m );
-    tempkn = A->get_blkdim( A, k, DIM_n, A->n );
-    minmn  = chameleon_min( tempkm, tempkn );
-
-    /*
-     * Algorithm per column without pivoting
-     */
-    for(h=0; h<minmn; h++){
-        INSERT_TASK_zgetrf_nopiv_percol_diag(
-            options, tempkm, tempkn, h,
-            A( k, k ), U( k, k ), A->mb * k );
-
-        for (m = k+1; m < A->mt; m++) {
-            tempmm = A->get_blkdim( A, m, DIM_m, A->m );
-            INSERT_TASK_zgetrf_nopiv_percol_trsm(
-                options, tempmm, tempkn, h,
-                A( m, k ), U( k, k ) );
-        }
-    }
-
-    chameleon_data_flush( options->sequence, U(k, k), request->flush );
-}
-
-static inline void
 chameleon_pzgetrf_panel_facto_percol( struct chameleon_pzgetrf_s *ws,
                                       CHAM_desc_t                *A,
                                       CHAM_ipiv_t                *ipiv,
@@ -212,8 +145,13 @@ chameleon_pzgetrf_panel_facto_percol( struct chameleon_pzgetrf_s *ws,
                 pivot );
         }
 
+        /* Invalidate prevpiv because we don't need anymore */
+        RUNTIME_ipiv_invalidate( pivot, k, h-1, A->myrank );
+
+#if defined(CHAMELEON_USE_MPI)
         /* Reduce globally (between MPI processes) */
         INSERT_TASK_zipiv_allreduce( options, A, pivot, k, h, tempkn, ws->laswp );
+#endif
     }
 
     /* Flush temporary data used for the pivoting */
@@ -260,7 +198,13 @@ chameleon_pzgetrf_panel_facto_percol_batched( struct chameleon_pzgetrf_s *ws,
         }
         INSERT_TASK_zgetrf_panel_offdiag_batched_flush( options, A, k, clargs, pivot );
 
+        /* Invalidate prevpiv because we don't need anymore */
+        RUNTIME_ipiv_invalidate( pivot, k, h-1, A->myrank );
+
+#if defined(CHAMELEON_USE_MPI)
+        /* Reduce globally (between MPI processes) */
         INSERT_TASK_zipiv_allreduce( options, A, pivot, k, h, tempkn, ws->laswp );
+#endif
     }
 
     free( clargs );
@@ -279,8 +223,10 @@ chameleon_pzgetrf_panel_facto_blocked( struct chameleon_pzgetrf_s *ws,
                                        RUNTIME_option_t           *options )
 {
     const RUNTIME_request_t *request = options->request;
-    int m, h, b, nbblock;
+    int m, h, b, nbblock, ib, last_ib, trsmUp;
     int tempkm, tempkn, tempmm, minmn;
+    int rankAkk, rankAmk, myrank;
+    int hmax, j;
 
     tempkm = A->get_blkdim( A, k, DIM_m, A->m );
     tempkn = A->get_blkdim( A, k, DIM_n, A->n );
@@ -288,46 +234,70 @@ chameleon_pzgetrf_panel_facto_blocked( struct chameleon_pzgetrf_s *ws,
 
     /* Update the number of column */
     pivot->n = minmn;
-    nbblock = chameleon_ceil( minmn, ws->ib );
+    ib       = ws->ib;
+    nbblock  = chameleon_ceil( minmn, ib );
+    rankAkk  = A->get_rankof( A, k, k );
+    myrank   = A->myrank;
 
     /*
      * Algorithm per column with pivoting
      */
-    for (b=0; b<nbblock; b++){
-        int hmax = b == nbblock-1 ? minmn + 1 - b * ws->ib : ws->ib;
+    for ( b = 0; b < nbblock; b++ ) {
+        last_ib = ( b == ( nbblock - 1 ) );
+        hmax    = ( last_ib ) ? minmn + 1 - b * ib : ib;
 
-        for (h=0; h<hmax; h++){
-            int j = h + b * ws->ib;
+        for ( h = 0; h < hmax; h++ ) {
+            j = h + b * ib;
+            trsmUp = ( ( h == 0 ) && ( j != 0 ) && ( j != minmn ) );
+
+            if ( trsmUp ) {
+                INSERT_TASK_zgetrf_blocked_trsm(
+                    options,
+                    ib, tempkn, j, ib,
+                    Up(myrank),
+                    pivot );
+            }
 
             INSERT_TASK_zgetrf_blocked_diag(
                 options,
-                tempkm, tempkn, j, k * A->mb, ws->ib,
-                A(k, k), Up(k, k),
+                tempkm, tempkn, j, k * A->mb, ib, trsmUp,
+                A(k, k), Up(rankAkk),
                 ipiv, pivot );
 
-            for (m = k+1; m < A->mt; m++) {
-                tempmm = A->get_blkdim( A, m, DIM_m, A->m );
+            for ( m = k+1; m < A->mt; m++ ) {
+                tempmm  = A->get_blkdim( A, m, DIM_m, A->m );
+                rankAmk = A->get_rankof( A, m, k );
+
                 INSERT_TASK_zgetrf_blocked_offdiag(
                     options,
-                    tempmm, tempkn, j, m * A->mb, ws->ib,
-                    A(m, k), Up(k, k),
+                    tempmm, tempkn, j, m * A->mb, ib, trsmUp,
+                    A(m, k), Up(rankAmk),
                     pivot );
             }
 
             assert( j <= minmn );
+
+            /* Invalidate prevpiv because we don't need anymore */
+            RUNTIME_ipiv_invalidate( pivot, k, j-1, A->myrank );
+
+#if defined(CHAMELEON_USE_MPI)
             /* Reduce globally (between MPI processes) */
             INSERT_TASK_zipiv_allreduce( options, A, pivot, k, j, tempkn, ws->laswp );
+#endif
 
-            if ( ( b < (nbblock-1) ) && ( h == hmax-1 ) ) {
-                INSERT_TASK_zgetrf_blocked_trsm(
-                    options,
-                    ws->ib, tempkn, j+1, ws->ib,
-                    Up(k, k),
-                    pivot );
+            /*
+             * Copy the row of the pivot in Up for the replicated TRSM.
+             * If b is the last inner block then we don't have a TRSM.
+             * If j+1 is a multiple of ib then we do the copy of the last
+             * pivot row in the TRSM task.
+             */
+            if ( ( !last_ib ) && ( ( ( j + 1 ) % ib ) != 0 ) ) {
+                INSERT_TASK_zgetrf_cpy_pivrow_in_Up( options, ws->Up, A->myrank,
+                                                     k, j, ib, tempkn, pivot );
             }
         }
     }
-    chameleon_data_flush( options->sequence, Up(k, k), request->flush );
+    chameleon_data_flush( options->sequence, Up(myrank), request->flush );
 
     /* Flush temporary data used for the pivoting */
     INSERT_TASK_ipiv_to_perm( options, k * A->mb, tempkm, minmn, 0, A->m, ipiv, k );
@@ -345,8 +315,10 @@ chameleon_pzgetrf_panel_facto_blocked_batched( struct chameleon_pzgetrf_s *ws,
                                                int                         k,
                                                RUNTIME_option_t           *options )
 {
-    int m, h, b, nbblock, hmax, j;
+    const RUNTIME_request_t *request = options->request;
+    int m, h, b, nbblock, ib, hmax, j, last_ib, trsmUp;
     int tempkm, tempkn, tempmm, minmn;
+    int rankAmk, myrank;
     void **clargs = malloc( sizeof(char *) );
     memset( clargs, 0, sizeof(char *) );
 
@@ -356,7 +328,9 @@ chameleon_pzgetrf_panel_facto_blocked_batched( struct chameleon_pzgetrf_s *ws,
 
     /* Update the number of column */
     pivot->n = minmn;
-    nbblock = chameleon_ceil( minmn, ws->ib );
+    ib       = ws->ib;
+    nbblock  = chameleon_ceil( minmn, ib );
+    myrank   = A->myrank;
 
     /*
      * Algorithm per column with pivoting (no recursion)
@@ -364,35 +338,56 @@ chameleon_pzgetrf_panel_facto_blocked_batched( struct chameleon_pzgetrf_s *ws,
     /* Iterate on current panel column */
     /* Since index h scales column h-1, we need to iterate up to minmn (included) */
     for ( b = 0; b < nbblock; b++ ) {
-        hmax = b == nbblock-1 ? minmn + 1 - b * ws->ib : ws->ib;
+        last_ib = ( b == ( nbblock - 1 ) );
+        hmax    = ( last_ib ) ? minmn + 1 - b * ib : ib;
 
         for ( h = 0; h < hmax; h++ ) {
-            j =  h + b * ws->ib;
+            j =  h + b * ib;
+            trsmUp = ( ( h == 0 ) && ( j != 0 ) && ( j != minmn ) );
+
+            if ( trsmUp ) {
+                INSERT_TASK_zgetrf_blocked_trsm(
+                    options,
+                    ib, tempkn, j, ib,
+                    Up(myrank),
+                    pivot );
+            }
 
             ws->batch_size = chameleon_pzgetrf_batch_size( ws, A->mt - k, A->nb, j );
             for ( m = k; m < A->mt; m++ ) {
                 tempmm = A->get_blkdim( A, m, DIM_m, A->m );
-                INSERT_TASK_zgetrf_panel_blocked_batched( options, tempmm, tempkn, j, m * A->mb,
-                                                          (void *)ws, A(m, k), Up(k, k), clargs, ipiv, pivot );
+                rankAmk = A->get_rankof( A, m, k );
+                INSERT_TASK_zgetrf_panel_blocked_batched( options, tempmm, tempkn, j, m * A->mb, trsmUp,
+                                                          (void *)ws, A(m, k), Up(rankAmk), clargs, ipiv, pivot );
             }
-            INSERT_TASK_zgetrf_panel_blocked_batched_flush( options, A, k,
-                                                            Up(k, k), clargs, ipiv, pivot );
+            INSERT_TASK_zgetrf_panel_blocked_batched_flush( options, A, k, trsmUp,
+                                                            Up(myrank), clargs, ipiv, pivot );
 
             assert( j <= minmn );
+
+            /* Invalidate prevpiv because we don't need anymore */
+            RUNTIME_ipiv_invalidate( pivot, k, j-1, A->myrank );
+
+#if defined(CHAMELEON_USE_MPI)
             /* Reduce globally (between MPI processes) */
             INSERT_TASK_zipiv_allreduce( options, A, pivot, k, j, tempkn, ws->laswp );
+#endif
 
-            if ( (b < (nbblock-1)) && (h == hmax-1) ) {
-                INSERT_TASK_zgetrf_blocked_trsm(
-                    options,
-                    ws->ib, tempkn, b * ws->ib + hmax, ws->ib,
-                    Up(k, k),
-                    pivot );
+            /*
+             * Copy the row of the pivot in Up for the replicated TRSM.
+             * If b is the last inner block then we don't have a TRSM.
+             * If j+1 is a multiple of ib then we do the copy of the last
+             * pivot row in the TRSM task.
+             */
+            if ( ( !last_ib ) && ( ( ( j + 1 ) % ib ) != 0 ) ) {
+                INSERT_TASK_zgetrf_cpy_pivrow_in_Up( options, ws->Up, A->myrank,
+                                                     k, j, ib, tempkn, pivot );
             }
         }
     }
 
     free( clargs );
+    chameleon_data_flush( options->sequence, Up(myrank), request->flush );
 
     /* Flush temporary data used for the pivoting */
     INSERT_TASK_ipiv_to_perm( options, k * A->mb, tempkm, minmn, 0, A->m, ipiv, k );
@@ -417,12 +412,8 @@ chameleon_pzgetrf_panel_facto( struct chameleon_pzgetrf_s *ws,
 
     /* TODO: Should be replaced by a function pointer */
     switch( ws->alg ) {
-    case ChamGetrfNoPivPerColumn:
-        chameleon_pzgetrf_panel_facto_nopiv_percol( ws, A, ipiv, k, options );
-        break;
-
     case ChamGetrfPPivPerColumn:
-        if ( ws->batch_size_blas2 > 0 ) {
+        if ( ( ws->batch_size_blas2 > 0 ) || ws->batch_adaptive ) {
             chameleon_pzgetrf_panel_facto_percol_batched( ws, A, ipiv, pivot, k, options );
         }
         else {
@@ -431,224 +422,15 @@ chameleon_pzgetrf_panel_facto( struct chameleon_pzgetrf_s *ws,
         break;
 
     case ChamGetrfPPiv:
-        if ( ws->batch_size_blas2 > 0 ) {
+    default:
+        if ( ( ws->batch_size_blas2 > 0 ) || ws->batch_adaptive ) {
             chameleon_pzgetrf_panel_facto_blocked_batched( ws, A, ipiv, pivot, k, options );
         }
         else {
             chameleon_pzgetrf_panel_facto_blocked( ws, A, ipiv, pivot, k, options );
         }
         break;
-
-    case ChamGetrfNoPiv:
-    default:
-        chameleon_pzgetrf_panel_facto_nopiv( ws, A, ipiv, k, options );
     }
-}
-
-/**
- *  Permutation of the panel n at step k
- */
-static inline void
-chameleon_pzgetrf_panel_permute( struct chameleon_pzgetrf_s *ws,
-                                 CHAM_desc_t                *A,
-                                 CHAM_ipiv_t                *ipiv,
-                                 int                         k,
-                                 int                         n,
-                                 RUNTIME_option_t           *options )
-{
-    switch( ws->alg ) {
-    case ChamGetrfPPiv:
-    case ChamGetrfPPivPerColumn:
-    {
-        int m;
-        int tempkm, tempkn, tempnn, tempmm, minmn;
-        int withlacpy;
-
-        tempkm = A->get_blkdim( A, k, DIM_m, A->m );
-        tempkn = A->get_blkdim( A, k, DIM_n, A->n );
-        tempnn = A->get_blkdim( A, n, DIM_n, A->n );
-        minmn  = chameleon_min( tempkm, tempkn );
-
-        /* Extract selected rows into U */
-        withlacpy = options->withlacpy;
-        options->withlacpy = 1;
-        INSERT_TASK_zlacpy( options, ChamUpperLower, tempkm, tempnn,
-                            A(k, n), Wu(A->myrank, n) );
-        options->withlacpy = withlacpy;
-
-        /*
-         * perm array is made of size tempkm for the first row especially.
-         * Otherwise, the final copy back to the tile may copy only a partial tile
-         */
-        INSERT_TASK_zlaswp_get( options, ChamLeft, ChamDirForward, k*A->mb, tempkm, tempnn, tempkm,
-                                ipiv, k, A(k, n), Wu(A->myrank, n) );
-
-        for(m=k+1; m<A->mt; m++){
-            tempmm = A->get_blkdim( A, m, DIM_m, A->m );
-            /* Extract selected rows into A(k, n) */
-            INSERT_TASK_zlaswp_get( options, ChamLeft, ChamDirForward, m*A->mb, tempmm, tempnn, minmn,
-                                    ipiv, k, A(m, n), Wu(A->myrank, n) );
-            /* Copy rows from A(k,n) into their final position */
-            INSERT_TASK_zlaswp_set( options, ChamLeft, ChamDirForward, m*A->mb, tempmm, tempnn, minmn,
-                                    ipiv, k, A(k, n), A(m, n) );
-        }
-
-        INSERT_TASK_zperm_allreduce( options, ChamDirForward, A(k, n), ipiv, k, Wu(A->myrank, n), ws->laswp, A->myrank, n );
-
-        if ( ws->laswp->reduce.np_involved != 1 ) {
-            INSERT_TASK_zlaswp_ret( options, Ws(A->myrank, n), Wu(A->myrank, n) );
-        }
-    }
-    break;
-    default:
-        ;
-    }
-}
-
-static inline void
-chameleon_pzgetrf_panel_permute_batched( struct chameleon_pzgetrf_s *ws,
-                                         CHAM_desc_t                *A,
-                                         CHAM_ipiv_t                *ipiv,
-                                         int                         k,
-                                         int                         n,
-                                         RUNTIME_option_t           *options )
-{
-    switch( ws->alg ) {
-    case ChamGetrfPPiv:
-    case ChamGetrfPPivPerColumn:
-    {
-        int m;
-        int tempkm, tempkn, tempmm, tempnn, minmn;
-        int withlacpy;
-
-        void **clargs = malloc( sizeof(char *) );
-        *clargs = NULL;
-
-        tempkm = A->get_blkdim( A, k, DIM_m, A->m );
-        tempkn = A->get_blkdim( A, k, DIM_n, A->n );
-        tempnn = A->get_blkdim( A, n, DIM_n, A->n );
-        minmn  = chameleon_min( tempkm, tempkn );
-
-        /* Extract selected rows into U */
-        withlacpy = options->withlacpy;
-        options->withlacpy = 1;
-        INSERT_TASK_zlacpy( options, ChamUpperLower, tempkm, tempnn,
-                            A(k, n), Wu(A->myrank, n) );
-        options->withlacpy = withlacpy;
-
-        /*
-         * perm array is made of size tempkm for the first row especially.
-         * Otherwise, the final copy back to the tile may copy only a partial tile
-         */
-        INSERT_TASK_zlaswp_get( options, ChamLeft, ChamDirForward, k*A->mb, tempkm, tempnn, tempkm,
-                                ipiv, k, A(k, n), Wu(A->myrank, n) );
-
-        for(m=k+1; m<A->mt; m++){
-            tempmm = A->get_blkdim( A, m, DIM_m, A->m );
-            INSERT_TASK_zlaswp_batched( options, ChamLeft, ChamDirForward, m*A->mb, tempmm, tempnn, minmn, (void *)ws->laswp, ipiv, k,
-                                        A(m, n), A(k, n), Wu(A->myrank, n), clargs );
-        }
-        INSERT_TASK_zlaswp_batched_flush( options, ChamDirForward, ipiv, k, A(k, n), Wu(A->myrank, n), clargs );
-
-        INSERT_TASK_zperm_allreduce( options, ChamDirForward, A(k, n), ipiv, k, Wu(A->myrank, n), ws->laswp, A->myrank, n );
-
-        if ( ws->laswp->reduce.np_involved != 1 ) {
-            INSERT_TASK_zlaswp_ret( options, Ws(A->myrank, n), Wu(A->myrank, n) );
-        }
-
-        free( clargs );
-    }
-    break;
-    default:
-        ;
-    }
-}
-
-static inline void
-chameleon_pzgetrf_panel_permute_forward( struct chameleon_pzgetrf_s *ws,
-                                         CHAM_desc_t                *A,
-                                         CHAM_ipiv_t                *ipiv,
-                                         int                         k,
-                                         int                         n,
-                                         RUNTIME_option_t           *options,
-                                         RUNTIME_sequence_t         *sequence )
-{
-#if defined(CHAMELEON_USE_MPI)
-    CHAM_reduce_t *reduce = &(ws->laswp->reduce);
-    chameleon_get_proc_involved_in_panelk_2dbc( A, k, n, reduce );
-    if ( A->myrank == chameleon_getrankof_2d( A, k, k ) ) {
-        INSERT_TASK_zperm_allreduce_send_perm( options, ChamDirForward, ipiv, k, A->myrank, reduce->np_involved, reduce->proc_involved );
-        INSERT_TASK_zperm_allreduce_send_invp_row( options, ChamDirForward, ipiv, k, A, k, n );
-    }
-    if ( A->myrank == chameleon_getrankof_2d( A, k, n ) ) {
-        INSERT_TASK_zperm_allreduce_send_A( options, A, k, n, A->myrank, reduce->np_involved, reduce->proc_involved );
-    }
-
-    if ( !reduce->involved ) {
-        return;
-    }
-#endif
-
-    if ( ws->laswp->batch_size_swap > 0 ) {
-        chameleon_pzgetrf_panel_permute_batched( ws, A, ipiv, k, n, options );
-    }
-    else {
-        chameleon_pzgetrf_panel_permute( ws, A, ipiv, k, n, options );
-    }
-
-    RUNTIME_cpui_flushk( sequence, A->myrank, Ws(A->myrank, n) );
-}
-
-static inline void
-chameleon_pzgetrf_panel_permute_backward( struct chameleon_pzgetrf_s *ws,
-                                          CHAM_desc_t                *A,
-                                          CHAM_ipiv_t                *ipiv,
-                                          int                         k,
-                                          int                         n,
-                                          RUNTIME_option_t           *options,
-                                          RUNTIME_sequence_t         *sequence )
-{
-    const RUNTIME_request_t *request = options->request;
-    CHAM_reduce_t *reduce = &(ws->laswp->reduce);
-    int            tempkm, tempnn;
-
-#if defined(CHAMELEON_USE_MPI)
-    chameleon_get_proc_involved_in_panelk_2dbc( A, k, n, reduce );
-    if ( A->myrank == chameleon_getrankof_2d( A, k, k ) ) {
-        INSERT_TASK_zperm_allreduce_send_perm( options, ChamDirForward, ipiv, k, A->myrank, reduce->np_involved, reduce->proc_involved );
-        INSERT_TASK_zperm_allreduce_send_invp_row( options, ChamDirForward, ipiv, k, A, k, n );
-    }
-    if ( A->myrank == chameleon_getrankof_2d( A, k, n ) ) {
-        INSERT_TASK_zperm_allreduce_send_A( options, A, k, n, A->myrank, reduce->np_involved, reduce->proc_involved );
-    }
-
-    if ( !reduce->involved ) {
-        return;
-    }
-#endif
-
-    if ( ws->laswp->batch_size_swap > 0 ) {
-        chameleon_pzgetrf_panel_permute_batched( ws, A, ipiv, k, n, options );
-    }
-    else {
-        chameleon_pzgetrf_panel_permute( ws, A, ipiv, k, n, options );
-    }
-
-    if ( A->myrank == chameleon_getrankof_2d( A, k, n ) ) {
-
-        if ( ws->laswp->reduce.np_involved == 1 ) {
-            tempkm = A->get_blkdim( A, k, DIM_m, A->m );
-            tempnn = A->get_blkdim( A, n, DIM_n, A->n );
-            INSERT_TASK_zlacpy( options, ChamUpperLower, tempkm, tempnn,
-                               Wu(A->myrank, n), A(k, n) );
-        }
-        else {
-            INSERT_TASK_zlaswp_ret( options, Ws(A->myrank, n), A(k, n) );
-        }
-        chameleon_data_flush( sequence, A(k, n), request->flush );
-    }
-    RUNTIME_cpui_flushk( sequence, A->myrank, Ws(A->myrank, n) );
-    (void)reduce;
 }
 
 #if defined(CHAMELEON_USE_MPI)
@@ -762,66 +544,70 @@ chameleon_pzgetrf_panel_update( struct chameleon_pzgetrf_s *ws,
     tempkm = A->get_blkdim( A, k, DIM_m, A->m );
     tempnn = A->get_blkdim( A, n, DIM_n, A->n );
 
-    chameleon_pzgetrf_panel_permute_forward( ws, A, ipiv, k, n, options, sequence );
+    chameleon_pzlaswp_panel( ws->laswp, CHAMELEON_FALSE, ChamDirForward,
+                             A, ipiv, k, n, options, sequence );
 
 #if defined(CHAMELEON_USE_MPI)
-    int rankAmn;
-    int lookahead = chamctxt->lookahead;
-    int myq       = A->myrank % chameleon_desc_datadist_get_iparam(A, 1);
-    int lq        = (k % lookahead) * chameleon_desc_datadist_get_iparam(A, 1);
+    if ( RUNTIME_comm_size( chamctxt ) > 1 ) {
+        int rankAmn;
+        int lookahead = chamctxt->lookahead;
+        int myq       = A->myrank % chameleon_desc_datadist_get_iparam(A, 1);
+        int lq        = (k % lookahead) * chameleon_desc_datadist_get_iparam(A, 1);
 
-    if ( reduce->involved ) {
+        if ( reduce->involved ) {
+            INSERT_TASK_ztrsm(
+                options,
+                ChamLeft, ChamLower, ChamNoTrans, ChamUnit,
+                tempkm, tempnn, A->mb,
+                zone, Wu(A->myrank, k),
+                      Wu(A->myrank, n) );
+        }
+
+        for (m = k+1; m < A->mt; m++) {
+            tempmm = A->get_blkdim( A, m, DIM_m, A->m );
+            rankAmn = A->get_rankof( A, m, n );
+
+            if ( A->myrank == rankAmn ) {
+                INSERT_TASK_zgemm(
+                    options,
+                    ChamNoTrans, ChamNoTrans,
+                    tempmm, tempnn, A->mb, A->mb,
+                    mzone, Wl( m, myq + lq ),
+                           Wu( A->myrank, n ),
+                    zone,  A( m, n ) );
+            }
+        }
+
+        if ( A->myrank == chameleon_getrankof_2d( A, k, n ) ) {
+            INSERT_TASK_zlacpy( options, ChamUpperLower, tempkm, tempnn,
+                                Wu(A->myrank, n), A(k, n) );
+        }
+    }
+    else
+#endif
+    {
         INSERT_TASK_ztrsm(
             options,
             ChamLeft, ChamLower, ChamNoTrans, ChamUnit,
             tempkm, tempnn, A->mb,
-            zone, Wu(A->myrank, k),
-                  Wu(A->myrank, n) );
-    }
+            zone, A( k, k ),
+                  Wu( A->myrank, n ) );
 
-    for (m = k+1; m < A->mt; m++) {
-        tempmm = A->get_blkdim( A, m, DIM_m, A->m );
-        rankAmn = A->get_rankof( A, m, n );
+        for (m = k+1; m < A->mt; m++) {
+            tempmm = A->get_blkdim( A, m, DIM_m, A->m );
 
-        if ( A->myrank == rankAmn ) {
             INSERT_TASK_zgemm(
                 options,
                 ChamNoTrans, ChamNoTrans,
                 tempmm, tempnn, A->mb, A->mb,
-                mzone, Wl( m, myq + lq ),
+                mzone, A( m, k ),
                        Wu( A->myrank, n ),
                 zone,  A( m, n ) );
         }
-    }
 
-    if ( A->myrank == chameleon_getrankof_2d( A, k, n ) ) {
         INSERT_TASK_zlacpy( options, ChamUpperLower, tempkm, tempnn,
                             Wu(A->myrank, n), A(k, n) );
     }
-#else
-    INSERT_TASK_ztrsm(
-        options,
-        ChamLeft, ChamLower, ChamNoTrans, ChamUnit,
-        tempkm, tempnn, A->mb,
-        zone, A( k, k ),
-              Wu( A->myrank, n ) );
-
-    for (m = k+1; m < A->mt; m++) {
-        tempmm = A->get_blkdim( A, m, DIM_m, A->m );
-
-        INSERT_TASK_zgemm(
-            options,
-            ChamNoTrans, ChamNoTrans,
-            tempmm, tempnn, A->mb, A->mb,
-            mzone, A( m, k ),
-                   Wu( A->myrank, n ),
-            zone,  A( m, n ) );
-    }
-
-    INSERT_TASK_zlacpy( options, ChamUpperLower, tempkm, tempnn,
-                        Wu(A->myrank, n), A(k, n) );
-
-#endif
 
     chameleon_data_flush( options->sequence, Wu(A->myrank, n), request->flush );
     chameleon_data_flush( options->sequence, A(k, n), request->flush );
@@ -866,7 +652,9 @@ void chameleon_pzgetrf( struct chameleon_pzgetrf_s *ws,
         options.forcesub = 0;
 
 #if defined(CHAMELEON_USE_MPI)
-        chameleon_pzgetrf_panel_update_ws( ws, A, k, &options );
+        if ( RUNTIME_comm_size( chamctxt ) > 1 ) {
+            chameleon_pzgetrf_panel_update_ws( ws, A, k, &options );
+        }
 #endif
 
         for (n = k+1; n < A->nt; n++) {
@@ -886,30 +674,32 @@ void chameleon_pzgetrf( struct chameleon_pzgetrf_s *ws,
 
         RUNTIME_iteration_pop( chamctxt );
     }
-    CHAMELEON_Desc_Flush( &(ws->Wl), sequence );
+    if ( ws->Wl ) {
+        CHAMELEON_Desc_Flush( ws->Wl, sequence );
+    }
     CHAMELEON_Ipiv_Flush( IPIV, sequence );
     chameleon_pivot_destroy_submit( pivot, sequence );
 
     /* Backward pivoting */
-    for (k = 1; k < min_mnt; k++) {
-        for (n = 0; n < k; n++) {
-            if ( chameleon_involved_in_panelk_2dbc( A, k ) ||
-                 chameleon_involved_in_panelk_2dbc( A, n ) )
-            {
-                chameleon_pzgetrf_panel_permute_backward( ws, A, IPIV, k, n, &options, sequence );
-            }
-            chameleon_data_flush( sequence, Wu(A->myrank, n), request->flush );
-        }
-        RUNTIME_perm_flushk( sequence, IPIV, k );
-    }
-    CHAMELEON_Desc_Flush( &(ws->laswp->Wu), sequence );
+    if ( ws->backperm_enabled ) {
 
-    /* Initialize IPIV with default values if needed */
-    if ( (ws->alg == ChamGetrfNoPivPerColumn) ||
-         (ws->alg == ChamGetrfNoPiv ) )
-    {
-        INSERT_TASK_ipiv_init( &options, IPIV );
+        /* Disable allreduce for the backward permutation */
+        ws->laswp->allreduce = 0;
+
+        for (k = 1; k < min_mnt; k++) {
+            for (n = 0; n < k; n++) {
+                if ( chameleon_involved_in_panelk_2dbc( A, k ) ||
+                     chameleon_involved_in_panelk_2dbc( A, n ) )
+                {
+                    chameleon_pzlaswp_panel( ws->laswp, CHAMELEON_TRUE, ChamDirForward,
+                                             A, IPIV, k, n, &options, sequence );
+                }
+                chameleon_data_flush( sequence, Wu(A->myrank, n), request->flush );
+            }
+            RUNTIME_perm_flushk( sequence, IPIV, k );
+        }
     }
+    CHAMELEON_Desc_Flush( ws->laswp->Wu, sequence );
 
     RUNTIME_options_finalize( &options, chamctxt );
 }

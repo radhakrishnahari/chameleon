@@ -14,7 +14,8 @@
  *
  * @author Mathieu Faverge
  * @author Alycia Lisito
- * @date 2024-03-29
+ * @author Matteo Marcos
+ * @date 2025-10-15
  * @precisions normal z -> c d s
  *
  */
@@ -22,7 +23,7 @@
 #include "chameleon/tasks_z.h"
 
 void INSERT_TASK_zgetrf_blocked_diag( const RUNTIME_option_t *options,
-                                      int m, int n, int h, int m0, int ib,
+                                      int m, int n, int h, int m0, int ib, int readUp,
                                       CHAM_desc_t *A, int Am, int An,
                                       CHAM_desc_t *U, int Um, int Un,
                                       CHAM_ipiv_t       *ipiv,
@@ -35,6 +36,7 @@ void INSERT_TASK_zgetrf_blocked_diag( const RUNTIME_option_t *options,
     (void)h;
     (void)m0;
     (void)ib;
+    (void)readUp;
     (void)A;
     (void)Am;
     (void)An;
@@ -46,7 +48,7 @@ void INSERT_TASK_zgetrf_blocked_diag( const RUNTIME_option_t *options,
 }
 
 void INSERT_TASK_zgetrf_blocked_offdiag( const RUNTIME_option_t *options,
-                                         int m, int n, int h, int m0, int ib,
+                                         int m, int n, int h, int m0, int ib, int readUp,
                                          CHAM_desc_t *A, int Am, int An,
                                          CHAM_desc_t *U, int Um, int Un,
                                          CHAM_desc_pivot_t *pivot )
@@ -58,26 +60,10 @@ void INSERT_TASK_zgetrf_blocked_offdiag( const RUNTIME_option_t *options,
     (void)h;
     (void)m0;
     (void)ib;
+    (void)readUp;
     (void)A;
     (void)Am;
     (void)An;
-    (void)U;
-    (void)Um;
-    (void)Un;
-    (void)pivot;
-}
-
-void INSERT_TASK_zgetrf_blocked_trsm( const RUNTIME_option_t *options,
-                                      int m, int n, int h, int ib,
-                                      CHAM_desc_t *U, int Um, int Un,
-                                      CHAM_desc_pivot_t *pivot )
-{
-    assert( 0 );
-    (void)options;
-    (void)m;
-    (void)n;
-    (void)h;
-    (void)ib;
     (void)U;
     (void)Um;
     (void)Un;

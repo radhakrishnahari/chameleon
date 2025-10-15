@@ -12,7 +12,8 @@
  * @version 1.3.0
  * @author Mathieu Faverge
  * @author Matteo Marcos
- * @date 2025-07-15
+ * @author Alycia Lisito
+ * @date 2025-10-15
  * @precisions normal z -> c d s
  *
  */
@@ -100,6 +101,8 @@ void INSERT_TASK_zlaswp_set( const RUNTIME_option_t *options,
     (void)n;
 }
 
+#if defined(CHAMELEON_USE_MPI)
+
 void INSERT_TASK_zlaswp_ret( const RUNTIME_option_t *options,
                              CHAM_perm_t       *ws, int Wm, int Wn,
                              const CHAM_desc_t *A,  int Am, int An )
@@ -114,3 +117,4 @@ void INSERT_TASK_zlaswp_ret( const RUNTIME_option_t *options,
     (void)An;
 }
 
+#endif /* if defined(CHAMELEON_USE_MPI) */

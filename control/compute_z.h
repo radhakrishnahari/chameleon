@@ -25,7 +25,7 @@
  * @author Ana Hourcau
  * @author Pierre Esterie
  * @author Matteo Marcos
- * @date 2025-07-15
+ * @date 2025-10-15
  * @precisions normal z -> c d s
  *
  */
@@ -45,11 +45,11 @@ struct chameleon_pzgemm_s {
  * @brief Data structure to handle the LASWP workspaces
  */
 struct chameleon_pzlaswp_s {
-    CHAM_desc_t   Wu;               /**< Workspace used for the row/column permutation        */
-    CHAM_perm_t   ws;               /**< Workspace used for the row/column permutation        */
-    CHAM_reduce_t reduce;           /**< Structure for reduction operations                   */
-    int           batch_size_swap;  /**< Batch size for the permutation                       */
-    int           allreduce;        /**< Specifies whether the reduction is replicated or not */
+    CHAM_desc_t   *Wu;               /**< Workspace used for the row/column permutation        */
+    CHAM_perm_t    ws;               /**< Workspace used for the row/column permutation        */
+    CHAM_reduce_t  reduce;           /**< Structure for reduction operations                   */
+    int            batch_size_swap;  /**< Batch size for the permutation                       */
+    int            allreduce;        /**< Specifies whether the reduction is replicated or not */
 };
 
 /**
@@ -59,6 +59,7 @@ struct chameleon_pzgetrf_s {
     struct chameleon_pzlaswp_s *laswp;            /**< Structure containing the permutation workspace and the reduce data   */
     CHAM_desc_pivot_t           pivot;            /**< Structure containing the workspace used for the panel factorisation  */
     cham_getrf_t                alg;              /**< Define the algorithm used to compute the getrf                       */
+    cham_bool_t                 backperm_enabled; /**< Define if the backward perumtation is enabled or not                 */
     int                         ib;               /**< Internal blocking parameter                                          */
     int                         batch_adaptive;   /**< Whether to use adaptative batch or not                               */
     int                         batch_size;       /**< Batch size                                                           */
@@ -66,9 +67,8 @@ struct chameleon_pzgetrf_s {
     int                         batch_size_blas3; /**< Batch size for the blas 3 operations of the panel factorization      */
     int                         ringswitch;       /**< Define when to switch to ring bcast                                  */
     cham_fixdbl_t               flops_min;        /**< Define size of batched task in MFlops                                */
-    CHAM_desc_t                 U;                /**< Workspaces used for the panels permutation in getrf without pivoting */
-    CHAM_desc_t                 Up;               /**< Workspace used for the panel factorization                           */
-    CHAM_desc_t                 Wl;               /**< Workspace used for the update                                        */
+    CHAM_desc_t                *Up;               /**< Workspace used for the panel factorization                           */
+    CHAM_desc_t                *Wl;               /**< Workspace used for the update                                        */
 };
 
 /**
@@ -210,6 +210,8 @@ void chameleon_pzlaset2(cham_uplo_t uplo, CHAMELEON_Complex64_t alpha,          
                         RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 void chameleon_pzlaswp( struct chameleon_pzlaswp_s *ws, cham_dir_t dir, CHAM_desc_t *A, CHAM_ipiv_t *IPIV,
                         RUNTIME_sequence_t *sequence, RUNTIME_request_t *request );
+void chameleon_pzlaswp_panel( struct chameleon_pzlaswp_s *ws, cham_bool_t inplace, cham_dir_t dir, CHAM_desc_t *A, CHAM_ipiv_t *ipiv,
+                              int k, int n, RUNTIME_option_t *options, RUNTIME_sequence_t *sequence );
 void chameleon_pzlaswpc( struct chameleon_pzlaswp_s *ws, cham_dir_t dir, CHAM_desc_t *A, CHAM_ipiv_t *IPIV,
                          RUNTIME_sequence_t *sequence, RUNTIME_request_t *request );
 void chameleon_pzlatms( cham_dist_t idist, unsigned long long int seed, cham_sym_t sym, double *D, int mode, double cond, double dmax, CHAM_desc_t *A,

@@ -14,7 +14,7 @@
  * @author Matthieu Kuhn
  * @author Alycia Lisito
  * @author Matteo Marcos
- * @date 2025-07-15
+ * @date 2025-10-15
  * @precisions normal z -> c d s
  *
  */
@@ -297,6 +297,8 @@ void INSERT_TASK_zlaswp_set( const RUNTIME_option_t *options,
 }
 #endif /* defined(CHAMELEON_STARPU_USE_INSERT) */
 
+#if defined(CHAMELEON_USE_MPI)
+
 #if !defined(CHAMELEON_SIMULATION)
 static void cl_zlaswp_ret_cpu_func( void *descr[], void *cl_arg )
 {
@@ -398,5 +400,6 @@ void INSERT_TASK_zlaswp_ret( const RUNTIME_option_t *options,
     (void)clargs;
 }
 
-#endif
+#endif /* defined(CHAMELEON_STARPU_USE_INSERT) */
 
+#endif /* defined(CHAMELEON_USE_MPI) */

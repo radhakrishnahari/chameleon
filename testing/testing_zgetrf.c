@@ -18,7 +18,7 @@
  * @author Xavier Lacoste
  * @author Florent Pruvost
  * @author Matteo Marcos
- * @date 2025-03-24
+ * @date 2025-10-15
  * @precisions normal z -> c d s
  *
  */
@@ -49,7 +49,6 @@ testing_zgetrf_desc( run_arg_list_t *args, int check )
     int         M     = run_arg_get_int( args, "M", N );
     int         LDA   = run_arg_get_int( args, "LDA", M );
     int         seedA = run_arg_get_int( args, "seedA", testing_ialea() );
-    cham_diag_t diag  = run_arg_get_diag( args, "diag", ChamNonUnit );
     int         minMN = chameleon_min( M, N );
 
     /* Descriptors */
@@ -57,23 +56,6 @@ testing_zgetrf_desc( run_arg_list_t *args, int check )
     CHAM_ipiv_t *descIPIV;
     void        *ws = NULL;
 
-    /* Check that the diagonal dominant mode is enforced if necessary */
-    {
-        char *algostr = chameleon_getenv( "CHAMELEON_GETRF_ALGO" );
-
-        if ( ( algostr != NULL ) &&
-             ( (strcasecmp( algostr, "nopiv" )          == 0) ||
-               (strcasecmp( algostr, "nopivpercolumn" ) == 0) ) )
-        {
-            if ( diag == ChamNonUnit ) {
-                fprintf( stderr, "SKIPPED: The variants of GETRF without pivoting *should be* be called only with --diag=ChamUnit\n" );
-                chameleon_cleanenv( algostr );
-                return -1;
-            }
-        }
-
-        chameleon_cleanenv( algostr );
-    }
     CHAMELEON_Set( CHAMELEON_TILE_SIZE, nb );
     CHAMELEON_Set( CHAMELEON_INNER_BLOCK_SIZE, ib );
 
@@ -83,16 +65,10 @@ testing_zgetrf_desc( run_arg_list_t *args, int check )
     P = chameleon_desc_datadist_get_iparam( descA, 0 );
     Q = chameleon_desc_datadist_get_iparam( descA, 1 );
 
-    CHAMELEON_Ipiv_Create( &descIPIV, ChamLeft, descA->mb, N, P, P*Q, NULL );
+    CHAMELEON_Ipiv_Create( &descIPIV, ChamLeft, descA->mb, minMN, P, P*Q, NULL );
 
     /* Fills the matrix with random values */
-    if ( diag == ChamUnit ) {
-        CHAMELEON_zplgtr_Tile( 0,     ChamUpper, descA, seedA   );
-        CHAMELEON_zplgtr_Tile( minMN, ChamLower, descA, seedA+1 );
-    }
-    else {
-        CHAMELEON_zplrnt_Tile( descA, seedA );
-    }
+    CHAMELEON_zplrnt_Tile( descA, seedA );
 
     if ( async ) {
         ws = CHAMELEON_zgetrf_WS_Alloc( descA );
@@ -114,18 +90,11 @@ testing_zgetrf_desc( run_arg_list_t *args, int check )
     if ( check ) {
         CHAM_desc_t *descA0 = CHAMELEON_Desc_Copy( descA, CHAMELEON_MAT_ALLOC_TILE );
 
-        if ( diag == ChamUnit ) {
-            CHAMELEON_zplgtr_Tile( 0,     ChamUpper, descA0, seedA   );
-            CHAMELEON_zplgtr_Tile( minMN, ChamLower, descA0, seedA+1 );
-        }
-        else {
-            CHAMELEON_zplrnt_Tile( descA0, seedA );
-        }
+        CHAMELEON_zplrnt_Tile( descA0, seedA );
 
-        CHAMELEON_zlaswp_Tile( ChamLeft, ChamDirForward, descA0, 1, descA0->m, descIPIV );
+        CHAMELEON_zlaswp_Tile( ChamLeft, ChamDirForward, descA0, 1, minMN, descIPIV );
 
-        hres += check_zxxtrf( args, ChamGeneral, ChamUpperLower,
-                              descA0, descA );
+        hres += check_zxxtrf( args, ChamGeneral, ChamUpperLower, descA0, descA );
 
         CHAMELEON_Desc_Destroy( &descA0 );
     }
@@ -225,7 +194,7 @@ testing_t   test_zgetrf;
 #if defined(CHAMELEON_TESTINGS_VENDOR)
 const char *zgetrf_params[] = { "m", "n", "lda", "seedA", NULL };
 #else
-const char *zgetrf_params[] = { "mtxfmt", "nb", "ib", "m", "n", "lda", "seedA", "diag", NULL };
+const char *zgetrf_params[] = { "mtxfmt", "nb", "ib", "m", "n", "lda", "seedA", NULL };
 #endif
 const char *zgetrf_output[] = { NULL };
 const char *zgetrf_outchk[] = { "||A||", "||A-fact(A)||", "RETURN", NULL };
