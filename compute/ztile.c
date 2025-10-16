@@ -17,7 +17,7 @@
  * @author Cedric Castagnede
  * @author Florent Pruvost
  * @author Lionel Eyraud-Dubois
- * @date 2024-02-18
+ * @date 2025-10-16
  * @precisions normal z -> s d c
  *
  */
@@ -123,42 +123,44 @@ int CHAMELEON_zLap2Desc( cham_uplo_t uplo, CHAMELEON_Complex64_t *Af77, int LDA,
     CHAM_context_t *chamctxt;
     RUNTIME_sequence_t *sequence = NULL;
     RUNTIME_request_t request = RUNTIME_REQUEST_INITIALIZER;
-    CHAM_desc_t *B;
+    CHAM_desc_t B;
+    char *lapname;
     int status;
 
     chamctxt = chameleon_context_self();
     if (chamctxt == NULL) {
-        chameleon_fatal_error("CHAMELEON_zLapack_to_Tile", "CHAMELEON not initialized");
+        chameleon_fatal_error("CHAMELEON_zLap2Desc", "CHAMELEON not initialized");
         return CHAMELEON_ERR_NOT_INITIALIZED;
     }
     /* Check descriptor for correctness */
     if (chameleon_desc_check( A ) != CHAMELEON_SUCCESS) {
-        chameleon_error("CHAMELEON_zLapack_to_Tile", "invalid descriptor");
+        chameleon_error("CHAMELEON_zLap2Desc", "invalid descriptor");
         return CHAMELEON_ERR_ILLEGAL_VALUE;
     }
 
     /* Create the B descriptor to handle the Lapack format matrix */
-    status = CHAMELEON_Desc_Create_User( &B, Af77, ChamComplexDouble, A->mb, A->nb, A->bsiz,
-                                         LDA, A->n, 0, 0, A->m, A->n, 1, 1,
-                                         chameleon_getaddr_cm, chameleon_getblkldd_cm, NULL, NULL );
+    chameleon_asprintf( &lapname, "%slap", A->name );
+    status = chameleon_desc_init( &B, lapname, Af77, ChamComplexDouble, A->mb, A->nb,
+                                  LDA, A->n, A->m, A->n, 1, 1,
+                                  chameleon_getaddr_cm, chameleon_getblkldd_cm, NULL, NULL );
+    free( lapname );
     if ( status != CHAMELEON_SUCCESS ) {
-        chameleon_error("CHAMELEON_zTile_to_Lapack", "Failed to create the descriptor");
+        chameleon_error("CHAMELEON_zLap2Desc", "Failed to create the descriptor");
         return status;
     }
-
 
     /* Start the computation */
     chameleon_sequence_create( chamctxt, &sequence );
 
-    chameleon_pzlacpy( uplo, B, A, sequence, &request );
+    chameleon_pzlacpy( uplo, &B, A, sequence, &request );
 
-    CHAMELEON_Desc_Flush( B, sequence );
+    CHAMELEON_Desc_Flush( &B, sequence );
     CHAMELEON_Desc_Flush( A, sequence );
 
     chameleon_sequence_wait( chamctxt, sequence );
 
     /* Destroy temporary B descriptor */
-    CHAMELEON_Desc_Destroy( &B );
+    chameleon_desc_destroy( &B );
 
     status = sequence->status;
     chameleon_sequence_destroy( chamctxt, sequence );
@@ -207,7 +209,8 @@ int CHAMELEON_zDesc2Lap( cham_uplo_t uplo, CHAM_desc_t *A, CHAMELEON_Complex64_t
     CHAM_context_t *chamctxt;
     RUNTIME_sequence_t *sequence = NULL;
     RUNTIME_request_t request = RUNTIME_REQUEST_INITIALIZER;
-    CHAM_desc_t *B;
+    CHAM_desc_t B;
+    char *lapname;
     int status;
 
     chamctxt = chameleon_context_self();
@@ -217,30 +220,32 @@ int CHAMELEON_zDesc2Lap( cham_uplo_t uplo, CHAM_desc_t *A, CHAMELEON_Complex64_t
     }
     /* Check descriptor for correctness */
     if (chameleon_desc_check( A ) != CHAMELEON_SUCCESS) {
-        chameleon_error("CHAMELEON_zTile_to_Lapack", "invalid descriptor");
+        chameleon_error("CHAMELEON_zDesc2Lap", "invalid descriptor");
         return CHAMELEON_ERR_ILLEGAL_VALUE;
     }
 
     /* Create the B descriptor to handle the Lapack format matrix */
-    status = CHAMELEON_Desc_Create_User( &B, Af77, ChamComplexDouble, A->mb, A->nb, A->bsiz,
-                                         LDA, A->n, 0, 0, A->m, A->n, 1, 1,
-                                         chameleon_getaddr_cm, chameleon_getblkldd_cm, NULL, NULL );
+    chameleon_asprintf( &lapname, "%slap", A->name );
+    status = chameleon_desc_init( &B, lapname, Af77, ChamComplexDouble, A->mb, A->nb,
+                                  LDA, A->n, A->m, A->n, 1, 1,
+                                  chameleon_getaddr_cm, chameleon_getblkldd_cm, NULL, NULL );
+    free( lapname );
     if ( status != CHAMELEON_SUCCESS ) {
-        chameleon_error("CHAMELEON_zTile_to_Lapack", "Failed to create the descriptor");
+        chameleon_error("CHAMELEON_zDesc2Lap", "Failed to create the descriptor");
         return status;
     }
 
     /* Start the computation */
     chameleon_sequence_create( chamctxt, &sequence );
 
-    chameleon_pzlacpy( uplo, A, B, sequence, &request );
+    chameleon_pzlacpy( uplo, A, &B, sequence, &request );
 
     CHAMELEON_Desc_Flush( A, sequence );
-    CHAMELEON_Desc_Flush( B, sequence );
+    CHAMELEON_Desc_Flush( &B, sequence );
 
     chameleon_sequence_wait( chamctxt, sequence );
 
-    CHAMELEON_Desc_Destroy( &B );
+    chameleon_desc_destroy( &B );
 
     status = sequence->status;
     chameleon_sequence_destroy( chamctxt, sequence );
