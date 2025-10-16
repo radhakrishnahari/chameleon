@@ -56,6 +56,26 @@ int chameleon_desc_init( CHAM_desc_t *desc, const char *name, void *mat,
                          void* get_rankof_arg );
 
 static inline int
+chameleon_desc_init_2dtile( CHAM_desc_t *desc, const char *name,
+                            cham_flttype_t dtyp, int mb, int nb,
+                            int m, int n, int p, int q )
+{
+    return chameleon_desc_init( desc, name, CHAMELEON_MAT_ALLOC_TILE,
+                                dtyp, mb, nb, m, n, m, n, p, q,
+                                NULL, NULL, NULL, NULL );
+}
+
+static inline int
+chameleon_desc_init_2dlap( CHAM_desc_t *desc, const char *name,
+                           cham_flttype_t dtyp, int mb, int nb,
+                           int m, int n, int p, int q )
+{
+    return chameleon_desc_init( desc, name, CHAMELEON_MAT_ALLOC_GLOBAL,
+                                dtyp, mb, nb, m, n, m, n, p, q,
+                                NULL, NULL, NULL, NULL );
+}
+
+static inline int
 chameleon_desc_init_local( CHAM_desc_t *desc, const char *name,
                            cham_flttype_t dtyp, int mb, int nb, int m, int n )
 {

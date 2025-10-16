@@ -65,13 +65,11 @@ void *CHAMELEON_zgram_WS_Alloc( const CHAM_desc_t *A )
     workmt = chameleon_max( A->mt, P );
     worknt = chameleon_max( A->nt, Q );
 
-    chameleon_desc_init( &(options->Wcol), "GRAM_Wcol", CHAMELEON_MAT_ALLOC_TILE,
-                         ChamRealDouble, 2, A->nb, 2*workmt, A->n, 2*workmt, A->n,
-                         P, Q, NULL, NULL, NULL, NULL );
+    chameleon_desc_init_2dtile( &(options->Wcol), "GRAM_Wcol", ChamRealDouble,
+                                2, A->nb, 2*workmt, A->n, P, Q );
 
-    chameleon_desc_init( &(options->Welt), "GRAM_Welt", CHAMELEON_MAT_ALLOC_TILE,
-                         ChamRealDouble, 2, 1, 2, worknt, 2, worknt,
-                         P, Q, NULL, NULL, NULL, NULL );
+    chameleon_desc_init_2dtile( &(options->Welt), "GRAM_Welt", ChamRealDouble,
+                                2, 1, 2, worknt, P, Q );
 
     return (void*)options;
 }

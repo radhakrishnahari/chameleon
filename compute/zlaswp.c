@@ -116,18 +116,12 @@ CHAMELEON_zlaswp_WS_Alloc( cham_side_t side, const CHAM_desc_t *A )
     }
     ws->Wu = malloc( sizeof(CHAM_desc_t) );
     if ( side == ChamLeft ) {
-        chameleon_desc_init( ws->Wu, "LASWP_Wu", CHAMELEON_MAT_ALLOC_TILE,
-                             ChamComplexDouble, A->mb, A->nb,
-                             A->mb * P * Q, A->n,
-                             A->mb * P * Q, A->n, P * Q, 1,
-                             NULL, NULL, NULL, NULL );
+        chameleon_desc_init_2dtile( ws->Wu, "LASWP_Wu", ChamComplexDouble,
+                                    A->mb, A->nb, A->mb * P * Q, A->n, P * Q, 1 );
     }
     else {
-        chameleon_desc_init( ws->Wu, "LASWP_Wu", CHAMELEON_MAT_ALLOC_TILE,
-                             ChamComplexDouble, A->mb, A->nb,
-                             A->m, A->nb * P * Q,
-                             A->m, A->nb * P * Q, 1, P * Q,
-                             NULL, NULL, NULL, NULL );
+        chameleon_desc_init_2dtile( ws->Wu, "LASWP_Wu", ChamComplexDouble,
+                                    A->mb, A->nb, A->m, A->nb * P * Q, 1, P * Q );
     }
 
     ws->ws.mt   = A->mt;

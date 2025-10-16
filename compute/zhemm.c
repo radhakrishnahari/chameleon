@@ -170,16 +170,10 @@ void *CHAMELEON_zhemm_WS_Alloc( cham_side_t        side __attribute__((unused)),
     {
         int lookahead = chamctxt->lookahead;
 
-        chameleon_desc_init( &(options->WA), "HEMM_WA", CHAMELEON_MAT_ALLOC_TILE,
-                             ChamComplexDouble, A->mb, A->nb,
-                             A->mb * C->mt, A->nb * Q * lookahead,
-                             A->mb * C->mt, A->nb * Q * lookahead,
-                             P, Q, NULL, NULL, NULL, NULL );
-        chameleon_desc_init( &(options->WB), "HEMM_WB", CHAMELEON_MAT_ALLOC_TILE,
-                             ChamComplexDouble, B->mb, B->nb,
-                             B->mb * P * lookahead, B->nb * C->nt,
-                             B->mb * P * lookahead, B->nb * C->nt,
-                             P, Q, NULL, NULL, NULL, NULL );
+        chameleon_desc_init_2dtile( &(options->WA), "HEMM_WA", ChamComplexDouble,
+                                    A->mb, A->nb, A->mb * C->mt, A->nb * Q * lookahead, P, Q );
+        chameleon_desc_init_2dtile( &(options->WB), "HEMM_WB", ChamComplexDouble,
+                                    B->mb, B->nb, B->mb * P * lookahead, B->nb * C->nt, P, Q );
     }
 
     return (void*)options;

@@ -406,18 +406,15 @@ void chameleon_pzlange_generic( cham_normtype_t norm, cham_uplo_t uplo, cham_dia
     case ChamOneNorm:
         RUNTIME_options_ws_alloc( &options, 1, 0 );
 
-        chameleon_desc_init( &Wcol, "LANGE_Wcol", CHAMELEON_MAT_ALLOC_TILE,
-                             ChamRealDouble, 1, A->nb,
-                             workmt, worknt * A->nb, workmt, worknt * A->nb,
-                             P, Q, NULL, NULL, NULL, NULL );
+        chameleon_desc_init_2dtile( &Wcol, "LANGE_Wcol", ChamRealDouble,
+                                    1, A->nb, workmt, worknt * A->nb, P, Q );
         wcol_init = 1;
 
         /*
          * Use the global allocator for Welt, otherwise flush may free the data before the result is read.
          */
-        chameleon_desc_init( &Welt, "LANGE_Welt", CHAMELEON_MAT_ALLOC_GLOBAL,
-                             ChamRealDouble, 1, 1, P, worknt, P, worknt,
-                             P, Q, NULL, NULL, NULL, NULL );
+        chameleon_desc_init_2dlap( &Welt, "LANGE_Welt", ChamRealDouble,
+                                   1, 1, P, worknt, P, Q );
         break;
 
         /*
@@ -426,15 +423,12 @@ void chameleon_pzlange_generic( cham_normtype_t norm, cham_uplo_t uplo, cham_dia
     case ChamInfNorm:
         RUNTIME_options_ws_alloc( &options, A->mb, 0 );
 
-        chameleon_desc_init( &Wcol, "LANGE_Wcol", CHAMELEON_MAT_ALLOC_TILE,
-                             ChamRealDouble, A->mb, 1,
-                             workmt * A->mb, worknt, workmt * A->mb, worknt,
-                             P, Q, NULL, NULL, NULL, NULL );
+        chameleon_desc_init_2dtile( &Wcol, "LANGE_Wcol", ChamRealDouble,
+                                    A->mb, 1, workmt * A->mb, worknt, P, Q );
         wcol_init = 1;
 
-        chameleon_desc_init( &Welt, "LANGE_Welt", CHAMELEON_MAT_ALLOC_GLOBAL,
-                             ChamRealDouble, 1, 1, workmt, Q, workmt, Q,
-                             P, Q, NULL, NULL, NULL, NULL );
+        chameleon_desc_init_2dlap( &Welt, "LANGE_Welt", ChamRealDouble,
+                                   1, 1, workmt, Q, P, Q );
         break;
 
         /*
@@ -444,9 +438,8 @@ void chameleon_pzlange_generic( cham_normtype_t norm, cham_uplo_t uplo, cham_dia
         RUNTIME_options_ws_alloc( &options, 1, 0 );
 
         alpha = 1.;
-        chameleon_desc_init( &Welt, "LANGE_Welt", CHAMELEON_MAT_ALLOC_GLOBAL,
-                             ChamRealDouble, 2, 1, workmt*2, worknt, workmt*2, worknt,
-                             P, Q, NULL, NULL, NULL, NULL );
+        chameleon_desc_init_2dlap( &Welt, "LANGE_Welt", ChamRealDouble,
+                                   2, 1, workmt*2, worknt, P, Q );
         break;
 
         /*
@@ -456,9 +449,8 @@ void chameleon_pzlange_generic( cham_normtype_t norm, cham_uplo_t uplo, cham_dia
     default:
         RUNTIME_options_ws_alloc( &options, 1, 0 );
 
-        chameleon_desc_init( &Welt, "LANGE_Welt", CHAMELEON_MAT_ALLOC_GLOBAL,
-                             ChamRealDouble, 1, 1, workmt, worknt, workmt, worknt,
-                             P, Q, NULL, NULL, NULL, NULL );
+        chameleon_desc_init_2dlap( &Welt, "LANGE_Welt", ChamRealDouble,
+                                   1, 1, workmt, worknt, P, Q );
     }
 
     /* Initialize workspaces */

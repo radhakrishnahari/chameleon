@@ -195,27 +195,19 @@ chameleon_pzplrnk( int                         K,
          ( (chameleon_desc_datadist_get_iparam(C, 0) != 1) ||
            (chameleon_desc_datadist_get_iparam(C, 1) != 1) ) )
     {
-        chameleon_desc_init( &WA, "PLRNK_WA", CHAMELEON_MAT_ALLOC_TILE,
-                             ChamComplexDouble, C->mb, C->nb,
-                             C->m, C->nb * Q, C->m, C->nb * Q, P, Q,
-                             NULL, NULL, NULL, NULL );
-        chameleon_desc_init( &WB, "PLRNK_WB", CHAMELEON_MAT_ALLOC_TILE,
-                             ChamComplexDouble, C->mb, C->nb,
-                             C->mb * P, C->n, C->mb * P, C->n, P, Q,
-                             NULL, NULL, NULL, NULL );
+        chameleon_desc_init_2dtile( &WA, "PLRNK_WA", ChamComplexDouble,
+                                    C->mb, C->nb, C->m, C->nb * Q, P, Q );
+        chameleon_desc_init_2dtile( &WB, "PLRNK_WB", ChamComplexDouble,
+                                    C->mb, C->nb, C->mb * P, C->n, P, Q );
 
         chameleon_pzplrnk_2dbc( chamctxt, K, &WA, &WB, C, seedA, seedB, &options );
     }
     else {
         int np = P * Q;
-        chameleon_desc_init( &WA, "PLRNK_WA", CHAMELEON_MAT_ALLOC_TILE,
-                             ChamComplexDouble, C->mb, C->nb,
-                             C->m, C->nb * np, C->m, C->nb * np, 1, np,
-                             NULL, NULL, NULL, NULL );
-        chameleon_desc_init( &WB, "PLRNK_WB", CHAMELEON_MAT_ALLOC_TILE,
-                             ChamComplexDouble, C->mb, C->nb,
-                             C->mb * np, C->n, C->mb * np, C->n, np, 1,
-                             NULL, NULL, NULL, NULL );
+        chameleon_desc_init_2dtile( &WA, "PLRNK_WA", ChamComplexDouble,
+                                    C->mb, C->nb, C->m, C->nb * np, 1, np );
+        chameleon_desc_init_2dtile( &WB, "PLRNK_WB", ChamComplexDouble,
+                                    C->mb, C->nb, C->mb * np, C->n, np, 1 );
 
         chameleon_pzplrnk_generic( chamctxt, K, &WA, &WB, C, seedA, seedB, &options );
     }

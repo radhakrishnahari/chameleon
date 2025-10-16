@@ -95,11 +95,9 @@ void chameleon_pzhetrd_he2hb( cham_uplo_t uplo,
                                 chameleon_desc_datadist_get_iparam(A, 0),
                                 chameleon_desc_datadist_get_iparam(A, 1) );
 
-    chameleon_desc_init( &AT, "HETRD_HE2HB_AT", CHAMELEON_MAT_ALLOC_GLOBAL,
-                         ChamComplexDouble, A->mb, A->nb,
-                         chameleon_min(A->mt, A->nt) * A->mb, A->nb,
-                         chameleon_min(A->mt, A->nt) * A->mb, A->nb, 1, 1,
-                         NULL, NULL, NULL, NULL );
+    chameleon_desc_init_2dlap( &AT, "HETRD_HE2HB_AT", ChamComplexDouble,
+                               A->mb, A->nb,
+                               chameleon_min(A->mt, A->nt) * A->mb, A->nb, 1, 1 );
 
     /* Let's extract the diagonal in a temporary copy that contains A and A' */
     for (k = 1; k < A->nt; k++){

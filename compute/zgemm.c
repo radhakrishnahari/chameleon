@@ -195,16 +195,10 @@ void *CHAMELEON_zgemm_WS_Alloc( cham_trans_t       transA __attribute__((unused)
     {
         int lookahead = chamctxt->lookahead;
 
-        chameleon_desc_init( &(options->WA), "GEMM_WA", CHAMELEON_MAT_ALLOC_TILE,
-                             ChamComplexDouble, A->mb, A->nb,
-                             A->mb * C->mt, A->nb * Q * lookahead,
-                             A->mb * C->mt, A->nb * Q * lookahead, P, Q,
-                             NULL, NULL, NULL, NULL );
-        chameleon_desc_init( &(options->WB), "GEMM_WB", CHAMELEON_MAT_ALLOC_TILE,
-                             ChamComplexDouble, B->mb, B->nb,
-                             B->mb * P * lookahead, B->nb * C->nt,
-                             B->mb * P * lookahead, B->nb * C->nt, P, Q,
-                             NULL, NULL, NULL, NULL );
+        chameleon_desc_init_2dtile( &(options->WA), "GEMM_WA", ChamComplexDouble,
+                                    A->mb, A->nb, A->mb * C->mt, A->nb * Q * lookahead, P, Q );
+        chameleon_desc_init_2dtile( &(options->WB), "GEMM_WB", ChamComplexDouble,
+                                    B->mb, B->nb, B->mb * P * lookahead, B->nb * C->nt, P, Q );
     }
 
     return (void*)options;

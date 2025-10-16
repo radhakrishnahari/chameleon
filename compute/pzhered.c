@@ -205,14 +205,13 @@ void chameleon_pzhered( cham_trans_t        trans,
     RUNTIME_options_ws_alloc( &options, 1, 0 );
 
     /* Matrix to store the norm of each element */
-    chameleon_desc_init( &Wcol, "HERED_Wcol", CHAMELEON_MAT_ALLOC_GLOBAL, ChamRealDouble,
+    chameleon_desc_init( &Wcol, "HERED_Wcol", CHAMELEON_MAT_ALLOC_TILE, ChamRealDouble,
                          2, 1, A->mt * 2, A->nt, A->mt * 2, A->nt, P, Q,
                          NULL, NULL, A->get_rankof_init, A->get_rankof_init_arg );
 
     /* Matrix to compute the global frobenius norm */
-    chameleon_desc_init( &Welt, "HERED_Welt", CHAMELEON_MAT_ALLOC_GLOBAL, ChamRealDouble,
-                         2, 1, workmt*2, worknt, workmt*2, worknt, P, Q,
-                         NULL, NULL, NULL, NULL );
+    chameleon_desc_init_2dlap( &Welt, "HERED_Welt", ChamRealDouble,
+                               2, 1, workmt*2, worknt, P, Q );
 
     chameleon_pzhered_frb( trans, uplo, A, &Wcol, &Welt, &options );
 
