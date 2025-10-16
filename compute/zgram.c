@@ -15,7 +15,7 @@
  * @author Philippe Swartvagher
  * @author Lionel Eyraud-Dubois
  * @author Pierre Esterie
- * @date 2024-11-13
+ * @date 2025-10-16
  * @precisions normal z -> s d c z
  *
  */
@@ -50,7 +50,8 @@ void *CHAMELEON_zgram_WS_Alloc( const CHAM_desc_t *A )
 {
     CHAM_context_t *chamctxt;
     struct chameleon_pzgram_s *options;
-    int workmt, worknt;
+    int                         workmt, worknt;
+    int                         P, Q;
 
     chamctxt = chameleon_context_self();
     if ( chamctxt == NULL ) {
@@ -59,24 +60,16 @@ void *CHAMELEON_zgram_WS_Alloc( const CHAM_desc_t *A )
 
     options = calloc( 1, sizeof(struct chameleon_pzgram_s) );
 
-    workmt = chameleon_max( A->mt, chameleon_desc_datadist_get_iparam(A, 0) );
-    worknt = chameleon_max( A->nt, chameleon_desc_datadist_get_iparam(A, 1) );
+    P = chameleon_desc_datadist_get_iparam(A, 0);
+    Q = chameleon_desc_datadist_get_iparam(A, 1);
+    workmt = chameleon_max( A->mt, P );
+    worknt = chameleon_max( A->nt, Q );
 
-    chameleon_desc_init( &(options->Wcol), CHAMELEON_MAT_ALLOC_TILE,
-                         ChamRealDouble, 2, A->nb, 2*A->nb,
-                         2*workmt, A->n, 0, 0,
-                         2*workmt, A->n,
-                         chameleon_desc_datadist_get_iparam(A, 0),
-                         chameleon_desc_datadist_get_iparam(A, 1),
-                         NULL, NULL, NULL, NULL );
+    chameleon_desc_init_2dtile( &(options->Wcol), "GRAM_Wcol", ChamRealDouble,
+                                2, A->nb, 2*workmt, A->n, P, Q );
 
-    chameleon_desc_init( &(options->Welt), CHAMELEON_MAT_ALLOC_TILE,
-                         ChamRealDouble, 2, 1, 2,
-                         2, worknt, 0, 0,
-                         2, worknt,
-                         chameleon_desc_datadist_get_iparam(A, 0),
-                         chameleon_desc_datadist_get_iparam(A, 1),
-                         NULL, NULL, NULL, NULL );
+    chameleon_desc_init_2dtile( &(options->Welt), "GRAM_Welt", ChamRealDouble,
+                                2, 1, 2, worknt, P, Q );
 
     return (void*)options;
 }
@@ -135,7 +128,7 @@ void CHAMELEON_zgram_WS_Free( void *user_ws )
  *
  *******************************************************************************
  *
-* @retval CHAMELEON_SUCCESS successful exit
+ * @retval CHAMELEON_SUCCESS successful exit
  *
  *******************************************************************************
  *
@@ -193,7 +186,7 @@ int CHAMELEON_zgram( cham_uplo_t uplo, int N, CHAMELEON_Complex64_t *A, int LDA 
     chameleon_sequence_create( chamctxt, &sequence );
 
     /* Submit the matrix conversion */
-    chameleon_zlap2tile( chamctxt, &descAl, &descAt, ChamDescInout, uplo,
+    chameleon_zlap2tile( chamctxt, "A", &descAl, &descAt, ChamDescInout, uplo,
                          A, NB, NB, LDA, N, N, N, sequence, &request );
 
     /* Call the tile interface */

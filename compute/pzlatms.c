@@ -14,7 +14,7 @@
  * @author Mathieu Faverge
  * @author Lionel Eyraud-Dubois
  * @author Pierre Esterie
- * @date 2025-01-29
+ * @date 2025-10-16
  * @precisions normal z -> s d c
  *
  */
@@ -216,20 +216,14 @@ void chameleon_pzlatms( cham_dist_t idist, unsigned long long int seed, cham_sym
         descDptr = &descD;
 #endif
 
-        chameleon_desc_init( &descTS, CHAMELEON_MAT_ALLOC_TILE,
-                             ChamComplexDouble, ib, descU.nb, ib * descU.nb,
-                             ib * descU.mt, descU.nb * descU.nt, 0, 0,
-                             ib * descU.mt, descU.nb * descU.nt,
-                             chameleon_desc_datadist_get_iparam(&descU, 0),
-                             chameleon_desc_datadist_get_iparam(&descU, 1),
-                             NULL, NULL, NULL, NULL );
-        chameleon_desc_init( &descTT, CHAMELEON_MAT_ALLOC_TILE,
-                             ChamComplexDouble, ib, descU.nb, ib * descU.nb,
-                             ib * descU.mt, descU.nb * descU.nt, 0, 0,
-                             ib * descU.mt, descU.nb * descU.nt,
-                             chameleon_desc_datadist_get_iparam(&descU, 0),
-                             chameleon_desc_datadist_get_iparam(&descU, 1),
-                             NULL, NULL, NULL, NULL );
+        chameleon_desc_init_2dtile( &descTS, "LATMS_U_TS", ChamComplexDouble,
+                                    ib, descU.nb, ib * descU.mt, descU.nb * descU.nt,
+                                    chameleon_desc_datadist_get_iparam(&descU, 0),
+                                    chameleon_desc_datadist_get_iparam(&descU, 1) );
+        chameleon_desc_init_2dtile( &descTT, "LATMS_U_TT", ChamComplexDouble,
+                                    ib, descU.nb, ib * descU.mt, descU.nb * descU.nt,
+                                    chameleon_desc_datadist_get_iparam(&descU, 0),
+                                    chameleon_desc_datadist_get_iparam(&descU, 1) );
 
         /* U <= qr(U) */
         chameleon_pzgeqrf_param( 1, kt, &qrtree, &descU,
@@ -291,20 +285,14 @@ void chameleon_pzlatms( cham_dist_t idist, unsigned long long int seed, cham_sym
         descDptr = &descD;
 #endif
 
-        chameleon_desc_init( &descTS, CHAMELEON_MAT_ALLOC_TILE,
-                             ChamComplexDouble, ib, descV.nb, ib * descV.nb,
-                             ib * descV.mt, descV.nb * descV.nt, 0, 0,
-                             ib * descV.mt, descV.nb * descV.nt,
-                             chameleon_desc_datadist_get_iparam(&descV, 0),
-                             chameleon_desc_datadist_get_iparam(&descV, 1),
-                             NULL, NULL, NULL, NULL );
-        chameleon_desc_init( &descTT, CHAMELEON_MAT_ALLOC_TILE,
-                             ChamComplexDouble, ib, descV.nb, ib * descV.nb,
-                             ib * descV.mt, descV.nb * descV.nt, 0, 0,
-                             ib * descV.mt, descV.nb * descV.nt,
-                             chameleon_desc_datadist_get_iparam(&descV, 0),
-                             chameleon_desc_datadist_get_iparam(&descV, 1),
-                             NULL, NULL, NULL, NULL );
+        chameleon_desc_init_2dtile( &descTS, "LATMS_V_TS", ChamComplexDouble,
+                                    ib, descV.nb, ib * descV.mt, descV.nb * descV.nt,
+                                    chameleon_desc_datadist_get_iparam(&descV, 0),
+                                    chameleon_desc_datadist_get_iparam(&descV, 1) );
+        chameleon_desc_init_2dtile( &descTT, "LATMS_V_TT", ChamComplexDouble,
+                                    ib, descV.nb, ib * descV.mt, descV.nb * descV.nt,
+                                    chameleon_desc_datadist_get_iparam(&descV, 0),
+                                    chameleon_desc_datadist_get_iparam(&descV, 1) );
 
         /* V <= qr(V) */
         chameleon_pzgelqf_param( 1, kt, &qrtree, &descV,

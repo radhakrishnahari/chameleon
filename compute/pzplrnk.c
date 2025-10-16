@@ -13,7 +13,7 @@
  * @author Mathieu Faverge
  * @author Florent Pruvost
  * @author Lionel Eyraud-Dubois
- * @date 2025-01-29
+ * @date 2025-10-16
  * @precisions normal z -> s d c
  *
  */
@@ -180,7 +180,7 @@ chameleon_pzplrnk( int                         K,
     CHAM_context_t *chamctxt;
     RUNTIME_option_t options;
     CHAM_desc_t WA, WB;
-    int p, q;
+    int P, Q;
 
     chamctxt = chameleon_context_self();
     if (sequence->status != CHAMELEON_SUCCESS) {
@@ -188,38 +188,26 @@ chameleon_pzplrnk( int                         K,
     }
     RUNTIME_options_init( &options, chamctxt, sequence, request );
 
-    p = chameleon_desc_datadist_get_iparam( C, 0 );
-    q = chameleon_desc_datadist_get_iparam( C, 1 );
+    P = chameleon_desc_datadist_get_iparam( C, 0 );
+    Q = chameleon_desc_datadist_get_iparam( C, 1 );
     if ( ( chamctxt->generic_enabled != CHAMELEON_TRUE )  &&
          ( C->get_rankof_init == chameleon_getrankof_2d ) &&
          ( (chameleon_desc_datadist_get_iparam(C, 0) != 1) ||
            (chameleon_desc_datadist_get_iparam(C, 1) != 1) ) )
     {
-        chameleon_desc_init( &WA, CHAMELEON_MAT_ALLOC_TILE,
-                             ChamComplexDouble, C->mb, C->nb, (C->mb * C->nb),
-                             C->m, C->nb * q, 0, 0,
-                             C->m, C->nb * q, p, q,
-                             NULL, NULL, NULL, NULL );
-        chameleon_desc_init( &WB, CHAMELEON_MAT_ALLOC_TILE,
-                             ChamComplexDouble, C->mb, C->nb, (C->mb * C->nb),
-                             C->mb * p, C->n, 0, 0,
-                             C->mb * p, C->n, p, q,
-                             NULL, NULL, NULL, NULL );
+        chameleon_desc_init_2dtile( &WA, "PLRNK_WA", ChamComplexDouble,
+                                    C->mb, C->nb, C->m, C->nb * Q, P, Q );
+        chameleon_desc_init_2dtile( &WB, "PLRNK_WB", ChamComplexDouble,
+                                    C->mb, C->nb, C->mb * P, C->n, P, Q );
 
         chameleon_pzplrnk_2dbc( chamctxt, K, &WA, &WB, C, seedA, seedB, &options );
     }
     else {
-        int np = p * q;
-        chameleon_desc_init( &WA, CHAMELEON_MAT_ALLOC_TILE,
-                             ChamComplexDouble, C->mb, C->nb, (C->mb * C->nb),
-                             C->m, C->nb * np, 0, 0,
-                             C->m, C->nb * np, 1, np,
-                             NULL, NULL, NULL, NULL );
-        chameleon_desc_init( &WB, CHAMELEON_MAT_ALLOC_TILE,
-                             ChamComplexDouble, C->mb, C->nb, (C->mb * C->nb),
-                             C->mb * np, C->n, 0,  0,
-                             C->mb * np, C->n, np, 1,
-                             NULL, NULL, NULL, NULL );
+        int np = P * Q;
+        chameleon_desc_init_2dtile( &WA, "PLRNK_WA", ChamComplexDouble,
+                                    C->mb, C->nb, C->m, C->nb * np, 1, np );
+        chameleon_desc_init_2dtile( &WB, "PLRNK_WB", ChamComplexDouble,
+                                    C->mb, C->nb, C->mb * np, C->n, np, 1 );
 
         chameleon_pzplrnk_generic( chamctxt, K, &WA, &WB, C, seedA, seedB, &options );
     }

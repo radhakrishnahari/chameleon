@@ -19,7 +19,7 @@
  * @author Alycia Lisito
  * @author Lionel Eyraud-Dubois
  * @author Pierre Esterie
- * @date 2025-01-24
+ * @date 2025-10-16
  * @precisions normal z -> s d c
  *
  */
@@ -41,9 +41,9 @@
 /**
  *  Parallel tile BAND Tridiagonal Reduction - dynamic scheduler
  */
-void chameleon_pzhetrd_he2hb(cham_uplo_t uplo,
-                         CHAM_desc_t *A, CHAM_desc_t *T, CHAM_desc_t *E,
-                         RUNTIME_sequence_t *sequence, RUNTIME_request_t *request)
+void chameleon_pzhetrd_he2hb( cham_uplo_t uplo,
+                              CHAM_desc_t *A, CHAM_desc_t *T, CHAM_desc_t *E,
+                              RUNTIME_sequence_t *sequence, RUNTIME_request_t *request )
 {
     CHAM_context_t *chamctxt;
     RUNTIME_option_t options;
@@ -91,14 +91,13 @@ void chameleon_pzhetrd_he2hb(cham_uplo_t uplo,
     RUNTIME_options_ws_alloc( &options, ws_worker, ws_host );
 
     /* Copy of the diagonal tiles to keep the general version of the tile all along the computation */
-    chameleon_zdesc_alloc_diag( &D, A->mb, A->m, A->n,
+    chameleon_zdesc_alloc_diag( &D, "HETRD_HE2HB_D", A->mb, A->m, A->n,
                                 chameleon_desc_datadist_get_iparam(A, 0),
                                 chameleon_desc_datadist_get_iparam(A, 1) );
 
-    chameleon_desc_init( &AT, CHAMELEON_MAT_ALLOC_GLOBAL, ChamComplexDouble, A->mb, A->nb, (A->mb*A->nb),
-                         chameleon_min(A->mt, A->nt) * A->mb, A->nb, 0, 0,
-                         chameleon_min(A->mt, A->nt) * A->mb, A->nb, 1, 1,
-                         NULL, NULL, NULL, NULL );
+    chameleon_desc_init_2dlap( &AT, "HETRD_HE2HB_AT", ChamComplexDouble,
+                               A->mb, A->nb,
+                               chameleon_min(A->mt, A->nt) * A->mb, A->nb, 1, 1 );
 
     /* Let's extract the diagonal in a temporary copy that contains A and A' */
     for (k = 1; k < A->nt; k++){

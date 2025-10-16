@@ -16,7 +16,7 @@
  * @author Hatem Ltaief
  * @author Mathieu Faverge
  * @author Raphael Boucherie
- * @date 2025-01-29
+ * @date 2025-10-16
  * @precisions normal z -> s d c
  *
  */
@@ -149,7 +149,7 @@ int CHAMELEON_zheevd( cham_job_t jobz, cham_uplo_t uplo, int N,
     chameleon_sequence_create( chamctxt, &sequence );
 
     /* Submit the matrix conversion */
-    chameleon_zlap2tile( chamctxt, &descAl, &descAt, ChamDescInout, uplo,
+    chameleon_zlap2tile( chamctxt, "A", &descAl, &descAt, ChamDescInout, uplo,
                          A, NB, NB, LDA, N, N, N, sequence, &request );
 
     /* Call the tile interface */
@@ -467,10 +467,10 @@ int CHAMELEON_zheevd_Tile_Async( cham_job_t jobz, cham_uplo_t uplo,
     /* Q   from CHAMELEON_zhetrd   refers to Q2 (lapack layout) */
     /* V   from LAPACKE_zstedc refers to V  (lapack layout) */
     /* The final eigenvectors are (Q1 Q2 V) or (Q1^h Q2 V)  */
-    chameleon_zlap2tile( chamctxt, &descQ2l, &descQ2t, ChamDescInput, ChamUpperLower,
+    chameleon_zlap2tile( chamctxt, "Q2", &descQ2l, &descQ2t, ChamDescInput, ChamUpperLower,
                          Q2, NB, NB, N, N, N, N, sequence, request );
 
-    chameleon_zlap2tile( chamctxt, &descVl, &descVt, ChamDescInput, ChamUpperLower,
+    chameleon_zlap2tile( chamctxt, "V", &descVl, &descVt, ChamDescInput, ChamUpperLower,
                          V, NB, NB, N, N, N, N, sequence, request );
 
     /* Workspaces used for gemm */
@@ -483,7 +483,8 @@ int CHAMELEON_zheevd_Tile_Async( cham_job_t jobz, cham_uplo_t uplo,
 #if defined(CHAMELEON_COPY_DIAG)
         {
             int n = chameleon_min(A->mt, A->nt) * A->nb;
-            chameleon_zdesc_alloc(D, A->mb, A->nb, A->m, n, 0, 0, A->m, n, CHAMELEON_zgemm_WS_Free( gemm_ws ) );
+            chameleon_zdesc_alloc( D, "HEEVD_D", A->mb, A->nb, A->m, n,
+                                   CHAMELEON_zgemm_WS_Free( gemm_ws ) );
             Dptr = &D;
         }
 #endif
@@ -507,7 +508,8 @@ int CHAMELEON_zheevd_Tile_Async( cham_job_t jobz, cham_uplo_t uplo,
 #if defined(CHAMELEON_COPY_DIAG)
         {
             int m = chameleon_min(A->mt, A->nt) * A->mb;
-            chameleon_zdesc_alloc(D, A->mb, A->nb, m, A->n, 0, 0, m, A->n, CHAMELEON_zgemm_WS_Free( gemm_ws ) );
+            chameleon_zdesc_alloc( D, "HEEVD_D", A->mb, A->nb, m, A->n,
+                                   CHAMELEON_zgemm_WS_Free( gemm_ws ) );
             Dptr = &D;
         }
 #endif

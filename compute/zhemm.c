@@ -20,7 +20,7 @@
  * @author Florent Pruvost
  * @author Lionel Eyraud-Dubois
  * @author Pierre Esterie
- * @date 2024-11-13
+ * @date 2025-10-16
  * @precisions normal z -> c
  *
  */
@@ -75,8 +75,9 @@ void *CHAMELEON_zhemm_WS_Alloc( cham_side_t        side __attribute__((unused)),
                                 const CHAM_desc_t *B,
                                 const CHAM_desc_t *C )
 {
-    CHAM_context_t *chamctxt;
+    CHAM_context_t            *chamctxt;
     struct chameleon_pzgemm_s *options;
+    int                        P, Q;
 
     chamctxt = chameleon_context_self();
     if ( chamctxt == NULL ) {
@@ -90,7 +91,9 @@ void *CHAMELEON_zhemm_WS_Alloc( cham_side_t        side __attribute__((unused)),
      * If only one process, or if generic has been globally enforced, we switch
      * to generic immediately.
      */
-    if ( ((chameleon_desc_datadist_get_iparam(C, 0) == 1) && (chameleon_desc_datadist_get_iparam(C, 1) == 1)) ||
+    P = chameleon_desc_datadist_get_iparam(C, 0);
+    Q = chameleon_desc_datadist_get_iparam(C, 1);
+    if ( ((P == 1) && (Q == 1)) ||
          (chamctxt->generic_enabled == CHAMELEON_TRUE) )
     {
         options->alg = ChamGemmAlgGeneric;
@@ -133,7 +136,7 @@ void *CHAMELEON_zhemm_WS_Alloc( cham_side_t        side __attribute__((unused)),
         /* Compute the average array per node for each matrix */
         sizeA = ((double)A->m * (double)A->n) / (double)(chameleon_desc_datadist_get_iparam(A, 0) * chameleon_desc_datadist_get_iparam(A, 1));
         sizeB = ((double)B->m * (double)B->n) / (double)(chameleon_desc_datadist_get_iparam(B, 0) * chameleon_desc_datadist_get_iparam(B, 1));
-        sizeC = ((double)C->m * (double)C->n) / (double)(chameleon_desc_datadist_get_iparam(C, 0) * chameleon_desc_datadist_get_iparam(C, 1)) * ratio;
+        sizeC = ((double)C->m * (double)C->n) / (double)(P * Q) * ratio;
 
         if ( (sizeC > sizeA) && (sizeC > sizeB) ) {
             options->alg = ChamGemmAlgSummaC;
@@ -167,20 +170,10 @@ void *CHAMELEON_zhemm_WS_Alloc( cham_side_t        side __attribute__((unused)),
     {
         int lookahead = chamctxt->lookahead;
 
-        chameleon_desc_init( &(options->WA), CHAMELEON_MAT_ALLOC_TILE,
-                             ChamComplexDouble, A->mb, A->nb, (A->mb * A->nb),
-                             A->mb * C->mt, A->nb * chameleon_desc_datadist_get_iparam(C, 1) * lookahead, 0, 0,
-                             A->mb * C->mt, A->nb * chameleon_desc_datadist_get_iparam(C, 1) * lookahead,
-                             chameleon_desc_datadist_get_iparam(C, 0),
-                             chameleon_desc_datadist_get_iparam(C, 1),
-                             NULL, NULL, NULL, NULL );
-        chameleon_desc_init( &(options->WB), CHAMELEON_MAT_ALLOC_TILE,
-                             ChamComplexDouble, B->mb, B->nb, (B->mb * B->nb),
-                             B->mb * chameleon_desc_datadist_get_iparam(C, 0) * lookahead, B->nb * C->nt, 0, 0,
-                             B->mb * chameleon_desc_datadist_get_iparam(C, 0) * lookahead, B->nb * C->nt,
-                             chameleon_desc_datadist_get_iparam(C, 0),
-                             chameleon_desc_datadist_get_iparam(C, 1),
-                             NULL, NULL, NULL, NULL );
+        chameleon_desc_init_2dtile( &(options->WA), "HEMM_WA", ChamComplexDouble,
+                                    A->mb, A->nb, A->mb * C->mt, A->nb * Q * lookahead, P, Q );
+        chameleon_desc_init_2dtile( &(options->WB), "HEMM_WB", ChamComplexDouble,
+                                    B->mb, B->nb, B->mb * P * lookahead, B->nb * C->nt, P, Q );
     }
 
     return (void*)options;
@@ -364,11 +357,11 @@ int CHAMELEON_zhemm( cham_side_t side, cham_uplo_t uplo, int M, int N,
     chameleon_sequence_create( chamctxt, &sequence );
 
     /* Submit the matrix conversion */
-    chameleon_zlap2tile( chamctxt, &descAl, &descAt, ChamDescInput, uplo,
+    chameleon_zlap2tile( chamctxt, "A", &descAl, &descAt, ChamDescInput, uplo,
                          A, NB, NB, LDA, Am, Am, Am, sequence, &request );
-    chameleon_zlap2tile( chamctxt, &descBl, &descBt, ChamDescInput, ChamUpperLower,
+    chameleon_zlap2tile( chamctxt, "B", &descBl, &descBt, ChamDescInput, ChamUpperLower,
                          B, NB, NB, LDB, N, M,  N, sequence, &request );
-    chameleon_zlap2tile( chamctxt, &descCl, &descCt, ChamDescInout, ChamUpperLower,
+    chameleon_zlap2tile( chamctxt, "C", &descCl, &descCt, ChamDescInout, ChamUpperLower,
                          C, NB, NB, LDC, N, M,  N, sequence, &request );
 
     /* Call the tile interface */

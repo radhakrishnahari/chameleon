@@ -19,7 +19,7 @@
  * @author Florent Pruvost
  * @author Raphael Boucherie
  * @author Alycia Lisito
- * @date 2024-02-18
+ * @date 2025-10-16
  * @precisions normal z -> s d c
  *
  */
@@ -171,9 +171,9 @@ int CHAMELEON_zgels( cham_trans_t trans, int M, int N, int NRHS,
     /* Submit the matrix conversion */
     int maxMN = chameleon_max( M, N );
 
-    chameleon_zlap2tile( chamctxt, &descAl, &descAt, ChamDescInout, ChamUpperLower,
+    chameleon_zlap2tile( chamctxt, "A", &descAl, &descAt, ChamDescInout, ChamUpperLower,
                          A, NB, NB, LDA, N,    M,     N,    sequence, &request );
-    chameleon_zlap2tile( chamctxt, &descBl, &descBt, ChamDescInout, ChamUpperLower,
+    chameleon_zlap2tile( chamctxt, "B", &descBl, &descBt, ChamDescInout, ChamUpperLower,
                          B, NB, NB, LDB, NRHS, maxMN, NRHS, sequence, &request );
 
     /* Call the tile interface */

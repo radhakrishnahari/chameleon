@@ -23,7 +23,7 @@
  * @author Alycia Lisito
  * @author Pierre Esterie
  * @author Matteo Marcos
- * @date 2025-06-12
+ * @date 2025-10-16
  *
  */
 #ifndef _chameleon_descriptor_h_
@@ -47,31 +47,41 @@ static inline int chameleon_getrankof_tile(const CHAM_desc_t *desc, int m, int n
     return tile->rank;
 }
 
-int chameleon_desc_init_internal( CHAM_desc_t *desc, const char *name, void *mat,
-                                  cham_flttype_t dtyp, int mb, int nb,
-                                  int lm, int ln, int m, int n, int p, int q,
-                                  void* (*get_blkaddr)( const CHAM_desc_t*, int, int ),
-                                  int   (*get_blkldd) ( const CHAM_desc_t*, int      ),
-                                  int   (*get_rankof) ( const CHAM_desc_t*, int, int ),
-                                  void* get_rankof_arg );
+int chameleon_desc_init( CHAM_desc_t *desc, const char *name, void *mat,
+                         cham_flttype_t dtyp, int mb, int nb,
+                         int lm, int ln, int m, int n, int p, int q,
+                         void* (*get_blkaddr)( const CHAM_desc_t*, int, int ),
+                         int   (*get_blkldd) ( const CHAM_desc_t*, int      ),
+                         int   (*get_rankof) ( const CHAM_desc_t*, int, int ),
+                         void* get_rankof_arg );
 
-static inline int chameleon_desc_init( CHAM_desc_t *desc, void *mat,
-                                       cham_flttype_t dtyp, int mb, int nb, int bsiz,
-                                       int lm, int ln, int i, int j,
-                                       int m,  int n,  int p, int q,
-                                       void* (*get_blkaddr)( const CHAM_desc_t*, int, int ),
-                                       int   (*get_blkldd) ( const CHAM_desc_t*, int      ),
-                                       int   (*get_rankof) ( const CHAM_desc_t*, int, int ),
-                                       void* get_rankof_arg)
+static inline int
+chameleon_desc_init_2dtile( CHAM_desc_t *desc, const char *name,
+                            cham_flttype_t dtyp, int mb, int nb,
+                            int m, int n, int p, int q )
 {
-    assert( i == 0 );
-    assert( j == 0 );
-    assert( mb * nb == bsiz );
-    (void)bsiz;
-    (void)i;
-    (void)j;
-    return chameleon_desc_init_internal( desc, NULL, mat, dtyp, mb, nb, lm, ln, m, n, p, q,
-                                         get_blkaddr, get_blkldd, get_rankof, get_rankof_arg );
+    return chameleon_desc_init( desc, name, CHAMELEON_MAT_ALLOC_TILE,
+                                dtyp, mb, nb, m, n, m, n, p, q,
+                                NULL, NULL, NULL, NULL );
+}
+
+static inline int
+chameleon_desc_init_2dlap( CHAM_desc_t *desc, const char *name,
+                           cham_flttype_t dtyp, int mb, int nb,
+                           int m, int n, int p, int q )
+{
+    return chameleon_desc_init( desc, name, CHAMELEON_MAT_ALLOC_GLOBAL,
+                                dtyp, mb, nb, m, n, m, n, p, q,
+                                NULL, NULL, NULL, NULL );
+}
+
+static inline int
+chameleon_desc_init_local( CHAM_desc_t *desc, const char *name,
+                           cham_flttype_t dtyp, int mb, int nb, int m, int n )
+{
+    return chameleon_desc_init( desc, name, CHAMELEON_MAT_ALLOC_GLOBAL,
+                                dtyp, mb, nb, m, n, m, n, 1, 1,
+                                NULL, NULL, NULL, NULL );
 }
 
 CHAM_desc_t* chameleon_desc_submatrix( CHAM_desc_t *descA, int i, int j, int m, int n );

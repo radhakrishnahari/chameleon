@@ -20,7 +20,8 @@
  * @author Samuel Thibault
  * @author Lionel Eyraud-Dubois
  * @author Pierre Esterie
- * @date 2025-06-16
+ * @author Atte Torri
+ * @date 2025-10-16
  *
  ***
  *
@@ -47,7 +48,7 @@ __chamdesc_get_name() {
     char      *name    = malloc( sizeof(char) * 4 );
     int        idx     = 0;
 
-    name[idx] = 'w';
+    name[idx] = 'x';
     idx++;
 
     if ( counter > 26 ) {
@@ -225,13 +226,13 @@ void chameleon_desc_set_datadist( CHAM_desc_t *to, cham_data_dist_t *from )
  * @return  The descriptor with the matrix description parameters set.
  *
  */
-int chameleon_desc_init_internal( CHAM_desc_t *desc, const char *name, void *mat,
-                                  cham_flttype_t dtyp, int mb, int nb,
-                                  int lm, int ln, int m, int n, int p, int q,
-                                  blkaddr_fct_t   get_blkaddr,
-                                  blkldd_fct_t    get_blkldd,
-                                  blkrankof_fct_t get_rankof,
-                                  void           *get_rankof_arg )
+int chameleon_desc_init( CHAM_desc_t *desc, const char *name, void *mat,
+                         cham_flttype_t dtyp, int mb, int nb,
+                         int lm, int ln, int m, int n, int p, int q,
+                         blkaddr_fct_t   get_blkaddr,
+                         blkldd_fct_t    get_blkldd,
+                         blkrankof_fct_t get_rankof,
+                         void           *get_rankof_arg )
 {
     CHAM_context_t *chamctxt;
     int rc = CHAMELEON_SUCCESS;
@@ -457,6 +458,24 @@ CHAM_desc_t* chameleon_desc_submatrix( CHAM_desc_t *descA, int i, int j, int m, 
 
 void chameleon_desc_destroy( CHAM_desc_t *desc )
 {
+    int m, n;
+
+    for ( n=0; n<desc->nt; n++ ) {
+        for ( m=0; m<desc->mt; m++ ) {
+            CHAM_tile_t *tile;
+
+            tile = desc->get_blktile( desc, m, n );
+
+            if ( tile->format == CHAMELEON_TILE_DESC ) {
+                CHAM_desc_t *tiledesc = tile->mat;
+
+                chameleon_desc_destroy( tiledesc );
+                free( tiledesc );
+                tile->mat = NULL;
+            }
+        }
+    }
+
     /* Decrease the number of occurences using the descrptor */
     desc->occurences--;
 
@@ -596,11 +615,9 @@ CHAMELEON_Desc_SubMatrix( CHAM_desc_t *descA, int i, int j, int m, int n )
 int CHAMELEON_Desc_Create( CHAM_desc_t **descptr, void *mat, cham_flttype_t dtyp, int mb, int nb, int bsiz,
                            int lm, int ln, int i, int j, int m, int n, int p, int q )
 {
-    blkrankof_fct_t get_rankof = NULL;
-
     return CHAMELEON_Desc_Create_User( descptr, mat, dtyp, mb, nb, bsiz,
                                        lm, ln, i, j, m, n, p, q,
-                                       NULL, NULL, get_rankof, NULL );
+                                       NULL, NULL, NULL, NULL );
 }
 
 /**
@@ -689,6 +706,9 @@ int CHAMELEON_Desc_Create_User( CHAM_desc_t **descptr, void *mat, cham_flttype_t
     CHAM_desc_t *desc;
     int status;
 
+    assert( i == 0 );
+    assert( j == 0 );
+
     chamctxt = chameleon_context_self();
     if (chamctxt == NULL) {
         chameleon_error("CHAMELEON_Desc_Create_User", "CHAMELEON not initialized");
@@ -702,8 +722,8 @@ int CHAMELEON_Desc_Create_User( CHAM_desc_t **descptr, void *mat, cham_flttype_t
         return CHAMELEON_ERR_OUT_OF_RESOURCES;
     }
 
-    chameleon_desc_init( desc, mat, dtyp, mb, nb, bsiz,
-                         lm, ln, i, j, m, n, p, q,
+    chameleon_desc_init( desc, NULL, mat, dtyp, mb, nb,
+                         lm, ln, m, n, p, q,
                          get_blkaddr, get_blkldd, get_rankof, get_rankof_arg );
 
     status = chameleon_desc_check( desc );
@@ -714,6 +734,10 @@ int CHAMELEON_Desc_Create_User( CHAM_desc_t **descptr, void *mat, cham_flttype_t
     }
 
     *descptr = desc;
+
+    (void)i;
+    (void)j;
+    (void)bsiz;
     return CHAMELEON_SUCCESS;
 }
 
@@ -959,7 +983,6 @@ int CHAMELEON_Desc_Destroy(CHAM_desc_t **descptr)
 {
     CHAM_context_t *chamctxt;
     CHAM_desc_t *desc;
-    int m, n;
 
     chamctxt = chameleon_context_self();
     if (chamctxt == NULL) {
@@ -973,21 +996,6 @@ int CHAMELEON_Desc_Destroy(CHAM_desc_t **descptr)
     }
 
     desc = *descptr;
-    for ( n=0; n<desc->nt; n++ ) {
-        for ( m=0; m<desc->mt; m++ ) {
-            CHAM_tile_t *tile;
-
-            tile = desc->get_blktile( desc, m, n );
-
-            if ( tile->format == CHAMELEON_TILE_DESC ) {
-                CHAM_desc_t *tiledesc = tile->mat;
-
-                CHAMELEON_Desc_Destroy( &tiledesc );
-                assert( tiledesc == NULL );
-            }
-        }
-    }
-
     chameleon_desc_destroy( desc );
     free(desc);
     *descptr = NULL;

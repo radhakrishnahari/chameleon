@@ -18,7 +18,7 @@
  * @author Alycia Lisito
  * @author Lionel Eyraud-Dubois
  * @author Pierre Esterie
- * @date 2025-01-24
+ * @date 2025-10-16
  * @precisions normal z -> s d c
  *
  */
@@ -39,8 +39,10 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
     RUNTIME_option_t options;
     CHAM_desc_t X, SX, NRMX, NRMSX, DROW;
     int m, n, k;
-    int myp = A->myrank / chameleon_desc_datadist_get_iparam(A, 1);
-    int myq = A->myrank % chameleon_desc_datadist_get_iparam(A, 1);
+    int P   = chameleon_desc_datadist_get_iparam( A, 0 );
+    int Q   = chameleon_desc_datadist_get_iparam( A, 1 );
+    int myp = A->myrank / Q;
+    int myq = A->myrank % Q;
     int tempmm, tempnn;
     int cnt, maxiter;
     double e0, normx, normsx, beta, scl;
@@ -67,22 +69,15 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
      * stage and the second one during Flush.
      * This is the same issue for X and SX to be reused from one iteration to another.
      */
-    chameleon_desc_init( &DROW, CHAMELEON_MAT_ALLOC_GLOBAL, ChamRealDouble, 1, A->nb, A->nb,
-                         chameleon_desc_datadist_get_iparam(A, 0), A->n, 0, 0, chameleon_desc_datadist_get_iparam(A, 0), A->n,
-                         chameleon_desc_datadist_get_iparam(A, 0),
-                         chameleon_desc_datadist_get_iparam(A, 1),
-                         NULL, NULL, NULL, NULL );
+    chameleon_desc_init_2dtile( &DROW, "GENM2_DROW", ChamRealDouble,
+                                1, A->nb, P, A->n, P, Q );
     /**
      * NRMX must be allocated with GLOBAL to be able to access the norm value
      * after flushing the descriptor.
      * This is the same issue for NRMSX.
      */
-    chameleon_desc_init( &NRMX, CHAMELEON_MAT_ALLOC_GLOBAL, ChamRealDouble, 2, 1, 2,
-                         chameleon_desc_datadist_get_iparam(A, 0) * 2, chameleon_desc_datadist_get_iparam(A, 1), 0, 0
-                         , chameleon_desc_datadist_get_iparam(A, 0) * 2, chameleon_desc_datadist_get_iparam(A, 1),
-                         chameleon_desc_datadist_get_iparam(A, 0),
-                         chameleon_desc_datadist_get_iparam(A, 1),
-                         NULL, NULL, NULL, NULL );
+    chameleon_desc_init_2dlap( &NRMX, "GENM2_NRMX", ChamRealDouble,
+                               2, 1, P * 2, Q, P, Q );
 
     /**
      * Start by computing the initial vector of the iterative process, and that
@@ -92,7 +87,7 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
      * So drow[j] = sum( S_{p,j}, p=0..P-1 ) with S_{p,j} = sum( |A_{i,j}|, i=0..m-1 \ i%P = p )
      *
      */
-    for(n = myq; n < A->nt; n += chameleon_desc_datadist_get_iparam(A, 1)) {
+    for(n = myq; n < A->nt; n += Q) {
         tempnn = A->get_blkdim( A, n, DIM_n, A->n );
 
         /* Zeroes the local intermediate vector */
@@ -103,7 +98,7 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
             DROW( myp, n ) );
 
         /* Computes the sums of the local tiles into the local vector */
-        for(m = myp; m < A->mt; m += chameleon_desc_datadist_get_iparam(A, 0)) {
+        for(m = myp; m < A->mt; m += P) {
             tempmm = A->get_blkdim( A, m, DIM_m, A->m );
             INSERT_TASK_dzasum(
                 &options,
@@ -112,12 +107,12 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
         }
 
         /* Reduce on first row of nodes */
-	for(m = 1; m < chameleon_desc_datadist_get_iparam(A, 0); m++) {
-	    INSERT_TASK_daxpy(
+        for(m = 1; m < P; m++) {
+            INSERT_TASK_daxpy(
                 &options, tempnn, 1.,
                 DROW( m, n ), 1,
                 DROW( 0, n ), 1 );
-	}
+        }
     }
 
     /**
@@ -131,29 +126,29 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
             1., 0.,
             NRMX( myp, myq ) );
 
-        for( n = myq; n < A->nt; n += chameleon_desc_datadist_get_iparam(A, 1) ) {
-	    tempnn = A->get_blkdim( A, n, DIM_n, A->n );
-	    INSERT_TASK_dgessq(
+        for( n = myq; n < A->nt; n += Q ) {
+            tempnn = A->get_blkdim( A, n, DIM_n, A->n );
+            INSERT_TASK_dgessq(
                 &options, ChamEltwise, 1, tempnn,
                 DROW( myp, n   ),
                 NRMX( myp, myq ) );
-	}
+        }
 
         /* Reduce on first row of nodes */
-	for(n = 1; n < chameleon_desc_datadist_get_iparam(A, 1); n++) {
-	    INSERT_TASK_dplssq(
+        for(n = 1; n < Q; n++) {
+            INSERT_TASK_dplssq(
                 &options, ChamEltwise, 1, 1,
                 NRMX( myp, n ),
                 NRMX( myp, 0 ) );
-	}
+        }
 
         INSERT_TASK_dplssq2(
             &options, 1, NRMX( myp, 0 ) );
     }
 
     /* Bcast norm over processes from node (0,0) */
-    for(m = 0; m < chameleon_desc_datadist_get_iparam(A, 0); m++) {
-	for(n = 0; n < chameleon_desc_datadist_get_iparam(A, 1); n++) {
+    for(m = 0; m < P; m++) {
+        for(n = 0; n < Q; n++) {
             if ( (m != 0) || (n != 0) ) {
                 INSERT_TASK_dlacpy(
                     &options,
@@ -171,29 +166,17 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
     *result = *((double *)(NRMX.get_blkaddr( &NRMX, myp, myq )));
 
     if ( (*result) == 0.0 ) {
-	chameleon_desc_destroy( &DROW );
-	chameleon_desc_destroy( &NRMX );
-	return;
+        chameleon_desc_destroy( &DROW );
+        chameleon_desc_destroy( &NRMX );
+        return;
     }
 
-    chameleon_desc_init( &NRMSX, CHAMELEON_MAT_ALLOC_GLOBAL, ChamRealDouble, 2, 1, 2,
-                         chameleon_desc_datadist_get_iparam(A, 0) * 2, chameleon_desc_datadist_get_iparam(A, 1), 0, 0,
-                         chameleon_desc_datadist_get_iparam(A, 0) * 2, chameleon_desc_datadist_get_iparam(A, 1),
-                         chameleon_desc_datadist_get_iparam(A, 0),
-                         chameleon_desc_datadist_get_iparam(A, 1),
-                         NULL, NULL, NULL, NULL );
-    chameleon_desc_init( &X,  CHAMELEON_MAT_ALLOC_GLOBAL, ChamComplexDouble, 1, A->nb, A->nb,
-                         chameleon_desc_datadist_get_iparam(A, 0), A->n, 0, 0,
-                         chameleon_desc_datadist_get_iparam(A, 0), A->n,
-                         chameleon_desc_datadist_get_iparam(A, 0),
-                         chameleon_desc_datadist_get_iparam(A, 1),
-                         NULL, NULL, NULL, NULL );
-    chameleon_desc_init( &SX, CHAMELEON_MAT_ALLOC_GLOBAL, ChamComplexDouble, A->mb, 1, A->mb,
-                         A->m, chameleon_desc_datadist_get_iparam(A, 1), 0, 0,
-                         A->m, chameleon_desc_datadist_get_iparam(A, 1),
-                         chameleon_desc_datadist_get_iparam(A, 0),
-                         chameleon_desc_datadist_get_iparam(A, 1),
-                         NULL, NULL, NULL, NULL );
+    chameleon_desc_init_2dlap( &NRMSX, "GENM2_NRMSX", ChamRealDouble,
+                               2, 1, P * 2, Q, P, Q );
+    chameleon_desc_init_2dtile( &X, "GENM2_X", ChamComplexDouble,
+                                1, A->nb, P, A->n, P, Q );
+    chameleon_desc_init_2dtile( &SX, "GENM2_SX", ChamComplexDouble,
+                                A->mb, 1, A->m, Q, P, Q );
 
     cnt = 0;
     e0  = 0.;
@@ -207,7 +190,7 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
         /* Initialization of X in the first loop */
         if ( cnt == 0 )
         {
-            for (n = myq; n < A->nt; n += chameleon_desc_datadist_get_iparam(A, 1)) {
+            for (n = myq; n < A->nt; n += Q) {
                 tempnn = A->get_blkdim( A, n, DIM_n, A->n );
 
                 if ( myp == 0 ) {
@@ -227,7 +210,7 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
                 }
 
                 /* Broadcast X */
-                for (m = 1; m < chameleon_desc_datadist_get_iparam(A, 0); m++) {
+                for (m = 1; m < P; m++) {
                     INSERT_TASK_zlacpy(
                         &options,
                         ChamUpperLower, 1, tempnn,
@@ -245,7 +228,7 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
          * copy of the scaled X.
          */
         scl = 1. / e0;
-        for (n = myq; n < A->nt; n += chameleon_desc_datadist_get_iparam(A, 1)) {
+        for (n = myq; n < A->nt; n += Q) {
             tempnn = A->get_blkdim( A, n, DIM_n, A->n );
 
             INSERT_TASK_zlascal(
@@ -257,10 +240,10 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
         /**
          *  Compute Sx = S * x
          */
-        for(m = myp; m < A->mt;  m+=chameleon_desc_datadist_get_iparam(A, 0)) {
+        for(m = myp; m < A->mt;  m+=P) {
             tempmm = A->get_blkdim( A, m, DIM_m, A->m );
 
-            for (n = myq; n < A->nt; n += chameleon_desc_datadist_get_iparam(A, 1) ) {
+            for (n = myq; n < A->nt; n += Q ) {
                 tempnn = A->get_blkdim( A, n, DIM_n, A->n );
                 beta   = n == myq ? 0. : 1.;
 
@@ -273,14 +256,14 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
             }
 
             /* Reduce columns */
-            for (k = 1; k < chameleon_min( chameleon_desc_datadist_get_iparam(A, 1), A->nt ); k++) {
+            for (k = 1; k < chameleon_min( Q, A->nt ); k++) {
                 INSERT_TASK_zaxpy(
                     &options, tempmm, 1.,
                     SX( m, k ), 1,
                     SX( m, 0 ), 1 );
             }
             /* Broadcast SX to ease the following gemv */
-            for (k = 1; k < chameleon_desc_datadist_get_iparam(A, 1); k++) {
+            for (k = 1; k < Q; k++) {
                 INSERT_TASK_zlacpy(
                     &options,
                     ChamUpperLower, tempmm, 1,
@@ -292,10 +275,10 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
         /**
          *  Compute x = S' * S * x = S' * Sx
          */
-        for ( n = myq; n < A->nt; n += chameleon_desc_datadist_get_iparam(A, 1) ) {
+        for ( n = myq; n < A->nt; n += Q ) {
             tempnn = A->get_blkdim( A, n, DIM_n, A->n );
 
-            for( m = myp; m < A->mt;  m += chameleon_desc_datadist_get_iparam(A, 0) ) {
+            for( m = myp; m < A->mt;  m += P ) {
                 tempmm = A->get_blkdim( A, m, DIM_m, A->m );
                 beta   = m == myp ? 0. : 1.;
 
@@ -308,14 +291,14 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
             }
 
             /* Reduce rows */
-            for (k = 1; k < chameleon_min( chameleon_desc_datadist_get_iparam(A, 0), A->mt ); k++) {
+            for (k = 1; k < chameleon_min( P, A->mt ); k++) {
                 INSERT_TASK_zaxpy(
                     &options, tempnn, 1.,
                     X( k, n ), 1,
                     X( 0, n ), 1 );
             }
             /* Broadcast */
-            for (k = 1; k < chameleon_desc_datadist_get_iparam(A, 0); k++) {
+            for (k = 1; k < P; k++) {
                 INSERT_TASK_zlacpy(
                     &options,
                     ChamUpperLower, 1, tempnn,
@@ -336,7 +319,7 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
                 1., 0.,
                 NRMX( myp, myq ) );
 
-            for( n = myq; n < A->nt; n += chameleon_desc_datadist_get_iparam(A, 1) ) {
+            for( n = myq; n < A->nt; n += Q ) {
                 tempnn = A->get_blkdim( A, n, DIM_n, A->n );
 
                 INSERT_TASK_zgessq(
@@ -346,7 +329,7 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
             }
 
             /* Reduce columns  */
-            for(n = 1; n < chameleon_min( chameleon_desc_datadist_get_iparam(A, 1), A->nt ); n++) {
+            for(n = 1; n < chameleon_min( Q, A->nt ); n++) {
                 INSERT_TASK_dplssq(
                     &options, ChamEltwise, 1, 1,
                     NRMX( myp, n ),
@@ -357,7 +340,7 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
                 &options, 1, NRMX( myp, 0 ) );
 
             /* Broadcast the results to processes in the same row */
-            for(n = 1; n < chameleon_desc_datadist_get_iparam(A, 1); n++) {
+            for(n = 1; n < Q; n++) {
                 INSERT_TASK_dlacpy(
                     &options,
                     ChamUpperLower, 1, 1,
@@ -378,7 +361,7 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
                 1., 0.,
                 NRMSX( myp, myq ) );
 
-            for( m = myp; m < A->mt; m += chameleon_desc_datadist_get_iparam(A, 0) ) {
+            for( m = myp; m < A->mt; m += P ) {
                 tempmm = A->get_blkdim( A, m, DIM_m, A->m );
                 INSERT_TASK_zgessq(
                     &options, ChamEltwise, tempmm, 1,
@@ -387,7 +370,7 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
             }
 
             /* Reduce rows */
-            for( m = 1; m < chameleon_min( chameleon_desc_datadist_get_iparam(A, 0), A->mt ); m++ ) {
+            for( m = 1; m < chameleon_min( P, A->mt ); m++ ) {
                 INSERT_TASK_dplssq(
                     &options, ChamEltwise, 1, 1,
                     NRMSX( m, myq ),
@@ -398,7 +381,7 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
                 &options, 1, NRMSX( 0, myq ) );
 
             /* Broadcast the results to processes in the same column */
-            for(m = 1; m < chameleon_desc_datadist_get_iparam(A, 0); m++) {
+            for(m = 1; m < P; m++) {
                 INSERT_TASK_dlacpy(
                     &options,
                     ChamUpperLower, 1, 1,

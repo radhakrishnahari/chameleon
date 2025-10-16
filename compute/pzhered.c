@@ -15,7 +15,7 @@
  * @author Mathieu Faverge
  * @author Ana Hourcau
  * @author Pierre Esterie
- * @date 2025-01-24
+ * @date 2025-10-16
  * @precisions normal z -> z d
  *
  */
@@ -44,8 +44,8 @@ chameleon_pzhered_frb( cham_trans_t      trans,
     int NT = A->nt;
     int M  = A->m;
     int N  = A->n;
-    int P  = chameleon_desc_datadist_get_iparam(Welt, 0);
-    int Q  = chameleon_desc_datadist_get_iparam(Welt, 1);
+    int P  = chameleon_desc_datadist_get_iparam( A, 0 );
+    int Q  = chameleon_desc_datadist_get_iparam( A, 1 );
 
     /* Initialize workspaces for tile norms */
     for (m = 0; m < Wnorm->mt; m++)
@@ -77,15 +77,13 @@ chameleon_pzhered_frb( cham_trans_t      trans,
      * Step 1:
      *  For j in [1,Q], Welt(m, j) = reduce( A(m, j+k*Q) )
      */
-    for (m = 0; m < MT; m++)
-    {
+    for (m = 0; m < MT; m++) {
         int nmin = (uplo == ChamUpper) ? m : 0;
         int nmax = (uplo == ChamLower) ? chameleon_min(m + 1, NT) : NT;
 
         int tempmm = A->get_blkdim( A, m, DIM_m, M );
 
-        for (n = nmin; n < nmax; n++)
-        {
+        for (n = nmin; n < nmax; n++) {
             int tempnn = A->get_blkdim( A, n, DIM_n, N );
 
             if ( n == m ) {
@@ -103,10 +101,10 @@ chameleon_pzhered_frb( cham_trans_t      trans,
             else {
                 INSERT_TASK_zgessq(
                     options, ChamEltwise, tempmm, tempnn,
-                    A(m, n), W( Wnorm, m, n ));
+                    A(m, n), W( Wnorm, m, n ) );
                 INSERT_TASK_zgessq(
                     options, ChamEltwise, tempmm, tempnn,
-                    A(m, n), W( Wnorm, n, m ));
+                    A(m, n), W( Wnorm, n, m ) );
             }
         }
     }
@@ -119,7 +117,7 @@ chameleon_pzhered_frb( cham_trans_t      trans,
 
         /**
          * Step 2:
-         *  For each j, W(m, j) = reduce( W( Welt, m, 0..Q-1) )
+         *  For each j, W(m, j) = reduce( Welt( m, 0..Q-1 ) )
          */
         for(n = 1; n < Q; n++) {
             INSERT_TASK_dplssq(
@@ -146,13 +144,11 @@ chameleon_pzhered_frb( cham_trans_t      trans,
     }
 
     /* Compute the norm of each tile, and the full norm */
-    for (m = 0; m < MT; m++)
-    {
+    for (m = 0; m < MT; m++) {
         int nmin = (uplo == ChamUpper) ? m : 0;
         int nmax = (uplo == ChamLower) ? chameleon_min(m + 1, NT) : NT;
 
-        for (n = nmin; n < nmax; n++)
-        {
+        for (n = nmin; n < nmax; n++) {
             /* Compute the final norm of the tile */
             INSERT_TASK_dplssq2(
                 options, 1, W( Wnorm, m, n ) );
@@ -164,16 +160,13 @@ chameleon_pzhered_frb( cham_trans_t      trans,
     /**
      * Broadcast the result
      */
-    for (m = 0; m < chameleon_desc_datadist_get_iparam(A, 0); m++)
-    {
-        for (n = 0; n < chameleon_desc_datadist_get_iparam(A, 1); n++)
-        {
-            if ( ( m != 0 ) || ( n != 0 ) )
-            {
+    for (m = 0; m < P; m++) {
+        for (n = 0; n < Q; n++) {
+            if ( ( m != 0 ) || ( n != 0 ) ) {
                 INSERT_TASK_dlacpy(
                     options,
                     ChamUpperLower, 1, 1,
-                    W(Welt, 0, 0), W(Welt, m, n));
+                    W( Welt, 0, 0 ), W( Welt, m, n ) );
             }
         }
     }
@@ -196,29 +189,29 @@ void chameleon_pzhered( cham_trans_t        trans,
     double gnorm, threshold, eps, eps_diag, threshold_diag;
 
     int workmt, worknt;
-    int m, n;
+    int m, n, P, Q;
 
     chamctxt = chameleon_context_self();
-    if (sequence->status != CHAMELEON_SUCCESS)
-    {
+    if ( sequence->status != CHAMELEON_SUCCESS ) {
         return;
     }
     RUNTIME_options_init(&options, chamctxt, sequence, request);
 
-    workmt = chameleon_max(A->mt, chameleon_desc_datadist_get_iparam(A, 0));
-    worknt = chameleon_max(A->nt, chameleon_desc_datadist_get_iparam(A, 1));
+    P = chameleon_desc_datadist_get_iparam( A, 0 );
+    Q = chameleon_desc_datadist_get_iparam( A, 1 );
+    workmt = chameleon_max( A->mt, P );
+    worknt = chameleon_max( A->nt, Q );
 
-    RUNTIME_options_ws_alloc(&options, 1, 0);
+    RUNTIME_options_ws_alloc( &options, 1, 0 );
 
     /* Matrix to store the norm of each element */
-    chameleon_desc_init(&Wcol, CHAMELEON_MAT_ALLOC_GLOBAL, ChamRealDouble, 2, 1, 2,
-                        A->mt * 2, A->nt, 0, 0, A->mt * 2, A->nt, chameleon_desc_datadist_get_iparam(A, 0), chameleon_desc_datadist_get_iparam(A, 1),
-                        NULL, NULL, A->get_rankof_init, A->get_rankof_init_arg);
+    chameleon_desc_init( &Wcol, "HERED_Wcol", CHAMELEON_MAT_ALLOC_TILE, ChamRealDouble,
+                         2, 1, A->mt * 2, A->nt, A->mt * 2, A->nt, P, Q,
+                         NULL, NULL, A->get_rankof_init, A->get_rankof_init_arg );
 
     /* Matrix to compute the global frobenius norm */
-    chameleon_desc_init(&Welt, CHAMELEON_MAT_ALLOC_GLOBAL, ChamRealDouble, 2, 1, 2,
-                        workmt * 2, worknt, 0, 0, workmt * 2, worknt, chameleon_desc_datadist_get_iparam(A, 0), chameleon_desc_datadist_get_iparam(A, 1),
-                        NULL, NULL, NULL, NULL);
+    chameleon_desc_init_2dlap( &Welt, "HERED_Welt", ChamRealDouble,
+                               2, 1, workmt*2, worknt, P, Q );
 
     chameleon_pzhered_frb( trans, uplo, A, &Wcol, &Welt, &options );
 
@@ -228,21 +221,21 @@ void chameleon_pzhered( cham_trans_t        trans,
 
     RUNTIME_sequence_wait( chamctxt, sequence );
 
-    gnorm = *((double *)Welt.get_blkaddr(&Welt, A->myrank / chameleon_desc_datadist_get_iparam(A, 1), A->myrank % chameleon_desc_datadist_get_iparam(A, 1)));
-    chameleon_desc_destroy(&Welt);
+    gnorm = *((double *)Welt.get_blkaddr( &Welt, A->myrank / Q, A->myrank % Q ));
+    chameleon_desc_destroy( &Welt );
 
     /**
      * Reduce the precision of the tiles if possible
      */
     eps_diag = CHAMELEON_slamch();
-    if (prec < 0.) {
+    if ( prec < 0. ) {
         eps = CHAMELEON_dlamch();
     }
     else {
         eps = prec;
     }
     threshold = (eps * gnorm) / (double)(chameleon_min(A->mt, A->nt));
-    threshold_diag = (eps < eps_diag) ? threshold : (eps_diag * gnorm) / (double)(chameleon_min(A->mt, A->nt));
+    threshold_diag = ( eps < eps_diag ) ? threshold : (eps_diag * gnorm) / (double)(chameleon_min(A->mt, A->nt));
 
 #if defined(CHAMELEON_DEBUG_GERED)
     fprintf( stderr,
@@ -259,8 +252,8 @@ void chameleon_pzhered( cham_trans_t        trans,
     for (m = 0; m < A->mt; m++)
     {
         int tempmm = A->get_blkdim( A, m, DIM_m, A->m );
-        int nmin = (uplo == ChamUpper) ? m : 0;
-        int nmax = (uplo == ChamLower) ? chameleon_min(m + 1, A->nt) : A->nt;
+        int nmin   = ( uplo == ChamUpper ) ? m                         : 0;
+        int nmax   = ( uplo == ChamLower ) ? chameleon_min(m+1, A->nt) : A->nt;
 
         for (n = nmin; n < nmax; n++)
         {

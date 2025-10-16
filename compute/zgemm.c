@@ -20,7 +20,7 @@
  * @author Florent Pruvost
  * @author Lionel Eyraud-Dubois
  * @author Pierre Esterie
- * @date 2024-11-13
+ * @date 2025-10-16
  * @precisions normal z -> s d c
  *
  */
@@ -195,16 +195,10 @@ void *CHAMELEON_zgemm_WS_Alloc( cham_trans_t       transA __attribute__((unused)
     {
         int lookahead = chamctxt->lookahead;
 
-        chameleon_desc_init( &(options->WA), CHAMELEON_MAT_ALLOC_TILE,
-                             ChamComplexDouble, A->mb, A->nb, (A->mb * A->nb),
-                             A->mb * C->mt, A->nb * Q * lookahead, 0, 0,
-                             A->mb * C->mt, A->nb * Q * lookahead, P, Q,
-                             NULL, NULL, NULL, NULL );
-        chameleon_desc_init( &(options->WB), CHAMELEON_MAT_ALLOC_TILE,
-                             ChamComplexDouble, B->mb, B->nb, (B->mb * B->nb),
-                             B->mb * P * lookahead, B->nb * C->nt, 0, 0,
-                             B->mb * P * lookahead, B->nb * C->nt, P, Q,
-                             NULL, NULL, NULL, NULL );
+        chameleon_desc_init_2dtile( &(options->WA), "GEMM_WA", ChamComplexDouble,
+                                    A->mb, A->nb, A->mb * C->mt, A->nb * Q * lookahead, P, Q );
+        chameleon_desc_init_2dtile( &(options->WB), "GEMM_WB", ChamComplexDouble,
+                                    B->mb, B->nb, B->mb * P * lookahead, B->nb * C->nt, P, Q );
     }
 
     return (void*)options;
@@ -403,11 +397,11 @@ int CHAMELEON_zgemm( cham_trans_t transA, cham_trans_t transB, int M, int N, int
     chameleon_sequence_create( chamctxt, &sequence );
 
     /* Submit the matrix conversion */
-    chameleon_zlap2tile( chamctxt, &descAl, &descAt, ChamDescInput, ChamUpperLower,
+    chameleon_zlap2tile( chamctxt, "A", &descAl, &descAt, ChamDescInput, ChamUpperLower,
                          A, NB, NB, LDA, An, Am, An, sequence, &request );
-    chameleon_zlap2tile( chamctxt, &descBl, &descBt, ChamDescInput, ChamUpperLower,
+    chameleon_zlap2tile( chamctxt, "B", &descBl, &descBt, ChamDescInput, ChamUpperLower,
                          B, NB, NB, LDB, Bn, Bm, Bn, sequence, &request );
-    chameleon_zlap2tile( chamctxt, &descCl, &descCt, ChamDescInout, ChamUpperLower,
+    chameleon_zlap2tile( chamctxt, "C", &descCl, &descCt, ChamDescInout, ChamUpperLower,
                          C, NB, NB, LDC, N, M,  N, sequence, &request );
 
     /* Call the tile interface */

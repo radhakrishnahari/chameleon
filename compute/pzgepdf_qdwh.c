@@ -16,7 +16,7 @@
  * @author Hatem Ltaief
  * @author Lionel Eyraud-Dubois
  * @author Pierre Esterie
- * @date 2025-06-16
+ * @date 2025-10-16
  * @precisions normal z -> s d c
  *
  */
@@ -79,6 +79,7 @@ chameleon_pzgepdf_qdwh_init( const CHAM_desc_t *U, const CHAM_desc_t *H,
 {
     CHAM_context_t *chamctxt;
     int ib, nb = U->nb;
+    int Pu, Qu, Ph, Qh;
 
     chamctxt = chameleon_context_self();
     ib = CHAMELEON_IB;
@@ -107,35 +108,20 @@ chameleon_pzgepdf_qdwh_init( const CHAM_desc_t *U, const CHAM_desc_t *H,
      * only tiles involved in the higher levels of the reduction tree are
      * generated.
      */
-    chameleon_desc_init( TS1, CHAMELEON_MAT_ALLOC_TILE,
-                         ChamComplexDouble, ib, nb, ib * nb,
-                         ib * U->mt, nb * U->nt, 0, 0,
-                         ib * U->mt, nb * U->nt,
-                         chameleon_desc_datadist_get_iparam(U, 0),
-                         chameleon_desc_datadist_get_iparam(U, 1),
-                         NULL, NULL, NULL, NULL );
-    chameleon_desc_init( TT1, CHAMELEON_MAT_ALLOC_TILE,
-                         ChamComplexDouble, ib, nb, ib * nb,
-                         ib * U->mt, nb * U->nt, 0, 0,
-                         ib * U->mt, nb * U->nt,
-                         chameleon_desc_datadist_get_iparam(H, 0),
-                         chameleon_desc_datadist_get_iparam(H, 1),
-                         NULL, NULL, NULL, NULL );
+    Pu = chameleon_desc_datadist_get_iparam(U, 0);
+    Qu = chameleon_desc_datadist_get_iparam(U, 1);
+    Ph = chameleon_desc_datadist_get_iparam(H, 0);
+    Qh = chameleon_desc_datadist_get_iparam(H, 1);
 
-    chameleon_desc_init( TS2, CHAMELEON_MAT_ALLOC_TILE,
-                         ChamComplexDouble, ib, nb, ib * nb,
-                         ib * H->mt, nb * H->nt, 0, 0,
-                         ib * H->mt, nb * H->nt,
-                         chameleon_desc_datadist_get_iparam(U, 0),
-                         chameleon_desc_datadist_get_iparam(U, 1),
-                         NULL, NULL, NULL, NULL );
-    chameleon_desc_init( TT2, CHAMELEON_MAT_ALLOC_TILE,
-                         ChamComplexDouble, ib, nb, ib * nb,
-                         ib * H->mt, nb * H->nt, 0, 0,
-                         ib * H->mt, nb * H->nt,
-                         chameleon_desc_datadist_get_iparam(H, 0),
-                         chameleon_desc_datadist_get_iparam(H, 1),
-                         NULL, NULL, NULL, NULL );
+    chameleon_desc_init_2dtile( TS1, "GEPDF_QDWH_TS1", ChamComplexDouble,
+                                ib, nb, ib * U->mt, nb * U->nt, Pu, Qu );
+    chameleon_desc_init_2dtile( TT1, "GEPDF_QDWH_TT1", ChamComplexDouble,
+                                ib, nb, ib * U->mt, nb * U->nt, Pu, Qu );
+
+    chameleon_desc_init_2dtile( TS2, "GEPDF_QDWH_TS2", ChamComplexDouble,
+                                ib, nb, ib * H->mt, nb * H->nt, Ph, Qh );
+    chameleon_desc_init_2dtile( TT2, "GEPDF_QDWH_TT2", ChamComplexDouble,
+                                ib, nb, ib * H->mt, nb * H->nt, Ph, Qh );
 
     /*
      * Create the adapted trees to perform the QR factorizations
@@ -176,13 +162,8 @@ chameleon_pzgepdf_qdwh_init( const CHAM_desc_t *U, const CHAM_desc_t *H,
     /*
      * Let's create a transposed version of U for the solve step in the Cholesky iteration.
      */
-    chameleon_desc_init( Ut, CHAMELEON_MAT_ALLOC_TILE,
-                         ChamComplexDouble, U->mb, U->nb, U->mb * U->nb,
-                         U->n, U->m, 0, 0,
-                         U->n, U->m,
-                         chameleon_desc_datadist_get_iparam(U, 0),
-                         chameleon_desc_datadist_get_iparam(U, 1),
-                         NULL, NULL, NULL, NULL );
+    chameleon_desc_init_2dtile( Ut, "GEPDF_QDWH_Ut", ChamComplexDouble,
+                                U->mb, U->nb, U->n, U->m, Pu, Qu );
 
     /*
      * Allocate the data descriptors for the lookahead if needed

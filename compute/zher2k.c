@@ -18,7 +18,7 @@
  * @author Emmanuel Agullo
  * @author Cedric Castagnede
  * @author Florent Pruvost
- * @date 2024-02-18
+ * @date 2025-10-16
  * @precisions normal z -> c
  *
  */
@@ -176,11 +176,11 @@ int CHAMELEON_zher2k( cham_uplo_t uplo, cham_trans_t trans, int N, int K,
     chameleon_sequence_create( chamctxt, &sequence );
 
     /* Submit the matrix conversion */
-    chameleon_zlap2tile( chamctxt, &descAl, &descAt, ChamDescInput, ChamUpperLower,
+    chameleon_zlap2tile( chamctxt, "A", &descAl, &descAt, ChamDescInput, ChamUpperLower,
                      A, NB, NB, LDA, An, Am, An, sequence, &request );
-    chameleon_zlap2tile( chamctxt, &descBl, &descBt, ChamDescInput, ChamUpperLower,
+    chameleon_zlap2tile( chamctxt, "B", &descBl, &descBt, ChamDescInput, ChamUpperLower,
                      B, NB, NB, LDB, An, Am, An, sequence, &request );
-    chameleon_zlap2tile( chamctxt, &descCl, &descCt, ChamDescInout, uplo,
+    chameleon_zlap2tile( chamctxt, "C", &descCl, &descCt, ChamDescInout, uplo,
                      C, NB, NB, LDC, N, N,  N, sequence, &request );
 
     /* Call the tile interface */

@@ -13,7 +13,7 @@
  *
  * @version 1.3.0
  * @author Alycia Lisito
- * @date 2024-02-18
+ * @date 2025-10-16
  * @precisions normal z -> c d s
  *
  */
@@ -115,7 +115,7 @@ int CHAMELEON_zplgtr( CHAMELEON_Complex64_t bump, cham_uplo_t uplo,
     chameleon_sequence_create( chamctxt, &sequence );
 
     /* Submit the matrix conversion */
-    chameleon_zlap2tile( chamctxt, &descAl, &descAt, ChamDescOutput, uplo,
+    chameleon_zlap2tile( chamctxt, "A", &descAl, &descAt, ChamDescOutput, uplo,
                          A, NB, NB, LDA, N, M, N, sequence, &request );
 
     /* Call the tile interface */

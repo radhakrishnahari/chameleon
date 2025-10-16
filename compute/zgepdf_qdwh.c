@@ -13,7 +13,7 @@
  * @version 1.3.0
  * @author Mathieu Faverge
  * @author Hatem Ltaief
- * @date 2024-02-18
+ * @date 2025-10-16
  * @precisions normal z -> s d c
  *
  */
@@ -133,9 +133,9 @@ int CHAMELEON_zgepdf_qdwh( int M, int N,
     chameleon_sequence_create( chamctxt, &sequence );
 
     /* Submit the matrix conversion */
-    chameleon_zlap2tile( chamctxt, &descAl, &descAt, ChamDescInout, ChamUpperLower,
+    chameleon_zlap2tile( chamctxt, "A", &descAl, &descAt, ChamDescInout, ChamUpperLower,
                          A, NB, NB, LDA, N, M, N, sequence, &request );
-    chameleon_zlap2tile( chamctxt, &descHl, &descHt, ChamDescOutput, ChamUpperLower,
+    chameleon_zlap2tile( chamctxt, "H", &descHl, &descHt, ChamDescOutput, ChamUpperLower,
                          H, NB, NB, LDH, N, N, N, sequence, &request );
 
     /* Call the tile interface */

@@ -23,7 +23,7 @@
  * @author Xavier Lacoste
  * @author Pierre Esterie
  * @author Matteo Marcos
- * @date 2025-10-15
+ * @date 2025-10-16
  *
  * @precisions normal z -> s d c
  *
@@ -151,9 +151,9 @@ CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A )
         /* Allocation of Wl for permutation of the panels */
         lookahead = chamctxt->lookahead;
         ws->Wl = malloc( sizeof(CHAM_desc_t) );
-        chameleon_desc_init( ws->Wl, CHAMELEON_MAT_ALLOC_TILE,
-                             ChamComplexDouble, A->mb, A->nb, (A->mb * A->nb),
-                             A->mt * A->mb, A->nb * Q * lookahead, 0, 0,
+        chameleon_desc_init( ws->Wl, "GETRF_Wl", CHAMELEON_MAT_ALLOC_TILE,
+                             ChamComplexDouble, A->mb, A->nb,
+                             A->mt * A->mb, A->nb * Q * lookahead,
                              A->mt * A->mb, A->nb * Q * lookahead, P, Q,
                              NULL, NULL, A->get_rankof_init, A->get_rankof_init_arg );
     }
@@ -166,9 +166,9 @@ CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A )
     /* Allocation of Up for the permutation of the diagonal panel per block */
     if ( ws->alg == ChamGetrfPPiv ) {
         ws->Up = malloc( sizeof(CHAM_desc_t) );
-        chameleon_desc_init( ws->Up, CHAMELEON_MAT_ALLOC_TILE,
-                             ChamComplexDouble, ws->ib, A->nb, ws->ib * A->nb,
-                             P * Q * ws->ib, A->nb, 0, 0,
+        chameleon_desc_init( ws->Up, "GETRF_Up", CHAMELEON_MAT_ALLOC_TILE,
+                             ChamComplexDouble, ws->ib, A->nb,
+                             P * Q * ws->ib, A->nb,
                              P * Q * ws->ib, A->nb, P * Q, 1,
                              NULL, NULL, A->get_rankof_init, A->get_rankof_init_arg );
     }
@@ -314,7 +314,7 @@ CHAMELEON_zgetrf( int M, int N, CHAMELEON_Complex64_t *A, int LDA, int *IPIV )
     chameleon_sequence_create( chamctxt, &sequence );
 
     /* Submit the matrix conversion */
-    chameleon_zlap2tile( chamctxt, &descAl, &descAt, ChamDescInout, ChamUpperLower,
+    chameleon_zlap2tile( chamctxt, "A", &descAl, &descAt, ChamDescInout, ChamUpperLower,
                          A, NB, NB, LDA, N, M, N, sequence, &request );
 
     /* Allocate workspace for partial pivoting */

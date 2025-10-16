@@ -16,7 +16,7 @@
  * @author Mathieu Faverge
  * @author Hatem Ltaief
  * @author Florent Pruvost
- * @date 2024-02-18
+ * @date 2025-10-16
  * @precisions normal z -> s d c
  *
  */
@@ -141,7 +141,7 @@ double CHAMELEON_zlange( cham_normtype_t norm, int M, int N,
     chameleon_sequence_create( chamctxt, &sequence );
 
     /* Submit the matrix conversion */
-    chameleon_zlap2tile( chamctxt, &descAl, &descAt, ChamDescInput, ChamUpperLower,
+    chameleon_zlap2tile( chamctxt, "A", &descAl, &descAt, ChamDescInput, ChamUpperLower,
                          A, NB, NB, LDA, N, M, N, sequence, &request );
 
     /* Call the tile interface */

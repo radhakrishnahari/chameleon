@@ -18,7 +18,7 @@
  * @author Mathieu Faverge
  * @author Raphael Boucherie
  * @author Pierre Esterie
- * @date 2024-11-13
+ * @date 2025-10-16
  * @precisions normal z -> s d c
  *
  */
@@ -163,7 +163,7 @@ int CHAMELEON_zhetrd( cham_job_t jobz, cham_uplo_t uplo, int N,
     chameleon_sequence_create( chamctxt, &sequence );
 
     /* Submit the matrix conversion */
-    chameleon_zlap2tile( chamctxt, &descAl, &descAt, ChamDescInout, uplo,
+    chameleon_zlap2tile( chamctxt, "A", &descAl, &descAt, ChamDescInout, uplo,
                          A, NB, NB, LDA, N, N, N, sequence, &request );
 
     /* Call the tile interface */
@@ -392,7 +392,7 @@ int CHAMELEON_zhetrd_Tile_Async( cham_job_t jobz,
     NB = descA.mb;
 #if defined(CHAMELEON_COPY_DIAG)
     {
-        chameleon_zdesc_alloc_diag( &D, A->mb, A->m, A->n,
+        chameleon_zdesc_alloc_diag( &D, "HETRD_D", A->mb, A->m, A->n,
                                     chameleon_desc_datadist_get_iparam(A, 0),
                                     chameleon_desc_datadist_get_iparam(A, 1) );
         Dptr = &D;
@@ -405,10 +405,8 @@ int CHAMELEON_zhetrd_Tile_Async( cham_job_t jobz,
     LDAB = NB+1;
 
     /* Allocate band structure */
-    chameleon_zdesc_alloc( descAB,
+    chameleon_zdesc_alloc( descAB, "HETRD_AB",
                            LDAB, NB, /* mb, nb */
-                           LDAB, N,  /* lm, ln */
-                           0, 0,     /* i, j */
                            LDAB, N,  /* m, n */
                             );
 

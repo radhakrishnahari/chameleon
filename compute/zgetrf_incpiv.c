@@ -19,7 +19,7 @@
  * @author Emmanuel Agullo
  * @author Cedric Castagnede
  * @author Florent Pruvost
- * @date 2024-02-18
+ * @date 2025-10-16
  * @precisions normal z -> s d c
  *
  */
@@ -119,7 +119,7 @@ int CHAMELEON_zgetrf_incpiv( int M, int N,
     chameleon_sequence_create( chamctxt, &sequence );
 
     /* Submit the matrix conversion */
-    chameleon_zlap2tile( chamctxt, &descAl, &descAt, ChamDescInout, ChamUpperLower,
+    chameleon_zlap2tile( chamctxt, "A", &descAl, &descAt, ChamDescInout, ChamUpperLower,
                      A, NB, NB, LDA, N, M, N, sequence, &request );
 
     /* Call the tile interface */

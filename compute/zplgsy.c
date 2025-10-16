@@ -20,7 +20,7 @@
  * @author Cedric Castagnede
  * @author Mathis Rade
  * @author Florent Pruvost
- * @date 2024-02-18
+ * @date 2025-10-16
  * @precisions normal z -> c d s
  *
  */
@@ -110,7 +110,7 @@ int CHAMELEON_zplgsy( CHAMELEON_Complex64_t bump, cham_uplo_t uplo, int N,
     chameleon_sequence_create( chamctxt, &sequence );
 
     /* Submit the matrix conversion */
-    chameleon_zlap2tile( chamctxt, &descAl, &descAt, ChamDescOutput, uplo,
+    chameleon_zlap2tile( chamctxt, "A", &descAl, &descAt, ChamDescOutput, uplo,
                      A, NB, NB, LDA, N, N, N, sequence, &request );
 
     /* Call the tile interface */

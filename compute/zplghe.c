@@ -21,7 +21,7 @@
  * @author Mathis Rade
  * @author Florent Pruvost
  * @author Alycia Lisito
- * @date 2024-02-18
+ * @date 2025-10-16
  * @precisions normal z -> c
  *
  */
@@ -112,7 +112,7 @@ int CHAMELEON_zplghe( double bump, cham_uplo_t uplo, int N,
     chameleon_sequence_create( chamctxt, &sequence );
 
     /* Submit the matrix conversion */
-    chameleon_zlap2tile( chamctxt, &descAl, &descAt, ChamDescOutput, uplo,
+    chameleon_zlap2tile( chamctxt, "A", &descAl, &descAt, ChamDescOutput, uplo,
                      A, NB, NB, LDA, N, N, N, sequence, &request );
 
     /* Call the tile interface */

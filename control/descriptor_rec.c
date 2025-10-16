@@ -15,7 +15,7 @@
  * @author Mathieu Faverge
  * @author Gwenole Lucas
  * @author Lionel Eyraud-Dubois
- * @date 2025-01-24
+ * @date 2025-10-16
  *
  */
 #include "control/common.h"
@@ -52,9 +52,9 @@ chameleon_recdesc_create( const char *name, CHAM_desc_t **descptr, void *mat, ch
 
     /* Create the current layer descriptor */
     desc = (CHAM_desc_t*)malloc(sizeof(CHAM_desc_t));
-    rc = chameleon_desc_init_internal( desc, name, mat, dtyp, mb[0], nb[0],
-                                       lm, ln, m, n, p, q,
-                                       get_blkaddr, get_blkldd, get_rankof, get_rankof_arg );
+    rc = chameleon_desc_init( desc, name, mat, dtyp, mb[0], nb[0],
+                              lm, ln, m, n, p, q,
+                              get_blkaddr, get_blkldd, get_rankof, get_rankof_arg );
     *descptr = desc;
 
     if ( rc != CHAMELEON_SUCCESS ) {

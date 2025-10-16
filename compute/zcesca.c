@@ -13,7 +13,7 @@
  * @author Florent Pruvost
  * @author Lionel Eyraud-Dubois
  * @author Pierre Esterie
- * @date 2024-11-13
+ * @date 2025-10-16
  * @precisions normal z -> s d c z
  *
  */
@@ -45,9 +45,10 @@
  */
 void *CHAMELEON_zcesca_WS_Alloc( const CHAM_desc_t *A )
 {
-    CHAM_context_t *chamctxt;
+    CHAM_context_t             *chamctxt;
     struct chameleon_pzcesca_s *options;
-    int workmt, worknt;
+    int                         workmt, worknt;
+    int                         P, Q;
 
     chamctxt = chameleon_context_self();
     if ( chamctxt == NULL ) {
@@ -56,48 +57,25 @@ void *CHAMELEON_zcesca_WS_Alloc( const CHAM_desc_t *A )
 
     options = calloc( 1, sizeof(struct chameleon_pzcesca_s) );
 
-    workmt = chameleon_max( A->mt, chameleon_desc_datadist_get_iparam(A, 0) );
-    worknt = chameleon_max( A->nt, chameleon_desc_datadist_get_iparam(A, 1) );
+    P = chameleon_desc_datadist_get_iparam(A, 0);
+    Q = chameleon_desc_datadist_get_iparam(A, 1);
+    workmt = chameleon_max( A->mt, P );
+    worknt = chameleon_max( A->nt, Q );
 
-    chameleon_desc_init( &(options->Wgcol), CHAMELEON_MAT_ALLOC_TILE,
-                         ChamComplexDouble, 1, A->nb, A->nb,
-                         workmt, A->n, 0, 0,
-                         workmt, A->n,
-                         chameleon_desc_datadist_get_iparam(A, 0),
-                         chameleon_desc_datadist_get_iparam(A, 1),
-                         NULL, NULL, NULL, NULL );
+    chameleon_desc_init_2dtile( &(options->Wgcol), "CESCA_Wgcol", ChamComplexDouble,
+                                1, A->nb, workmt, A->n, P, Q );
 
-    chameleon_desc_init( &(options->Wgrow), CHAMELEON_MAT_ALLOC_TILE,
-                         ChamComplexDouble, A->mb, 1, A->mb,
-                         A->m, worknt, 0, 0,
-                         A->m, worknt,
-                         chameleon_desc_datadist_get_iparam(A, 0),
-                         chameleon_desc_datadist_get_iparam(A, 1),
-                         NULL, NULL, NULL, NULL );
+    chameleon_desc_init_2dtile( &(options->Wgrow), "CESCA_Wgrow", ChamComplexDouble,
+                                A->mb, 1, A->m, worknt, P, Q );
 
-    chameleon_desc_init( &(options->Wgelt), CHAMELEON_MAT_ALLOC_TILE,
-                         ChamComplexDouble, 1, 1, 1,
-                         1, worknt, 0, 0,
-                         1, worknt,
-                         chameleon_desc_datadist_get_iparam(A, 0),
-                         chameleon_desc_datadist_get_iparam(A, 1),
-                         NULL, NULL, NULL, NULL );
+    chameleon_desc_init_2dtile( &(options->Wgelt), "CESCA_Wgelt", ChamComplexDouble,
+                                1, 1, 1, worknt, P, Q );
 
-    chameleon_desc_init( &(options->Wdcol), CHAMELEON_MAT_ALLOC_TILE,
-                         ChamRealDouble, 2, A->nb, 2*A->nb,
-                         2*workmt, A->n, 0, 0,
-                         2*workmt, A->n,
-                         chameleon_desc_datadist_get_iparam(A, 0),
-                         chameleon_desc_datadist_get_iparam(A, 1),
-                         NULL, NULL, NULL, NULL );
+    chameleon_desc_init_2dtile( &(options->Wdcol), "CESCA_Wdcol", ChamRealDouble,
+                                2, A->nb, 2*workmt, A->n, P, Q );
 
-    chameleon_desc_init( &(options->Wdrow), CHAMELEON_MAT_ALLOC_TILE,
-                         ChamRealDouble, A->mb, 2, 2*A->mb,
-                         A->m, 2*worknt, 0, 0,
-                         A->m, 2*worknt,
-                         chameleon_desc_datadist_get_iparam(A, 0),
-                         chameleon_desc_datadist_get_iparam(A, 1),
-                         NULL, NULL, NULL, NULL );
+    chameleon_desc_init_2dtile( &(options->Wdrow), "CESCA_Wdrow", ChamRealDouble,
+                                A->mb, 2, A->m, 2*worknt, P, Q );
 
     return (void*)options;
 }
@@ -213,7 +191,7 @@ void CHAMELEON_zcesca_WS_Free( void *user_ws )
  *
  *******************************************************************************
  *
-* @retval CHAMELEON_SUCCESS successful exit
+ * @retval CHAMELEON_SUCCESS successful exit
  *
  *******************************************************************************
  *
@@ -282,7 +260,7 @@ int CHAMELEON_zcesca(int center, int scale, cham_store_t axis,
     chameleon_sequence_create( chamctxt, &sequence );
 
     /* Submit the matrix conversion */
-    chameleon_zlap2tile( chamctxt, &descAl, &descAt, ChamDescInput, ChamUpperLower,
+    chameleon_zlap2tile( chamctxt, "A", &descAl, &descAt, ChamDescInput, ChamUpperLower,
                          A, NB, NB, LDA, N, M, N, sequence, &request );
 
     /* Call the tile interface */
