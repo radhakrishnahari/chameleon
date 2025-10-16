@@ -44,6 +44,8 @@ void chameleon_pzgetrf_nopiv_generic( CHAM_desc_t        *A,
 
     int k, m, n, ib;
     int tempkm, tempkn, tempmm, tempnn;
+    int min_mnt = chameleon_min( A->mt, A->nt );
+    int kmin, kmax;
 
     CHAMELEON_Complex64_t zone  = (CHAMELEON_Complex64_t) 1.0;
     CHAMELEON_Complex64_t mzone = (CHAMELEON_Complex64_t)-1.0;
@@ -69,7 +71,10 @@ void chameleon_pzgetrf_nopiv_generic( CHAM_desc_t        *A,
         RUNTIME_set_minmax_submitted_tasks( mintasks, maxtasks );
     }
 
-    for (k = 0; k < chameleon_min(A->mt, A->nt); k++) {
+    kmin = chameleon_max( 0,       chamctxt->first_step );
+    kmax = chameleon_min( min_mnt, chamctxt->last_step  );
+    for (k = kmin; k < kmax; k++ ) {
+
         RUNTIME_iteration_push(chamctxt, k);
 
         tempkm = A->get_blkdim( A, k, DIM_m, A->m );
