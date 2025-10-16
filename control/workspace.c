@@ -15,7 +15,7 @@
  * @author Mathieu Faverge
  * @author Cedric Castagnede
  * @author Florent Pruvost
- * @date 2025-01-29
+ * @date 2025-10-16
  *
  ***
  *
@@ -73,8 +73,11 @@ int chameleon_alloc_ibnb_tile(int M, int N, cham_tasktype_t func, int type, CHAM
     lm = (int64_t)IB * (int64_t)MT;
     ln = (int64_t)NB * (int64_t)NT;
 
-    return CHAMELEON_Desc_Create( desc, CHAMELEON_MAT_ALLOC_TILE, type, IB, NB, IB*NB,
-                                  lm, ln, 0, 0, lm, ln, p, q );
+    *desc = (CHAM_desc_t*)malloc(sizeof(CHAM_desc_t));
+    chameleon_desc_init_2dtile( *desc, "TS", type, IB, NB,
+                                lm, ln, p, q );
+
+    return CHAMELEON_SUCCESS;
 }
 
 /**
@@ -116,11 +119,15 @@ int chameleon_alloc_ipiv(int M, int N, cham_tasktype_t func, int type, CHAM_desc
         *IPIV = NULL;
         return CHAMELEON_SUCCESS;
     }
+
     /* TODO: Fix the distribution for IPIV */
     *IPIV = (int*)malloc( size );
+    *desc = (CHAM_desc_t*)malloc(sizeof(CHAM_desc_t));
 
-    return CHAMELEON_Desc_Create( desc, CHAMELEON_MAT_ALLOC_TILE, type, IB, NB, IB*NB,
-                                  lm, ln, 0, 0, lm, ln, p, q );
+    chameleon_desc_init_2dtile( *desc, "ipiv", type, IB, NB,
+                                lm, ln, p, q );
+
+    return CHAMELEON_SUCCESS;
 }
 
 /**
