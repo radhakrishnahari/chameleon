@@ -597,11 +597,9 @@ CHAMELEON_Desc_SubMatrix( CHAM_desc_t *descA, int i, int j, int m, int n )
 int CHAMELEON_Desc_Create( CHAM_desc_t **descptr, void *mat, cham_flttype_t dtyp, int mb, int nb, int bsiz,
                            int lm, int ln, int i, int j, int m, int n, int p, int q )
 {
-    blkrankof_fct_t get_rankof = NULL;
-
     return CHAMELEON_Desc_Create_User( descptr, mat, dtyp, mb, nb, bsiz,
                                        lm, ln, i, j, m, n, p, q,
-                                       NULL, NULL, get_rankof, NULL );
+                                       NULL, NULL, NULL, NULL );
 }
 
 /**
