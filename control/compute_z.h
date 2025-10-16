@@ -358,27 +358,28 @@ void chameleon_pzgram( struct chameleon_pzgram_s *ws, cham_uplo_t uplo, CHAM_des
  *  Macro for matrix conversion / Lapack interface
  */
 static inline int
-chameleon_zdesc_alloc_diag( CHAM_desc_t *descA, int nb, int m, int n, int p, int q ) {
+chameleon_zdesc_alloc_diag( CHAM_desc_t *descA, const char *name,
+                            int nb, int m, int n, int p, int q )
+{
     int diag_m = chameleon_min( m, n );
     return chameleon_desc_init( descA, "Diag", CHAMELEON_MAT_ALLOC_TILE,
-                                ChamComplexDouble, nb, nb,
-                                diag_m, nb, diag_m, nb, p, q,
+                                ChamComplexDouble, nb, nb, diag_m, nb, diag_m, nb, p, q,
                                 chameleon_getaddr_diag,
                                 chameleon_getblkldd_ccrb,
                                 chameleon_getrankof_2d_diag, NULL );
 }
 
-#define chameleon_zdesc_alloc( descA, mb, nb, lm, ln, i, j, m, n, free) \
-    {                                                                   \
-        int rc;                                                         \
-        rc = chameleon_desc_init( &(descA), NULL, CHAMELEON_MAT_ALLOC_GLOBAL, \
-                                  ChamComplexDouble, (mb), (nb),        \
-                                  (m), (n), (m), (n), 1, 1,             \
-                                  NULL, NULL, NULL, NULL );             \
-        if ( rc != CHAMELEON_SUCCESS ) {                                \
-            {free;}                                                     \
-            return rc;                                                  \
-        }                                                               \
+#define chameleon_zdesc_alloc( descA, name, mb, nb, m, n, free) \
+    {                                                           \
+        int rc;                                                 \
+        rc = chameleon_desc_init_local( &(descA), name,         \
+                                        ChamComplexDouble,      \
+                                        (mb), (nb),             \
+                                        (m), (n) );             \
+        if ( rc != CHAMELEON_SUCCESS ) {                        \
+            {free;}                                             \
+            return rc;                                          \
+        }                                                       \
     }
 
 /**
@@ -402,7 +403,9 @@ chameleon_zdesc_copy_and_restrict( const CHAM_desc_t *descIn,
                               m, n, m, n,
                               chameleon_desc_datadist_get_iparam(descIn, 0),
                               chameleon_desc_datadist_get_iparam(descIn, 1),
-                              NULL, NULL, descIn->get_rankof_init, descIn->get_rankof_init_arg );
+                              NULL, NULL,
+                              descIn->get_rankof_init,
+                              descIn->get_rankof_init_arg );
     free( subname );
     return rc;
 }

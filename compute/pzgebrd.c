@@ -16,7 +16,7 @@
  * @author Azzam Haidar
  * @author Mathieu Faverge
  * @author Alycia Lisito
- * @date 2024-02-18
+ * @date 2025-10-16
  * @precisions normal z -> s d c
  *
  */
@@ -199,10 +199,9 @@ chameleon_pzgebrd_gb2bd( cham_job_t jobu, cham_job_t jobvt, CHAM_desc_t *A,
     ABn   = MINMN;
 
     /* Allocate band structure */
-    chameleon_zdesc_alloc( descAB, LDAB, NB, /* mb, nb */
-                           LDAB, ABn,        /* lm, ln */
-                           0, 0,             /* i,  j  */
-                           LDAB, ABn,        /* m,  n  */
+    chameleon_zdesc_alloc( descAB, "GEBRD_AB",
+                           LDAB, NB,  /* mb, nb */
+                           LDAB, ABn, /* m,  n  */
                            NULL );
 
     /* Convert matrix to band form */

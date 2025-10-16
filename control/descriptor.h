@@ -55,6 +55,15 @@ int chameleon_desc_init( CHAM_desc_t *desc, const char *name, void *mat,
                          int   (*get_rankof) ( const CHAM_desc_t*, int, int ),
                          void* get_rankof_arg );
 
+static inline int
+chameleon_desc_init_local( CHAM_desc_t *desc, const char *name,
+                           cham_flttype_t dtyp, int mb, int nb, int m, int n )
+{
+    return chameleon_desc_init( desc, name, CHAMELEON_MAT_ALLOC_GLOBAL,
+                                dtyp, mb, nb, m, n, m, n, 1, 1,
+                                NULL, NULL, NULL, NULL );
+}
+
 CHAM_desc_t* chameleon_desc_submatrix( CHAM_desc_t *descA, int i, int j, int m, int n );
 void         chameleon_desc_destroy  ( CHAM_desc_t *desc );
 int          chameleon_desc_check    ( const CHAM_desc_t *desc );
