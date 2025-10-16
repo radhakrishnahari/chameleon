@@ -15,7 +15,7 @@
  * @version 1.3.0
  * @author Mathieu Faverge
  * @author Raphael Boucherie
- * @date 2024-02-18
+ * @date 2025-10-16
  * @precisions normal z -> s d c
  *
  */
@@ -207,13 +207,13 @@ int CHAMELEON_ztpgqrt( int M, int N, int K, int L,
     chameleon_sequence_create( chamctxt, &sequence );
 
     /* Submit the matrix conversion */
-    chameleon_zlap2tile( chamctxt, &descV1l, &descV1t, ChamDescInput, ChamUpperLower,
+    chameleon_zlap2tile( chamctxt, "V1", &descV1l, &descV1t, ChamDescInput, ChamUpperLower,
                      V1, NB, NB, LDV1, K, M, K, sequence, &request );
-    chameleon_zlap2tile( chamctxt, &descV2l, &descV2t, ChamDescInput, ChamUpperLower,
+    chameleon_zlap2tile( chamctxt, "V2", &descV2l, &descV2t, ChamDescInput, ChamUpperLower,
                      V2, NB, NB, LDV2, K, M, K, sequence, &request );
-    chameleon_zlap2tile( chamctxt, &descQ1l, &descQ1t, ChamDescInout, ChamUpperLower,
+    chameleon_zlap2tile( chamctxt, "Q1", &descQ1l, &descQ1t, ChamDescInout, ChamUpperLower,
                      Q1, NB, NB, LDQ1, N, K, N, sequence, &request );
-    chameleon_zlap2tile( chamctxt, &descQ2l, &descQ2t, ChamDescInout, ChamUpperLower,
+    chameleon_zlap2tile( chamctxt, "Q2", &descQ2l, &descQ2t, ChamDescInout, ChamUpperLower,
                      Q2, NB, NB, LDQ2, N, M, N, sequence, &request );
 
     /* Call the tile interface */

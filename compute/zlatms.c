@@ -13,7 +13,7 @@
  * @version 1.3.0
  * @author Mathieu Faverge
  * @author Alycia Lisito
- * @date 2024-02-18
+ * @date 2025-10-16
  * @precisions normal z -> s d c
  *
  */
@@ -173,7 +173,7 @@ int CHAMELEON_zlatms( int M, int N, cham_dist_t idist,
     chameleon_sequence_create( chamctxt, &sequence );
 
     /* Submit the matrix conversion */
-    chameleon_zlap2tile( chamctxt, &descAl, &descAt, ChamDescOutput, ChamUpperLower,
+    chameleon_zlap2tile( chamctxt, "A", &descAl, &descAt, ChamDescOutput, ChamUpperLower,
                          A, NB, NB, LDA, N, M, N, sequence, &request );
 
     /* Call the tile interface */

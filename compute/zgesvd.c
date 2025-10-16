@@ -16,7 +16,7 @@
  * @author Mathieu Faverge
  * @author Raphael Boucherie
  * @author Alycia Lisito
- * @date 2025-01-29
+ * @date 2025-10-16
  * @precisions normal z -> s d c
  *
  */
@@ -214,7 +214,7 @@ int CHAMELEON_zgesvd( cham_job_t jobu, cham_job_t jobvt,
     chameleon_sequence_create( chamctxt, &sequence );
 
     /* Submit the matrix conversion */
-    chameleon_zlap2tile( chamctxt, &descAl, &descAt, ChamDescInout, ChamUpperLower,
+    chameleon_zlap2tile( chamctxt, "A", &descAl, &descAt, ChamDescInout, ChamUpperLower,
                          A, NB, NB,  LDA, N, M, N, sequence, &request );
 
     /* Call the tile interface */

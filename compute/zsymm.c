@@ -359,11 +359,11 @@ int CHAMELEON_zsymm( cham_side_t side, cham_uplo_t uplo, int M, int N,
     chameleon_sequence_create( chamctxt, &sequence );
 
     /* Submit the matrix conversion */
-    chameleon_zlap2tile( chamctxt, &descAl, &descAt, ChamDescInput, uplo,
+    chameleon_zlap2tile( chamctxt, "A", &descAl, &descAt, ChamDescInput, uplo,
                          A, NB, NB, LDA, Am, Am, Am, sequence, &request );
-    chameleon_zlap2tile( chamctxt, &descBl, &descBt, ChamDescInput, ChamUpperLower,
+    chameleon_zlap2tile( chamctxt, "B", &descBl, &descBt, ChamDescInput, ChamUpperLower,
                          B, NB, NB, LDB, N, M,  N, sequence, &request );
-    chameleon_zlap2tile( chamctxt, &descCl, &descCt, ChamDescInout, ChamUpperLower,
+    chameleon_zlap2tile( chamctxt, "C", &descCl, &descCt, ChamDescInout, ChamUpperLower,
                          C, NB, NB, LDC, N, M,  N, sequence, &request );
 
     /* Call the tile interface */

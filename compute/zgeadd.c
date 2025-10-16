@@ -16,7 +16,7 @@
  *          from Plasma 2.5.0 for CHAMELEON 0.9.2
  * @author Mathieu Faverge
  * @author Florent Pruvost
- * @date 2024-04-03
+ * @date 2025-10-16
  * @precisions normal z -> s d c
  *
  */
@@ -150,9 +150,9 @@ int CHAMELEON_zgeadd( cham_trans_t trans, int M, int N,
     chameleon_sequence_create( chamctxt, &sequence );
 
     /* Submit the matrix conversion */
-    chameleon_zlap2tile( chamctxt, &descAl, &descAt, ChamDescInput, ChamUpperLower,
+    chameleon_zlap2tile( chamctxt, "A", &descAl, &descAt, ChamDescInput, ChamUpperLower,
                      A, NB, NB, LDA, An, Am, An, sequence, &request );
-    chameleon_zlap2tile( chamctxt, &descBl, &descBt, ChamDescInout, ChamUpperLower,
+    chameleon_zlap2tile( chamctxt, "B", &descBl, &descBt, ChamDescInout, ChamUpperLower,
                      B, NB, NB, LDB, N, M, N, sequence, &request );
 
     /* Call the tile interface */

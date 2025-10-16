@@ -415,23 +415,28 @@ chameleon_zdesc_copy_and_restrict( const CHAM_desc_t *descIn,
  * LAPACK interface calls
  */
 static inline int
-chameleon_zlap2tile( CHAM_context_t *chamctxt,
+chameleon_zlap2tile( CHAM_context_t *chamctxt, const char *name,
                      CHAM_desc_t *descAl, CHAM_desc_t *descAt,
                      int mode, cham_uplo_t uplo,
                      CHAMELEON_Complex64_t *A, int mb, int nb, int lm, int ln, int m, int n,
                      RUNTIME_sequence_t *seq, RUNTIME_request_t *req )
 {
+    char *fullname;
     if ( CHAMELEON_TRANSLATION == ChamOutOfPlace ) {
         /* Initialize the Lapack descriptor */
-        chameleon_desc_init( descAl, NULL, A, ChamComplexDouble, mb, nb,
+        chameleon_asprintf( &fullname, "%sl", name );
+        chameleon_desc_init( descAl, fullname, A, ChamComplexDouble, mb, nb,
                              lm, ln, m, n, 1, 1,
                              chameleon_getaddr_cm, chameleon_getblkldd_cm, NULL, NULL );
         descAl->styp = ChamCM;
+        free( fullname );
 
         /* Initialize the tile descriptor */
-        chameleon_desc_init( descAt, NULL, CHAMELEON_MAT_ALLOC_TILE, ChamComplexDouble, mb, nb,
+        chameleon_asprintf( &fullname, "%st", name );
+        chameleon_desc_init( descAt, fullname, CHAMELEON_MAT_ALLOC_TILE, ChamComplexDouble, mb, nb,
                              lm, ln, m, n, 1, 1,
                              chameleon_getaddr_ccrb, chameleon_getblkldd_ccrb, NULL, NULL );
+        free( fullname );
 
         if ( mode & ChamDescInput ) {
             chameleon_pzlacpy( uplo, descAl, descAt, seq, req );
@@ -439,9 +444,11 @@ chameleon_zlap2tile( CHAM_context_t *chamctxt,
     }
     else {
         /* Initialize the tile descriptor */
-        chameleon_desc_init( descAt, NULL, A, ChamComplexDouble, mb, nb,
+        chameleon_asprintf( &fullname, "%st", name );
+        chameleon_desc_init( descAt, fullname, A, ChamComplexDouble, mb, nb,
                              lm, ln, m, n, 1, 1,
                              chameleon_getaddr_cm, chameleon_getblkldd_cm, NULL, NULL );
+        free( fullname );
     }
     return CHAMELEON_SUCCESS;
 }

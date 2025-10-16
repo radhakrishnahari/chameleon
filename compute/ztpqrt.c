@@ -14,7 +14,7 @@
  *
  * @version 1.3.0
  * @author Mathieu Faverge
- * @date 2024-02-18
+ * @date 2025-10-16
  * @precisions normal z -> s d c
  *
  */
@@ -182,9 +182,9 @@ int CHAMELEON_ztpqrt( int M, int N, int L,
     chameleon_sequence_create( chamctxt, &sequence );
 
     /* Submit the matrix conversion */
-    chameleon_zlap2tile( chamctxt, &descAl, &descAt, ChamDescInout, ChamUpper,
+    chameleon_zlap2tile( chamctxt, "A", &descAl, &descAt, ChamDescInout, ChamUpper,
                      A, NB, NB, LDA, N, N, N, sequence, &request );
-    chameleon_zlap2tile( chamctxt, &descBl, &descBt, ChamDescInout, ChamUpperLower,
+    chameleon_zlap2tile( chamctxt, "B", &descBl, &descBt, ChamDescInout, ChamUpperLower,
                      B, NB, NB, LDB, N, M, N, sequence, &request );
 
     /* Call the tile interface */

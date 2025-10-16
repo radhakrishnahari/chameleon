@@ -12,7 +12,7 @@
  * @version 1.3.0
  * @author Matteo Marcos
  * @author Alycia Lisito
- * @date 2025-10-15
+ * @date 2025-10-16
  * @precisions normal z -> s d c
  *
  */
@@ -127,9 +127,9 @@ int CHAMELEON_zgesv( int N, int NRHS,
     chameleon_sequence_create( chamctxt, &sequence );
 
     /* Submit the matrix conversion */
-    chameleon_zlap2tile( chamctxt, &descAl, &descAt, ChamDescInout, ChamUpperLower,
+    chameleon_zlap2tile( chamctxt, "A", &descAl, &descAt, ChamDescInout, ChamUpperLower,
                          A, NB, NB, LDA, N, N, N, sequence, &request );
-    chameleon_zlap2tile( chamctxt, &descBl, &descBt, ChamDescInout, ChamUpperLower,
+    chameleon_zlap2tile( chamctxt, "B", &descBl, &descBt, ChamDescInout, ChamUpperLower,
                          B, NB, NB, LDB, NRHS, N, NRHS, sequence, &request );
 
     P = chameleon_desc_datadist_get_iparam( &descAt, 0 );

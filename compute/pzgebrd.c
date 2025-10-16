@@ -286,7 +286,7 @@ int chameleon_pzgebrd( int genD, cham_job_t jobu, cham_job_t jobvt,
     NB     = A->mb;
 
     if ( jobu != ChamNoVec ) {
-        chameleon_zlap2tile( chamctxt, &descUl, &descUt, ChamDescInout, ChamUpperLower,
+        chameleon_zlap2tile( chamctxt, "U", &descUl, &descUt, ChamDescInout, ChamUpperLower,
                              U, NB, NB, LDU, M, M, M, sequence, request );
 
         if ( M < N ) {
@@ -316,7 +316,7 @@ int chameleon_pzgebrd( int genD, cham_job_t jobu, cham_job_t jobvt,
         chameleon_ztile2lap( chamctxt, &descUl, &descUt, ChamDescInout, ChamUpperLower, sequence, request );
     }
     if ( jobvt != ChamNoVec ) {
-        chameleon_zlap2tile( chamctxt, &descVTl, &descVTt, ChamDescInout, ChamUpperLower,
+        chameleon_zlap2tile( chamctxt, "VT", &descVTl, &descVTt, ChamDescInout, ChamUpperLower,
                              VT, NB, NB, LDVT, N, N, N, sequence, request );
 
         if ( M < N ){

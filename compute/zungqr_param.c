@@ -14,7 +14,7 @@
  * @version 1.3.0
  * @author Mathieu Faverge
  * @author Raphael Boucherie
- * @date 2024-02-18
+ * @date 2025-10-16
  * @precisions normal z -> s d c
  *
  */
@@ -138,9 +138,9 @@ CHAMELEON_zungqr_param( const libhqr_tree_t *qrtree, int M, int N, int K,
     chameleon_sequence_create( chamctxt, &sequence );
 
     /* Submit the matrix conversion */
-    chameleon_zlap2tile( chamctxt, &descAl, &descAt, ChamDescInput, ChamLower,
+    chameleon_zlap2tile( chamctxt, "A", &descAl, &descAt, ChamDescInput, ChamLower,
                          A, NB, NB, LDA, N, M, K, sequence, &request );
-    chameleon_zlap2tile( chamctxt, &descQl, &descQt, ChamDescInout, ChamUpperLower,
+    chameleon_zlap2tile( chamctxt, "Q", &descQl, &descQt, ChamDescInout, ChamUpperLower,
                          Q, NB, NB, LDQ, N, M, N, sequence, &request );
 
     /* Call the tile interface */

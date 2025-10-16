@@ -149,7 +149,7 @@ int CHAMELEON_zheevd( cham_job_t jobz, cham_uplo_t uplo, int N,
     chameleon_sequence_create( chamctxt, &sequence );
 
     /* Submit the matrix conversion */
-    chameleon_zlap2tile( chamctxt, &descAl, &descAt, ChamDescInout, uplo,
+    chameleon_zlap2tile( chamctxt, "A", &descAl, &descAt, ChamDescInout, uplo,
                          A, NB, NB, LDA, N, N, N, sequence, &request );
 
     /* Call the tile interface */
@@ -467,10 +467,10 @@ int CHAMELEON_zheevd_Tile_Async( cham_job_t jobz, cham_uplo_t uplo,
     /* Q   from CHAMELEON_zhetrd   refers to Q2 (lapack layout) */
     /* V   from LAPACKE_zstedc refers to V  (lapack layout) */
     /* The final eigenvectors are (Q1 Q2 V) or (Q1^h Q2 V)  */
-    chameleon_zlap2tile( chamctxt, &descQ2l, &descQ2t, ChamDescInput, ChamUpperLower,
+    chameleon_zlap2tile( chamctxt, "Q2", &descQ2l, &descQ2t, ChamDescInput, ChamUpperLower,
                          Q2, NB, NB, N, N, N, N, sequence, request );
 
-    chameleon_zlap2tile( chamctxt, &descVl, &descVt, ChamDescInput, ChamUpperLower,
+    chameleon_zlap2tile( chamctxt, "V", &descVl, &descVt, ChamDescInput, ChamUpperLower,
                          V, NB, NB, N, N, N, N, sequence, request );
 
     /* Workspaces used for gemm */

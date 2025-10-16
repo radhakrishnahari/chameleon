@@ -304,7 +304,7 @@ int CHAMELEON_zlaswp( cham_side_t            side,
     chameleon_sequence_create( chamctxt, &sequence );
 
     /* Submit the matrix conversion */
-    chameleon_zlap2tile( chamctxt, &descAl, &descAt, ChamDescInput, ChamUpperLower,
+    chameleon_zlap2tile( chamctxt, "A", &descAl, &descAt, ChamDescInput, ChamUpperLower,
                          A, NB, NB, LDA, N, M, N, sequence, &request );
 
     P = chameleon_desc_datadist_get_iparam( &descAt, 0 );

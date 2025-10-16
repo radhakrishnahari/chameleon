@@ -260,7 +260,7 @@ int CHAMELEON_zcesca(int center, int scale, cham_store_t axis,
     chameleon_sequence_create( chamctxt, &sequence );
 
     /* Submit the matrix conversion */
-    chameleon_zlap2tile( chamctxt, &descAl, &descAt, ChamDescInput, ChamUpperLower,
+    chameleon_zlap2tile( chamctxt, "A", &descAl, &descAt, ChamDescInput, ChamUpperLower,
                          A, NB, NB, LDA, N, M, N, sequence, &request );
 
     /* Call the tile interface */
