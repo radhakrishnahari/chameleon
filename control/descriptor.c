@@ -458,6 +458,24 @@ CHAM_desc_t* chameleon_desc_submatrix( CHAM_desc_t *descA, int i, int j, int m, 
 
 void chameleon_desc_destroy( CHAM_desc_t *desc )
 {
+    int m, n;
+
+    for ( n=0; n<desc->nt; n++ ) {
+        for ( m=0; m<desc->mt; m++ ) {
+            CHAM_tile_t *tile;
+
+            tile = desc->get_blktile( desc, m, n );
+
+            if ( tile->format == CHAMELEON_TILE_DESC ) {
+                CHAM_desc_t *tiledesc = tile->mat;
+
+                chameleon_desc_destroy( tiledesc );
+                free( tiledesc );
+                tile->mat = NULL;
+            }
+        }
+    }
+
     /* Decrease the number of occurences using the descrptor */
     desc->occurences--;
 
@@ -965,7 +983,6 @@ int CHAMELEON_Desc_Destroy(CHAM_desc_t **descptr)
 {
     CHAM_context_t *chamctxt;
     CHAM_desc_t *desc;
-    int m, n;
 
     chamctxt = chameleon_context_self();
     if (chamctxt == NULL) {
@@ -979,21 +996,6 @@ int CHAMELEON_Desc_Destroy(CHAM_desc_t **descptr)
     }
 
     desc = *descptr;
-    for ( n=0; n<desc->nt; n++ ) {
-        for ( m=0; m<desc->mt; m++ ) {
-            CHAM_tile_t *tile;
-
-            tile = desc->get_blktile( desc, m, n );
-
-            if ( tile->format == CHAMELEON_TILE_DESC ) {
-                CHAM_desc_t *tiledesc = tile->mat;
-
-                CHAMELEON_Desc_Destroy( &tiledesc );
-                assert( tiledesc == NULL );
-            }
-        }
-    }
-
     chameleon_desc_destroy( desc );
     free(desc);
     *descptr = NULL;
