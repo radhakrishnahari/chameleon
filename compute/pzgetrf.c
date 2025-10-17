@@ -489,7 +489,7 @@ chameleon_pzgetrf_panel_update_ws( struct chameleon_pzgetrf_s *ws,
     }
 
     tempkm = A->get_blkdim( A, k, DIM_m, A->m );
-    np = chameleon_desc_datadist_get_iparam(A, 1) * chameleon_desc_datadist_get_iparam(A, 0);
+    np = P * Q;
 
     /* Send Akk for replicated trsm */
     if ( A->myrank == chameleon_getrankof_2d( A, k, k ) ) {
@@ -551,8 +551,9 @@ chameleon_pzgetrf_panel_update( struct chameleon_pzgetrf_s *ws,
     if ( RUNTIME_comm_size( chamctxt ) > 1 ) {
         int rankAmn;
         int lookahead = chamctxt->lookahead;
-        int myq       = A->myrank % chameleon_desc_datadist_get_iparam(A, 1);
-        int lq        = (k % lookahead) * chameleon_desc_datadist_get_iparam(A, 1);
+        int Q         = chameleon_desc_datadist_get_iparam(A, 1);
+        int myq       = A->myrank % Q;
+        int lq        = (k % lookahead) * Q;
 
         if ( reduce->involved ) {
             INSERT_TASK_ztrsm(

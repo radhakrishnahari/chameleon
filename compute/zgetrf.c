@@ -166,11 +166,8 @@ CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A )
     /* Allocation of Up for the permutation of the diagonal panel per block */
     if ( ws->alg == ChamGetrfPPiv ) {
         ws->Up = malloc( sizeof(CHAM_desc_t) );
-        chameleon_desc_init( ws->Up, "GETRF_Up", CHAMELEON_MAT_ALLOC_TILE,
-                             ChamComplexDouble, ws->ib, A->nb,
-                             P * Q * ws->ib, A->nb,
-                             P * Q * ws->ib, A->nb, P * Q, 1,
-                             NULL, NULL, A->get_rankof_init, A->get_rankof_init_arg );
+        chameleon_desc_init_2dtile( ws->Up, "GETRF_Up", ChamComplexDouble,
+                                    ws->ib, A->nb, P * Q * ws->ib, A->nb, P * Q, 1 );
     }
 
     chameleon_pivot_init( &(ws->pivot), A );

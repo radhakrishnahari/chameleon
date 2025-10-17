@@ -42,7 +42,8 @@ testing_zprint_desc( run_arg_list_t *args, int check )
     cham_rec_t rec       = run_arg_get_rec( args, "rec", ChamRecFull );
     int        rarg      = run_arg_get_int( args, "rarg", 1 );
     int        Q         = parameters_compute_q( P );
-    int        list_nb[] = { nb, l1, l2, l3, 0 };
+    int        list_nb[] = { nb, nb, 0, l2, l3, 0 };
+    int        list_mb[] = { M,  nb, 0, l2, l3, 0 };
 
     /* Descriptors */
     CHAM_desc_t *descA;
@@ -82,7 +83,7 @@ testing_zprint_desc( run_arg_list_t *args, int check )
         fprintf( stdout, "--- Recursive layout (Tile)---\n" );
         rc = CHAMELEON_Recursive_Desc_Create(
             &descA, CHAMELEON_MAT_ALLOC_GLOBAL, ChamComplexDouble,
-            rec, rarg, list_nb, list_nb, LDA, N, M, N, P, Q,
+            rec, rarg, list_mb, list_nb, LDA, N, M, N, P, Q,
             NULL, NULL, NULL, NULL, "A" );
 
         if ( rc == CHAMELEON_SUCCESS ) {
@@ -93,7 +94,7 @@ testing_zprint_desc( run_arg_list_t *args, int check )
         fprintf( stdout, "--- Recursive layout (Lapack) ---\n" );
         rc = CHAMELEON_Recursive_Desc_Create(
             &descA, CHAMELEON_MAT_ALLOC_GLOBAL, ChamComplexDouble,
-            rec, rarg, list_nb, list_nb, LDA, N, M, N, P, Q,
+            rec, rarg, list_mb, list_nb, LDA, N, M, N, P, Q,
             chameleon_getaddr_cm, chameleon_getblkldd_cm, NULL, NULL, "A" );
 
         if ( rc == CHAMELEON_SUCCESS ) {

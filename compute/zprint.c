@@ -18,7 +18,7 @@
  */
 #include "control/common.h"
 #if !defined(CHAMELEON_SIMULATION)
-#include <coreblas/coreblas_z.h>
+#include <coreblas/coreblas_ztile.h>
 #endif
 
 struct zprint_args_s {
@@ -32,20 +32,17 @@ zprint_cpu( void *op_args,
             cham_uplo_t uplo, int m, int n, int ndata,
             const CHAM_desc_t *descA, CHAM_tile_t *tileA, ... )
 {
-    struct zprint_args_s  *options = (struct zprint_args_s *)op_args;
-    CHAMELEON_Complex64_t *A = CHAM_tile_get_ptr( tileA );
+    struct zprint_args_s *options = (struct zprint_args_s *)op_args;
 
     int tempmm = descA->get_blkdim( descA, m, DIM_m, descA->m );
     int tempnn = descA->get_blkdim( descA, n, DIM_n, descA->n );
-    int lda    = tileA->ld;
 
     if ( ndata > 1 ) {
         fprintf( stderr, "zprint_cpu: supports only one piece of data and %d have been given\n", ndata );
     }
-    assert( tileA->format & CHAMELEON_TILE_FULLRANK );
 
-    CORE_zprint( options->file, options->header, uplo,
-                 tempmm, tempnn, m, n, A, lda );
+    TCORE_zprint( options->file, options->header, uplo,
+                  tempmm, tempnn, m, n, tileA );
 
     return 0;
 }
