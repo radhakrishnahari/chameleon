@@ -642,6 +642,7 @@ void chameleon_pzgetrf( struct chameleon_pzgetrf_s *ws,
     kmin = chameleon_max( 0,       chamctxt->first_step );
     kmax = chameleon_min( min_mnt, chamctxt->last_step  );
     for (k = kmin; k < kmax; k++ ) {
+        RUNTIME_iteration_push( chamctxt, k );
 
         options.priority = A->nt;
         /*
