@@ -21,7 +21,7 @@
  * @author Alycia Lisito
  * @author Romain Peressoni
  * @author Pierre Esterie
- * @date 2025-01-24
+ * @date 2025-10-23
  * @precisions normal z -> s d c
  *
  */
@@ -296,7 +296,7 @@ chameleon_pzsymm_summa_left( CHAM_context_t *chamctxt, cham_uplo_t uplo,
     RUNTIME_sequence_t *sequence = options->sequence;
     RUNTIME_request_t  *request  = options->request;
     cham_trans_t transA;
-    int m, n, k, p, q, KT, lp, lq;
+    int m, n, k, KT, lp, lq;
     int tempmm, tempnn, tempkk;
     int lookahead, myp, myq;
     int P, Q;
@@ -320,9 +320,6 @@ chameleon_pzsymm_summa_left( CHAM_context_t *chamctxt, cham_uplo_t uplo,
         /* Transfert ownership of the k column of A or B */
         for (m = 0; m < C->mt; m ++ ) {
             int Am, Ak;
-            int tempam, tempak;
-
-            tempmm = C->get_blkdim( C, m, DIM_m, C->m );
 
             if ( (( uplo == ChamUpper ) && ( m > k )) ||
                  (( uplo == ChamLower ) && ( m < k )) )
@@ -330,54 +327,23 @@ chameleon_pzsymm_summa_left( CHAM_context_t *chamctxt, cham_uplo_t uplo,
                     /* Let's take A( k, m ) */
                 Am = k;
                 Ak = m;
-                tempam = tempkk;
-                tempak = tempmm;
             }
             else {
                 /* Let's take A( m, k ) */
                 Am = m;
                 Ak = k;
-                tempam = tempmm;
-                tempak = tempkk;
             }
 
-            INSERT_TASK_zlacpy(
-                options,
-                ChamUpperLower, tempam, tempak,
-                A( Am, Ak ),
-                WA( m, (k % Q) + lq ) );
-
+            chameleon_pzbcast_tile( ChamRowwise, ChamBcastRing,
+                                    A( Am, Ak ), WA( m, lq ), options );
             chameleon_data_flush( sequence, A( Am, Ak ), request->flush );
-
-            for ( q=1; q < Q; q++ ) {
-                INSERT_TASK_zlacpy(
-                    options,
-                    ChamUpperLower, tempam, tempak,
-                    WA( m, ((k+q-1) % Q) + lq ),
-                    WA( m, ((k+q)   % Q) + lq ) );
-            }
         }
 
         /* Transfert ownership of the k row of B, or A */
         for (n = 0; n < C->nt; n++) {
-
-            tempnn = C->get_blkdim( C, n, DIM_n, C->n );
-
-            INSERT_TASK_zlacpy(
-                options,
-                ChamUpperLower, tempkk, tempnn,
-                B(   k,           n ),
-                WB( (k % P) + lp, n ) );
-
+            chameleon_pzbcast_tile( ChamColumnwise, ChamBcastRing,
+                                    B( k, n ), WB( lp, n ), options );
             chameleon_data_flush( sequence, B( k, n ), request->flush );
-
-            for ( p=1; p < P; p++ ) {
-                INSERT_TASK_zlacpy(
-                    options,
-                    ChamUpperLower, tempkk, tempnn,
-                    WB( ((k+p-1) % P) + lp, n ),
-                    WB( ((k+p)   % P) + lp, n ) );
-            }
         }
 
         /* Perform the update of this iteration */
@@ -435,7 +401,7 @@ chameleon_pzsymm_summa_right( CHAM_context_t *chamctxt, cham_uplo_t uplo,
     RUNTIME_sequence_t *sequence = options->sequence;
     RUNTIME_request_t  *request  = options->request;
     cham_trans_t transA;
-    int m, n, k, p, q, KT, lp, lq;
+    int m, n, k, KT, lp, lq;
     int tempmm, tempnn, tempkk;
     int lookahead, myp, myq;
     int P, Q;
@@ -459,63 +425,30 @@ chameleon_pzsymm_summa_right( CHAM_context_t *chamctxt, cham_uplo_t uplo,
         /* Transfert ownership of the k column of A or B */
         for (m = 0; m < C->mt; m++ ) {
 
-            tempmm = C->get_blkdim( C, m, DIM_m, C->m );
-
-            INSERT_TASK_zlacpy(
-                options,
-                ChamUpperLower, tempmm, tempkk,
-                B(  m,  k ),
-                WA( m, (k % Q) + lq ) );
-
+            chameleon_pzbcast_tile( ChamRowwise, ChamBcastRing,
+                                    B( m, k ), WA( m, lq ), options );
             chameleon_data_flush( sequence, B( m, k ), request->flush );
-
-            for ( q=1; q < Q; q++ ) {
-                INSERT_TASK_zlacpy(
-                    options,
-                    ChamUpperLower, tempmm, tempkk,
-                    WA( m, ((k+q-1) % Q) + lq ),
-                    WA( m, ((k+q)   % Q) + lq ) );
-            }
         }
 
         /* Transfert ownership of the k row of B, or A */
         for (n = 0; n < C->nt; n++) {
             int Ak, An;
-            int tempak, tempan;
-
-            tempnn = C->get_blkdim( C, n, DIM_n, C->n );
 
             if ( (( uplo == ChamUpper ) && ( n < k )) ||
                  (( uplo == ChamLower ) && ( n > k )) )
             {
                 Ak = n;
                 An = k;
-                tempak = tempnn;
-                tempan = tempkk;
             }
             else
             {
                 Ak = k;
                 An = n;
-                tempak = tempkk;
-                tempan = tempnn;
             }
 
-            INSERT_TASK_zlacpy(
-                options,
-                ChamUpperLower, tempak, tempan,
-                A(  Ak,           An ),
-                WB( (k % P) + lp, n  ) );
-
+            chameleon_pzbcast_tile( ChamColumnwise, ChamBcastRing,
+                                    A( Ak, An ), WB( lp, n ), options );
             chameleon_data_flush( sequence, A( Ak, An ), request->flush );
-
-            for ( p=1; p < P; p++ ) {
-                INSERT_TASK_zlacpy(
-                    options,
-                    ChamUpperLower, tempak, tempan,
-                    WB( ((k+p-1) % P) + lp, n ),
-                    WB( ((k+p)   % P) + lp, n ) );
-            }
         }
 
         /* Perform the update of this iteration */
