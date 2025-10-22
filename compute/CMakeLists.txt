@@ -29,7 +29,7 @@
 #  @author Matthieu Kuhn
 #  @author Ana Hourcau
 #  @author Matteo Marcos
-#  @date 2025-03-24
+#  @date 2025-10-23
 #
 ###
 
@@ -245,6 +245,7 @@ set(ZSRC
     ##################
     # CONTROL
     ##################
+    pzbcast.c
     #pzshift.c
     #pzpack.c
     ztile.c
