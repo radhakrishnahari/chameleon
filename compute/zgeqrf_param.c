@@ -82,6 +82,7 @@ int CHAMELEON_zgeqrf_param( const libhqr_tree_t *qrtree, int M, int N,
     RUNTIME_sequence_t *sequence = NULL;
     RUNTIME_request_t request = RUNTIME_REQUEST_INITIALIZER;
     CHAM_desc_t descAl, descAt;
+    CHAM_desc_t D, *Dptr = NULL;
 
     chamctxt = chameleon_context_self();
     if (chamctxt == NULL) {
@@ -123,19 +124,34 @@ int CHAMELEON_zgeqrf_param( const libhqr_tree_t *qrtree, int M, int N,
     chameleon_zlap2tile( chamctxt, "A", &descAl, &descAt, ChamDescInout, ChamUpperLower,
                          A, NB, NB, LDA, N, M, N, sequence, &request );
 
+#if defined(CHAMELEON_COPY_DIAG)
+    {
+        int n = chameleon_min( descAt.m, descAt.n );
+        chameleon_zdesc_copy_and_restrict( &descAt, &D, descAt.m, n );
+        Dptr = &D;
+    }
+#endif
+
     /* Call the tile interface */
-    CHAMELEON_zgeqrf_param_Tile_Async( qrtree, &descAt, descTS, descTT, sequence, &request );
+    CHAMELEON_zgeqrf_param_Tile_Async( qrtree, &descAt, descTS, descTT, Dptr, sequence, &request );
 
     /* Submit the matrix conversion back */
     chameleon_ztile2lap( chamctxt, &descAl, &descAt,
                          ChamDescInout, ChamUpperLower, sequence, &request );
     CHAMELEON_Desc_Flush( descTS, sequence );
     CHAMELEON_Desc_Flush( descTT, sequence );
+    if (Dptr != NULL) {
+        CHAMELEON_Desc_Flush( Dptr, sequence );
+    }
 
     chameleon_sequence_wait( chamctxt, sequence );
 
     /* Cleanup the temporary data */
     chameleon_ztile2lap_cleanup( chamctxt, &descAl, &descAt );
+    if (Dptr != NULL) {
+        chameleon_desc_destroy( Dptr );
+    }
+    (void)D;
 
     status = sequence->status;
     chameleon_sequence_destroy( chamctxt, sequence );
@@ -191,6 +207,7 @@ int CHAMELEON_zgeqrf_param_Tile( const libhqr_tree_t *qrtree, CHAM_desc_t *A,
     RUNTIME_sequence_t *sequence = NULL;
     RUNTIME_request_t request = RUNTIME_REQUEST_INITIALIZER;
     int status;
+    CHAM_desc_t D, *Dptr = NULL;
 
     chamctxt = chameleon_context_self();
     if (chamctxt == NULL) {
@@ -199,13 +216,30 @@ int CHAMELEON_zgeqrf_param_Tile( const libhqr_tree_t *qrtree, CHAM_desc_t *A,
     }
     chameleon_sequence_create( chamctxt, &sequence );
 
-    CHAMELEON_zgeqrf_param_Tile_Async( qrtree, A, TS, TT, sequence, &request );
+#if defined(CHAMELEON_COPY_DIAG)
+    {
+        int n = chameleon_min( A->m, A->n );
+        chameleon_zdesc_copy_and_restrict( A, &D, A->m, n );
+        Dptr = &D;
+    }
+#endif
+
+    CHAMELEON_zgeqrf_param_Tile_Async( qrtree, A, TS, TT, Dptr, sequence, &request );
 
     CHAMELEON_Desc_Flush( A, sequence );
     CHAMELEON_Desc_Flush( TS, sequence );
     CHAMELEON_Desc_Flush( TT, sequence );
+    if (Dptr != NULL) {
+        CHAMELEON_Desc_Flush( Dptr, sequence );
+    }
 
     chameleon_sequence_wait( chamctxt, sequence );
+
+    if (Dptr != NULL) {
+        chameleon_desc_destroy( Dptr );
+    }
+    (void)D;
+
     status = sequence->status;
     chameleon_sequence_destroy( chamctxt, sequence );
     return status;
@@ -241,11 +275,10 @@ int CHAMELEON_zgeqrf_param_Tile( const libhqr_tree_t *qrtree, CHAM_desc_t *A,
  *
  */
 int CHAMELEON_zgeqrf_param_Tile_Async( const libhqr_tree_t *qrtree, CHAM_desc_t *A,
-                                       CHAM_desc_t *TS, CHAM_desc_t *TT,
+                                       CHAM_desc_t *TS, CHAM_desc_t *TT, CHAM_desc_t *D,
                                        RUNTIME_sequence_t *sequence, RUNTIME_request_t *request )
 {
     CHAM_context_t *chamctxt;
-    CHAM_desc_t D, *Dptr = NULL;
     int KT;
 
     chamctxt = chameleon_context_self();
@@ -279,7 +312,11 @@ int CHAMELEON_zgeqrf_param_Tile_Async( const libhqr_tree_t *qrtree, CHAM_desc_t 
         return chameleon_request_fail(sequence, request, CHAMELEON_ERR_ILLEGAL_VALUE);
     }
     if (chameleon_desc_check(TT) != CHAMELEON_SUCCESS) {
-        chameleon_error("CHAMELEON_zgeqrf_param_Tile", "invalid second descriptor");
+        chameleon_error("CHAMELEON_zgeqrf_param_Tile", "invalid third descriptor");
+        return chameleon_request_fail(sequence, request, CHAMELEON_ERR_ILLEGAL_VALUE);
+    }
+    if (chameleon_desc_check(D) != CHAMELEON_SUCCESS) {
+        chameleon_error("CHAMELEON_zgeqrf_param_Tile", "invalid fourth descriptor");
         return chameleon_request_fail(sequence, request, CHAMELEON_ERR_ILLEGAL_VALUE);
     }
     /* Check input arguments */
@@ -300,25 +337,8 @@ int CHAMELEON_zgeqrf_param_Tile_Async( const libhqr_tree_t *qrtree, CHAM_desc_t 
         KT = A->nt;
     }
 
-#if defined(CHAMELEON_COPY_DIAG)
-    {
-        int n = chameleon_min( A->m, A->n );
-        chameleon_zdesc_copy_and_restrict( A, &D, A->m, n );
-        Dptr = &D;
-    }
-#endif
-
     chameleon_pzgeqrf_param( 1, KT, qrtree, A,
-                             TS, TT, Dptr, sequence, request );
+                             TS, TT, D, sequence, request );
 
-    if (Dptr != NULL) {
-        CHAMELEON_Desc_Flush( A, sequence );
-        CHAMELEON_Desc_Flush( TS, sequence );
-        CHAMELEON_Desc_Flush( TT, sequence );
-        CHAMELEON_Desc_Flush( Dptr, sequence );
-        chameleon_sequence_wait( chamctxt, sequence );
-        chameleon_desc_destroy( Dptr );
-    }
-    (void)D;
     return CHAMELEON_SUCCESS;
 }

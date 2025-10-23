@@ -47,7 +47,7 @@ testing_zgeqrf_hqr_desc( run_arg_list_t *args, int check )
     int      Q      = parameters_compute_q( P );
 
     /* Descriptors */
-    CHAM_desc_t    *descA, *descTS, *descTT;
+    CHAM_desc_t    *descA, *descTS, *descTT, *D = NULL;
     libhqr_tree_t   qrtree;
     libhqr_matrix_t matrix;
 
@@ -59,6 +59,13 @@ testing_zgeqrf_hqr_desc( run_arg_list_t *args, int check )
         &descA, (void*)(-mtxfmt), ChamComplexDouble, nb, nb, nb * nb, LDA, N, 0, 0, M, N, P, Q );
     CHAMELEON_Alloc_Workspace_zgels( M, N, &descTS, P, Q );
     CHAMELEON_Alloc_Workspace_zgels( M, N, &descTT, P, Q );
+#if defined(CHAMELEON_COPY_DIAG)
+    {
+        int n = chameleon_min( descA->m, descA->n );
+        D = (CHAM_desc_t*)malloc(sizeof(CHAM_desc_t));
+        CHAMELEON_Zdesc_Copy_And_Restrict( descA, D, descA->m, n );
+    }
+#endif
 
     /* Initialize matrix tree */
     matrix.mt    = descTS->mt;
@@ -74,11 +81,14 @@ testing_zgeqrf_hqr_desc( run_arg_list_t *args, int check )
     /* Calculates the solution */
     testing_start( &test_data );
     if ( async ) {
-        hres = CHAMELEON_zgeqrf_param_Tile_Async( &qrtree, descA, descTS, descTT,
+        hres = CHAMELEON_zgeqrf_param_Tile_Async( &qrtree, descA, descTS, descTT, D,
                                                   test_data.sequence, &test_data.request );
         CHAMELEON_Desc_Flush( descA, test_data.sequence );
         CHAMELEON_Desc_Flush( descTS, test_data.sequence );
         CHAMELEON_Desc_Flush( descTT, test_data.sequence );
+        if (D != NULL) {
+            CHAMELEON_Desc_Flush( D, test_data.sequence );
+        }
     }
     else {
         hres = CHAMELEON_zgeqrf_param_Tile( &qrtree, descA, descTS, descTT );
@@ -107,6 +117,9 @@ testing_zgeqrf_hqr_desc( run_arg_list_t *args, int check )
     CHAMELEON_Desc_Destroy( &descA );
     CHAMELEON_Desc_Destroy( &descTS );
     CHAMELEON_Desc_Destroy( &descTT );
+    if (D != NULL) {
+        CHAMELEON_Desc_Destroy( &D );
+    }
     libhqr_finalize( &qrtree );
 
     return hres;

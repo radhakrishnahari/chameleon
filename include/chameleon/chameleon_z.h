@@ -309,10 +309,10 @@ int CHAMELEON_zunmqr_param_Tile(const libhqr_tree_t *qrtree, cham_side_t side, c
 int CHAMELEON_zgels_param_Tile_Async(const libhqr_tree_t *qrtree, cham_trans_t trans, CHAM_desc_t *A, CHAM_desc_t *TS, CHAM_desc_t *TT, CHAM_desc_t *B, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 int CHAMELEON_zgelqf_param_Tile_Async(const libhqr_tree_t *qrtree, CHAM_desc_t *A, CHAM_desc_t *TS, CHAM_desc_t *TT, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 int CHAMELEON_zgelqs_param_Tile_Async(const libhqr_tree_t *qrtree, CHAM_desc_t *A, CHAM_desc_t *TS, CHAM_desc_t *TT, CHAM_desc_t *B, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
-int CHAMELEON_zgeqrf_param_Tile_Async(const libhqr_tree_t *qrtree, CHAM_desc_t *A, CHAM_desc_t *TS, CHAM_desc_t *TT, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
+int CHAMELEON_zgeqrf_param_Tile_Async(const libhqr_tree_t *qrtree, CHAM_desc_t *A, CHAM_desc_t *TS, CHAM_desc_t *TT, CHAM_desc_t *D, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 int CHAMELEON_zgeqrs_param_Tile_Async(const libhqr_tree_t *qrtree, CHAM_desc_t *A, CHAM_desc_t *TS, CHAM_desc_t *TT, CHAM_desc_t *B, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 int CHAMELEON_zunglq_param_Tile_Async(const libhqr_tree_t *qrtree, CHAM_desc_t *A, CHAM_desc_t *TS, CHAM_desc_t *TT, CHAM_desc_t *B, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
-int CHAMELEON_zungqr_param_Tile_Async(const libhqr_tree_t *qrtree, CHAM_desc_t *A, CHAM_desc_t *TS, CHAM_desc_t *TT, CHAM_desc_t *B, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
+int CHAMELEON_zungqr_param_Tile_Async(const libhqr_tree_t *qrtree, CHAM_desc_t *A, CHAM_desc_t *TS, CHAM_desc_t *TT, CHAM_desc_t *D, CHAM_desc_t *B, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 int CHAMELEON_zunmlq_param_Tile_Async(const libhqr_tree_t *qrtree, cham_side_t side, cham_trans_t trans, CHAM_desc_t *A, CHAM_desc_t *TS, CHAM_desc_t *TT, CHAM_desc_t *B, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 int CHAMELEON_zunmqr_param_Tile_Async(const libhqr_tree_t *qrtree, cham_side_t side, cham_trans_t trans, CHAM_desc_t *A, CHAM_desc_t *TS, CHAM_desc_t *TT, CHAM_desc_t *B, RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
 
@@ -356,6 +356,8 @@ int CHAMELEON_Alloc_Workspace_zhetrd(int M, int N, CHAM_desc_t **descT, int p, i
  *  Declarations of workspace allocation functions (tile layout, asynchronous execution) - alphabetical order
  */
 int CHAMELEON_Alloc_Workspace_zgetri_Tile_Async(CHAM_desc_t *A, CHAM_desc_t *W);
+int CHAMELEON_Alloc_Workspace_zgetri_Tile_Async(CHAM_desc_t *A, CHAM_desc_t *W);
+int CHAMELEON_Zdesc_Copy_And_Restrict(const CHAM_desc_t *descIn, CHAM_desc_t *descOut, int m, int n );
 
 /* Warning: Those functions are deprecated */
 int CHAMELEON_Alloc_Workspace_zgelqf_Tile(int M, int N, CHAM_desc_t **descT, int p, int q);

@@ -604,3 +604,14 @@ int CHAMELEON_Alloc_Workspace_zhegvd(int M, int N, CHAM_desc_t **descT, int p, i
  */
 int CHAMELEON_Alloc_Workspace_zhetrd(int M, int N, CHAM_desc_t **descT, int p, int q) {
     return chameleon_alloc_ibnb_tile(M, N, CHAMELEON_FUNC_ZHETRD, ChamComplexDouble, descT, p, q); }
+
+/**
+ * @brief Create a copy of a descriptor restricted to a smaller size.
+ * @param[in]  descIn  The input descriptor from which the structure should be copied.
+ * @param[out] descOut The output descriptor that is a copy of the input one with allocation on the fly.
+ * @param[in]  m       The number of rows of the output descriptor.
+ * @param[in]  n       The number of columns of the output descriptor.
+ * @return CHAMELEON_SUCCESS on success, the associated error on failure.
+ */
+int CHAMELEON_Zdesc_Copy_And_Restrict(const CHAM_desc_t *descIn, CHAM_desc_t *descOut, int m, int n ) {
+    return chameleon_zdesc_copy_and_restrict( descIn, descOut, m, n ); }

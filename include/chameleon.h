@@ -285,7 +285,7 @@ double CHAMELEON_dlamch( void );
     __chameleon_init( (_nworkers_), (_ncudas_) );
 
 #define CHAMELEON_InitPar( _nworkers_, _ncudas_, _nthreads_per_worker_ ) \
-    __chameleon_initpar( (_nworkers_), (_ncudas_), (_nthreads_per_worker_), MPI_COMM_WORLD );
+    __chameleon_initpar( (_nworkers_), (_ncudas_), (_nthreads_per_worker_) );
 
 #define CHAMELEON_InitParComm( _nworkers_, _ncudas_, _nthreads_per_worker_, _comm_ ) \
     __chameleon_initparcomm( (_nworkers_), (_ncudas_), (_nthreads_per_worker_), (_comm_) );
