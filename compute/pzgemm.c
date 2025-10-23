@@ -20,7 +20,7 @@
  * @author Florent Pruvost
  * @author Alycia Lisito
  * @author Pierre Esterie
- * @date 2025-01-24
+ * @date 2025-10-23
  * @precisions normal z -> s d c
  *
  */
@@ -187,7 +187,7 @@ chameleon_pzgemm_summa( CHAM_context_t *chamctxt, cham_trans_t transA, cham_tran
 {
     RUNTIME_sequence_t *sequence = options->sequence;
     RUNTIME_request_t  *request  = options->request;
-    int m, n, k, p, q, KT, K, lp, lq;
+    int m, n, k, KT, K, lp, lq;
     int tempmm, tempnn, tempkk;
     int lookahead, myp, myq, DIM_k;
     int P, Q;
@@ -221,47 +221,21 @@ chameleon_pzgemm_summa( CHAM_context_t *chamctxt, cham_trans_t transA, cham_tran
 
         /* Transfert ownership of the k column of A(*,k) */
         for (m = 0; m < C->mt; m ++ ) {
-            tempmm = C->get_blkdim( C, m, DIM_m, C->m );
-
             /*
              *  A: ChamNoTrans
              */
             if ( transA == ChamNoTrans ) {
-                INSERT_TASK_zlacpy(
-                    options,
-                    ChamUpperLower, tempmm, tempkk,
-                    A(  m,  k ),
-                    WA( m, (k % Q) + lq ) );
-
+                chameleon_pzbcast_tile( ChamRowwise, ChamBcastRing,
+                                        A( m, k ), WA( m, lq ), options );
                 chameleon_data_flush( sequence, A( m, k ), request->flush );
-
-                for ( q=1; q < Q; q++ ) {
-                    INSERT_TASK_zlacpy(
-                        options,
-                        ChamUpperLower, tempmm, tempkk,
-                        WA( m, ((k+q-1) % Q) + lq ),
-                        WA( m, ((k+q)   % Q) + lq ) );
-                }
             }
             /*
              *  A: Cham[Conj]Trans
              */
             else {
-                INSERT_TASK_zlacpy(
-                    options,
-                    ChamUpperLower, tempkk, tempmm,
-                    A(  k,  m ),
-                    WA( m, (k % Q) + lq ) );
-
+                chameleon_pzbcast_tile( ChamRowwise, ChamBcastRing,
+                                        A( k, m ), WA( m, lq ), options );
                 chameleon_data_flush( sequence, A( k, m ), request->flush );
-
-                for ( q=1; q < Q; q++ ) {
-                    INSERT_TASK_zlacpy(
-                        options,
-                        ChamUpperLower, tempkk, tempmm,
-                        WA( m, ((k+q-1) % Q) + lq ),
-                        WA( m, ((k+q)   % Q) + lq ) );
-                }
             }
         }
 
@@ -273,41 +247,17 @@ chameleon_pzgemm_summa( CHAM_context_t *chamctxt, cham_trans_t transA, cham_tran
              *  B: ChamNoTrans
              */
             if ( transB == ChamNoTrans ) {
-                INSERT_TASK_zlacpy(
-                    options,
-                    ChamUpperLower, tempkk, tempnn,
-                    B(   k,           n ),
-                    WB( (k % P) + lp, n ) );
-
+                chameleon_pzbcast_tile( ChamColumnwise, ChamBcastRing,
+                                        B( k, n ), WB( lp, n ), options );
                 chameleon_data_flush( sequence, B( k, n ), request->flush );
-
-                for ( p=1; p < P; p++ ) {
-                    INSERT_TASK_zlacpy(
-                        options,
-                        ChamUpperLower, tempkk, tempnn,
-                        WB( ((k+p-1) % P) + lp, n ),
-                        WB( ((k+p)   % P) + lp, n ) );
-                }
             }
             /*
              *  B: Cham[Conj]Trans
              */
             else {
-                INSERT_TASK_zlacpy(
-                    options,
-                    ChamUpperLower, tempnn, tempkk,
-                    B(   n,           k ),
-                    WB( (k % P) + lp, n ) );
-
+                chameleon_pzbcast_tile( ChamColumnwise, ChamBcastRing,
+                                        B( n, k ), WB( lp, n ), options );
                 chameleon_data_flush( sequence, B( n, k ), request->flush );
-
-                for ( p=1; p < P; p++ ) {
-                    INSERT_TASK_zlacpy(
-                        options,
-                        ChamUpperLower, tempnn, tempkk,
-                        WB( ((k+p-1) % P) + lp, n ),
-                        WB( ((k+p)   % P) + lp, n ) );
-                }
             }
         }
 

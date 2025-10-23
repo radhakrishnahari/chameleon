@@ -25,7 +25,7 @@
  * @author Ana Hourcau
  * @author Pierre Esterie
  * @author Matteo Marcos
- * @date 2025-10-16
+ * @date 2025-10-23
  * @precisions normal z -> c d s
  *
  */
@@ -346,6 +346,11 @@ void chameleon_pzcesca( struct chameleon_pzcesca_s *ws, int center, int scale, c
  */
 void chameleon_pzgram( struct chameleon_pzgram_s *ws, cham_uplo_t uplo, CHAM_desc_t *A,
                        RUNTIME_sequence_t *sequence, RUNTIME_request_t *request );
+
+/**
+ * Specific functions called when option is already initialized
+ */
+void chameleon_pzbcast_tile( cham_store_t dir, cham_bcast_t algo, const CHAM_desc_t *A, int Am, int An, const CHAM_desc_t *W, int Wm, int Wn, RUNTIME_option_t *options );
 
 /**
  *  LAPACK/Tile Descriptor accesses

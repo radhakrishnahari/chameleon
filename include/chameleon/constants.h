@@ -20,7 +20,7 @@
  * @author Terry Cojean
  * @author Matthieu Kuhn
  * @author Brieuc Nicolas
- * @date 2025-01-24
+ * @date 2025-10-23
  *
  */
 #ifndef _chameleon_constants_h_
@@ -279,6 +279,15 @@ typedef enum chameleon_access_e {
     ChamW  = (1 << 1),        /**< Write only */
     ChamRW = (ChamR | ChamW), /**< Read-Write */
 } cham_access_t;
+
+/**
+ * @brief Chameleon Bcast algorithms
+ */
+typedef enum chameleon_bcast_e {
+    ChamBcastFull = 0, /**< Broadcast basic using a flat tree        */
+    ChamBcastRing = 1, /**< Broadcast using a ring of communications */
+    ChamBcastNumber    /**< Number of Bcast algorithms               */
+} cham_bcast_t;
 
 /**
  * @brief Chameleon GEMM-like algorithms

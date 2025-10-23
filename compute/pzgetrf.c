@@ -18,7 +18,9 @@
  * @author Matthieu Kuhn
  * @author Alycia Lisito
  * @author Matteo Marcos
- * @date 2025-10-15
+ * @author Samuel Thibault
+ * @author Xavier Lacoste
+ * @date 2025-10-23
  * @precisions normal z -> s d c
  *
  */
@@ -442,53 +444,24 @@ chameleon_pzgetrf_panel_update_ws( struct chameleon_pzgetrf_s *ws,
 {
     CHAM_context_t          *chamctxt = chameleon_context_self();
     const RUNTIME_request_t *request  = options->request;
-    int m, n, tempmm, tempkn, tempkm, p, q, involved, np;
+    int m, n, tempkn, tempkm, p, involved, np;
     int lookahead = chamctxt->lookahead;
     int P         = chameleon_desc_datadist_get_iparam(A, 0);
     int Q         = chameleon_desc_datadist_get_iparam(A, 1);
     int lq        = (k % lookahead) * Q;
     int myp       = A->myrank / Q;
 
-    tempkn = A->get_blkdim( A, k, DIM_n, A->n );
+    for ( m = k+1; m < A->mt; m++ ) {
+        if ( ( m % P ) != myp ) continue;
 
-    if ( k >= ws->ringswitch ) {
-        for ( m = k+1; m < A->mt; m++ ) {
-            if ( ( m % P ) != myp ) continue;
-
-            tempmm = A->get_blkdim( A, m, DIM_m, A->m );
-            INSERT_TASK_zlacpy(
-                options,
-                ChamUpperLower, tempmm, tempkn,
-                A( m, k ),
-                Wl( m, ( k % Q ) + lq ) );
-
-            for ( q = 1; q < Q; q++ ) {
-                INSERT_TASK_zlacpy(
-                    options,
-                    ChamUpperLower, tempmm, tempkn,
-                    Wl( m, ( ( k + q - 1 ) % Q ) + lq ),
-                    Wl( m, ( ( k + q )     % Q ) + lq ) );
-            }
-            chameleon_data_flush( options->sequence, A(m, k), request->flush );
-        }
-    }
-    else {
-        for ( m = k+1; m < A->mt; m++ ) {
-            if ( ( m % P ) != myp ) continue;
-
-            tempmm = A->get_blkdim( A, m, DIM_m, A->m );
-            for ( q = 0; q < Q; q++ ) {
-                INSERT_TASK_zlacpy(
-                    options,
-                    ChamUpperLower, tempmm, tempkn,
-                    A( m, k ),
-                    Wl( m, ( ( k + q )% Q ) + lq ) );
-            }
-            chameleon_data_flush( options->sequence, A(m, k), request->flush );
-        }
+        chameleon_pzbcast_tile( ChamRowwise, ( k >= ws->ringswitch ) ? ChamBcastRing : ChamBcastFull,
+                                A( m, k ), Wl( m, lq ), options );
+        chameleon_data_flush( options->sequence, A(m, k), request->flush );
     }
 
     tempkm = A->get_blkdim( A, k, DIM_m, A->m );
+    tempkn = A->get_blkdim( A, k, DIM_n, A->n );
+
     np = P * Q;
 
     /* Send Akk for replicated trsm */

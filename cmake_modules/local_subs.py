@@ -13,7 +13,7 @@
  @author Alycia Lisito
  @author Brieuc Nicolas
  @author Matteo Marcos
- @date 2025-07-22
+ @date 2025-10-23
 
 """
 _extra_blas = [
@@ -34,6 +34,7 @@ _extra_blas = [
     ('',                     'she2ge',               'dhe2ge',               'che2ge',               'zhe2ge'              ),
     ('',                     'slatro',               'dlatro',               'clatro',               'zlatro'              ), #=> Replace by getmo/gecmo as in essl
     ('',                     'sbuild',               'dbuild',               'cbuild',               'zbuild'              ), #=> Replace by map function
+    ('',                     'sbcast',               'dbcast',               'cbcast',               'zbcast'              ),
     ('',                     'sgram',                'dgram',                'cgram',                'zgram'               ),
     ('',                     'slaran',               'dlaran',               'claran',               'zlaran'              ),
     ('',                     'slaran',               'dlaran',               'slaran',               'dlaran'              ),
