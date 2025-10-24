@@ -308,6 +308,49 @@ void CHAMELEON_Ipiv_Init( CHAM_ipiv_t *descIPIV )
 }
 
 /**
+ ********************************************************************************
+ *
+ * @ingroup CHAMELEON_Complex64_t
+ *
+ *  @brief initialize the IPIV descriptor only using the PERM array.
+ *
+ *******************************************************************************
+ *
+ * @param[in] dir
+ *          Specifies the order of the permutation.
+ *          = ChamDirForward:  Natural order. P*op(A)
+ *          = ChamDirBackward: Reverse order. op(A)*P
+ *
+ * @param[in,out] descIPIV
+ *          Descriptor of the pivot array. Should be initialized using
+ *          CHAMELEON_Ipiv_Create()
+ *
+ * @param[in] PERM
+ *          Permutation array.
+ *
+ *******************************************************************************
+ *
+ *
+ */
+void CHAMELEON_Perm_Init( cham_dir_t dir, CHAM_ipiv_t *descIPIV, int *PERM )
+{
+
+    RUNTIME_option_t    options;
+    RUNTIME_request_t   request  = RUNTIME_REQUEST_INITIALIZER;
+    RUNTIME_sequence_t *sequence = NULL;
+    CHAM_context_t     *chamctxt;
+
+    chamctxt = chameleon_context_self();
+    chameleon_sequence_create( chamctxt, &sequence );
+    RUNTIME_options_init( &options, chamctxt, sequence, &request );
+
+    INSERT_TASK_perm_init( &options, dir, descIPIV, PERM );
+
+    chameleon_sequence_wait( chamctxt, sequence );
+    chameleon_sequence_destroy( chamctxt, sequence );
+}
+
+/**
  *****************************************************************************
  *
  * @ingroup Descriptor

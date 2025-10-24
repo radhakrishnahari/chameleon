@@ -78,3 +78,15 @@ void INSERT_TASK_ipiv_to_perm( const RUNTIME_option_t *options,
     (void)K1;
     (void)K2;
 }
+
+void INSERT_TASK_perm_init( const RUNTIME_option_t *options,
+                            cham_dir_t              dir,
+                            CHAM_ipiv_t            *ipiv,
+                            int                    *PERM )
+{
+    assert( 0 );
+    (void)options;
+    (void)dir;
+    (void)ipiv;
+    (void)PERM;
+}
