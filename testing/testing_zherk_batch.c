@@ -37,26 +37,30 @@ testing_zherk_batch_desc( run_arg_list_t *args, int check )
     int        hres      = 0;
 
     /* Read arguments */
-    int           async = parameters_getvalue_int( "async" );
-    int           nb    = run_arg_get_int( args, "nb", 10 );
-    int           ib    = run_arg_get_int( args, "ib", 10 );
-    cham_trans_t  trans = run_arg_get_trans( args, "trans", ChamNoTrans );
-    cham_uplo_t   uplo  = run_arg_get_uplo( args, "uplo", ChamUpper );
-    int           N     = run_arg_get_int( args, "N", 320 );
-    int           K     = run_arg_get_int( args, "K", N );
-    double        alpha = testing_dalea();
-    double        beta  = testing_dalea();
-    double        bump  = 0.;
-    int           seedA = run_arg_get_int( args, "seedA", testing_ialea() );
-    int           seedC = run_arg_get_int( args, "seedC", testing_ialea() );
+    int                   async  = parameters_getvalue_int( "async" );
+    int                   nb     = run_arg_get_int( args, "nb", 10 );
+    int                   ib     = run_arg_get_int( args, "ib", 10 );
+    cham_trans_t          trans  = run_arg_get_trans( args, "trans", ChamNoTrans );
+    cham_uplo_t           uplo   = run_arg_get_uplo( args, "uplo", ChamUpper );
+    int                   N      = run_arg_get_int( args, "N", 320 );
+    int                   K      = run_arg_get_int( args, "K", N );
+    CHAMELEON_Complex64_t zalpha = testing_zalea();
+    CHAMELEON_Complex64_t zbeta  = testing_zalea();
+    CHAMELEON_Complex64_t zbump  = testing_zalea();
+    int                   seedA  = run_arg_get_int( args, "seedA", testing_ialea() );
+    int                   seedC  = run_arg_get_int( args, "seedC", testing_ialea() );
 
     /* Descriptors */
     int          Am, An;
     CHAM_desc_t *descA, *descC;
+    double       alpha, beta, bump;
 
-    alpha = run_arg_get_double( args, "alpha", alpha );
-    beta  = run_arg_get_double( args, "beta",  beta  );
-    bump  = run_arg_get_double( args, "bump",  0.    );
+    zalpha = run_arg_get_complex64( args, "alpha", zalpha );
+    zbeta  = run_arg_get_complex64( args, "beta",  zbeta );
+    zbump  = run_arg_get_complex64( args, "bump",  zbump );
+    alpha  = creal( zalpha );
+    beta   = creal( zbeta );
+    bump   = creal( zbump );
 
     CHAMELEON_Set( CHAMELEON_TILE_SIZE, N );
 

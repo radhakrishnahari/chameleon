@@ -218,7 +218,7 @@ void chameleon_get_proc_involved_in_panelk_2dbc( const CHAM_desc_t *A,
     np = 0;
     reduce->involved = 0;
     for ( b = k; (b < A->mt) && ((b-k) < chameleon_desc_datadist_get_iparam(A, 0)); b ++ ) {
-        rank = chameleon_getrankof_2d( A, b, n );
+        rank = A->get_rankof( A, b, n );
         proc_involved[ b-k ] = rank;
         np ++;
         if ( rank == A->myrank ) {
