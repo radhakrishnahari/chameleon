@@ -65,20 +65,20 @@ testing_zlanhe_desc( run_arg_list_t *args, int check )
     int        hres      = 0;
 
     /* Read arguments */
-    int             async     = parameters_getvalue_int( "async" );
-    int             nb        = run_arg_get_nb( args );
-    cham_normtype_t norm_type = run_arg_get_ntype( args, "norm", ChamMaxNorm );
-    cham_uplo_t     uplo      = run_arg_get_uplo( args, "uplo", ChamUpper );
-    int             N         = run_arg_get_int( args, "N", 1000 );
-    int             LDA       = run_arg_get_int( args, "LDA", N );
-    int             seedA     = run_arg_get_int( args, "seedA", testing_ialea() );
-    double          bump      = testing_dalea();
+    int                   async     = parameters_getvalue_int( "async" );
+    int                   nb        = run_arg_get_nb( args );
+    cham_normtype_t       norm_type = run_arg_get_ntype( args, "norm", ChamMaxNorm );
+    cham_uplo_t           uplo      = run_arg_get_uplo( args, "uplo", ChamUpper );
+    int                   N         = run_arg_get_int( args, "N", 1000 );
+    int                   LDA       = run_arg_get_int( args, "LDA", N );
+    int                   seedA     = run_arg_get_int( args, "seedA", testing_ialea() );
+    CHAMELEON_Complex64_t bump      = testing_zalea();
 
     /* Descriptors */
     double       norm;
     CHAM_desc_t *descA;
 
-    bump = run_arg_get_double( args, "bump", bump );
+    bump = run_arg_get_complex64( args, "bump", bump );
 
     CHAMELEON_Set( CHAMELEON_TILE_SIZE, nb );
 
@@ -86,7 +86,7 @@ testing_zlanhe_desc( run_arg_list_t *args, int check )
     parameters_desc_create( "A", &descA, ChamComplexDouble, nb, nb, LDA, N, N, N );
 
     /* Fills the matrix with random values */
-    CHAMELEON_zplghe_Tile( bump, uplo, descA, seedA );
+    CHAMELEON_zplghe_Tile( creal(bump), uplo, descA, seedA );
 
     /* Calculates the norm */
     testing_start( &test_data );
@@ -120,18 +120,18 @@ testing_zlanhe_std( run_arg_list_t *args, int check )
 
     /* Read arguments */
 #if !defined(CHAMELEON_TESTINGS_VENDOR)
-    int             api       = parameters_getvalue_int( "api" );
+    int                   api       = parameters_getvalue_int( "api" );
 #endif
-    int             nb        = run_arg_get_nb( args );
-    cham_normtype_t norm_type = run_arg_get_ntype( args, "norm", ChamMaxNorm );
-    cham_uplo_t     uplo      = run_arg_get_uplo( args, "uplo", ChamUpper );
-    int             N         = run_arg_get_int( args, "N", 1000 );
-    int             LDA       = run_arg_get_int( args, "LDA", N );
-    int             seedA     = run_arg_get_int( args, "seedA", testing_ialea() );
-    double          bump      = testing_dalea();
+    int                   nb        = run_arg_get_nb( args );
+    cham_normtype_t       norm_type = run_arg_get_ntype( args, "norm", ChamMaxNorm );
+    cham_uplo_t           uplo      = run_arg_get_uplo( args, "uplo", ChamUpper );
+    int                   N         = run_arg_get_int( args, "N", 1000 );
+    int                   LDA       = run_arg_get_int( args, "LDA", N );
+    int                   seedA     = run_arg_get_int( args, "seedA", testing_ialea() );
+    CHAMELEON_Complex64_t bump      = testing_zalea();
 
     /* Descriptors */
-    double norm;
+    double                 norm;
     CHAMELEON_Complex64_t *A;
 
     bump = run_arg_get_complex64( args, "bump", bump );
@@ -142,7 +142,7 @@ testing_zlanhe_std( run_arg_list_t *args, int check )
     A = malloc( sizeof(CHAMELEON_Complex64_t) * LDA*N );
 
     /* Fills the matrix with random values */
-    CHAMELEON_zplghe( bump, uplo, N, A, LDA, seedA );
+    CHAMELEON_zplghe( creal(bump), uplo, N, A, LDA, seedA );
 
     /* Calculates the norm */
 #if defined(CHAMELEON_TESTINGS_VENDOR)

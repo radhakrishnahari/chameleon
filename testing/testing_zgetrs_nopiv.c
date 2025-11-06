@@ -31,15 +31,15 @@ testing_zgetrs_nopiv_desc( run_arg_list_t *args, int check )
     int        hres      = 0;
 
     /* Read arguments */
-    int    async = parameters_getvalue_int( "async" );
-    int    nb    = run_arg_get_nb( args );
-    int    N     = run_arg_get_int( args, "N", 1000 );
-    int    NRHS  = run_arg_get_int( args, "NRHS", 1 );
-    int    LDA   = run_arg_get_int( args, "LDA", N );
-    int    LDB   = run_arg_get_int( args, "LDB", N );
-    int    seedA = run_arg_get_int( args, "seedA", testing_ialea() );
-    int    seedB = run_arg_get_int( args, "seedB", testing_ialea() );
-    double bump  = run_arg_get_double( args, "bump", (double)N );
+    int                   async = parameters_getvalue_int( "async" );
+    int                   nb    = run_arg_get_nb( args );
+    int                   N     = run_arg_get_int( args, "N", 1000 );
+    int                   NRHS  = run_arg_get_int( args, "NRHS", 1 );
+    int                   LDA   = run_arg_get_int( args, "LDA", N );
+    int                   LDB   = run_arg_get_int( args, "LDB", N );
+    int                   seedA = run_arg_get_int( args, "seedA", testing_ialea() );
+    int                   seedB = run_arg_get_int( args, "seedB", testing_ialea() );
+    CHAMELEON_Complex64_t bump  = run_arg_get_complex64( args, "bump", (CHAMELEON_Complex64_t)N );
 
     /* Descriptors */
     CHAM_desc_t *descA, *descX;
@@ -101,14 +101,14 @@ testing_zgetrs_nopiv_std( run_arg_list_t *args, int check )
     int        hres      = 0;
 
     /* Read arguments */
-    int      nb     = run_arg_get_nb( args );
-    int      N      = run_arg_get_int( args, "N", 1000 );
-    int      NRHS   = run_arg_get_int( args, "NRHS", 1 );
-    int      LDA    = run_arg_get_int( args, "LDA", N );
-    int      LDB    = run_arg_get_int( args, "LDB", N );
-    int      seedA  = run_arg_get_int( args, "seedA", testing_ialea() );
-    int      seedB  = run_arg_get_int( args, "seedB", testing_ialea() );
-    double   bump   = run_arg_get_double( args, "bump", (double)N );
+    int                   nb    = run_arg_get_nb( args );
+    int                   N     = run_arg_get_int( args, "N", 1000 );
+    int                   NRHS  = run_arg_get_int( args, "NRHS", 1 );
+    int                   LDA   = run_arg_get_int( args, "LDA", N );
+    int                   LDB   = run_arg_get_int( args, "LDB", N );
+    int                   seedA = run_arg_get_int( args, "seedA", testing_ialea() );
+    int                   seedB = run_arg_get_int( args, "seedB", testing_ialea() );
+    CHAMELEON_Complex64_t bump  = run_arg_get_complex64( args, "bump", (CHAMELEON_Complex64_t)N );
 
     /* Descriptors */
     CHAMELEON_Complex64_t *A, *X;
