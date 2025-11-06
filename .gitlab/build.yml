@@ -66,7 +66,7 @@ build_starpu:
     CMAKE_BUILD_PARALLEL_LEVEL: 20
   script:
     - guix describe -f channels
-    - guix shell --pure --preserve=SYSTEM --preserve=VERSION
+    - guix shell --fallback --pure --preserve=SYSTEM --preserve=VERSION
                  --preserve=LOGNAME --preserve=BUILD_OPTIONS
                  --preserve=CMAKE_BUILD_PARALLEL_LEVEL
                  -D chameleon-${GPU_BACKEND} ${BLAS} eztrace coreutils bash-minimal --
