@@ -20,6 +20,10 @@ cmake -B build-$NODE-$MPI $CHAMELEON_BUILD_OPTIONS
 cmake --build build-$NODE-$MPI -j20  > /dev/null
 export CHAMELEON_BUILD=$PWD/build-$NODE-$MPI
 export HFI_NO_CPUAFFINITY=1
+if [[ "${NODE}" == "sirocco" ]]; then
+    export LD_PRELOAD="/usr/lib64/libcuda.so"
+fi
+
 
 # clean old benchmarks
 if [ -d tools/bench/$PLATFORM/results ]; then

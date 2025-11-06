@@ -11,6 +11,10 @@ JOB_NAME=${JOB_NAME:-chameleon}
 # to get kernels execution on both cpus and gpus
 export STARPU_SCHED=random
 
+if [[ "${SLURM_CONSTRAINTS}" == "sirocco" ]]; then
+    export LD_PRELOAD="/usr/lib64/libcuda.so"
+fi
+
 # execution commands
 sbatch --wait \
        --job-name="$JOB_NAME" \

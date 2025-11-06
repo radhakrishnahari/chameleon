@@ -32,7 +32,6 @@ elif [[ "$NODE" == "sirocco" ]]; then
   export SLURM_CONSTRAINTS="sirocco,v100"
   export CHAMELEON_BUILD_OPTIONS="-DCHAMELEON_USE_MPI=ON -DCHAMELEON_USE_CUDA=ON -DCMAKE_BUILD_TYPE=Release"
   export STARPU_HOSTNAME="sirocco"
-  export LD_PRELOAD="/usr/lib64/libcuda.so"
 else
   echo "$0: Please set the NODE environment variable to bora or sirocco."
   exit -1
@@ -66,7 +65,7 @@ exec guix time-machine \
        --url=https://codeberg.org/guix/guix-mirror.git \
        --channels=./tools/bench/guix-channels.scm \
        -- shell --pure \
-       --preserve="PLATFORM|NODE|LD_PRELOAD|^CI|proxy$|^SLURM|^JUBE|^MPI|^STARPU|^CHAMELEON" \
+       --preserve="PLATFORM|NODE|^CI|proxy$|^SLURM|^JUBE|^MPI|^STARPU|^CHAMELEON" \
        $GUIX_RULE \
        -- /bin/bash --norc ./tools/bench/plafrim/slurm.sh
 err=$?

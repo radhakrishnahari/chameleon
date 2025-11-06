@@ -28,6 +28,7 @@ struct cl_redux_args_s {
     int n;
 };
 
+#if !defined(CHAMELEON_SIMULATION)
 static void
 zipiv_allreduce_cpu_func( cppi_interface_t *cppi_me,
                           cppi_interface_t *cppi_src,
@@ -77,6 +78,7 @@ cl_zipiv_allreduce_cpu_func( void *descr[], void *cl_arg )
     cppi_interface_t       *cppi_src = ((cppi_interface_t *) descr[1]);
     zipiv_allreduce_cpu_func(  cppi_me, cppi_src, clargs->h, clargs->n );
 }
+#endif /* !defined(CHAMELEON_SIMULATION) */
 
 CODELETS_CPU( zipiv_allreduce, cl_zipiv_allreduce_cpu_func )
 
