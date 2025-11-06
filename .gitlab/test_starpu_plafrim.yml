@@ -6,12 +6,11 @@
     SYSTEM: guix
   script:
     - guix describe -f channels | tee guix-channels.scm
-    - guix shell --pure --preserve=SYSTEM --preserve=VERSION
+    - guix shell --fallback --pure --preserve=SYSTEM --preserve=VERSION
                  --preserve=LOGNAME --preserve=BUILD_OPTIONS
-                --preserve=TESTS_RESTRICTION --preserve=SLURM_CONSTRAINTS
-                --preserve=LD_PRELOAD -D chameleon-${GPU_BACKEND}
-                ${BLAS} slurm coreutils inetutils bash-minimal --
-                bash .gitlab/sbatch.sh ${LOGNAME} | tee ${LOGNAME}.log
+                 --preserve=TESTS_RESTRICTION --preserve=SLURM_CONSTRAINTS
+                 -D chameleon-${GPU_BACKEND} ${BLAS} slurm coreutils inetutils bash-minimal --
+                 bash .gitlab/sbatch.sh ${LOGNAME} | tee ${LOGNAME}.log
   artifacts:
     name: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
     expire_in: 1 week
@@ -34,7 +33,6 @@
                     -DCHAMELEON_USE_MPI=OFF
                     -DBLA_VENDOR=Intel10_64lp_seq"
     SLURM_CONSTRAINTS: "sirocco"
-    LD_PRELOAD: "/usr/lib64/libcuda.so"
 
 test_starpu_cuda_master:
   extends: .test_script_starpu_plafrim_cuda
