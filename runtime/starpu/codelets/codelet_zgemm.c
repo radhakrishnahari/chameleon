@@ -32,6 +32,45 @@
 #include "chameleon_starpu_internal.h"
 #include "runtime_codelet_z.h"
 
+#if defined(CHAMELEON_USE_BUBBLE)
+static inline int
+cl_zgemm_is_bubble( struct starpu_task *t, void *_args )
+{
+    struct cl_zgemm_args_s *clargs = (struct cl_zgemm_args_s *)(t->cl_arg);
+    (void)_args;
+
+    return( ( clargs->tileA->format & CHAMELEON_TILE_DESC ) &&
+            ( clargs->tileB->format & CHAMELEON_TILE_DESC ) &&
+            ( clargs->tileC->format & CHAMELEON_TILE_DESC ) );
+}
+
+static void
+cl_zgemm_bubble_func( struct starpu_task *t, void *_args )
+{
+    struct cl_zgemm_args_s *clargs = (struct cl_zgemm_args_s *)(t->cl_arg);
+    bubble_args_t          *b_args  = (bubble_args_t *)_args;
+    RUNTIME_request_t       request = RUNTIME_REQUEST_INITIALIZER;
+    (void)_args;
+
+    /* We don't want to flush subdata in bubbles */
+    request.flush = 0;
+    /* Register the task parent */
+    request.parent = t;
+
+#if defined(CHAMELEON_BUBBLE_PARALLEL_INSERT)
+    request.dependency = t;
+    starpu_task_end_dep_add( t, 1 );
+#endif
+
+    chameleon_pzgemm( NULL, clargs->transA, clargs->transB,
+                      clargs->alpha, clargs->tileA->mat, clargs->tileB->mat,
+                      clargs->beta,  clargs->tileC->mat,
+                      b_args->sequence, &request );
+
+    free( _args );
+}
+#endif /* defined(CHAMELEON_USE_BUBBLE) */
+
 #if !defined(CHAMELEON_SIMULATION)
 static void
 cl_zgemm_cpu_func( void *descr[], void *cl_arg )
@@ -167,7 +206,10 @@ void INSERT_TASK_zgemm_Astat( const RUNTIME_option_t *options,
         clargs->n      = n;
         clargs->k      = k;
         clargs->alpha  = alpha;
+        clargs->tileA  = A->get_blktile( A, Am, An );
+        clargs->tileB  = B->get_blktile( B, Bm, Bn );
         clargs->beta   = beta;
+        clargs->tileC  = C->get_blktile( C, Cm, Cn );
     }
 
     /* Callback for profiling information */
@@ -237,7 +279,9 @@ void INSERT_TASK_zgemm( const RUNTIME_option_t *options,
     int                      exec    = 0;
     const char              *cl_name = "zgemm";
     uint32_t                 where   = cl_zgemm.where;
-    int                      accessC;
+    RUNTIME_request_t       *request = options->request;
+    bubble_args_t           *b_args  = NULL;
+    int                      is_bubble, accessC;
 
     /* Handle cache */
     CHAMELEON_BEGIN_ACCESS_DECLARATION;
@@ -256,14 +300,34 @@ void INSERT_TASK_zgemm( const RUNTIME_option_t *options,
         clargs->k      = k;
         clargs->alpha  = alpha;
         clargs->beta   = beta;
+        clargs->tileA  = A->get_blktile( A, Am, An );
+        clargs->tileB  = B->get_blktile( B, Bm, Bn );
+        clargs->tileC  = C->get_blktile( C, Cm, Cn );
     }
 
     /* Callback for profiling information */
     callback = options->profiling ? cl_zgemm_callback : NULL;
 
+#if defined(CHAMELEON_USE_BUBBLE)
+    accessC = STARPU_RW;
+#else
     /* Reduce the C access if needed */
     accessC = ( beta == (CHAMELEON_Complex64_t)0. ) ? STARPU_W :
         (STARPU_RW | ((beta == (CHAMELEON_Complex64_t)1.) ? STARPU_COMMUTE : 0));
+#endif
+
+#if defined(CHAMELEON_USE_BUBBLE)
+    /* Check if this is a bubble */
+    is_bubble = ( ( clargs->tileA->format & CHAMELEON_TILE_DESC ) &&
+                  ( clargs->tileB->format & CHAMELEON_TILE_DESC ) &&
+                  ( clargs->tileC->format & CHAMELEON_TILE_DESC ) );
+    if ( is_bubble ) {
+        b_args = malloc( sizeof(bubble_args_t) + sizeof(struct cl_zgemm_args_s) );
+        b_args->sequence = options->sequence;
+        b_args->parent   = request->parent;
+        cl_name = "zgemm_bubble";
+    }
+#endif
 
     /* Refine name */
     cl_name = chameleon_codelet_name( cl_name, 3,
@@ -296,7 +360,26 @@ void INSERT_TASK_zgemm( const RUNTIME_option_t *options,
         STARPU_POSSIBLY_PARALLEL, options->parallel,
         STARPU_NAME,              cl_name,
         STARPU_EXECUTE_WHERE,     where,
+
+        /* Bubble management */
+#if defined(CHAMELEON_USE_BUBBLE)
+        STARPU_BUBBLE_FUNC,             is_bubble_func,
+        STARPU_BUBBLE_FUNC_ARG,         b_args,
+        STARPU_BUBBLE_GEN_DAG_FUNC,     cl_zgemm_bubble_func,
+        STARPU_BUBBLE_GEN_DAG_FUNC_ARG, b_args,
+
+#if defined(CHAMELEON_BUBBLE_PROFILE)
+        STARPU_BUBBLE_PARENT, request->parent,
+#endif
+
+#if defined(CHAMELEON_BUBBLE_PARALLEL_INSERT)
+        STARPU_CALLBACK_WITH_ARG_NFREE, callback_end_dep_release, request->dependency,
+#endif
+#endif
         0 );
+
+    /* Dependency is used only by the first submitted task and should not be reused */
+    request->dependency = NULL;
 }
 
 #else /* defined(CHAMELEON_STARPU_USE_INSERT) */

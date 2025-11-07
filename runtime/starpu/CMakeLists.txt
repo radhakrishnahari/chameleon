@@ -270,6 +270,7 @@ set(RUNTIME_HDRS
   include/runtime_profiling.h
   include/runtime_workspace.h
   include/cham_tile_interface.h
+  include/cham_tile_filters.h
   )
 
 # Add generated headers
@@ -309,11 +310,13 @@ set(RUNTIME_COMMON
   control/runtime_control.c
   control/runtime_descriptor.c
   control/runtime_descriptor_ipiv.c
+  control/runtime_descriptor_rec.c
   control/runtime_tags.c
   control/runtime_options.c
   control/runtime_profiling.c
   control/runtime_workspace.c
   interface/cham_tile_interface.c
+  interface/cham_tile_filters.c
   interface/cppi_interface.c
   interface/cpui_interface.c
   ${RUNTIME_COMMON_GENERATED}
@@ -409,6 +412,10 @@ target_include_directories(chameleon_starpu PRIVATE
   $<BUILD_INTERFACE:${CHAMELEON_BINARY_DIR}/include>
   $<BUILD_INTERFACE:${CHAMELEON_SOURCE_DIR}/coreblas/include>
   $<BUILD_INTERFACE:${CHAMELEON_BINARY_DIR}/coreblas/include>)
+
+if (CHAMELEON_USE_BUBBLE)
+  target_link_libraries(chameleon_starpu PRIVATE chameleon)
+endif()
 
 if (CHAMELEON_SIMULATION)
   # need PUBLIC here because simulation mode with starpu requires to replace the

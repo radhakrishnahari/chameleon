@@ -34,8 +34,47 @@ struct cl_zherk_args_s {
     int          n;
     int          k;
     double       alpha;
+    CHAM_tile_t *tileA;
     double       beta;
+    CHAM_tile_t *tileC;
 };
+
+#if defined(CHAMELEON_USE_BUBBLE)
+static inline int
+cl_zherk_is_bubble( struct starpu_task *t, void *_args )
+{
+    struct cl_zherk_args_s *clargs = (struct cl_zherk_args_s *)(t->cl_arg);
+    (void)_args;
+
+    return( ( clargs->tileA->format & CHAMELEON_TILE_DESC ) &&
+            ( clargs->tileC->format & CHAMELEON_TILE_DESC ) );
+}
+
+static void
+cl_zherk_bubble_func( struct starpu_task *t, void *_args )
+{
+    struct cl_zherk_args_s *clargs  = (struct cl_zherk_args_s *)(t->cl_arg);
+    bubble_args_t          *b_args  = (bubble_args_t *)_args;
+    RUNTIME_request_t       request = RUNTIME_REQUEST_INITIALIZER;
+
+    /* We don't want to flush subdata in bubbles */
+    request.flush = 0;
+    /* Register the task parent */
+    request.parent = t;
+
+#if defined(CHAMELEON_BUBBLE_PARALLEL_INSERT)
+    request.dependency = t;
+    starpu_task_end_dep_add( t, 1 );
+#endif
+
+    chameleon_pzherk( clargs->uplo, clargs->trans,
+                      clargs->alpha, clargs->tileA->mat,
+                      clargs->beta,  clargs->tileC->mat,
+                      b_args->sequence, &request );
+
+    free( _args );
+}
+#endif /* defined(CHAMELEON_USE_BUBBLE) */
 
 #if !defined(CHAMELEON_SIMULATION)
 static void
@@ -127,7 +166,9 @@ void INSERT_TASK_zherk( const RUNTIME_option_t *options,
     struct cl_zherk_args_s *clargs  = NULL;
     int                     exec    = 0;
     const char             *cl_name = "zherk";
-    int                     accessC;
+    RUNTIME_request_t      *request = options->request;
+    bubble_args_t          *b_args  = NULL;
+    int                     is_bubble, accessC;
 
     /* Handle cache */
     CHAMELEON_BEGIN_ACCESS_DECLARATION;
@@ -144,6 +185,8 @@ void INSERT_TASK_zherk( const RUNTIME_option_t *options,
         clargs->k     = k;
         clargs->alpha = alpha;
         clargs->beta  = beta;
+        clargs->tileA = A->get_blktile( A, Am, An );
+        clargs->tileC = C->get_blktile( C, Cm, Cn );
     }
 
     /* Callback fro profiling information */
@@ -151,6 +194,19 @@ void INSERT_TASK_zherk( const RUNTIME_option_t *options,
 
     /* Reduce the C access if needed */
     accessC = ( beta == 0. ) ? STARPU_W : STARPU_RW;
+
+#if defined(CHAMELEON_USE_BUBBLE)
+    /* Check if this is a bubble */
+    is_bubble = ( ( clargs->tileA->format & CHAMELEON_TILE_DESC ) &&
+                  ( clargs->tileC->format & CHAMELEON_TILE_DESC ) );
+    if ( is_bubble ) {
+        b_args = malloc( sizeof(bubble_args_t) + sizeof(struct cl_zherk_args_s) );
+        b_args->sequence = options->sequence;
+        b_args->parent   = request->parent;
+        memcpy( &(b_args->clargs), clargs, sizeof(struct cl_zherk_args_s) );
+        cl_name = "zherk_bubble";
+    }
+#endif
 
     /* Refine name */
     cl_name = chameleon_codelet_name( cl_name, 2,
@@ -171,8 +227,26 @@ void INSERT_TASK_zherk( const RUNTIME_option_t *options,
         STARPU_EXECUTE_ON_WORKER, options->workerid,
         STARPU_POSSIBLY_PARALLEL, options->parallel,
         STARPU_NAME,              cl_name,
+
+        /* Bubble management */
+#if defined(CHAMELEON_USE_BUBBLE)
+        STARPU_BUBBLE_FUNC,             is_bubble_func,
+        STARPU_BUBBLE_FUNC_ARG,         b_args,
+        STARPU_BUBBLE_GEN_DAG_FUNC,     cl_zherk_bubble_func,
+        STARPU_BUBBLE_GEN_DAG_FUNC_ARG, b_args,
+
+#if defined(CHAMELEON_BUBBLE_PROFILE)
+        STARPU_BUBBLE_PARENT, request->parent,
+#endif
+
+#if defined(CHAMELEON_BUBBLE_PARALLEL_INSERT)
+        STARPU_CALLBACK_WITH_ARG_NFREE, callback_end_dep_release, request->dependency,
+#endif
+#endif
         0 );
 
+    /* Dependency is used only by the first submitted task and should not be reused */
+    request->dependency = NULL;
     (void)nb;
 }
 

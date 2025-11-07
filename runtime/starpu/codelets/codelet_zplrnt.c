@@ -20,6 +20,7 @@
  * @author Lucas Barros de Assis
  * @author Florent Pruvost
  * @author Samuel Thibault
+ * @author Gwenole Lucas
  * @date 2024-10-18
  * @precisions normal z -> c d s
  *
@@ -34,7 +35,43 @@ struct cl_zplrnt_args_s {
     int m0;
     int n0;
     unsigned long long int seed;
+    CHAM_tile_t *tileA;
 };
+
+#if defined(CHAMELEON_USE_BUBBLE)
+static inline int
+cl_zplrnt_is_bubble( struct starpu_task *t, void *_args )
+{
+    struct cl_zplrnt_args_s *clargs = (struct cl_zplrnt_args_s *)(t->cl_arg);
+    (void)_args;
+
+    return( clargs->tileA->format & CHAMELEON_TILE_DESC );
+}
+
+static void
+cl_zplrnt_bubble_func( struct starpu_task *t, void *_args )
+{
+    struct cl_zplrnt_args_s *clargs  = (struct cl_zplrnt_args_s *)(t->cl_arg);
+    bubble_args_t           *b_args  = (bubble_args_t *)_args;
+    RUNTIME_request_t        request = RUNTIME_REQUEST_INITIALIZER;
+
+    /* We don't want to flush subdata in bubbles */
+    request.flush = 0;
+    /* Register the task parent */
+    request.parent = t;
+
+#if defined(CHAMELEON_BUBBLE_PARALLEL_INSERT)
+    request.dependency = t;
+    starpu_task_end_dep_add( t, 1 );
+#endif
+
+    chameleon_pzplrnt( clargs->tileA->mat,
+                       clargs->bigM, clargs->m0, clargs->n0, clargs->seed,
+                       b_args->sequence, &request );
+
+    free( _args );
+}
+#endif /* defined(CHAMELEON_USE_BUBBLE) */
 
 #if !defined(CHAMELEON_SIMULATION)
 static void
@@ -61,8 +98,11 @@ void INSERT_TASK_zplrnt( const RUNTIME_option_t *options,
 {
     struct cl_zplrnt_args_s *clargs = NULL;
     void (*callback)(void*);
+    RUNTIME_request_t       *request  = options->request;
+    int                      is_bubble;
     int                      exec = 0;
     const char              *cl_name = "zplrnt";
+    bubble_args_t           *b_args = NULL;
 
     /* Handle cache */
     CHAMELEON_BEGIN_ACCESS_DECLARATION;
@@ -78,10 +118,23 @@ void INSERT_TASK_zplrnt( const RUNTIME_option_t *options,
         clargs->m0    = m0;
         clargs->n0    = n0;
         clargs->seed  = seed;
+        clargs->tileA = A->get_blktile( A, Am, An );
     }
 
     /* Callback fro profiling information */
     callback = options->profiling ? cl_zplrnt_callback : NULL;
+
+#if defined(CHAMELEON_USE_BUBBLE)
+    /* Check if this is a bubble */
+    is_bubble = ( clargs->tileA->format & CHAMELEON_TILE_DESC );
+    if ( is_bubble ) {
+        b_args = malloc( sizeof(bubble_args_t) + sizeof(struct cl_zplrnt_args_s) );
+        b_args->sequence = options->sequence;
+        b_args->parent   = request->parent;
+        memcpy( &(b_args->clargs), clargs, sizeof(struct cl_zplrnt_args_s) );
+        cl_name = "zplrnt_bubble";
+    }
+#endif
 
     /* Insert the task */
     rt_starpu_insert_task(
@@ -95,5 +148,24 @@ void INSERT_TASK_zplrnt( const RUNTIME_option_t *options,
         STARPU_CALLBACK,          callback,
         STARPU_EXECUTE_ON_WORKER, options->workerid,
         STARPU_NAME,              cl_name,
+
+        /* Bubble management */
+#if defined(CHAMELEON_USE_BUBBLE)
+        STARPU_BUBBLE_FUNC,             is_bubble_func,
+        STARPU_BUBBLE_FUNC_ARG,         b_args,
+        STARPU_BUBBLE_GEN_DAG_FUNC,     cl_zplrnt_bubble_func,
+        STARPU_BUBBLE_GEN_DAG_FUNC_ARG, b_args,
+
+#if defined(CHAMELEON_BUBBLE_PROFILE)
+        STARPU_BUBBLE_PARENT, request->parent,
+#endif
+
+#if defined(CHAMELEON_BUBBLE_PARALLEL_INSERT)
+        STARPU_CALLBACK_WITH_ARG_NFREE, callback_end_dep_release, request->dependency,
+#endif
+#endif
         0 );
+
+    /* Dependency is used only by the first submitted task and should not be reused */
+    request->dependency = NULL;
 }

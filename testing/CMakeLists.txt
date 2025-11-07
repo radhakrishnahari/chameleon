@@ -117,6 +117,18 @@ set(ZSRC_WO_STDAPI
   testing_zherk_batch.c
   testing_zpotrf_batch.c
   testing_ztrsm_batch.c
+  #
+  # Recursive tests
+  #
+  testing_zrecursive.c
+  testing_zrecpotrf.c
+  testing_zrecpotri.c
+  testing_zrecpoinv.c
+  testing_zrecposv.c
+  testing_zrecgemm.c
+  testing_zrecgemm_R.c
+  testing_zrecgemm_RW.c
+  testing_zrecgetrf_nopiv.c
   )
 
 foreach(_precision ${CHAMELEON_PRECISION} )
