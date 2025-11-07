@@ -44,8 +44,9 @@ void INSERT_TASK_zlascal(const RUNTIME_option_t *options,
                         const CHAM_desc_t *A, int Am, int An)
 {
     if ( alpha == 0. ) {
-        return INSERT_TASK_zlaset( options, uplo, m, n,
-                                   alpha, alpha, A, Am, An );
+        INSERT_TASK_zlaset( options, uplo, m, n,
+                            alpha, alpha, A, Am, An );
+        return;
     }
     else if ( alpha == 1. ) {
         return;

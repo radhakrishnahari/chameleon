@@ -53,8 +53,9 @@ void INSERT_TASK_ztrmm( const RUNTIME_option_t *options,
                         const CHAM_desc_t *B, int Bm, int Bn )
 {
     if ( alpha == 0. ) {
-        return INSERT_TASK_zlaset( options, ChamUpperLower, m, n,
-                                   alpha, alpha, B, Bm, Bn );
+        INSERT_TASK_zlaset( options, ChamUpperLower, m, n,
+                            alpha, alpha, B, Bm, Bn );
+        return;
     }
 
     quark_option_t *opt = (quark_option_t*)(options->schedopt);
