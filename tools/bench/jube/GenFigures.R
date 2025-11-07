@@ -110,7 +110,7 @@ gen_mpi_figure <- function( df, mpi )
 gen_shm_figure <- function( df )
 {
     if ( nrow( df ) == 0 ) {
-        next;
+        return(NULL);
     }
 
     df$algorithm = revalue( df$algorithm, c("gemm"      = "Matrix Multiply (gemm)",
