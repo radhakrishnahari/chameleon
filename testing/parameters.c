@@ -74,8 +74,17 @@ void print_usage( const char* prog_name )
             str[ len+1 ] = 'x';
             str[ len+2 ] = '\0';
         }
-        printf( "    %-23s %s\n",
-                str, param->helper );
+        /* Parameter for all tests which has a defautl value */
+        if ( param->has_arg == 1 ) {
+            char defaultstr[STR_MAX_LENGTH];
+            param->sprint( param->value, 1, 1, defaultstr );
+            printf( "    %-23s %s [default:%s]\n",
+                    str, param->helper, defaultstr );
+        }
+        else {
+            printf( "    %-23s %s\n",
+                    str, param->helper );
+        }
         param++;
     }
 

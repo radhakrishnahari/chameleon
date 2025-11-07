@@ -36,29 +36,33 @@ testing_zherk_desc( run_arg_list_t *args, int check )
     int        hres      = 0;
 
     /* Read arguments */
-    int          async = parameters_getvalue_int( "async" );
-    int          nb    = run_arg_get_nb( args );
-    int          P     = parameters_getvalue_int( "P" );
-    cham_trans_t trans = run_arg_get_trans( args, "trans", ChamNoTrans );
-    cham_uplo_t  uplo  = run_arg_get_uplo( args, "uplo", ChamUpper );
-    int          N     = run_arg_get_int( args, "N", 1000 );
-    int          K     = run_arg_get_int( args, "K", N );
-    int          LDA   = run_arg_get_int( args, "LDA", ( ( trans == ChamNoTrans ) ? N : K ) );
-    int          LDC   = run_arg_get_int( args, "LDC", N );
-    double       alpha = testing_dalea();
-    double       beta  = testing_dalea();
-    double       bump  = testing_dalea();
-    int          seedA = run_arg_get_int( args, "seedA", testing_ialea() );
-    int          seedC = run_arg_get_int( args, "seedC", testing_ialea() );
-    int          Q     = parameters_compute_q( P );
+    int                   async  = parameters_getvalue_int( "async" );
+    int                   nb     = run_arg_get_nb( args );
+    int                   P      = parameters_getvalue_int( "P" );
+    cham_trans_t          trans  = run_arg_get_trans( args, "trans", ChamNoTrans );
+    cham_uplo_t           uplo   = run_arg_get_uplo( args, "uplo", ChamUpper );
+    int                   N      = run_arg_get_int( args, "N", 1000 );
+    int                   K      = run_arg_get_int( args, "K", N );
+    int                   LDA    = run_arg_get_int( args, "LDA", ( ( trans == ChamNoTrans ) ? N : K ) );
+    int                   LDC    = run_arg_get_int( args, "LDC", N );
+    CHAMELEON_Complex64_t zalpha = testing_zalea();
+    CHAMELEON_Complex64_t zbeta  = testing_zalea();
+    CHAMELEON_Complex64_t zbump  = testing_zalea();
+    int                   seedA  = run_arg_get_int( args, "seedA", testing_ialea() );
+    int                   seedC  = run_arg_get_int( args, "seedC", testing_ialea() );
+    int                   Q      = parameters_compute_q( P );
 
     /* Descriptors */
     int          Am, An;
     CHAM_desc_t *descA, *descC, *descCinit;
+    double       alpha, beta, bump;
 
-    alpha = run_arg_get_double( args, "alpha", alpha );
-    beta  = run_arg_get_double( args, "beta", beta );
-    bump  = run_arg_get_double( args, "bump", bump );
+    zalpha = run_arg_get_complex64( args, "alpha", zalpha );
+    zbeta  = run_arg_get_complex64( args, "beta",  zbeta );
+    zbump  = run_arg_get_complex64( args, "bump",  zbump );
+    alpha  = creal( zalpha );
+    beta   = creal( zbeta );
+    bump   = creal( zbump );
 
     CHAMELEON_Set( CHAMELEON_TILE_SIZE, nb );
 
@@ -121,29 +125,33 @@ testing_zherk_std( run_arg_list_t *args, int check )
 
     /* Read arguments */
 #if !defined(CHAMELEON_TESTINGS_VENDOR)
-    int          api   = parameters_getvalue_int( "api" );
+    int                   api    = parameters_getvalue_int( "api" );
 #endif
-    int          nb    = run_arg_get_nb( args );
-    cham_trans_t trans = run_arg_get_trans( args, "trans", ChamNoTrans );
-    cham_uplo_t  uplo  = run_arg_get_uplo( args, "uplo", ChamUpper );
-    int          N     = run_arg_get_int( args, "N", 1000 );
-    int          K     = run_arg_get_int( args, "K", N );
-    int          LDA   = run_arg_get_int( args, "LDA", ( ( trans == ChamNoTrans ) ? N : K ) );
-    int          LDC   = run_arg_get_int( args, "LDC", N );
-    double       alpha = testing_dalea();
-    double       beta  = testing_dalea();
-    double       bump  = testing_dalea();
-    int          seedA = run_arg_get_int( args, "seedA", testing_ialea() );
-    int          seedC = run_arg_get_int( args, "seedC", testing_ialea() );
+    int                   nb     = run_arg_get_nb( args );
+    cham_trans_t          trans  = run_arg_get_trans( args, "trans", ChamNoTrans );
+    cham_uplo_t           uplo   = run_arg_get_uplo( args, "uplo", ChamUpper );
+    int                   N      = run_arg_get_int( args, "N", 1000 );
+    int                   K      = run_arg_get_int( args, "K", N );
+    int                   LDA    = run_arg_get_int( args, "LDA", ( ( trans == ChamNoTrans ) ? N : K ) );
+    int                   LDC    = run_arg_get_int( args, "LDC", N );
+    CHAMELEON_Complex64_t zalpha = testing_zalea();
+    CHAMELEON_Complex64_t zbeta  = testing_zalea();
+    CHAMELEON_Complex64_t zbump  = testing_zalea();
+    int                   seedA  = run_arg_get_int( args, "seedA", testing_ialea() );
+    int                   seedC  = run_arg_get_int( args, "seedC", testing_ialea() );
 
 
     /* Descriptors */
     int                    Am, An;
     CHAMELEON_Complex64_t *A, *C;
+    double                 alpha, beta, bump;
 
-    alpha = run_arg_get_double( args, "alpha", alpha );
-    beta  = run_arg_get_double( args, "beta", beta );
-    bump  = run_arg_get_double( args, "bump", bump );
+    zalpha = run_arg_get_complex64( args, "alpha", zalpha );
+    zbeta  = run_arg_get_complex64( args, "beta",  zbeta );
+    zbump  = run_arg_get_complex64( args, "bump",  zbump );
+    alpha  = creal( zalpha );
+    beta   = creal( zbeta );
+    bump   = creal( zbump );
 
     CHAMELEON_Set( CHAMELEON_TILE_SIZE, nb );
 

@@ -201,10 +201,17 @@ int main (int argc, char **argv) {
     }
 
     /* Set ncores to the right value */
-    if ( options.threads == -1 ) {
+    {
         parameter_t *param;
         param = parameters_get( 't' );
         param->value.ival = CHAMELEON_GetThreadNbr();
+
+        if ( ( options.threads != -1 ) &&
+             ( options.threads != param->value.ival ) )
+        {
+            fprintf( stderr, "WARNING: A runtime environment variable or a configuration file has overridden the number of required threads from %d to %d\n",
+                     options.threads, param->value.ival );
+        }
         options.threads = param->value.ival;
     }
 

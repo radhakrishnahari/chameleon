@@ -51,7 +51,7 @@ testing_zsymm_desc( run_arg_list_t *args, int check )
     int                   seedA = run_arg_get_int( args, "seedA", testing_ialea() );
     int                   seedB = run_arg_get_int( args, "seedB", testing_ialea() );
     int                   seedC = run_arg_get_int( args, "seedC", testing_ialea() );
-    double                bump  = testing_dalea();
+    CHAMELEON_Complex64_t bump  = testing_zalea();
     int                   Q     = parameters_compute_q( P );
 
     /* Descriptors */
@@ -59,7 +59,7 @@ testing_zsymm_desc( run_arg_list_t *args, int check )
     CHAM_desc_t *descA, *descB, *descC, *descCinit;
     void        *ws = NULL;
 
-    bump  = run_arg_get_double( args, "bump", bump );
+    bump  = run_arg_get_complex64( args, "bump", bump );
     alpha = run_arg_get_complex64( args, "alpha", alpha );
     beta  = run_arg_get_complex64( args, "beta", beta );
 
@@ -149,13 +149,13 @@ testing_zsymm_std( run_arg_list_t *args, int check )
     int                   seedA = run_arg_get_int( args, "seedA", testing_ialea() );
     int                   seedB = run_arg_get_int( args, "seedB", testing_ialea() );
     int                   seedC = run_arg_get_int( args, "seedC", testing_ialea() );
-    double                bump  = testing_dalea();
+    CHAMELEON_Complex64_t bump  = testing_zalea();
 
     /* Descriptors */
     int                    An;
     CHAMELEON_Complex64_t *A, *B, *C;
 
-    bump  = run_arg_get_double( args, "bump", bump );
+    bump  = run_arg_get_complex64( args, "bump", bump );
     alpha = run_arg_get_complex64( args, "alpha", alpha );
     beta  = run_arg_get_complex64( args, "beta", beta );
 
