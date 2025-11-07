@@ -106,6 +106,10 @@ testing_zlaswp_desc( run_arg_list_t *args, int check )
     test_data.hres = hres;
     testing_stop( &test_data, flops_zlaswp( M, N ) );
 
+    if ( ws != NULL ) {
+        CHAMELEON_zlaswp_WS_Free( ws );
+    }
+
 #if !defined(CHAMELEON_SIMULATION)
     if ( check ) {
         CHAM_desc_t *descA0, *descA0c;
