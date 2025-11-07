@@ -73,19 +73,19 @@ RUN git clone https://github.com/ecrc/quark && \
     rm quark/ -rf
 
 # Install StarPU
-RUN wget https://files.inria.fr/starpu/starpu-1.4.8/starpu-1.4.8.tar.gz > /dev/null 2>&1 && \
-    tar xzf starpu-1.4.8.tar.gz && \
-    cd starpu-1.4.8/ && \
+RUN wget https://files.inria.fr/starpu/starpu-1.4.9/starpu-1.4.9.tar.gz > /dev/null 2>&1 && \
+    tar xzf starpu-1.4.9.tar.gz && \
+    cd starpu-1.4.9/ && \
     ./configure --prefix=/home/gitlab/install/starpu --enable-debug --disable-build-doc --with-fxt --disable-simgrid && \
     make -j5 install
 
 # Install StarPU with Simgrid
-RUN cd starpu-1.4.8/ && \
+RUN cd starpu-1.4.9/ && \
     ./configure --prefix=/home/gitlab/install/starpu-simgrid --enable-debug --disable-build-doc --with-fxt --enable-simgrid && \
     make -j5 install && \
     cd ../ && \
-    rm starpu-1.4.8/ -rf && \
-    rm starpu-1.4.8.tar.gz
+    rm starpu-1.4.9/ -rf && \
+    rm starpu-1.4.9.tar.gz
 
 USER gitlab
 
