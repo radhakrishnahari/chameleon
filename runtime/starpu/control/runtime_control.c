@@ -48,55 +48,54 @@ void cham_interfaces_fini() {
 }
 
 #if defined(STARPU_HAVE_HWLOC) && defined(HAVE_STARPU_PARALLEL_WORKER)
-void chameleon_starpu_parallel_worker_init( CHAM_context_starpu_t *sched_opt )
+void chameleon_starpu_parallel_worker_init( char *env_pw_level, CHAM_context_starpu_t *sched_opt )
 {
-    char *env_pw_level = chameleon_getenv( "CHAMELEON_PARALLEL_WORKER_LEVEL" );
+    assert( env_pw_level != NULL );
+    struct starpu_parallel_worker_config *pw_config = NULL;
+    hwloc_obj_type_t pw_level;
+    int  pw_level_number = 1;
+    char level[256];
 
-    if (env_pw_level != NULL) {
-        struct starpu_parallel_worker_config *pw_config = NULL;
-        hwloc_obj_type_t pw_level;
-        int  pw_level_number = 1;
-        char level[256];
-
-        int argc  = strchr( env_pw_level, ':') == NULL ? 1 : 2;
-        int match = sscanf( env_pw_level, "%255[^:]:%d", level, &pw_level_number );
+    int argc  = strchr( env_pw_level, ':') == NULL ? 1 : 2;
+    int match = sscanf( env_pw_level, "%255[^:]:%d", level, &pw_level_number );
 
 #if !defined(CHAMELEON_KERNELS_MT)
-        chameleon_warning("chameleon_starpu_parallel_worker_init()", "CHAMELEON has been compiled with multi-threaded kernels disabled (-DCHAMELEON_KERNELS_MT=OFF). This won't break the execution, but you may not obtain the performance gain expected. It is recommended to recompile with -DCHAMELEON_KERNELS_MT=ON.\n");
+    chameleon_warning( "chameleon_starpu_parallel_worker_init()",
+                       "CHAMELEON has been compiled with multi-threaded kernels disabled (-DCHAMELEON_KERNELS_MT=OFF).\n"
+                       "This won't break the execution, but you may not obtain the performance gain expected.\n"
+                       "It is recommended to recompile with -DCHAMELEON_KERNELS_MT=ON.\n");
 #endif
 
-        if ( (match != argc) ||
-             ((match == 2) && (pw_level_number < 0) ) )
-        {
-            fprintf( stderr, "error CHAMELEON_PARALLEL_WORKER_LEVEL \"%s\"  does not match the format level[:number] where number > 0.\n", env_pw_level );
-            exit(1);
-        }
-
-        if ( hwloc_type_sscanf( level, &pw_level, NULL, 0 ) == -1 )
-        {
-            fprintf( stderr, "error CHAMELEON_PARALLEL_WORKER_LEVEL \"%s\"  does not match an hwloc level.\n", level );
-            exit(1);
-        }
-
-        pw_config = starpu_parallel_worker_init( pw_level,
-                                                 STARPU_PARALLEL_WORKER_NB, pw_level_number,
-                                                 STARPU_PARALLEL_WORKER_TYPE, STARPU_PARALLEL_WORKER_GNU_OPENMP_MKL,
-                                                 0 );
-
-        if ( pw_config == NULL )
-        {
-            fprintf( stderr, "error CHAMELEON_PARALLEL_WORKER_LEVEL : cannot create a parallel worker at %s level.\n", level );
-            exit(1);
-        }
-
-        if ( chameleon_env_on_off( "CHAMELEON_PARALLEL_WORKER_SHOW", CHAMELEON_FALSE ) == CHAMELEON_TRUE ) {
-            starpu_parallel_worker_print( pw_config );
-        }
-
-        sched_opt->pw_config = pw_config;
+    if ( (match != argc) ||
+         ((match == 2) && (pw_level_number < 0) ) )
+    {
+        fprintf( stderr, "error CHAMELEON_PARALLEL_WORKER_LEVEL \"%s\"  does not match the format level[:number] where number > 0.\n", env_pw_level );
+        exit(1);
     }
 
-    chameleon_cleanenv( env_pw_level );
+    if ( hwloc_type_sscanf( level, &pw_level, NULL, 0 ) == -1 )
+    {
+        fprintf( stderr, "error CHAMELEON_PARALLEL_WORKER_LEVEL \"%s\"  does not match an hwloc level.\n", level );
+        exit(1);
+    }
+
+    pw_config = starpu_parallel_worker_init( pw_level,
+                                             STARPU_PARALLEL_WORKER_NB, pw_level_number,
+                                             STARPU_PARALLEL_WORKER_TYPE, STARPU_PARALLEL_WORKER_GNU_OPENMP_MKL,
+                                             0 );
+
+    if ( pw_config == NULL )
+    {
+        fprintf( stderr, "error CHAMELEON_PARALLEL_WORKER_LEVEL : cannot create a parallel worker at %s level.\n", level );
+        exit(1);
+    }
+
+    if ( chameleon_env_on_off( "CHAMELEON_PARALLEL_WORKER_SHOW", CHAMELEON_FALSE ) == CHAMELEON_TRUE ) {
+        starpu_parallel_worker_print( pw_config );
+    }
+
+    sched_opt->pw_config = pw_config;
+
 }
 
 void chameleon_starpu_parallel_worker_fini( CHAM_context_starpu_t *sched_opt )
@@ -107,7 +106,7 @@ void chameleon_starpu_parallel_worker_fini( CHAM_context_starpu_t *sched_opt )
     }
 }
 #else
-#define chameleon_starpu_parallel_worker_init(sched_opt) do { (void) sched_opt; } while(0)
+#define chameleon_starpu_parallel_worker_init(env_pw_level, sched_opt) do { (void) sched_opt; } while(0)
 #define chameleon_starpu_parallel_worker_fini(sched_opt) do { (void) sched_opt; } while(0)
 #endif
 
@@ -167,6 +166,7 @@ int RUNTIME_init( CHAM_context_t *chamctxt,
     struct starpu_conf *conf = &sched_opt->starpu_conf;
     int hres = CHAMELEON_ERR_NOT_INITIALIZED;
     char *schedenv;
+    char *env_pw_level;
 
     /* StarPU was already initialized by an external library */
     if (conf == NULL) {
@@ -188,8 +188,9 @@ int RUNTIME_init( CHAM_context_t *chamctxt,
 
     /* By default, use the dmdas strategy */
     schedenv = chameleon_getenv( "STARPU_SCHED" );
+    env_pw_level = chameleon_getenv( "CHAMELEON_PARALLEL_WORKER_LEVEL" );
     if ( schedenv == NULL ) {
-        if (conf->ncuda > 0) {
+        if (( conf->ncuda > 0 ) || env_pw_level ) {
             conf->sched_policy_name = "dmdas";
         }
         else {
@@ -258,7 +259,10 @@ int RUNTIME_init( CHAM_context_t *chamctxt,
     /* Initialize local interfaces */
     cham_interfaces_init();
 
-    chameleon_starpu_parallel_worker_init( sched_opt );
+    if ( env_pw_level ) {
+        chameleon_starpu_parallel_worker_init( env_pw_level, sched_opt );
+    }
+    chameleon_cleanenv( env_pw_level );
     return hres;
 }
 
