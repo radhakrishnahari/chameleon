@@ -69,6 +69,11 @@ parameter_t parameters[] = {
     { "P",       "Rows (P) in the PxQ process grid",    'P', PARAM_OPTION | PARAM_OUTPUT, 1, 2, TestValInt, { 1}, NULL, pread_int,    sprint_int    },
     { "Q",       "Columns (Q) in the PxQ process grid", 'Q', PARAM_OUTPUT,                1, 2, TestValInt, { 1}, NULL, pread_int,    sprint_int    },
     { "custom",  "Name of custom distribution file",    -61, PARAM_OPTION,                1, 1, TestString, { 0}, NULL, pread_string, sprint_string },
+    { "nmpi_2dbc", "Number of MPI process for 2DBC mapping", 'D', PARAM_OPTION | PARAM_OUTPUT, 1, 2, TestValInt, { 0}, NULL, pread_int, sprint_int },
+    { "nmpi_sbc",  "Number of MPI process for SBC mapping",  'F', PARAM_OPTION | PARAM_OUTPUT, 1, 2, TestValInt, { 0}, NULL, pread_int, sprint_int },
+    { "R",         "Dimension of a RxR symmetric process grid",    'R', PARAM_OPTION | PARAM_OUTPUT, 1, 2, TestValInt, { 1}, NULL, pread_int, sprint_int },
+    { "mapping",   "Mapping of matrix A (POTRF/POTRI/POSV) ([0] -> 2DBC; 1 -> SBC)", 'v', PARAM_OPTION | PARAM_OUTPUT, 1, 2, TestValInt, { 0}, NULL, pread_int, sprint_int },
+    { "remap",     "Remapping policy (POTRF/POTRI) ([0] -> none; 1 -> 2DBC to SBC; 2 -> SBC to 2DBC; 3 -> 2DBC to SBC to 2DBC)", 'w', PARAM_OPTION | PARAM_OUTPUT, 1, 2, TestValInt, { 0}, NULL, pread_int, sprint_int },
 #endif
 
     { NULL, "Main input parameters", 0, PARAM_OPTION, 0, 0, 0, {0}, NULL, NULL, NULL },

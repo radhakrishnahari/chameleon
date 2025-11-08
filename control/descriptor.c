@@ -34,6 +34,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
+#include <math.h>
 #include "control/descriptor.h"
 #include "chameleon/runtime.h"
 
@@ -84,6 +85,21 @@ void chameleon_desc_set_datadist( CHAM_desc_t *to, cham_data_dist_t *from )
     for (i = 0; i < to->data_dist->distrib_array_size; i++) {
         to->data_dist->distrib[i] = from->distrib[i];
     }
+}
+
+/**
+ * Helper to visualize mapping
+ */
+void display_mapping( CHAM_desc_t *desc)
+{
+  for (int i = 0; i < desc->mt; i++) {
+    for (int j = 0; j < desc->nt; j++) {
+      //printf((i%((v == 0) ? P : R) == j%((v == 0) ? P : R)) ? "[" : " ");
+      printf("%2d", desc->get_rankof(desc, i, j));
+      //printf((i%((v == 0) ? P : R) == j%((v == 0) ? P : R)) ? "]" : " ");
+    }
+    printf("\n");
+  }
 }
 
 /**

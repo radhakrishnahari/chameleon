@@ -47,6 +47,8 @@ extern "C" {
  */
 int chameleon_getrankof_2d          ( const CHAM_desc_t *A,    int m, int n );
 int chameleon_getrankof_2d_diag     ( const CHAM_desc_t *A,    int m, int n );
+int chameleon_getrankof_sbc     ( const CHAM_desc_t *A, int m, int n );
+
 int chameleon_getrankof_ipiv_2d_row ( const CHAM_ipiv_t *ipiv, int m, int n );
 int chameleon_getrankof_ipiv_2d_col ( const CHAM_ipiv_t *ipiv, int m, int n );
 int chameleon_getrankof_ipiv_2d_diag( const CHAM_ipiv_t *ipiv, int m, int n );

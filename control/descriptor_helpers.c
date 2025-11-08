@@ -434,6 +434,129 @@ int chameleon_getrankof_custom( const CHAM_desc_t *desc, int m, int n )
 }
 
 /**
+ * @brief Helper function to build regular sub-diagonals of a SBC pattern
+ *
+ * @param[in] R
+ *        Dimension of the pattern.
+ *
+ * @param[in] var_id
+ *        Pattern variant (sub-diagonal) index.
+ *
+ * @param[in] pos
+ *        Position in the selected sub-diagonals.
+ *
+ * @return The rank of the tile ... in the pattern.
+ *
+ */
+static inline int
+rankof_sbc_subdiag_pos( int R, int var, int pos )
+{
+    int k, l, tmp;
+
+    /*
+     * Coordinates in the pattern of the corresponding rank for the selected
+     * position and variant
+     */
+    k = var+1+pos;
+    l = pos;
+
+    /* Modify because patterns are replicated side by side */
+    k = k%R;
+    l = l%R;
+
+    /* Modify because pattern is symmetric */
+    if ( k < l ) {
+        tmp = k;
+        k = l;
+        l = tmp;
+    }
+
+    /* Return the corresponding rank */
+    return (k * (k-1) / 2) + l;
+}
+
+/**
+ * @brief Return the rank associated to the diagonal tile ( m, m ) with the
+ * extended Symmetric Block Cyclic (SBC) mapping.
+ *
+ * @param[in] A
+ *        The matrix descriptor that holds the tile of coordinates ( m, n ).
+ *
+ * @param[in] m
+ *        The row index of the tile.
+ *
+ * @param[in] n
+ *        The column index of the tile.
+ *
+ * @return The rank of the tile A( m, m )
+ *
+ */
+int chameleon_getrankof_sbc( const CHAM_desc_t *A, int m, int n )
+{
+    int mm, nn, tmp;
+    int R, i, j, k, l;
+    int sub_nb, var_id;
+
+    /* Coordinates of the tile in A */
+    mm = m + A->i / A->mb;
+    nn = n + A->j / A->nb;
+
+    /* Call function to symmetric position if above diagonal in A */
+    if ( mm < nn ) {
+        mm = n + A->i / A->mb;
+        nn = m + A->j / A->nb;
+    }
+
+    /* Compute SBC pattern dimension from nb of MPI rank (P*Q). */
+    R = (int)( 0.5 * (1. + sqrt( 1.0 + 8.0 * A->p * A->q )) );
+
+    /* Coordinates of the pattern in A */
+    i = mm / R;
+    j = nn / R;
+
+    /* Coodinates of the tile in the pattern */
+    k = mm%R;
+    l = nn%R;
+
+    /* Look at symmetric position in the pattern if above diagonal in the pattern */
+    if ( k < l ) {
+        tmp = k;
+        k = l;
+        l = tmp;
+    }
+
+    /* Not on a diagonal pattern */
+    if ( k > l ) {
+        return ( k > 1 ) ? (k * (k-1) / 2 ) + l : 0;
+    }
+
+    /*
+     * On a pattern diagonal -> need to select a variant
+     */
+
+    /* Number of sub-diagonals in the pattern */
+    sub_nb = chameleon_ceil( (R-1), 2 );
+
+    /* Easy case -> variants are exactly the sub-diagonals (no repeated sequence of proc) */
+    var_id = ((i * (i+1)) / 2 + j );
+    if ( (R-1)%2 == 0 ) {
+        return rankof_sbc_subdiag_pos( R, var_id % sub_nb, k );
+    }
+
+    /* Hard case -> need to split sub-diagonals in two and apply cyclic permutation to half */
+    var_id = var_id % (2 * sub_nb - 1);
+
+    /* The variant is a sub-diagonal without repetition (ie. without the "bonus pack") */
+    if ( var_id < sub_nb-1 ) {
+        return rankof_sbc_subdiag_pos( R, var_id, k );
+    }
+    /* The variant is two halves ("packs") of sub-diagonals bound together */
+    else {
+        return rankof_sbc_subdiag_pos( R, ( k < R/2 ) ? var_id%sub_nb : var_id-(sub_nb-1), k );
+    }
+}
+
+/**
  * @brief Return the address of the tile A( m, n ) in a tile storage.
  *
  * @WARNING The only mapping valid with this data storage is the 2D block cyclic
