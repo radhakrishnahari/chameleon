@@ -262,6 +262,7 @@ if (CHAMELEON_ENABLE_TESTING)
     message("-- ${BoldGreen}CHAMELEON_ENABLE_TESTING is set to ON, turn it OFF to avoid building testing${ColourReset}")
 endif()
 
+option(CHAMELEON_VERBOSE "Enable debug information from Chameleon (Use CHAMELEON_SILENT to dynamically turn off)" OFF )
 option(CHAMELEON_DEBUG_GERED  "Enable GERED debug"  OFF)
 
 # Option to activate or not simulation mode (use Simgrid through StarPU)

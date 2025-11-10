@@ -35,6 +35,13 @@
 #cmakedefine CHAMELEON_SCHED_STARPU
 #cmakedefine CHAMELEON_SCHED_OPENMP
 
+/*
+ * Debug options
+ */
+/* Enable verbose level */
+#cmakedefine CHAMELEON_VERBOSE
+/* Debug GERED kernel */
+#cmakedefine CHAMELEON_DEBUG_GERED
 /* Debug scheduling engine */
 #cmakedefine CHAMELEON_RUNTIME_SYNC
 /* Debug coreblas execution order if not provided by the runtime */
@@ -81,9 +88,6 @@
 
 /* chameleon compute */
 #cmakedefine CHAMELEON_COPY_DIAG
-
-/* Debug options */
-#cmakedefine CHAMELEON_DEBUG_GERED
 
 /* Define the maximum batch size for kernels using it */
 #define CHAMELEON_BATCH_SIZE @CHAMELEON_BATCH_SIZE@
