@@ -27,8 +27,18 @@ void INSERT_TASK_zlascal( const RUNTIME_option_t *options,
                          const CHAM_desc_t *A, int Am, int An )
 {
     CHAM_tile_t *tileA = A->get_blktile( A, Am, An );
+
+    if ( alpha == 0. ) {
 #pragma omp task firstprivate( uplo, m, n, alpha, tileA ) depend( inout:tileA[0] )
-    TCORE_zlascal( uplo, m, n, alpha, tileA );
+        TCORE_zlaset( uplo, m, n, alpha, alpha, tileA );
+    }
+    else if ( alpha == 1. ) {
+        return;
+    }
+    else {
+#pragma omp task firstprivate( uplo, m, n, alpha, tileA ) depend( inout:tileA[0] )
+        TCORE_zlascal( uplo, m, n, alpha, tileA );
+    }
 
     (void)options;
     (void)nb;

@@ -30,10 +30,21 @@ INSERT_TASK_zgemv( const RUNTIME_option_t *options,
     CHAM_tile_t *tileX = X->get_blktile( X, Xm, Xn );
     CHAM_tile_t *tileY = Y->get_blktile( Y, Ym, Yn );
 
+    if ( alpha == 0. ) {
+#pragma omp task firstprivate( m, n, alpha, tileY ) depend( inout:tileY[0] )
+        TCORE_zlascal( ChamUpperLower, m, n, alpha, tileA );
+    }
+    else if ( beta == 0. ) {
+#pragma omp task firstprivate( trans, m, n, alpha, tileA, tileX, incX, beta, tileY, incY ) depend( in:tileA[0], tileX[0] ) depend( out:tileY[0] )
+        TCORE_zgemv( trans,  m, n,
+                     alpha, tileA, tileX, incX,
+                     beta,  tileY, incY );
+    }
+    else {
 #pragma omp task firstprivate( trans, m, n, alpha, tileA, tileX, incX, beta, tileY, incY ) depend( in:tileA[0], tileX[0] ) depend( inout:tileY[0] )
-    TCORE_zgemv( trans,  m, n,
-                 alpha, tileA, tileX, incX,
-                 beta,  tileY, incY );
-
+        TCORE_zgemv( trans,  m, n,
+                     alpha, tileA, tileX, incX,
+                     beta,  tileY, incY );
+    }
     (void)options;
 }

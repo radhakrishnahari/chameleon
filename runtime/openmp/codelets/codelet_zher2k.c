@@ -30,9 +30,21 @@ void INSERT_TASK_zher2k( const RUNTIME_option_t *options,
     CHAM_tile_t *tileA = A->get_blktile( A, Am, An );
     CHAM_tile_t *tileB = B->get_blktile( B, Bm, Bn );
     CHAM_tile_t *tileC = C->get_blktile( C, Cm, Cn );
+
+    if ( alpha == 0. ) {
+#pragma omp task firstprivate( uplo, n, beta, tileC ) depend( inout:tileC[0] )
+        TCORE_zlascal( uplo, n, n, beta, tileC );
+    }
+    else if ( beta == 0. ) {
+#pragma omp task firstprivate( uplo, trans, n, k, alpha, tileA, tileB, beta, tileC ) depend( in:tileA[0], tileB[0] ) depend( out:tileC[0] )
+        TCORE_zher2k( uplo, trans,
+                      n, k, alpha, tileA, tileB, beta, tileC );
+    }
+    else {
 #pragma omp task firstprivate( uplo, trans, n, k, alpha, tileA, tileB, beta, tileC ) depend( in:tileA[0], tileB[0] ) depend( inout:tileC[0] )
-    TCORE_zher2k( uplo, trans,
-                n, k, alpha, tileA, tileB, beta, tileC );
+        TCORE_zher2k( uplo, trans,
+                      n, k, alpha, tileA, tileB, beta, tileC );
+    }
 
     (void)options;
     (void)nb;

@@ -28,8 +28,18 @@ void INSERT_TASK_ztradd( const RUNTIME_option_t *options,
     CHAM_tile_t *tileA = A->get_blktile( A, Am, An );
     CHAM_tile_t *tileB = B->get_blktile( B, Bm, Bn );
 
+    if ( alpha == 0. ) {
+#pragma omp task firstprivate( uplo, m, n, beta, tileB ) depend( inout:tileB[0] )
+        TCORE_zlascal( uplo, m, n, beta, tileB );
+    }
+    else if ( beta == 0. ) {
+#pragma omp task firstprivate( uplo, trans, m, n, alpha, tileA, tileB ) depend( in:tileA[0] ) depend( out:tileB[0] )
+        TCORE_ztradd( uplo, trans, m, n, alpha, tileA, beta, tileB );
+    }
+    else {
 #pragma omp task firstprivate( uplo, trans, m, n, alpha, tileA, tileB ) depend( in:tileA[0] ) depend( inout:tileB[0] )
-    TCORE_ztradd( uplo, trans, m, n, alpha, tileA, beta, tileB );
+        TCORE_ztradd( uplo, trans, m, n, alpha, tileA, beta, tileB );
+    }
 
     (void)options;
     (void)nb;
