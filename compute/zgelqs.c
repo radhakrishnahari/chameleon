@@ -321,7 +321,7 @@ int CHAMELEON_zgelqs_Tile_Async( CHAM_desc_t *A, CHAM_desc_t *T, CHAM_desc_t *B,
 #if defined(CHAMELEON_COPY_DIAG)
     {
         int m = chameleon_min( A->m, A->n );
-        chameleon_zdesc_copy_and_restrict( A, &D, m, A->n );
+        chameleon_zdesc_copy_and_restrict( chamctxt, A, &D, m, A->n );
         Dptr = &D;
     }
 #endif

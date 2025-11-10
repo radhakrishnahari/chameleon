@@ -405,7 +405,7 @@ int CHAMELEON_ztpgqrt_Tile_Async( int L,
 
 #if defined(CHAMELEON_COPY_DIAG)
     {
-        chameleon_zdesc_copy_and_restrict( V1, &D, V1->m, KT*V1->nb );
+        chameleon_zdesc_copy_and_restrict( chamctxt, V1, &D, V1->m, KT*V1->nb );
         Dptr = &D;
     }
 #endif

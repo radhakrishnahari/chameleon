@@ -110,7 +110,7 @@ void RUNTIME_progress( CHAM_context_t *chamctxt )
 /**
  * Thread rank.
  */
-int RUNTIME_thread_rank( CHAM_context_t *chamctxt )
+int RUNTIME_thread_rank( const CHAM_context_t *chamctxt )
 {
     (void)chamctxt;
     return 0;
@@ -119,7 +119,7 @@ int RUNTIME_thread_rank( CHAM_context_t *chamctxt )
 /**
  * Thread rank.
  */
-int RUNTIME_thread_size( CHAM_context_t *chamctxt )
+int RUNTIME_thread_size( const CHAM_context_t *chamctxt )
 {
     // TODO: fixme
     //return vpmap_get_nb_total_threads();
@@ -130,7 +130,7 @@ int RUNTIME_thread_size( CHAM_context_t *chamctxt )
 /**
  *  This returns the rank of this process
  */
-int RUNTIME_comm_rank( CHAM_context_t *chamctxt )
+int RUNTIME_comm_rank( const CHAM_context_t *chamctxt )
 {
     int rank = 0;
 #if defined(CHAMELEON_USE_MPI)
@@ -144,7 +144,7 @@ int RUNTIME_comm_rank( CHAM_context_t *chamctxt )
 /**
  *  This returns the size of the distributed computation
  */
-int RUNTIME_comm_size( CHAM_context_t *chamctxt )
+int RUNTIME_comm_size( const CHAM_context_t *chamctxt )
 {
     int size = 1;
 #if defined(CHAMELEON_USE_MPI)

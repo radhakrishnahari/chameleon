@@ -90,15 +90,15 @@ chameleon_pzgepdf_qdwh_init( const CHAM_desc_t *U, const CHAM_desc_t *H,
      *     - the two Qs where the Q is generated for QR iterations
      *     - the two Ds to create copies on the fly of the diagonal tiles in QR for faster computations on the GPU
      */
-    chameleon_zdesc_copy_and_restrict( U, B1, U->m, U->n );
-    chameleon_zdesc_copy_and_restrict( H, B2, U->n, U->n );
+    chameleon_zdesc_copy_and_restrict( chamctxt, U, B1, U->m, U->n );
+    chameleon_zdesc_copy_and_restrict( chamctxt, H, B2, U->n, U->n );
 
-    chameleon_zdesc_copy_and_restrict( U, Q1, U->m, U->n );
-    chameleon_zdesc_copy_and_restrict( H, Q2, U->n, U->n );
+    chameleon_zdesc_copy_and_restrict( chamctxt, U, Q1, U->m, U->n );
+    chameleon_zdesc_copy_and_restrict( chamctxt, H, Q2, U->n, U->n );
 
     if ( _zgepdf_qdwh_opt_genD ) {
-        chameleon_zdesc_copy_and_restrict( U, D1, U->m, U->n );
-        chameleon_zdesc_copy_and_restrict( H, D2, U->n, U->n );
+        chameleon_zdesc_copy_and_restrict( chamctxt, U, D1, U->m, U->n );
+        chameleon_zdesc_copy_and_restrict( chamctxt, H, D2, U->n, U->n );
     }
 
     /*
@@ -113,14 +113,14 @@ chameleon_pzgepdf_qdwh_init( const CHAM_desc_t *U, const CHAM_desc_t *H,
     Ph = chameleon_desc_datadist_get_iparam(H, 0);
     Qh = chameleon_desc_datadist_get_iparam(H, 1);
 
-    chameleon_desc_init_2dtile( TS1, "GEPDF_QDWH_TS1", ChamComplexDouble,
+    chameleon_desc_init_2dtile( chamctxt, TS1, "GEPDF_QDWH_TS1", ChamComplexDouble,
                                 ib, nb, ib * U->mt, nb * U->nt, Pu, Qu );
-    chameleon_desc_init_2dtile( TT1, "GEPDF_QDWH_TT1", ChamComplexDouble,
+    chameleon_desc_init_2dtile( chamctxt, TT1, "GEPDF_QDWH_TT1", ChamComplexDouble,
                                 ib, nb, ib * U->mt, nb * U->nt, Pu, Qu );
 
-    chameleon_desc_init_2dtile( TS2, "GEPDF_QDWH_TS2", ChamComplexDouble,
+    chameleon_desc_init_2dtile( chamctxt, TS2, "GEPDF_QDWH_TS2", ChamComplexDouble,
                                 ib, nb, ib * H->mt, nb * H->nt, Ph, Qh );
-    chameleon_desc_init_2dtile( TT2, "GEPDF_QDWH_TT2", ChamComplexDouble,
+    chameleon_desc_init_2dtile( chamctxt, TT2, "GEPDF_QDWH_TT2", ChamComplexDouble,
                                 ib, nb, ib * H->mt, nb * H->nt, Ph, Qh );
 
     /*
@@ -157,12 +157,12 @@ chameleon_pzgepdf_qdwh_init( const CHAM_desc_t *U, const CHAM_desc_t *H,
     /*
      * Let's create a backup of A, to be able to compute H in the end.
      */
-    chameleon_zdesc_copy_and_restrict( U, A, U->m, U->n );
+    chameleon_zdesc_copy_and_restrict( chamctxt, U, A, U->m, U->n );
 
     /*
      * Let's create a transposed version of U for the solve step in the Cholesky iteration.
      */
-    chameleon_desc_init_2dtile( Ut, "GEPDF_QDWH_Ut", ChamComplexDouble,
+    chameleon_desc_init_2dtile( chamctxt, Ut, "GEPDF_QDWH_Ut", ChamComplexDouble,
                                 U->mb, U->nb, U->n, U->m, Pu, Qu );
 
     /*

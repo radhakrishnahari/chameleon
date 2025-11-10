@@ -136,9 +136,9 @@ struct chameleon_pzgram_s {
 /**
  *  Declarations of internal sequential functions
  */
-int chameleon_zshift(CHAM_context_t *chamctxt, int m, int n, CHAMELEON_Complex64_t *A,
-                     int nprob, int me, int ne, int L,
-                     RUNTIME_sequence_t *sequence, RUNTIME_request_t *request);
+int chameleon_zshift( CHAM_context_t *chamctxt, int m, int n, CHAMELEON_Complex64_t *A,
+                      int nprob, int me, int ne, int L,
+                      RUNTIME_sequence_t *sequence, RUNTIME_request_t *request );
 
 /**
  *  Declarations of parallel functions (dynamic scheduling) - alphabetical order
@@ -363,28 +363,29 @@ void chameleon_pzbcast_tile( cham_store_t dir, cham_bcast_t algo, const CHAM_des
  *  Macro for matrix conversion / Lapack interface
  */
 static inline int
-chameleon_zdesc_alloc_diag( CHAM_desc_t *descA, const char *name,
+chameleon_zdesc_alloc_diag( const CHAM_context_t *chamctxt,
+                            CHAM_desc_t *descA, const char *name,
                             int nb, int m, int n, int p, int q )
 {
     int diag_m = chameleon_min( m, n );
-    return chameleon_desc_init( descA, "Diag", CHAMELEON_MAT_ALLOC_TILE,
+    return chameleon_desc_init( chamctxt, descA, "Diag", CHAMELEON_MAT_ALLOC_TILE,
                                 ChamComplexDouble, nb, nb, diag_m, nb, diag_m, nb, p, q,
                                 chameleon_getaddr_diag,
                                 chameleon_getblkldd_ccrb,
                                 chameleon_getrankof_2d_diag, NULL );
 }
 
-#define chameleon_zdesc_alloc( descA, name, mb, nb, m, n, free) \
-    {                                                           \
-        int rc;                                                 \
-        rc = chameleon_desc_init_local( &(descA), name,         \
-                                        ChamComplexDouble,      \
-                                        (mb), (nb),             \
-                                        (m), (n) );             \
-        if ( rc != CHAMELEON_SUCCESS ) {                        \
-            {free;}                                             \
-            return rc;                                          \
-        }                                                       \
+#define chameleon_zdesc_alloc( descA, name, mb, nb, m, n, free)         \
+    {                                                                   \
+        int rc;                                                         \
+        rc = chameleon_desc_init_local( chamctxt, &(descA), name,       \
+                                        ChamComplexDouble,              \
+                                        (mb), (nb),                     \
+                                        (m), (n) );                     \
+        if ( rc != CHAMELEON_SUCCESS ) {                                \
+            {free;}                                                     \
+            return rc;                                                  \
+        }                                                               \
     }
 
 /**
@@ -396,14 +397,15 @@ chameleon_zdesc_alloc_diag( CHAM_desc_t *descA, const char *name,
  * @return CHAMELEON_SUCCESS on success, the associated error on failure.
  */
 static inline int
-chameleon_zdesc_copy_and_restrict( const CHAM_desc_t *descIn,
+chameleon_zdesc_copy_and_restrict( const CHAM_context_t *chamctxt,
+                                   const CHAM_desc_t *descIn,
                                    CHAM_desc_t *descOut,
                                    int m, int n )
 {
     int rc;
     char *subname;
     chameleon_asprintf( &subname, "%s_restricted", descIn->name );
-    rc = chameleon_desc_init( descOut, subname, CHAMELEON_MAT_ALLOC_TILE,
+    rc = chameleon_desc_init( chamctxt, descOut, subname, CHAMELEON_MAT_ALLOC_TILE,
                               ChamComplexDouble, descIn->mb, descIn->nb,
                               m, n, m, n,
                               chameleon_desc_datadist_get_iparam(descIn, 0),
@@ -420,7 +422,7 @@ chameleon_zdesc_copy_and_restrict( const CHAM_desc_t *descIn,
  * LAPACK interface calls
  */
 static inline int
-chameleon_zlap2tile( CHAM_context_t *chamctxt, const char *name,
+chameleon_zlap2tile( const CHAM_context_t *chamctxt, const char *name,
                      CHAM_desc_t *descAl, CHAM_desc_t *descAt,
                      int mode, cham_uplo_t uplo,
                      CHAMELEON_Complex64_t *A, int mb, int nb, int lm, int ln, int m, int n,
@@ -430,7 +432,7 @@ chameleon_zlap2tile( CHAM_context_t *chamctxt, const char *name,
     if ( CHAMELEON_TRANSLATION == ChamOutOfPlace ) {
         /* Initialize the Lapack descriptor */
         chameleon_asprintf( &fullname, "%sl", name );
-        chameleon_desc_init( descAl, fullname, A, ChamComplexDouble, mb, nb,
+        chameleon_desc_init( chamctxt, descAl, fullname, A, ChamComplexDouble, mb, nb,
                              lm, ln, m, n, 1, 1,
                              chameleon_getaddr_cm, chameleon_getblkldd_cm, NULL, NULL );
         descAl->styp = ChamCM;
@@ -438,7 +440,7 @@ chameleon_zlap2tile( CHAM_context_t *chamctxt, const char *name,
 
         /* Initialize the tile descriptor */
         chameleon_asprintf( &fullname, "%st", name );
-        chameleon_desc_init( descAt, fullname, CHAMELEON_MAT_ALLOC_TILE, ChamComplexDouble, mb, nb,
+        chameleon_desc_init( chamctxt, descAt, fullname, CHAMELEON_MAT_ALLOC_TILE, ChamComplexDouble, mb, nb,
                              lm, ln, m, n, 1, 1,
                              chameleon_getaddr_ccrb, chameleon_getblkldd_ccrb, NULL, NULL );
         free( fullname );
@@ -450,7 +452,7 @@ chameleon_zlap2tile( CHAM_context_t *chamctxt, const char *name,
     else {
         /* Initialize the tile descriptor */
         chameleon_asprintf( &fullname, "%st", name );
-        chameleon_desc_init( descAt, fullname, A, ChamComplexDouble, mb, nb,
+        chameleon_desc_init( chamctxt, descAt, fullname, A, ChamComplexDouble, mb, nb,
                              lm, ln, m, n, 1, 1,
                              chameleon_getaddr_cm, chameleon_getblkldd_cm, NULL, NULL );
         free( fullname );
@@ -463,7 +465,7 @@ chameleon_zlap2tile( CHAM_context_t *chamctxt, const char *name,
  * in LAPACK interface calls
  */
 static inline int
-chameleon_ztile2lap( CHAM_context_t *chamctxt, CHAM_desc_t *descAl, CHAM_desc_t *descAt,
+chameleon_ztile2lap( const CHAM_context_t *chamctxt, CHAM_desc_t *descAl, CHAM_desc_t *descAt,
                      int mode, cham_uplo_t uplo,
                      RUNTIME_sequence_t *seq, RUNTIME_request_t *req )
 {
@@ -483,7 +485,7 @@ chameleon_ztile2lap( CHAM_context_t *chamctxt, CHAM_desc_t *descAl, CHAM_desc_t 
  * conversions in LAPACK interface calls
  */
 static inline void
-chameleon_ztile2lap_cleanup( CHAM_context_t *chamctxt, CHAM_desc_t *descAl, CHAM_desc_t *descAt )
+chameleon_ztile2lap_cleanup( const CHAM_context_t *chamctxt, CHAM_desc_t *descAl, CHAM_desc_t *descAt )
 {
     (void)chamctxt;
     if ( CHAMELEON_TRANSLATION == ChamOutOfPlace ) {

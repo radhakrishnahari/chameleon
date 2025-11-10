@@ -22,7 +22,8 @@
 #include "chameleon/runtime.h"
 
 static int
-chameleon_recdesc_create( const char *name, CHAM_desc_t *desc, void *mat, cham_flttype_t dtyp,
+chameleon_recdesc_create( const CHAM_context_t *chamctxt,
+                          const char *name, CHAM_desc_t *desc, void *mat, cham_flttype_t dtyp,
                           cham_rec_t rec, int rarg, int *mb, int *nb,
                           int lm, int ln, int m, int n, int p, int q, int i0, int j0,
                           blkaddr_fct_t get_blkaddr, blkldd_fct_t get_blkldd,
@@ -38,7 +39,7 @@ chameleon_recdesc_create( const char *name, CHAM_desc_t *desc, void *mat, cham_f
     assert( (mb[0] > 0) && (nb[0] > 0) );
 
     /* Create the current layer descriptor */
-    rc = chameleon_desc_init( desc, name, mat, dtyp, mb[0], nb[0],
+    rc = chameleon_desc_init( chamctxt, desc, name, mat, dtyp, mb[0], nb[0],
                               lm, ln, m, n, p, q,
                               get_blkaddr, get_blkldd, get_rankof, get_rankof_arg );
     if ( rc != CHAMELEON_SUCCESS ) {
@@ -92,7 +93,7 @@ chameleon_recdesc_create( const char *name, CHAM_desc_t *desc, void *mat, cham_f
             chameleon_asprintf( &subname, "%s[%d,%d]", name, m, n );
 
             tiledesc = (CHAM_desc_t*)malloc(sizeof(CHAM_desc_t));
-            rc = chameleon_recdesc_create( subname, tiledesc, tile->mat, desc->dtyp,
+            rc = chameleon_recdesc_create( chamctxt, subname, tiledesc, tile->mat, desc->dtyp,
                                            rec, rarg, mb, nb,
                                            tile->ld, tempnn, /* Abuse as ln is not used */
                                            tempmm, tempnn,
@@ -151,7 +152,7 @@ CHAMELEON_Recursive_Desc_Create( CHAM_desc_t **descptr, void *mat, cham_flttype_
         return CHAMELEON_ERR_OUT_OF_RESOURCES;
     }
 
-    status = chameleon_recdesc_create( name, desc, mat, dtyp,
+    status = chameleon_recdesc_create( chamctxt, name, desc, mat, dtyp,
                                        rec, rarg, mb, nb,
                                        lm, ln, m, n, p, q, 0, 0,
                                        get_blkaddr, get_blkldd,

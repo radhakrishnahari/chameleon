@@ -321,7 +321,7 @@ CHAMELEON_zungqr_Tile_Async( CHAM_desc_t *A, CHAM_desc_t *T, CHAM_desc_t *Q,
 
 #if defined( CHAMELEON_COPY_DIAG )
     {
-        chameleon_zdesc_copy_and_restrict( A, &D, A->m, K );
+        chameleon_zdesc_copy_and_restrict( chamctxt, A, &D, A->m, K );
         Dptr = &D;
     }
 #endif

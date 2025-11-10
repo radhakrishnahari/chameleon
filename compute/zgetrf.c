@@ -151,7 +151,7 @@ CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A )
         /* Allocation of Wl for permutation of the panels */
         lookahead = chamctxt->lookahead;
         ws->Wl = malloc( sizeof(CHAM_desc_t) );
-        chameleon_desc_init( ws->Wl, "GETRF_Wl", CHAMELEON_MAT_ALLOC_TILE,
+        chameleon_desc_init( chamctxt, ws->Wl, "GETRF_Wl", CHAMELEON_MAT_ALLOC_TILE,
                              ChamComplexDouble, A->mb, A->nb,
                              A->mt * A->mb, A->nb * Q * lookahead,
                              A->mt * A->mb, A->nb * Q * lookahead, P, Q,
@@ -166,7 +166,7 @@ CHAMELEON_zgetrf_WS_Alloc( const CHAM_desc_t *A )
     /* Allocation of Up for the permutation of the diagonal panel per block */
     if ( ws->alg == ChamGetrfPPiv ) {
         ws->Up = malloc( sizeof(CHAM_desc_t) );
-        chameleon_desc_init_2dtile( ws->Up, "GETRF_Up", ChamComplexDouble,
+        chameleon_desc_init_2dtile( chamctxt, ws->Up, "GETRF_Up", ChamComplexDouble,
                                     ws->ib, A->nb, P * Q * ws->ib, A->nb, P * Q, 1 );
     }
 

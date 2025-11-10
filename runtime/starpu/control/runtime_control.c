@@ -389,7 +389,7 @@ void RUNTIME_progress( CHAM_context_t *chamctxt )
 /**
  * Thread rank.
  */
-int RUNTIME_thread_rank( CHAM_context_t *chamctxt )
+int RUNTIME_thread_rank( const CHAM_context_t *chamctxt )
 {
     (void)chamctxt;
     return starpu_worker_get_id();
@@ -398,7 +398,7 @@ int RUNTIME_thread_rank( CHAM_context_t *chamctxt )
 /**
  * Number of threads.
  */
-int RUNTIME_thread_size( CHAM_context_t *chamctxt )
+int RUNTIME_thread_size( const CHAM_context_t *chamctxt )
 {
     (void)chamctxt;
     return starpu_worker_get_count_by_type( STARPU_CPU_WORKER );
@@ -407,7 +407,7 @@ int RUNTIME_thread_size( CHAM_context_t *chamctxt )
 /**
  *  The process rank
  */
-int RUNTIME_comm_rank( CHAM_context_t *chamctxt )
+int RUNTIME_comm_rank( const CHAM_context_t *chamctxt )
 {
     int rank = 0;
 
@@ -426,7 +426,7 @@ int RUNTIME_comm_rank( CHAM_context_t *chamctxt )
 /**
  *  This returns the size of the distributed computation
  */
-int RUNTIME_comm_size( CHAM_context_t *chamctxt )
+int RUNTIME_comm_size( const CHAM_context_t *chamctxt )
 {
     int size;
 #if defined(CHAMELEON_USE_MPI)

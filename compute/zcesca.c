@@ -62,19 +62,19 @@ void *CHAMELEON_zcesca_WS_Alloc( const CHAM_desc_t *A )
     workmt = chameleon_max( A->mt, P );
     worknt = chameleon_max( A->nt, Q );
 
-    chameleon_desc_init_2dtile( &(options->Wgcol), "CESCA_Wgcol", ChamComplexDouble,
+    chameleon_desc_init_2dtile( chamctxt, &(options->Wgcol), "CESCA_Wgcol", ChamComplexDouble,
                                 1, A->nb, workmt, A->n, P, Q );
 
-    chameleon_desc_init_2dtile( &(options->Wgrow), "CESCA_Wgrow", ChamComplexDouble,
+    chameleon_desc_init_2dtile( chamctxt, &(options->Wgrow), "CESCA_Wgrow", ChamComplexDouble,
                                 A->mb, 1, A->m, worknt, P, Q );
 
-    chameleon_desc_init_2dtile( &(options->Wgelt), "CESCA_Wgelt", ChamComplexDouble,
+    chameleon_desc_init_2dtile( chamctxt, &(options->Wgelt), "CESCA_Wgelt", ChamComplexDouble,
                                 1, 1, 1, worknt, P, Q );
 
-    chameleon_desc_init_2dtile( &(options->Wdcol), "CESCA_Wdcol", ChamRealDouble,
+    chameleon_desc_init_2dtile( chamctxt, &(options->Wdcol), "CESCA_Wdcol", ChamRealDouble,
                                 2, A->nb, 2*workmt, A->n, P, Q );
 
-    chameleon_desc_init_2dtile( &(options->Wdrow), "CESCA_Wdrow", ChamRealDouble,
+    chameleon_desc_init_2dtile( chamctxt, &(options->Wdrow), "CESCA_Wdrow", ChamRealDouble,
                                 A->mb, 2, A->m, 2*worknt, P, Q );
 
     return (void*)options;
