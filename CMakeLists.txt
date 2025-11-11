@@ -161,7 +161,8 @@ message("-- ${BoldGreen}CHAMELEON_SCHED is set to use ${CHAMELEON_SCHED} runtime
 math(EXPR number_of_active_runtime 0)
 foreach (runtime ${CHAMELEON_SCHED_list})
     if (CHAMELEON_SCHED_${runtime})
-        math(EXPR number_of_active_runtime "${number_of_active_runtime}+1")
+        math(EXPR CHAMELEON_SCHED_NUMBER "${CHAMELEON_SCHED_NUMBER}+1")
+        message("-- ${BoldGreen}CHAMELEON_SCHED_${runtime} is ON${ColourReset}")
     endif()
 endforeach()
 if (NOT number_of_active_runtime STREQUAL 1)
@@ -605,8 +606,6 @@ else (NOT CHAMELEON_SIMULATION)
     message("-- ${Blue}Add definition CHAMELEON_SIMULATION"
     " - Activate simulation mode in Chameleon (to use with StarPU+SimGrid)${ColourReset}")
 
-    add_subdirectory(simucore)
-
     # Guard against mis-used simulation mode
     if(NOT DEFINED CHAMELEON_USE_CUDA)
         message(FATAL_ERROR "${BoldBlue}"
@@ -743,9 +742,9 @@ add_subdirectory(runtime)
 ###############################################################################
 # Main library #
 ################
-add_subdirectory(include)
 add_subdirectory(control)
 add_subdirectory(compute)
+add_subdirectory(include)
 
 ###############################################################################
 # chameleon_lapack library #
@@ -767,12 +766,12 @@ endif()
 # Testing executables
 if(CHAMELEON_ENABLE_EXAMPLE AND NOT CHAMELEON_SIMULATION)
   add_subdirectory(example)
-endif(CHAMELEON_ENABLE_EXAMPLE AND NOT CHAMELEON_SIMULATION)
+endif()
 
 # Testing executables
 if(CHAMELEON_ENABLE_TESTING)
   add_subdirectory(testing)
-endif(CHAMELEON_ENABLE_TESTING)
+endif()
 #------------------------------------------------------------------------------
 
 # Define a target which gathers all targets of sources
@@ -878,6 +877,38 @@ include(CPack)
 ###############################################################################
 # Print Options #
 #################
+
+# Save extra dependencies (all required links)
+list(APPEND CHAMELEON_DEP ${EXTRA_LIBRARIES})
+# We remove duplicate dependencies ensuring that redundant libraries are placed last
+list(REVERSE CHAMELEON_DEP)
+list(REMOVE_DUPLICATES CHAMELEON_DEP)
+list(REVERSE CHAMELEON_DEP)
+# we add chameleon's own library
+set(CHAMELEON_LIBRARIES "chameleon")
+if (NOT CHAMELEON_SIMULATION)
+  list(APPEND CHAMELEON_LIBRARIES coreblas)
+  if (CHAMELEON_USE_CUDA)
+    list(APPEND CHAMELEON_LIBRARIES cudablas)
+  endif()
+endif()
+if (NOT CHAMELEON_SCHED_DLOPEN)
+  if (CHAMELEON_SCHED_OPENMP)
+    list(APPEND CHAMELEON_LIBRARIES chameleon_openmp)
+  endif()
+  if (CHAMELEON_SCHED_PARSEC)
+    list(APPEND CHAMELEON_LIBRARIES chameleon_parsec)
+  endif()
+  if (CHAMELEON_SCHED_QUARK)
+    list(APPEND CHAMELEON_LIBRARIES chameleon_quark)
+  endif()
+  if (CHAMELEON_SCHED_STARPU)
+    list(APPEND CHAMELEON_LIBRARIES chameleon_starpu)
+  endif()
+endif()
+list(APPEND CHAMELEON_LIBRARIES hqr)
+set(CHAMELEON_LIBRARIES_DEP ${CHAMELEON_LIBRARIES} ${CHAMELEON_DEP})
+
 include(PrintOpts)
 
 if (CMAKE_INSTALL_PREFIX STREQUAL "/usr/local" OR CMAKE_INSTALL_PREFIX STREQUAL "C:/Program Files")

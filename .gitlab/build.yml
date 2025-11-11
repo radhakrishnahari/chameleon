@@ -1,4 +1,10 @@
 ---
+build_all_shm:
+  extends: .build_script_template
+  variables:
+    BUILD_OPTIONS: "-DCHAMELEON_SCHED_OPENMP=ON -DCHAMELEON_SCHED_PARSEC=ON -DCHAMELEON_SCHED_QUARK=ON -DCHAMELEON_SCHED_STARPU=ON -DCHAMELEON_USE_MPI=OFF"
+    VERSION: all_shm
+
 .build_script_common:
   stage: build
   extends: .only-master-mr

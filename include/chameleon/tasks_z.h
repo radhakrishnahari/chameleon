@@ -34,7 +34,7 @@
 #define _chameleon_tasks_z_h_
 
 /**
- *  Declarations of QUARK wrappers (called by CHAMELEON) - alphabetical order
+ *  Declarations of Runtime wrappers (called by CHAMELEON) - alphabetical order
  */
 void INSERT_TASK_dlag2z( const RUNTIME_option_t *options,
                          cham_uplo_t uplo, int m, int n,
@@ -335,7 +335,6 @@ void INSERT_TASK_ztrssq( const RUNTIME_option_t *options,
 void INSERT_TASK_ztrtri( const RUNTIME_option_t *options,
                          cham_uplo_t uplo, cham_diag_t diag, int n, int nb,
                          const CHAM_desc_t *A, int Am, int An,
-
                          int iinfo );
 void INSERT_TASK_ztsmlq_hetra1( const RUNTIME_option_t *options,
                                 cham_side_t side, cham_trans_t trans,
@@ -370,6 +369,16 @@ void INSERT_TASK_zunmqr( const RUNTIME_option_t *options,
                          const CHAM_desc_t *A, int Am, int An,
                          const CHAM_desc_t *T, int Tm, int Tn,
                          const CHAM_desc_t *C, int Cm, int Cn );
+/**
+ * Gram prototype
+ */
+void INSERT_TASK_zgram( const RUNTIME_option_t *options,
+                        cham_uplo_t uplo,
+                        int m, int n, int mt, int nt,
+                        const CHAM_desc_t *Di, int Dim, int Din,
+                        const CHAM_desc_t *Dj, int Djm, int Djn,
+                        const CHAM_desc_t *D, int Dm, int Dn,
+                        CHAM_desc_t *A, int Am, int An);
 
 /**
  * Keep these insert_task for retro-compatibility
@@ -389,10 +398,10 @@ INSERT_TASK_ztslqt( const RUNTIME_option_t *options,
 
 static inline void
 INSERT_TASK_ztsqrt( const RUNTIME_option_t *options,
-                    int m, int n, int ib, int nb,
-                    const CHAM_desc_t *A1, int A1m, int A1n,
-                    const CHAM_desc_t *A2, int A2m, int A2n,
-                    const CHAM_desc_t *T, int Tm, int Tn )
+                       int m, int n, int ib, int nb,
+                       const CHAM_desc_t *A1, int A1m, int A1n,
+                       const CHAM_desc_t *A2, int A2m, int A2n,
+                       const CHAM_desc_t *T, int Tm, int Tn )
 {
     INSERT_TASK_ztpqrt( options, m, n, 0, ib, nb,
                         A1, A1m, A1n,
@@ -415,10 +424,10 @@ INSERT_TASK_zttlqt( const RUNTIME_option_t *options,
 
 static inline void
 INSERT_TASK_zttqrt( const RUNTIME_option_t *options,
-                    int m, int n, int ib, int nb,
-                    const CHAM_desc_t *A1, int A1m, int A1n,
-                    const CHAM_desc_t *A2, int A2m, int A2n,
-                    const CHAM_desc_t *T, int Tm, int Tn )
+                                int m, int n, int ib, int nb,
+                                const CHAM_desc_t *A1, int A1m, int A1n,
+                                const CHAM_desc_t *A2, int A2m, int A2n,
+                                const CHAM_desc_t *T, int Tm, int Tn )
 {
     INSERT_TASK_ztpqrt( options, m, n, m, ib, nb,
                         A1, A1m, A1n,

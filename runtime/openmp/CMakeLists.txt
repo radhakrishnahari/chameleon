@@ -34,7 +34,9 @@ morse_export_imported_target(OpenMP::OpenMP_C openmp chameleon)
 if ( OPENMP_FOUND )
   message("-- ${Blue}Add definition CHAMELEON_SCHED_OPENMP"
     " - Activate OpenMP in Chameleon${ColourReset}")
-  # TODO: check for compiler support for "_Pragma"
+  if (OpenMP_C_LIBRARIES)
+    set(CHAMELEON_DEP  "${OpenMP_C_LIBRARIES};${CHAMELEON_DEP}" PARENT_SCOPE)
+  endif()
 else ( OPENMP_FOUND )
   message(FATAL_ERROR "Something went wrong when finding OpenMP")
   return()
@@ -110,6 +112,11 @@ add_library(chameleon_openmp ${RUNTIME_SRCS})
 set_target_properties(chameleon_openmp PROPERTIES VERSION ${CHAMELEON_VERSION})
 set_target_properties(chameleon_openmp PROPERTIES SOVERSION ${CHAMELEON_VERSION_MAJOR})
 set_property(TARGET chameleon_openmp PROPERTY INSTALL_NAME_DIR "${CMAKE_INSTALL_PREFIX}/lib")
+
+target_link_libraries(chameleon_openmp ${OpenMP_C_LIBRARIES})
+if (NOT CHAMELEON_SIMULATION)
+  target_link_libraries(chameleon_openmp coreblas)
+endif()
 
 add_dependencies(chameleon_openmp
   chameleon_include

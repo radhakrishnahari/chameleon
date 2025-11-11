@@ -139,15 +139,23 @@ set(CODELETS_SRC
 
 # Check for the subdirectories
 # ----------------------------
-if( CHAMELEON_SCHED_QUARK )
-    add_subdirectory(quark)
-elseif( CHAMELEON_SCHED_PARSEC )
-    add_subdirectory(parsec)
-elseif( CHAMELEON_SCHED_STARPU )
-    add_subdirectory(starpu)
-elseif( CHAMELEON_SCHED_OPENMP )
+if ( CHAMELEON_SCHED_DLOPEN )
+  add_subdirectory(fake)
+endif()
+if( CHAMELEON_SCHED_OPENMP )
     add_subdirectory(openmp)
 endif()
+if( CHAMELEON_SCHED_PARSEC )
+    add_subdirectory(parsec)
+endif()
+if( CHAMELEON_SCHED_QUARK )
+    add_subdirectory(quark)
+endif()
+if( CHAMELEON_SCHED_STARPU )
+    add_subdirectory(starpu)
+endif()
+
+set(CHAMELEON_DEP "${CHAMELEON_DEP}" PARENT_SCOPE)
 
 ###
 ### END CMakeLists.txt

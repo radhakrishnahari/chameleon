@@ -28,7 +28,7 @@
 #define _chameleon_tasks_zc_h_
 
 /**
- *  Declarations of QUARK wrappers (called by CHAMELEON) - alphabetical order
+ *  Declarations of Runtime wrappers (called by CHAMELEON) - alphabetical order
  */
 void INSERT_TASK_clag2z( const RUNTIME_option_t *options,
                          int m, int n, int nb,

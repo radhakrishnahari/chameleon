@@ -67,7 +67,7 @@ sonar.scm.disabled=false
 sonar.scm.provider=git
 sonar.scm.exclusions.disabled=true
 
-sonar.sources=build-openmp/runtime/openmp, build-parsec/runtime/parsec, build-quark/runtime/quark, build-starpu, compute, control, coreblas, example, include, runtime, testing
+sonar.sources=build/runtime/openmp, build/runtime/parsec, build/runtime/quark, build/runtime/starpu, compute, control, coreblas, example, include, runtime, testing
 sonar.inclusions=`cat filelist.txt | sed ':a;N;$!ba;s/\n/, /g'`
 sonar.coverage.exclusions=build-starpu/gpucublas/**/*,build-starpu/gpuhipblas/**/*
 sonar.sourceEncoding=UTF-8
@@ -79,8 +79,8 @@ sonar.cxx.gcc.reportPaths=chameleon_build.log
 sonar.cxx.xunit.reportPaths=*junit.xml
 sonar.cxx.cobertura.reportPaths=chameleon_coverage.xml
 sonar.cxx.cppcheck.reportPaths=chameleon_cppcheck.xml
-sonar.cxx.clangsa.reportPaths=build-openmp/analyzer_reports/*/*.plist, build-parsec/analyzer_reports/*/*.plist, build-quark/analyzer_reports/*/*.plist, build-starpu/analyzer_reports/*/*.plist, build-starpu_simgrid/analyzer_reports/*/*.plist
-sonar.cxx.jsonCompilationDatabase=compile_commands.json
+sonar.cxx.clangsa.reportPaths=build/analyzer_reports/*/*.plist, build-starpu_simgrid/analyzer_reports/*/*.plist
+sonar.cxx.jsonCompilationDatabase=build/compile_commands.json, build-starpu_simgrid/compile_commands.json
 EOF
 echo "====== sonar-project.properties ============"
 cat sonar-project.properties

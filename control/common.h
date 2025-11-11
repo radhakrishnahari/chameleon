@@ -54,10 +54,6 @@
 #include <cublas_v2.h>
 #endif
 
-#if defined(CHAMELEON_USE_OPENCL) && !defined(CHAMELEON_SIMULATION)
-#include <OpenCL/cl.h>
-#endif
-
 #if defined(CHAMELEON_USE_MPI)
 #include <mpi.h>
 #endif
@@ -109,6 +105,11 @@ typedef struct chameleon_reduce_s CHAM_reduce_t;
 
 /**
  *  Global array of LAPACK constants
+ *
+ * TODO: this is needed to be able to call LAPACKE in Eigen values algorithms.
+ * As soons as LAPACKE is not needed anymore in these algorithms this
+ * declaration can be removed. This will also avoid a direct dependency between
+ * chameleon lib and coreblas one which should not exist.
  */
 extern char *chameleon_lapack_constants[];
 #define chameleon_lapack_const(chameleon_const) chameleon_lapack_constants[chameleon_const][0]
