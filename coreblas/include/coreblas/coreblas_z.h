@@ -420,7 +420,7 @@ int CORE_zgram( cham_uplo_t uplo, int M, int N, int Mt, int Nt,
                 double *A, int LDA );
 
 void CORE_zprint( FILE *file, const char *header,
-                  cham_uplo_t uplo, int m, int n, int Am, int An,
+                  cham_uplo_t uplo, int m, int n,
                   const CHAMELEON_Complex64_t *A, int lda );
 
 #endif /* _coreblas_z_h_ */

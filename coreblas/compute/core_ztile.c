@@ -19,6 +19,8 @@
  * @precisions normal z -> c d s
  *
  */
+#define _GNU_SOURCE
+#include <stdlib.h>
 #include "coreblas.h"
 #include "coreblas/coreblas_ztile.h"
 
@@ -1095,7 +1097,18 @@ TCORE_zprint( FILE *file, const char *header,
               cham_uplo_t uplo, int M, int N,
               int Am, int An, const CHAM_tile_t *A )
 {
+    char *s;
+    int   rc;
     coreblas_kernel_trace( A );
     assert( A->format & CHAMELEON_TILE_FULLRANK );
-    CORE_zprint( file, header, uplo, M, N, Am, An, CHAM_tile_get_ptr( A ), A->ld );
+
+#if !defined(CHAMELEON_KERNELS_TRACE)
+    rc = asprintf( &s, "%s (%2d, %2d)", header, Am, An );
+#else
+    rc = asprintf( &s, "%s %s", header, A->name );
+#endif
+    assert( rc != -1 );
+    CORE_zprint( file, s, uplo, M, N, CHAM_tile_get_ptr( A ), A->ld );
+    free( s );
+    (void)rc;
 }

@@ -19,29 +19,68 @@
 #include "coreblas/lapacke.h"
 #include "coreblas.h"
 
+#define HEADER "--- %s / %p, %d:\n"
+#define FOOTER "-------------------------\n"
+
 void
 CORE_zprint( FILE *file, const char *header,
-             cham_uplo_t uplo, int M, int N, int Am, int An,
+             cham_uplo_t uplo, int M, int N,
              const CHAMELEON_Complex64_t *A, int lda )
 {
-    FILE *output = (file == NULL) ? stdout : file;
-    int   i, j;
+    FILE   *output = (file == NULL) ? stdout : file;
+    size_t  len = 0;
+    int     i, j;
 
-    fflush( output );
-    fprintf( output, "--- %10s (%2d, %2d) / %p, %d:\n", header, Am, An, (void*)A, lda );
-    for(i=0; i<M; i++) {
-        fprintf( output, "  " );
-        for(j=0; j<N; j++) {
+    len  = 4 + strlen(header) + 3 + 20 + 2 + 10 + 2;
 #if defined(PRECISION_z) || defined(PRECISION_c)
-            fprintf( output, " (% e, % e)",
-                     creal( A[j*lda + i] ),
-                     cimag( A[j*lda + i] ));
+    len += ( 2 + 31 * N + 1 ) * M;
 #else
-            fprintf( output, " % e", A[j*lda + i] );
+    len += ( 2 + 14 * N + 1 ) * M;
 #endif
+    len += strlen(FOOTER);
+
+    if ( len <= 4096 ) {
+        size_t size;
+        char  *s = malloc( len );
+
+        size = snprintf( s, len, HEADER, header, (void*)A, lda );
+        for(i=0; i<M; i++) {
+            size += snprintf( s + size, len - size, "  " );
+            for(j=0; j<N; j++) {
+#if defined(PRECISION_z) || defined(PRECISION_c)
+                size += snprintf( s + size, len - size, " (% e, % e)",
+                                  creal( A[j*lda + i] ),
+                                  cimag( A[j*lda + i] ) );
+#else
+                size += snprintf( s + size, len - size, " % e",
+                                  A[j*lda + i] );
+#endif
+            }
+            size += snprintf( s + size, len - size, "\n" );
         }
-        fprintf( output, "\n" );
+        size += snprintf( s + size, len - size, FOOTER );
+
+        fflush( output );
+        fwrite( s, 1, size, output );
+        fflush( output );
+        free( s );
     }
-    fprintf( output, "-------------------------\n" );
-    fflush( output );
+    else {
+        fprintf( output, HEADER, header, (void*)A, lda );
+        for(i=0; i<M; i++) {
+            fprintf( output, "  " );
+            for(j=0; j<N; j++) {
+#if defined(PRECISION_z) || defined(PRECISION_c)
+                fprintf( output, " (% e, % e)",
+                         creal( A[j*lda + i] ),
+                         cimag( A[j*lda + i] ));
+#else
+                fprintf( output, " % e", A[j*lda + i] );
+#endif
+            }
+            fprintf( output, "\n" );
+        }
+        fprintf( output, FOOTER );
+        fflush( output );
+    }
 }
