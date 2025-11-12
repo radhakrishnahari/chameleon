@@ -391,13 +391,13 @@ void chameleon_pzlange_generic( cham_normtype_t norm, cham_uplo_t uplo, cham_dia
     int P = chameleon_desc_datadist_get_iparam(A, 0);
     int Q = chameleon_desc_datadist_get_iparam(A, 1);
 
+    *result = -1.0;
+
     chamctxt = chameleon_context_self();
     if ( sequence->status != CHAMELEON_SUCCESS ) {
         return;
     }
     RUNTIME_options_init(&options, chamctxt, sequence, request);
-
-    *result = 0.0;
 
     workmt = chameleon_max( A->mt, P );
     worknt = chameleon_max( A->nt, Q );
@@ -406,14 +406,14 @@ void chameleon_pzlange_generic( cham_normtype_t norm, cham_uplo_t uplo, cham_dia
     case ChamOneNorm:
         RUNTIME_options_ws_alloc( &options, 1, 0 );
 
-        chameleon_desc_init_2dtile( &Wcol, "LANGE_Wcol", ChamRealDouble,
+        chameleon_desc_init_2dtile( chamctxt, &Wcol, "LANGE_Wcol", ChamRealDouble,
                                     1, A->nb, workmt, worknt * A->nb, P, Q );
         wcol_init = 1;
 
         /*
          * Use the global allocator for Welt, otherwise flush may free the data before the result is read.
          */
-        chameleon_desc_init_2dlap( &Welt, "LANGE_Welt", ChamRealDouble,
+        chameleon_desc_init_2dlap( chamctxt, &Welt, "LANGE_Welt", ChamRealDouble,
                                    1, 1, P, worknt, P, Q );
         break;
 
@@ -423,11 +423,11 @@ void chameleon_pzlange_generic( cham_normtype_t norm, cham_uplo_t uplo, cham_dia
     case ChamInfNorm:
         RUNTIME_options_ws_alloc( &options, A->mb, 0 );
 
-        chameleon_desc_init_2dtile( &Wcol, "LANGE_Wcol", ChamRealDouble,
+        chameleon_desc_init_2dtile( chamctxt, &Wcol, "LANGE_Wcol", ChamRealDouble,
                                     A->mb, 1, workmt * A->mb, worknt, P, Q );
         wcol_init = 1;
 
-        chameleon_desc_init_2dlap( &Welt, "LANGE_Welt", ChamRealDouble,
+        chameleon_desc_init_2dlap( chamctxt, &Welt, "LANGE_Welt", ChamRealDouble,
                                    1, 1, workmt, Q, P, Q );
         break;
 
@@ -438,7 +438,7 @@ void chameleon_pzlange_generic( cham_normtype_t norm, cham_uplo_t uplo, cham_dia
         RUNTIME_options_ws_alloc( &options, 1, 0 );
 
         alpha = 1.;
-        chameleon_desc_init_2dlap( &Welt, "LANGE_Welt", ChamRealDouble,
+        chameleon_desc_init_2dlap( chamctxt, &Welt, "LANGE_Welt", ChamRealDouble,
                                    2, 1, workmt*2, worknt, P, Q );
         break;
 
@@ -449,7 +449,7 @@ void chameleon_pzlange_generic( cham_normtype_t norm, cham_uplo_t uplo, cham_dia
     default:
         RUNTIME_options_ws_alloc( &options, 1, 0 );
 
-        chameleon_desc_init_2dlap( &Welt, "LANGE_Welt", ChamRealDouble,
+        chameleon_desc_init_2dlap( chamctxt, &Welt, "LANGE_Welt", ChamRealDouble,
                                    1, 1, workmt, worknt, P, Q );
     }
 

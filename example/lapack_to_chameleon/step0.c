@@ -95,7 +95,11 @@ int main(int argc, char *argv[]) {
 
     /* Cholesky factorization:
      * A is replaced by its factorization L or L^T depending on uplo */
-    LAPACKE_dpotrf( LAPACK_COL_MAJOR, 'U', N, A, N );
+    hres = LAPACKE_dpotrf( LAPACK_COL_MAJOR, 'U', N, A, N );
+    if ( hres != 0 ) {
+        fprintf( stderr, "Error during Cholesky factorization call (%d)\n", hres );
+        goto end;
+    }
 
     /* Solve:
      * B is stored in X on entry, X contains the result on exit.
@@ -158,6 +162,7 @@ int main(int argc, char *argv[]) {
             res / N / eps / (anorm * xnorm + bnorm ));
     }
 
+  end:
     /* deallocate data */
     free(A);
     free(Acpy);

@@ -362,7 +362,7 @@ int CHAMELEON_zunmlq_Tile_Async( cham_side_t side, cham_trans_t trans,
 #if defined(CHAMELEON_COPY_DIAG)
     {
         int m = chameleon_min( A->m, A->n );
-        chameleon_zdesc_copy_and_restrict( A, &D, m, A->n );
+        chameleon_zdesc_copy_and_restrict( chamctxt, A, &D, m, A->n );
         Dptr = &D;
     }
 #endif

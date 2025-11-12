@@ -91,6 +91,7 @@ testing_zgesv_desc( run_arg_list_t *args, int check )
     }
     test_data.hres = hres;
     testing_stop( &test_data, flops_zgesv( N, NRHS ) );
+    hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
 
     if ( async ) {
         CHAMELEON_zgetrf_WS_Free( wsA );
@@ -177,6 +178,7 @@ testing_zgesv_std( run_arg_list_t *args, int check )
     hres = LAPACKE_zgesv( LAPACK_COL_MAJOR, N, NRHS, A, LDA, IPIV, X, LDB );
     test_data.hres = hres;
     testing_stop( &test_data, flops_zgesv( N, NRHS ) );
+    hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
 #else
     testing_start( &test_data );
     switch ( api ) {
@@ -197,6 +199,7 @@ testing_zgesv_std( run_arg_list_t *args, int check )
     }
     test_data.hres = hres;
     testing_stop( &test_data, flops_zgesv( N, NRHS ) );
+    hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
 
     /* Checks the factorisation and residual */
     if ( check ) {

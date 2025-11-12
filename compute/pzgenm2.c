@@ -69,14 +69,14 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
      * stage and the second one during Flush.
      * This is the same issue for X and SX to be reused from one iteration to another.
      */
-    chameleon_desc_init_2dtile( &DROW, "GENM2_DROW", ChamRealDouble,
+    chameleon_desc_init_2dtile( chamctxt, &DROW, "GENM2_DROW", ChamRealDouble,
                                 1, A->nb, P, A->n, P, Q );
     /**
      * NRMX must be allocated with GLOBAL to be able to access the norm value
      * after flushing the descriptor.
      * This is the same issue for NRMSX.
      */
-    chameleon_desc_init_2dlap( &NRMX, "GENM2_NRMX", ChamRealDouble,
+    chameleon_desc_init_2dlap( chamctxt, &NRMX, "GENM2_NRMX", ChamRealDouble,
                                2, 1, P * 2, Q, P, Q );
 
     /**
@@ -171,11 +171,11 @@ chameleon_pzgenm2( double tol, const CHAM_desc_t *A, double *result,
         return;
     }
 
-    chameleon_desc_init_2dlap( &NRMSX, "GENM2_NRMSX", ChamRealDouble,
+    chameleon_desc_init_2dlap( chamctxt, &NRMSX, "GENM2_NRMSX", ChamRealDouble,
                                2, 1, P * 2, Q, P, Q );
-    chameleon_desc_init_2dtile( &X, "GENM2_X", ChamComplexDouble,
+    chameleon_desc_init_2dtile( chamctxt, &X, "GENM2_X", ChamComplexDouble,
                                 1, A->nb, P, A->n, P, Q );
-    chameleon_desc_init_2dtile( &SX, "GENM2_SX", ChamComplexDouble,
+    chameleon_desc_init_2dtile( chamctxt, &SX, "GENM2_SX", ChamComplexDouble,
                                 A->mb, 1, A->m, Q, P, Q );
 
     cnt = 0;

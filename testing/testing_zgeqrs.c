@@ -93,6 +93,7 @@ testing_zgeqrs_desc( run_arg_list_t *args, int check )
     }
     test_data.hres = hres;
     testing_stop( &test_data, flops_zgeqrs( M, N, NRHS ) );
+    hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
 
     /* Checks the factorisation, orthogonality and residue */
     if ( check ) {

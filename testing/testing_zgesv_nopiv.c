@@ -74,6 +74,7 @@ testing_zgesv_nopiv_desc( run_arg_list_t *args, int check )
     }
     test_data.hres = hres;
     testing_stop( &test_data, flops_zgesv( N, NRHS ) );
+    hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
 
     /* Checks the factorisation and residue */
     if ( check ) {
@@ -137,6 +138,7 @@ testing_zgesv_nopiv_std( run_arg_list_t *args, int check )
     hres = CHAMELEON_zgesv_nopiv( N, NRHS, A, LDA, X, LDB );
     test_data.hres = hres;
     testing_stop( &test_data, flops_zgesv( N, NRHS ) );
+    hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
 
     /* Checks the factorisation and residue */
     if ( check ) {

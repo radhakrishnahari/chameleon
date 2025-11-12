@@ -51,8 +51,9 @@ void INSERT_TASK_zherk(const RUNTIME_option_t *options,
                       double beta, const CHAM_desc_t *C, int Cm, int Cn)
 {
     if ( alpha == 0. ) {
-        return INSERT_TASK_zlascal( options, uplo, n, n, nb,
-                                    beta, C, Cm, Cn );
+        INSERT_TASK_zlascal( options, uplo, n, n, nb,
+                             beta, C, Cm, Cn );
+        return;
     }
 
     quark_option_t *opt = (quark_option_t*)(options->schedopt);

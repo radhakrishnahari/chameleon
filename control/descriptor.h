@@ -128,7 +128,8 @@ static inline int chameleon_getrankof_tile(const CHAM_desc_t *desc, int m, int n
     return tile->rank;
 }
 
-int chameleon_desc_init( CHAM_desc_t *desc, const char *name, void *mat,
+int chameleon_desc_init( const CHAM_context_t *chamctxt,
+                         CHAM_desc_t *desc, const char *name, void *mat,
                          cham_flttype_t dtyp, int mb, int nb,
                          int lm, int ln, int m, int n, int p, int q,
                          void* (*get_blkaddr)( const CHAM_desc_t*, int, int ),
@@ -137,30 +138,33 @@ int chameleon_desc_init( CHAM_desc_t *desc, const char *name, void *mat,
                          void* get_rankof_arg );
 
 static inline int
-chameleon_desc_init_2dtile( CHAM_desc_t *desc, const char *name,
+chameleon_desc_init_2dtile( const CHAM_context_t *chamctxt,
+                            CHAM_desc_t *desc, const char *name,
                             cham_flttype_t dtyp, int mb, int nb,
                             int m, int n, int p, int q )
 {
-    return chameleon_desc_init( desc, name, CHAMELEON_MAT_ALLOC_TILE,
+    return chameleon_desc_init( chamctxt, desc, name, CHAMELEON_MAT_ALLOC_TILE,
                                 dtyp, mb, nb, m, n, m, n, p, q,
                                 NULL, NULL, NULL, NULL );
 }
 
 static inline int
-chameleon_desc_init_2dlap( CHAM_desc_t *desc, const char *name,
+chameleon_desc_init_2dlap( const CHAM_context_t *chamctxt,
+                           CHAM_desc_t *desc, const char *name,
                            cham_flttype_t dtyp, int mb, int nb,
                            int m, int n, int p, int q )
 {
-    return chameleon_desc_init( desc, name, CHAMELEON_MAT_ALLOC_GLOBAL,
+    return chameleon_desc_init( chamctxt, desc, name, CHAMELEON_MAT_ALLOC_GLOBAL,
                                 dtyp, mb, nb, m, n, m, n, p, q,
                                 NULL, NULL, NULL, NULL );
 }
 
 static inline int
-chameleon_desc_init_local( CHAM_desc_t *desc, const char *name,
+chameleon_desc_init_local( const CHAM_context_t *chamctxt,
+                           CHAM_desc_t *desc, const char *name,
                            cham_flttype_t dtyp, int mb, int nb, int m, int n )
 {
-    return chameleon_desc_init( desc, name, CHAMELEON_MAT_ALLOC_GLOBAL,
+    return chameleon_desc_init( chamctxt, desc, name, CHAMELEON_MAT_ALLOC_GLOBAL,
                                 dtyp, mb, nb, m, n, m, n, 1, 1,
                                 NULL, NULL, NULL, NULL );
 }

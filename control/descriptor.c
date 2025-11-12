@@ -148,7 +148,8 @@ void chameleon_desc_set_datadist( CHAM_desc_t *to, cham_data_dist_t *from )
  * @return  The descriptor with the matrix description parameters set.
  *
  */
-int chameleon_desc_init( CHAM_desc_t *desc, const char *name, void *mat,
+int chameleon_desc_init( const CHAM_context_t *chamctxt,
+                         CHAM_desc_t *desc, const char *name, void *mat,
                          cham_flttype_t dtyp, int mb, int nb,
                          int lm, int ln, int m, int n, int p, int q,
                          blkaddr_fct_t   get_blkaddr,
@@ -156,9 +157,9 @@ int chameleon_desc_init( CHAM_desc_t *desc, const char *name, void *mat,
                          blkrankof_fct_t get_rankof,
                          void           *get_rankof_arg )
 {
-    CHAM_context_t *chamctxt;
     int rc = CHAMELEON_SUCCESS;
 
+    assert( chamctxt );
     memset( desc, 0, sizeof(CHAM_desc_t) );
 
     if ( name ) {
@@ -166,12 +167,6 @@ int chameleon_desc_init( CHAM_desc_t *desc, const char *name, void *mat,
     }
     else {
         desc->name = __chamdesc_get_name();
-    }
-
-    chamctxt = chameleon_context_self();
-    if (chamctxt == NULL) {
-        chameleon_error("CHAMELEON_Desc_Create", "CHAMELEON not initialized");
-        return CHAMELEON_ERR_NOT_INITIALIZED;
     }
 
     /* If one of the function get_* is NULL, we switch back to the default */
@@ -644,7 +639,7 @@ int CHAMELEON_Desc_Create_User( CHAM_desc_t **descptr, void *mat, cham_flttype_t
         return CHAMELEON_ERR_OUT_OF_RESOURCES;
     }
 
-    chameleon_desc_init( desc, NULL, mat, dtyp, mb, nb,
+    chameleon_desc_init( chamctxt, desc, NULL, mat, dtyp, mb, nb,
                          lm, ln, m, n, p, q,
                          get_blkaddr, get_blkldd, get_rankof, get_rankof_arg );
 

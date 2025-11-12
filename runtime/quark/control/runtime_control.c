@@ -100,7 +100,7 @@ void RUNTIME_progress( CHAM_context_t *chamctxt )
 /**
  * Thread rank.
  */
-int RUNTIME_thread_rank( CHAM_context_t *chamctxt )
+int RUNTIME_thread_rank( const CHAM_context_t *chamctxt )
 {
     return QUARK_Thread_Rank((Quark*)(chamctxt->schedopt));
 }
@@ -108,7 +108,7 @@ int RUNTIME_thread_rank( CHAM_context_t *chamctxt )
 /**
  * Number of threads.
  */
-int RUNTIME_thread_size( CHAM_context_t *chamctxt )
+int RUNTIME_thread_size( const CHAM_context_t *chamctxt )
 {
     (void)chamctxt;
     /*
@@ -121,7 +121,7 @@ int RUNTIME_thread_size( CHAM_context_t *chamctxt )
 /**
  *  The process rank
  */
-int RUNTIME_comm_rank( CHAM_context_t *chamctxt )
+int RUNTIME_comm_rank( const CHAM_context_t *chamctxt )
 {
     (void)chamctxt;
     return 0;
@@ -130,7 +130,7 @@ int RUNTIME_comm_rank( CHAM_context_t *chamctxt )
 /**
  *  This returns the size of the distributed computation
  */
-int RUNTIME_comm_size( CHAM_context_t *chamctxt )
+int RUNTIME_comm_size( const CHAM_context_t *chamctxt )
 {
     (void)chamctxt;
     return 1;

@@ -55,8 +55,8 @@ void INSERT_TASK_zlaswp_set( const RUNTIME_option_t *options,
     CHAM_tile_t *tileB = B->get_blktile( B, Bm, Bn );
     int         *invp  = NULL; // get invp from ipiv
 
-    assert( A->format & CHAMELEON_TILE_FULLRANK );
-    assert( B->format & CHAMELEON_TILE_FULLRANK );
+    assert( tileA->format & CHAMELEON_TILE_FULLRANK );
+    assert( tileB->format & CHAMELEON_TILE_FULLRANK );
 
 #pragma omp task firstprivate( m0, k, ipiv, A, B ) depend( in:invp ) depend( in:tileA[0] ) depend( inout:tileB[0] )
     {

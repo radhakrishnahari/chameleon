@@ -188,7 +188,7 @@ void chameleon_pzlatms( cham_dist_t idist, unsigned long long int seed, cham_sym
     /* Generate U and apply it */
     {
         /* U is of size A->m by min(A->m, A->n) */
-        chameleon_zdesc_copy_and_restrict( A, &descU, A->m, minmn );
+        chameleon_zdesc_copy_and_restrict( chamctxt, A, &descU, A->m, minmn );
 
         chameleon_pzplrnt( &descU, descU.m, 0, 0, seed, sequence, request );
 
@@ -212,15 +212,15 @@ void chameleon_pzlatms( cham_dist_t idist, unsigned long long int seed, cham_sym
                          0   /* TSRR (unstable) */ );
 
 #if defined(CHAMELEON_COPY_DIAG)
-        chameleon_zdesc_copy_and_restrict( A, &descD, A->m, minmn );
+        chameleon_zdesc_copy_and_restrict( chamctxt, A, &descD, A->m, minmn );
         descDptr = &descD;
 #endif
 
-        chameleon_desc_init_2dtile( &descTS, "LATMS_U_TS", ChamComplexDouble,
+        chameleon_desc_init_2dtile( chamctxt, &descTS, "LATMS_U_TS", ChamComplexDouble,
                                     ib, descU.nb, ib * descU.mt, descU.nb * descU.nt,
                                     chameleon_desc_datadist_get_iparam(&descU, 0),
                                     chameleon_desc_datadist_get_iparam(&descU, 1) );
-        chameleon_desc_init_2dtile( &descTT, "LATMS_U_TT", ChamComplexDouble,
+        chameleon_desc_init_2dtile( chamctxt, &descTT, "LATMS_U_TT", ChamComplexDouble,
                                     ib, descU.nb, ib * descU.mt, descU.nb * descU.nt,
                                     chameleon_desc_datadist_get_iparam(&descU, 0),
                                     chameleon_desc_datadist_get_iparam(&descU, 1) );
@@ -262,7 +262,7 @@ void chameleon_pzlatms( cham_dist_t idist, unsigned long long int seed, cham_sym
     if ( trans == ChamNoTrans )
     {
         /* V is of size min(A->m, A->n) by A->n */
-        chameleon_zdesc_copy_and_restrict( A, &descV, minmn, A->n );
+        chameleon_zdesc_copy_and_restrict( chamctxt, A, &descV, minmn, A->n );
 
         chameleon_pzplrnt( &descV, descV.m, 0, 0, seed, sequence, request );
 
@@ -281,15 +281,15 @@ void chameleon_pzlatms( cham_dist_t idist, unsigned long long int seed, cham_sym
                          0   /* TSRR (unstable) */ );
 
 #if defined(CHAMELEON_COPY_DIAG)
-        chameleon_zdesc_copy_and_restrict( A, &descD, minmn, A->n );
+        chameleon_zdesc_copy_and_restrict( chamctxt, A, &descD, minmn, A->n );
         descDptr = &descD;
 #endif
 
-        chameleon_desc_init_2dtile( &descTS, "LATMS_V_TS", ChamComplexDouble,
+        chameleon_desc_init_2dtile( chamctxt, &descTS, "LATMS_V_TS", ChamComplexDouble,
                                     ib, descV.nb, ib * descV.mt, descV.nb * descV.nt,
                                     chameleon_desc_datadist_get_iparam(&descV, 0),
                                     chameleon_desc_datadist_get_iparam(&descV, 1) );
-        chameleon_desc_init_2dtile( &descTT, "LATMS_V_TT", ChamComplexDouble,
+        chameleon_desc_init_2dtile( chamctxt, &descTT, "LATMS_V_TT", ChamComplexDouble,
                                     ib, descV.nb, ib * descV.mt, descV.nb * descV.nt,
                                     chameleon_desc_datadist_get_iparam(&descV, 0),
                                     chameleon_desc_datadist_get_iparam(&descV, 1) );

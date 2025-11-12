@@ -44,6 +44,31 @@ void chameleon_fatal_error  (const char *func_name, const char* msg_text);
 int  chameleon_rank         (CHAM_context_t *chamctxt);
 int  chameleon_tune         (cham_tasktype_t func, int M, int N, int NRHS);
 
+
+#define CHAMELEON_DEBUG_PREFIX "[chameleon/%s]"
+
+#ifdef CHAMELEON_VERBOSE
+
+static inline void
+__chameleon_log_debug( const char *fmt, ... ) __attribute__((format(printf,1,2)));
+
+#define CHAMELEON_DEBUG( module, fmt, ... )                             \
+    do {                                                                \
+        __chameleon_log_debug( CHAMELEON_DEBUG_PREFIX "[%s] " fmt,      \
+                               module, __chameleon_func__, ##__VA_ARGS__ ); \
+    } while(0)
+
+#define CHAMELEON_DEBUG_NO_HEADER( module, fmt, ...)            \
+    do {                                                        \
+        __chameleon_log_debug( "  " fmt, ##__VA_ARGS__ );       \
+    } while(0)
+
+#else
+#  define CHAMELEON_DEBUG(fmt, ...) do { } while (0)
+#  define CHAMELEON_DEBUG_NO_HEADER(fmt, ...) do { } while (0)
+
+#endif
+
 #ifdef __cplusplus
 }
 #endif

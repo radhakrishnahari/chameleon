@@ -140,7 +140,7 @@ int CHAMELEON_zLap2Desc( cham_uplo_t uplo, CHAMELEON_Complex64_t *Af77, int LDA,
 
     /* Create the B descriptor to handle the Lapack format matrix */
     chameleon_asprintf( &lapname, "%slap", A->name );
-    status = chameleon_desc_init( &B, lapname, Af77, ChamComplexDouble, A->mb, A->nb,
+    status = chameleon_desc_init( chamctxt, &B, lapname, Af77, ChamComplexDouble, A->mb, A->nb,
                                   LDA, A->n, A->m, A->n, 1, 1,
                                   chameleon_getaddr_cm, chameleon_getblkldd_cm, NULL, NULL );
     free( lapname );
@@ -226,7 +226,7 @@ int CHAMELEON_zDesc2Lap( cham_uplo_t uplo, CHAM_desc_t *A, CHAMELEON_Complex64_t
 
     /* Create the B descriptor to handle the Lapack format matrix */
     chameleon_asprintf( &lapname, "%slap", A->name );
-    status = chameleon_desc_init( &B, lapname, Af77, ChamComplexDouble, A->mb, A->nb,
+    status = chameleon_desc_init( chamctxt, &B, lapname, Af77, ChamComplexDouble, A->mb, A->nb,
                                   LDA, A->n, A->m, A->n, 1, 1,
                                   chameleon_getaddr_cm, chameleon_getblkldd_cm, NULL, NULL );
     free( lapname );

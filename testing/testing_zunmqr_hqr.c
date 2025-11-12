@@ -64,6 +64,14 @@ testing_zunmqr_hqr_desc( run_arg_list_t *args, int check )
     /* Calculates the dimensions according to the transposition and the side */
     Am = ( side == ChamLeft ) ? M : N;
 
+    if ( K > Am )
+    {
+        if ( CHAMELEON_Comm_rank() == 0 ) {
+            fprintf( stderr, "SKIPPED: Incorrect parameter K for unmqr\n" );
+        }
+        return -1;
+    }
+
     /* Creates the matrices */
     CHAMELEON_Desc_Create(
         &descA, (void*)(-mtxfmt), ChamComplexDouble, nb, nb, nb * nb, LDA, K, 0, 0, Am, K, P, Q );
@@ -103,6 +111,7 @@ testing_zunmqr_hqr_desc( run_arg_list_t *args, int check )
     }
     test_data.hres = hres;
     testing_stop( &test_data, flops_zunmqr( side, M, N, K ) );
+    hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
 
     /* Checks the factorisation and orthogonality */
     if ( check ) {
@@ -169,6 +178,14 @@ testing_zunmqr_hqr_std( run_arg_list_t *args, int check )
     /* Calculates the dimensions according to the transposition and the side */
     Am = ( side == ChamLeft ) ? M : N;
 
+    if ( K > Am )
+    {
+        if ( CHAMELEON_Comm_rank() == 0 ) {
+            fprintf( stderr, "SKIPPED: Incorrect parameter K for unmqr\n" );
+        }
+        return -1;
+    }
+
     /* Creates the matrices */
     A = malloc( sizeof(CHAMELEON_Complex64_t) * LDA*K );
     C = malloc( sizeof(CHAMELEON_Complex64_t) * LDC*N );
@@ -195,6 +212,7 @@ testing_zunmqr_hqr_std( run_arg_list_t *args, int check )
     hres += CHAMELEON_zunmqr_param( &qrtree, side, trans, M, N, K, A, LDA, descTS, descTT, C, LDC );
     test_data.hres = hres;
     testing_stop( &test_data, flops_zunmqr( side, M, N, K ) );
+    hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
 
     /* Checks the factorisation and orthogonality */
     if ( check ) {

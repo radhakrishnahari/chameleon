@@ -35,6 +35,28 @@
 #include <stdlib.h>
 #include <limits.h>
 
+int _chameleon_silent = 0;
+
+__attribute__((unused)) __attribute__((constructor)) static void
+__chameleon_lib_init()
+{
+    _chameleon_silent = chameleon_getenv_get_value_int( "CHAMELEON_SILENT", _chameleon_silent );
+}
+
+void
+__chameleon_log_debug( const char *fmt, ... )
+{
+    va_list ap;
+
+    if ( _chameleon_silent ) {
+        return;
+    }
+
+    va_start( ap, fmt );
+    vfprintf( stderr, fmt, ap );
+    va_end(ap);
+}
+
 /**
  *
  *  Indicates a recoverable problem.

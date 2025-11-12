@@ -156,6 +156,7 @@ testing_zgesvd_desc( run_arg_list_t *args, int check )
     }
     test_data.hres = hres;
     testing_stop( &test_data, flops_zgesvd( M, N, K, jobu, jobvt ) );
+    hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
 
     /* Checks the factorisation and residue */
     if ( check ) {
@@ -259,6 +260,7 @@ testing_zgesvd_std( run_arg_list_t *args, int check )
     hres = CHAMELEON_zgesvd( jobu, jobvt, M, N, A, LDA, S, descT, U, LDU, Vt, LDVt );
     test_data.hres = hres;
     testing_stop( &test_data, flops_zgesvd( M, N, K, jobu, jobvt ) );
+    hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
 
     /* Checks the factorisation and residue */
     if ( check ) {

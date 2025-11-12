@@ -124,6 +124,7 @@ testing_zlantr_desc( run_arg_list_t *args, int check )
     }
     test_data.hres = hres;
     testing_stop( &test_data, flops_zlantr( norm_type, uplo, M, N ) );
+    hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
 
     /* Checks the solution */
     if ( check ) {
@@ -193,6 +194,7 @@ testing_zlantr_std( run_arg_list_t *args, int check )
     }
     test_data.hres = hres;
     testing_stop( &test_data, flops_zlantr( norm_type, uplo, M, N ) );
+    hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
 
     /* Checks the solution */
     if ( check ) {

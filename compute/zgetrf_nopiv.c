@@ -73,13 +73,13 @@ void *CHAMELEON_zgetrf_nopiv_WS_Alloc( const CHAM_desc_t *A )
         int lookahead = chamctxt->lookahead;
         options->use_workspace = 1;
 
-        chameleon_desc_init( &(options->WL), "GETRF_NP_WL", CHAMELEON_MAT_ALLOC_TILE,
+        chameleon_desc_init( chamctxt, &(options->WL), "GETRF_NP_WL", CHAMELEON_MAT_ALLOC_TILE,
                              ChamComplexDouble, A->mb, A->nb,
                              A->mt * A->mb, A->nb * Q * lookahead,
                              A->mt * A->mb, A->nb * Q * lookahead, P, Q,
                              NULL, NULL, A->get_rankof_init, A->get_rankof_init_arg );
 
-        chameleon_desc_init( &(options->WU), "GETRF_NP_WU", CHAMELEON_MAT_ALLOC_TILE,
+        chameleon_desc_init( chamctxt, &(options->WU), "GETRF_NP_WU", CHAMELEON_MAT_ALLOC_TILE,
                              ChamComplexDouble, A->mb, A->nb,
                              A->mb * P * lookahead, A->nt * A->nb,
                              A->mb * P * lookahead, A->nt * A->nb, P, Q,

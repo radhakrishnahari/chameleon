@@ -312,7 +312,7 @@ int CHAMELEON_zgeqrs_param_Tile_Async( const libhqr_tree_t *qrtree,
 #if defined(CHAMELEON_COPY_DIAG)
     {
         int n = chameleon_min( A->m, A->n );
-        chameleon_zdesc_copy_and_restrict( A, &D, A->m, n );
+        chameleon_zdesc_copy_and_restrict( chamctxt, A, &D, A->m, n );
         Dptr = &D;
     }
 #endif

@@ -195,18 +195,18 @@ chameleon_pzplrnk( int                         K,
          ( (chameleon_desc_datadist_get_iparam(C, 0) != 1) ||
            (chameleon_desc_datadist_get_iparam(C, 1) != 1) ) )
     {
-        chameleon_desc_init_2dtile( &WA, "PLRNK_WA", ChamComplexDouble,
+        chameleon_desc_init_2dtile( chamctxt, &WA, "PLRNK_WA", ChamComplexDouble,
                                     C->mb, C->nb, C->m, C->nb * Q, P, Q );
-        chameleon_desc_init_2dtile( &WB, "PLRNK_WB", ChamComplexDouble,
+        chameleon_desc_init_2dtile( chamctxt, &WB, "PLRNK_WB", ChamComplexDouble,
                                     C->mb, C->nb, C->mb * P, C->n, P, Q );
 
         chameleon_pzplrnk_2dbc( chamctxt, K, &WA, &WB, C, seedA, seedB, &options );
     }
     else {
         int np = P * Q;
-        chameleon_desc_init_2dtile( &WA, "PLRNK_WA", ChamComplexDouble,
+        chameleon_desc_init_2dtile( chamctxt, &WA, "PLRNK_WA", ChamComplexDouble,
                                     C->mb, C->nb, C->m, C->nb * np, 1, np );
-        chameleon_desc_init_2dtile( &WB, "PLRNK_WB", ChamComplexDouble,
+        chameleon_desc_init_2dtile( chamctxt, &WB, "PLRNK_WB", ChamComplexDouble,
                                     C->mb, C->nb, C->mb * np, C->n, np, 1 );
 
         chameleon_pzplrnk_generic( chamctxt, K, &WA, &WB, C, seedA, seedB, &options );

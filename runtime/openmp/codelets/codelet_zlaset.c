@@ -26,7 +26,8 @@ void INSERT_TASK_zlaset( const RUNTIME_option_t *options,
                          const CHAM_desc_t *A, int Am, int An )
 {
     CHAM_tile_t *tileA = A->get_blktile( A, Am, An );
-#pragma omp task firstprivate( uplo, m, n, alpha, beta, tileA ) depend( inout:tileA[0] )
+
+#pragma omp task firstprivate( uplo, m, n, alpha, beta, tileA ) depend( out:tileA[0] )
     TCORE_zlaset( uplo, m, n, alpha, beta, tileA );
 
     (void)options;

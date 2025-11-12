@@ -66,6 +66,7 @@ testing_zpotrf_desc( run_arg_list_t *args, int check )
     }
     test_data.hres = hres;
     testing_stop( &test_data, flops_zpotrf( N ) );
+    hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
 
     /* Checks the factorisation and residue */
     if ( check ) {
@@ -116,6 +117,7 @@ testing_zpotrf_std( run_arg_list_t *args, int check )
     hres = LAPACKE_zpotrf( LAPACK_COL_MAJOR, chameleon_lapack_const(uplo), N, A, LDA );
     test_data.hres = hres;
     testing_stop( &test_data, flops_zpotrf( N ) );
+    hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
 #else
     testing_start( &test_data );
     switch ( api ) {
@@ -136,6 +138,7 @@ testing_zpotrf_std( run_arg_list_t *args, int check )
     }
     test_data.hres = hres;
     testing_stop( &test_data, flops_zpotrf( N ) );
+    hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
 
     /* Checks the factorisation and residue */
     if ( check ) {

@@ -84,6 +84,7 @@ testing_zgetrs_desc( run_arg_list_t *args, int check )
     }
     test_data.hres = hres;
     testing_stop( &test_data, flops_zgetrs( N, NRHS ) );
+    hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
 
     /* Checks the factorization and residual */
 #if !defined(CHAMELEON_SIMULATION)
@@ -157,6 +158,7 @@ testing_zgetrs_std( run_arg_list_t *args, int check )
     hres = LAPACKE_zgetrs( LAPACK_COL_MAJOR, chameleon_lapack_const(trans), N, NRHS, A, LDA, IPIV, X, LDB );
     test_data.hres = hres;
     testing_stop( &test_data, flops_zgetrs( N, NRHS ) );
+    hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
 #else
     testing_start( &test_data );
     switch ( api ) {
@@ -177,6 +179,7 @@ testing_zgetrs_std( run_arg_list_t *args, int check )
     }
     test_data.hres = hres;
     testing_stop( &test_data, flops_zgetrs( N, NRHS ) );
+    hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
 
 #if !defined(CHAMELEON_SIMULATION)
     /* Checks the factorisation and residue */

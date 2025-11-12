@@ -182,7 +182,7 @@ RUNTIME_progress( CHAM_context_t *ctxt );
  * @retval The rank of the current thread in the runtime.
  */
 int
-RUNTIME_thread_rank( CHAM_context_t *ctxt );
+RUNTIME_thread_rank( const CHAM_context_t *ctxt );
 
 /**
  * @brief Get the number of CPU workers of the runtime.
@@ -193,7 +193,7 @@ RUNTIME_thread_rank( CHAM_context_t *ctxt );
  * @retval The number of threads currently used by the runtime.
  */
 int
-RUNTIME_thread_size( CHAM_context_t *ctxt );
+RUNTIME_thread_size( const CHAM_context_t *ctxt );
 
 /**
  * @brief Get the MPI comm rank of the current process related to the runtime.
@@ -204,7 +204,7 @@ RUNTIME_thread_size( CHAM_context_t *ctxt );
  * @retval The rank of the process in the communicator known by the runtime.
  */
 int
-RUNTIME_comm_rank( CHAM_context_t *ctxt );
+RUNTIME_comm_rank( const CHAM_context_t *ctxt );
 
 /**
  * @brief Get the MPI comm size related to the runtime.
@@ -215,7 +215,7 @@ RUNTIME_comm_rank( CHAM_context_t *ctxt );
  * @retval The size of the communicator known by the runtime.
  */
 int
-RUNTIME_comm_size( CHAM_context_t *ctxt );
+RUNTIME_comm_size( const CHAM_context_t *ctxt );
 
 /**
  * @}

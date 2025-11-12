@@ -74,7 +74,7 @@ int chameleon_alloc_ibnb_tile(int M, int N, cham_tasktype_t func, int type, CHAM
     ln = (int64_t)NB * (int64_t)NT;
 
     *desc = (CHAM_desc_t*)malloc(sizeof(CHAM_desc_t));
-    chameleon_desc_init_2dtile( *desc, "TS", type, IB, NB,
+    chameleon_desc_init_2dtile( chamctxt, *desc, "TS", type, IB, NB,
                                 lm, ln, p, q );
 
     return CHAMELEON_SUCCESS;
@@ -124,7 +124,7 @@ int chameleon_alloc_ipiv(int M, int N, cham_tasktype_t func, int type, CHAM_desc
     *IPIV = (int*)malloc( size );
     *desc = (CHAM_desc_t*)malloc(sizeof(CHAM_desc_t));
 
-    chameleon_desc_init_2dtile( *desc, "ipiv", type, IB, NB,
+    chameleon_desc_init_2dtile( chamctxt, *desc, "ipiv", type, IB, NB,
                                 lm, ln, p, q );
 
     return CHAMELEON_SUCCESS;

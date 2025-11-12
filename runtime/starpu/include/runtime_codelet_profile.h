@@ -27,7 +27,7 @@
 
 #define CHAMELEON_CL_CB(name, _m, _n, _k, _nflops)                                             \
     static measure_t name##_perf[STARPU_NMAXWORKERS];                                          \
-    void cl_##name##_callback(void*)                                                           \
+    void cl_##name##_callback(__attribute__((unused)) void* arg)                               \
     {                                                                                          \
         struct starpu_task *task = starpu_task_get_current();                                  \
         /* XXX we assume square tiles here ! */                                                \

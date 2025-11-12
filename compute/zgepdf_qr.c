@@ -102,9 +102,9 @@ int CHAMELEON_zgepdf_qr_Tile( int doqr, int optid,
 #if defined(CHAMELEON_COPY_DIAG)
     {
         int n = A1->n;
-        chameleon_zdesc_copy_and_restrict( A1, &D1, A1->m, n );
+        chameleon_zdesc_copy_and_restrict( chamctxt, A1, &D1, A1->m, n );
         D1ptr = &D1;
-        chameleon_zdesc_copy_and_restrict( A2, &D2, A2->m, n );
+        chameleon_zdesc_copy_and_restrict( chamctxt, A2, &D2, A2->m, n );
         D2ptr = &D2;
     }
 #endif

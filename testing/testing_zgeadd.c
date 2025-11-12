@@ -99,6 +99,7 @@ testing_zgeadd_desc( run_arg_list_t *args, int check )
     }
     test_data.hres = hres;
     testing_stop( &test_data, flops_zgeadd( M, N ) );
+    hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
 
     /* Check the solution */
     if ( check ) {
@@ -159,6 +160,7 @@ testing_zgeadd_std( run_arg_list_t *args, int check )
     hres = CHAMELEON_zgeadd( trans, M, N, alpha, A, LDA, beta, B, LDB );
     test_data.hres = hres;
     testing_stop( &test_data, flops_zgeadd( M, N ) );
+    hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
 
     /* Check the solution */
     if ( check ) {

@@ -53,7 +53,7 @@ testing_zgepdf_qdwh_desc( run_arg_list_t *args, int check )
 
     /* Descriptors */
     CHAM_desc_t *descA, *descH, *descA0;
-    gepdf_info_t info;
+    gepdf_info_t info = { .itQR = 0, .itPO = 0, .flops = 0. };
 
     CHAMELEON_Set( CHAMELEON_TILE_SIZE, nb );
     CHAMELEON_Set( CHAMELEON_INNER_BLOCK_SIZE, ib );
@@ -110,6 +110,7 @@ testing_zgepdf_qdwh_desc( run_arg_list_t *args, int check )
     }
     test_data.hres = hres;
     testing_stop( &test_data, info.flops );
+    hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
 
     /* Checks the solution */
     if ( check ) {
@@ -145,7 +146,7 @@ testing_zgepdf_qdwh_std( run_arg_list_t *args, int check )
 
     /* Descriptors */
     CHAMELEON_Complex64_t *A, *H, *A0;
-    gepdf_info_t info;
+    gepdf_info_t info = { .itQR = 0, .itPO = 0, .flops = 0. };
 
     CHAMELEON_Set( CHAMELEON_TILE_SIZE, nb );
     CHAMELEON_Set( CHAMELEON_INNER_BLOCK_SIZE, ib );
@@ -187,6 +188,7 @@ testing_zgepdf_qdwh_std( run_arg_list_t *args, int check )
     hres = CHAMELEON_zgepdf_qdwh( M, N, A, LDA, H, LDB, &info );
     test_data.hres = hres;
     testing_stop( &test_data, info.flops );
+    hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
 
     /* Checks the solution */
     if ( check ) {

@@ -132,7 +132,7 @@ int (*libCORE_zunmqr)(cham_side_t side, cham_trans_t trans, int M, int N, int K,
 int (*libCORE_zgesum)(cham_store_t storev, int M, int N, const CHAMELEON_Complex64_t * A, int LDA, CHAMELEON_Complex64_t * sum) = NULL;
 int (*libCORE_zcesca)(int center, int scale, cham_store_t axis, int M, int N, int Mt, int Nt, const CHAMELEON_Complex64_t * Gi, int LDGI, const CHAMELEON_Complex64_t * Gj, int LDGJ, const CHAMELEON_Complex64_t * G, const double *Di, int LDDI, const double *Dj, int LDDJ, CHAMELEON_Complex64_t * A, int LDA) = NULL;
 int (*libCORE_zgram)(cham_uplo_t uplo, int M, int N, int Mt, int Nt, const double *Di, int LDDI, const double *Dj, int LDDJ, const double *D, double *A, int LDA) = NULL;
-void (*libCORE_zprint)(FILE * file, const char *header, cham_uplo_t uplo, int m, int n, int Am, int An, const CHAMELEON_Complex64_t * A, int lda) = NULL;
+void (*libCORE_zprint)(FILE * file, const char *header, cham_uplo_t uplo, int m, int n, const CHAMELEON_Complex64_t * A, int lda) = NULL;
 
 
 
@@ -775,9 +775,9 @@ int CORE_zgram(cham_uplo_t uplo, int M, int N, int Mt, int Nt, const double *Di,
     return ret;
 }
 
-void CORE_zprint(FILE * file, const char *header, cham_uplo_t uplo, int m, int n, int Am, int An, const CHAMELEON_Complex64_t * A, int lda) {
+void CORE_zprint(FILE * file, const char *header, cham_uplo_t uplo, int m, int n, const CHAMELEON_Complex64_t * A, int lda) {
     FUNCTION_ENTRY;
-    libCORE_zprint(file, header, uplo, m, n, Am, An, A, lda);
+    libCORE_zprint(file, header, uplo, m, n, A, lda);
     FUNCTION_EXIT;
 
 }

@@ -374,7 +374,7 @@ int CHAMELEON_zgels_param_Tile_Async( const libhqr_tree_t *qrtree, cham_trans_t 
 #if defined(CHAMELEON_COPY_DIAG)
         {
             int n = chameleon_min( A->m, A->n );
-            chameleon_zdesc_copy_and_restrict( A, &D, A->m, n );
+            chameleon_zdesc_copy_and_restrict( chamctxt, A, &D, A->m, n );
             Dptr = &D;
         }
 #endif
@@ -428,7 +428,7 @@ int CHAMELEON_zgels_param_Tile_Async( const libhqr_tree_t *qrtree, cham_trans_t 
 #if defined(CHAMELEON_COPY_DIAG)
         {
             int m = chameleon_min( A->m, A->n );
-            chameleon_zdesc_copy_and_restrict( A, &D, m, A->n );
+            chameleon_zdesc_copy_and_restrict( chamctxt, A, &D, m, A->n );
             Dptr = &D;
         }
 #endif

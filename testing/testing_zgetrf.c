@@ -85,6 +85,7 @@ testing_zgetrf_desc( run_arg_list_t *args, int check )
     }
     test_data.hres = hres;
     testing_stop( &test_data, flops_zgetrf( M, N ) );
+    hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
 
     /* Checks the factorization and residual */
     if ( check ) {
@@ -146,6 +147,7 @@ testing_zgetrf_std( run_arg_list_t *args, int check )
     hres = LAPACKE_zgetrf( LAPACK_COL_MAJOR, M, N, A, LDA, IPIV );
     test_data.hres = hres;
     testing_stop( &test_data, flops_zgetrf( M, N ) );
+    hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
 #else
     testing_start( &test_data );
     switch ( api ) {
@@ -166,6 +168,7 @@ testing_zgetrf_std( run_arg_list_t *args, int check )
     }
     test_data.hres = hres;
     testing_stop( &test_data, flops_zgetrf( M, N ) );
+    hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
 
 #if !defined(CHAMELEON_SIMULATION)
     /* Checks the factorisation and residue */

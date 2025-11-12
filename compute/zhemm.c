@@ -170,9 +170,9 @@ void *CHAMELEON_zhemm_WS_Alloc( cham_side_t        side __attribute__((unused)),
     {
         int lookahead = chamctxt->lookahead;
 
-        chameleon_desc_init_2dtile( &(options->WA), "HEMM_WA", ChamComplexDouble,
+        chameleon_desc_init_2dtile( chamctxt, &(options->WA), "HEMM_WA", ChamComplexDouble,
                                     A->mb, A->nb, A->mb * C->mt, A->nb * Q * lookahead, P, Q );
-        chameleon_desc_init_2dtile( &(options->WB), "HEMM_WB", ChamComplexDouble,
+        chameleon_desc_init_2dtile( chamctxt, &(options->WB), "HEMM_WB", ChamComplexDouble,
                                     B->mb, B->nb, B->mb * P * lookahead, B->nb * C->nt, P, Q );
     }
 

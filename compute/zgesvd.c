@@ -467,7 +467,7 @@ int CHAMELEON_zgesvd_Tile_Async( cham_job_t jobu, cham_job_t jobvt,
     MINMN = chameleon_min(M, N);
 #if defined(CHAMELEON_COPY_DIAG)
     {
-        chameleon_zdesc_copy_and_restrict( A, &D, A->m, A->n );
+        chameleon_zdesc_copy_and_restrict( chamctxt, A, &D, A->m, A->n );
         Dptr = &D;
     }
 #endif

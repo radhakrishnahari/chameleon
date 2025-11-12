@@ -28,13 +28,19 @@ void INSERT_TASK_ztrmm( const RUNTIME_option_t *options,
 {
     CHAM_tile_t *tileA = A->get_blktile( A, Am, An );
     CHAM_tile_t *tileB = B->get_blktile( B, Bm, Bn );
-#pragma omp task firstprivate( side, uplo, transA, diag, m, n, alpha, tileA, tileB ) depend( in:tileA[0] ) depend( inout:tileB[0] )
-    TCORE_ztrmm( side, uplo,
-        transA, diag,
-        m, n,
-        alpha, tileA,
-        tileB );
 
+    if ( alpha == 0. ) {
+#pragma omp task firstprivate( m, n, alpha, tileB ) depend( inout:tileB[0] )
+        TCORE_zlaset( ChamUpperLower, m, n, alpha, alpha, tileB );
+    }
+    else {
+#pragma omp task firstprivate( side, uplo, transA, diag, m, n, alpha, tileA, tileB ) depend( in:tileA[0] ) depend( inout:tileB[0] )
+        TCORE_ztrmm( side, uplo,
+                     transA, diag,
+                     m, n,
+                     alpha, tileA,
+                     tileB );
+    }
     (void)options;
     (void)nb;
 }

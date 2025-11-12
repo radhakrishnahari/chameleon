@@ -341,7 +341,7 @@ CHAMELEON_zungqr_param_Tile_Async( const libhqr_tree_t *qrtree, CHAM_desc_t *A,
 
 #if defined( CHAMELEON_COPY_DIAG )
     {
-        chameleon_zdesc_copy_and_restrict( A, &D, A->m, K );
+        chameleon_zdesc_copy_and_restrict( chamctxt, A, &D, A->m, K );
         Dptr = &D;
     }
 #endif
