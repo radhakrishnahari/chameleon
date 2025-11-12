@@ -64,6 +64,14 @@ testing_zunmlq_hqr_desc( run_arg_list_t *args, int check )
     /* Calculates the dimensions according to the transposition and the side */
     An = ( side == ChamLeft ) ? M : N;
 
+    if ( K > An )
+    {
+        if ( CHAMELEON_Comm_rank() == 0 ) {
+            fprintf( stderr, "SKIPPED: Incorrect parameter K for unmqr\n" );
+        }
+        return -1;
+    }
+
     /* Creates the matrices */
     CHAMELEON_Desc_Create(
         &descA, (void*)(-mtxfmt), ChamComplexDouble, nb, nb, nb * nb, LDA, An, 0, 0, K, An, P, Q );
@@ -169,6 +177,14 @@ testing_zunmlq_hqr_std( run_arg_list_t *args, int check )
 
     /* Calculates the dimensions according to the transposition and the side */
     An = ( side == ChamLeft ) ? M : N;
+
+    if ( K > An )
+    {
+        if ( CHAMELEON_Comm_rank() == 0 ) {
+            fprintf( stderr, "SKIPPED: Incorrect parameter K for unmqr\n" );
+        }
+        return -1;
+    }
 
     /* Creates the matrices */
     A = malloc( sizeof(CHAMELEON_Complex64_t) * LDA*An );

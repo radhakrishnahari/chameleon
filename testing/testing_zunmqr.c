@@ -66,6 +66,14 @@ testing_zunmqr_desc( run_arg_list_t *args, int check )
     /* Calculates the dimensions according to the transposition and the side */
     Am = ( side == ChamLeft ) ? M : N;
 
+    if ( K > Am )
+    {
+        if ( CHAMELEON_Comm_rank() == 0 ) {
+            fprintf( stderr, "SKIPPED: Incorrect parameter K for unmqr\n" );
+        }
+        return -1;
+    }
+
     /* Creates the matrices */
     CHAMELEON_Desc_Create(
         &descA, (void*)(-mtxfmt), ChamComplexDouble, nb, nb, nb * nb, LDA, K, 0, 0, Am, K, P, Q );
@@ -84,14 +92,14 @@ testing_zunmqr_desc( run_arg_list_t *args, int check )
     /* Computes unmqr */
     testing_start( &test_data );
     if ( async ) {
-        hres += CHAMELEON_zunmqr_Tile_Async( side, trans, descA, descT, descC,
+        hres = CHAMELEON_zunmqr_Tile_Async( side, trans, descA, descT, descC,
                                              test_data.sequence, &test_data.request );
         CHAMELEON_Desc_Flush( descA, test_data.sequence );
         CHAMELEON_Desc_Flush( descT, test_data.sequence );
         CHAMELEON_Desc_Flush( descC, test_data.sequence );
     }
     else {
-        hres += CHAMELEON_zunmqr_Tile( side, trans, descA, descT, descC );
+        hres = CHAMELEON_zunmqr_Tile( side, trans, descA, descT, descC );
     }
     test_data.hres = hres;
     testing_stop( &test_data, flops_zunmqr( side, M, N, K ) );
@@ -162,6 +170,14 @@ testing_zunmqr_std( run_arg_list_t *args, int check )
     /* Calculates the dimensions according to the transposition and the side */
     Am = ( side == ChamLeft ) ? M : N;
 
+    if ( K > Am )
+    {
+        if ( CHAMELEON_Comm_rank() == 0 ) {
+            fprintf( stderr, "SKIPPED: Incorrect parameter K for unmqr\n" );
+        }
+        return -1;
+    }
+
     /* Creates the matrices */
     A = malloc( sizeof(CHAMELEON_Complex64_t) * LDA*K );
     C = malloc( sizeof(CHAMELEON_Complex64_t) * LDC*N );
@@ -173,10 +189,11 @@ testing_zunmqr_std( run_arg_list_t *args, int check )
 
     /* Computes the factorization */
     hres = CHAMELEON_zgeqrf( Am, K, A, LDA, descT );
+    assert( hres == 0 );
 
     /* Computes unmqr */
     testing_start( &test_data );
-    hres += CHAMELEON_zunmqr( side, trans, M, N, K, A, LDA, descT, C, LDC );
+    hres = CHAMELEON_zunmqr( side, trans, M, N, K, A, LDA, descT, C, LDC );
     test_data.hres = hres;
     testing_stop( &test_data, flops_zunmqr( side, M, N, K ) );
     hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
