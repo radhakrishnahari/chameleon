@@ -69,6 +69,7 @@ testing_zpotri_desc( run_arg_list_t *args, int check )
     }
     test_data.hres = hres;
     testing_stop( &test_data, flops_zpotri( N ) );
+    hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
 
     /* Check the inverse */
     if ( check ) {
@@ -126,6 +127,7 @@ testing_zpotri_std( run_arg_list_t *args, int check )
     hres += LAPACKE_zpotri( LAPACK_COL_MAJOR, chameleon_lapack_const(uplo), N, A, LDA );
     test_data.hres = hres;
     testing_stop( &test_data, flops_zpotri( N ) );
+    hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
 #else
     testing_start( &test_data );
     switch ( api ) {
@@ -146,6 +148,7 @@ testing_zpotri_std( run_arg_list_t *args, int check )
     }
     test_data.hres = hres;
     testing_stop( &test_data, flops_zpotri( N ) );
+    hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
 
     /* Check the inverse */
     if ( check ) {

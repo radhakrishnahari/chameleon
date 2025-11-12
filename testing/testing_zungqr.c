@@ -102,6 +102,7 @@ testing_zungqr_desc( run_arg_list_t *args, int check )
     }
     test_data.hres = hres;
     testing_stop( &test_data, flops_zungqr( M, N, K ) );
+    hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
 
     /* Checks the factorisation and orthogonality */
     if ( check ) {
@@ -184,6 +185,7 @@ testing_zungqr_std( run_arg_list_t *args, int check )
     hres = CHAMELEON_zungqr( M, N, K, A, LDA, descT, Qlap, LDA );
     test_data.hres = hres;
     testing_stop( &test_data, flops_zungqr( M, N, K ) );
+    hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
 
     /* Checks the factorisation and orthogonality */
     if ( check ) {

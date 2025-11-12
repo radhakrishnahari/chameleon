@@ -110,6 +110,7 @@ testing_zgepdf_qdwh_desc( run_arg_list_t *args, int check )
     }
     test_data.hres = hres;
     testing_stop( &test_data, info.flops );
+    hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
 
     /* Checks the solution */
     if ( check ) {
@@ -187,6 +188,7 @@ testing_zgepdf_qdwh_std( run_arg_list_t *args, int check )
     hres = CHAMELEON_zgepdf_qdwh( M, N, A, LDA, H, LDB, &info );
     test_data.hres = hres;
     testing_stop( &test_data, info.flops );
+    hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
 
     /* Checks the solution */
     if ( check ) {

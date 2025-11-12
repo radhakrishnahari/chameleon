@@ -93,6 +93,7 @@ testing_zsyrk_desc( run_arg_list_t *args, int check )
     }
     test_data.hres = hres;
     testing_stop( &test_data, flops_zsyrk( K, N ) );
+    hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
 
     /* Checks the solution */
     if ( check ) {
@@ -189,6 +190,7 @@ testing_zsyrk_std( run_arg_list_t *args, int check )
     }
     test_data.hres = hres;
     testing_stop( &test_data, flops_zsyrk( K, N ) );
+    hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
 
     /* Checks the solution */
     if ( check ) {

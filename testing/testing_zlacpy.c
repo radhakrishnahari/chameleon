@@ -104,6 +104,7 @@ testing_zlacpy_desc( run_arg_list_t *args, int check )
     }
     test_data.hres = hres;
     testing_stop( &test_data, flops_zlacpy( uplo, M, N ) );
+    hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
 
     /* Checks their differences */
     if ( check ) {
@@ -166,6 +167,7 @@ testing_zlacpy_std( run_arg_list_t *args, int check )
     }
     test_data.hres = hres;
     testing_stop( &test_data, flops_zlacpy( uplo, M, N ) );
+    hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
 
     /* Checks their differences */
     if ( check ) {

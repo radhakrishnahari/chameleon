@@ -103,6 +103,7 @@ testing_zhemm_desc( run_arg_list_t *args, int check )
     }
     test_data.hres = hres;
     testing_stop( &test_data, flops_zhemm( side, M, N ) );
+    hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
 
     if ( ws != NULL ) {
         CHAMELEON_zhemm_WS_Free( ws );
@@ -203,6 +204,7 @@ testing_zhemm_std( run_arg_list_t *args, int check )
     }
     test_data.hres = hres;
     testing_stop( &test_data, flops_zhemm( side, M, N ) );
+    hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
 
     /* Checks the solution */
     if ( check ) {

@@ -92,6 +92,7 @@ testing_zherk_batch_desc( run_arg_list_t *args, int check )
     /* Stop measurement */
     test_data.hres = hres;
     testing_stop( &test_data, flops_zherk_batch( nb*ib, K, N ) );
+    hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
 
     /* Check the solution */
     if ( check ) {

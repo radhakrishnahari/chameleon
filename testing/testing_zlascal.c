@@ -93,6 +93,7 @@ testing_zlascal_desc( run_arg_list_t *args, int check )
     }
     test_data.hres = hres;
     testing_stop( &test_data, flops_zlascal( uplo, M, N ) );
+    hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
 
     /* Checks the solution */
     if ( check ) {
@@ -141,6 +142,7 @@ testing_zlascal_std( run_arg_list_t *args, int check )
     hres = CHAMELEON_zlascal( uplo, M, N, alpha, A, LDA );
     test_data.hres = hres;
     testing_stop( &test_data, flops_zlascal( uplo, M, N ) );
+    hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
 
     /* Checks the solution */
     if ( check ) {

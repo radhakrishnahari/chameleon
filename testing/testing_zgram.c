@@ -81,6 +81,7 @@ testing_zgram_desc( run_arg_list_t *args, int check )
     }
     test_data.hres = hres;
     testing_stop( &test_data, flops_zgram( N ) );
+    hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
 
     if ( ws != NULL ) {
         CHAMELEON_zgemm_WS_Free( ws );
@@ -121,6 +122,7 @@ testing_zgram_std( run_arg_list_t *args, int check )
     hres = CHAMELEON_zgram( uplo, N, A, LDA );
     test_data.hres = hres;
     testing_stop( &test_data, flops_zgram( N ) );
+    hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
 
     free( A );
 

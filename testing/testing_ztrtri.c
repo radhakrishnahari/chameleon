@@ -65,6 +65,7 @@ testing_ztrtri_desc( run_arg_list_t *args, int check )
     }
     test_data.hres = hres;
     testing_stop( &test_data, flops_ztrtri( N ) );
+    hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
 
     /* Checks the inverse */
     if ( check ) {
@@ -127,6 +128,7 @@ testing_ztrtri_std( run_arg_list_t *args, int check )
     }
     test_data.hres = hres;
     testing_stop( &test_data, flops_ztrtri( N ) );
+    hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
 
     /* Checks the inverse */
     if ( check ) {

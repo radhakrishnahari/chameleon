@@ -105,6 +105,7 @@ testing_zlaswp_desc( run_arg_list_t *args, int check )
     }
     test_data.hres = hres;
     testing_stop( &test_data, flops_zlaswp( M, N ) );
+    hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
 
     if ( ws != NULL ) {
         CHAMELEON_zlaswp_WS_Free( ws );

@@ -82,6 +82,7 @@ testing_zcesca_desc( run_arg_list_t *args, int check )
     }
     test_data.hres = hres;
     testing_stop( &test_data, flops_zcesca( M, N ) );
+    hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
 
     if ( ws != NULL ) {
         CHAMELEON_zgemm_WS_Free( ws );
@@ -122,6 +123,7 @@ testing_zcesca_std( run_arg_list_t *args, int check )
     hres = CHAMELEON_zcesca( 1, 1, ChamColumnwise, M, N, A, LDA, NULL, NULL );
     test_data.hres = hres;
     testing_stop( &test_data, flops_zcesca( M, N ) );
+    hres = ( hres == CHAMELEON_SUCCESS ) ? 0 : 1;
 
     free( A );
 
