@@ -264,7 +264,7 @@ chameleon_pzgeqdwh_condest_qr( CHAM_context_t *chamctxt,
                                RUNTIME_sequence_t *sequence, RUNTIME_request_t *request )
 {
     CHAM_desc_t *upperA;
-    double       Ainvnorm, Li;
+    double       Li, Ainvnorm = -1.;
 
     /*
      * Use QR for cond-est

@@ -391,13 +391,13 @@ void chameleon_pzlange_generic( cham_normtype_t norm, cham_uplo_t uplo, cham_dia
     int P = chameleon_desc_datadist_get_iparam(A, 0);
     int Q = chameleon_desc_datadist_get_iparam(A, 1);
 
+    *result = -1.0;
+
     chamctxt = chameleon_context_self();
     if ( sequence->status != CHAMELEON_SUCCESS ) {
         return;
     }
     RUNTIME_options_init(&options, chamctxt, sequence, request);
-
-    *result = 0.0;
 
     workmt = chameleon_max( A->mt, P );
     worknt = chameleon_max( A->nt, Q );
