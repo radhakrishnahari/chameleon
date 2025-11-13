@@ -25,8 +25,22 @@
 #
 ###
 
-if (NOT EZTRACE_FOUND)
-    find_package(EZTRACE)
+set(CHAMELEON_ENABLE_EZTRACE OFF CACHE INTERNAL "Enable if available the EZTrace modules")
+cmake_dependent_option(CHAMELEON_USE_EZTRACE
+                    "Enable Kernel Tracing with eztrace" OFF
+                    "BUILD_SHARED_LIBS" OFF)
+
+if (NOT EZTRACE_FOUND AND CHAMELEON_USE_EZTRACE)
+    find_package(EZTRACE REQUIRED)
+    set(CHAMELEON_ENABLE_EZTRACE ON FORCE)
+endif()
+
+if ( CHAMELEON_ENABLE_EZTRACE )
+    set(BUILD_SHARED_LIBS ON CACHE BOOL "" FORCE)
+
+    set(EZTRACE_INCLUDE_DIRS ${EZTRACE_INCLUDE_DIRS} CACHE INTERNAL "EZTRACE include directory")
+    set(EZTRACE_LINK_LIBRARIES ${EZTRACE_LINK_LIBRARIES} CACHE INTERNAL "EZTRACE lib directory")
+
 endif()
 
 if (EZTRACE_FOUND AND CHAMELEON_USE_EZTRACE)
