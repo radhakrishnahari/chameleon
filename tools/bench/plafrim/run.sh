@@ -38,14 +38,14 @@ else
 fi
 
 # define env var and guix rule to use depending on the mpi vendor
-GUIX_ENV="chameleon"
+GUIX_ENV="chameleon-mkl"
 export MPI_OPTIONS=""
 if [[ "$MPI" == "openmpi" ]]; then
   export MPI_OPTIONS="--bind-to board"
   GUIX_ENV_MPI=""
   GUIX_ADHOC_MPI=""
   if [[ "$NODE" == "sirocco" ]]; then
-    GUIX_ENV="chameleon-cuda"
+    GUIX_ENV="chameleon-cuda-mkl"
   fi
 elif [[ "$MPI" == "nmad" ]]; then
   export MPI_OPTIONS="-DPIOM_DEDICATED=1 -DPIOM_DEDICATED_WAIT=1 hwloc-bind --cpubind machine:0"
@@ -55,7 +55,7 @@ else
   echo "$0: Please set the MPI environnement variable to openmpi or nmad."
   exit -1
 fi
-GUIX_ADHOC="coreutils gawk grep hwloc jube nss-certs openssh perl python python-click python-certifi python-elasticsearch python-gitpython python-matplotlib python-pandas python-seaborn r-ggplot2 r-plyr r-reshape2 sed slurm intel-oneapi-mkl"
+GUIX_ADHOC="coreutils gawk grep hwloc jube nss-certs openssh perl python python-click python-certifi python-elasticsearch python-gitpython python-matplotlib python-pandas python-seaborn r-ggplot2 r-plyr r-reshape2 sed slurm"
 GUIX_RULE="-D $GUIX_ENV $GUIX_ENV_MPI $GUIX_ADHOC $GUIX_ADHOC_MPI"
 
 # Submit jobs
