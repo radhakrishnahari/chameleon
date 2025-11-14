@@ -18,6 +18,10 @@ unset STARPU_WORKERS_NOBIND
 # to avoid a lock during fetching chameleon branch in parallel
 export XDG_CACHE_HOME=/tmp/guix-$$
 
+# take advantage of the existing local Guix cache
+mkdir -p $XDG_CACHE_HOME
+cp -ar $HOME/.cache/guix $XDG_CACHE_HOME
+
 # save guix commits
 #guix describe --format=json > guix.json
 guix time-machine --url=https://codeberg.org/guix/guix-mirror.git \
@@ -55,7 +59,7 @@ else
   echo "$0: Please set the MPI environnement variable to openmpi or nmad."
   exit -1
 fi
-GUIX_ADHOC="coreutils gawk grep hwloc jube nss-certs openssh perl python python-click python-certifi python-elasticsearch python-gitpython python-matplotlib python-pandas python-seaborn r-ggplot2 r-plyr r-reshape2 sed slurm"
+GUIX_ADHOC="coreutils gawk grep hwloc jube perl slurm@23"
 GUIX_RULE="-D $GUIX_ENV $GUIX_ENV_MPI $GUIX_ADHOC $GUIX_ADHOC_MPI"
 
 # Submit jobs
@@ -65,10 +69,18 @@ exec guix time-machine \
        --url=https://codeberg.org/guix/guix-mirror.git \
        --channels=./tools/bench/guix-channels.scm \
        -- shell --pure \
-       --preserve="PLATFORM|NODE|^CI|proxy$|^SLURM|^JUBE|^MPI|^STARPU|^CHAMELEON" \
+       --preserve="PLATFORM|NODE|^CI|^SLURM|^JUBE|^MPI|^STARPU|^CHAMELEON" \
        $GUIX_RULE \
        -- /bin/bash --norc ./tools/bench/plafrim/slurm.sh
 err=$?
+
+# send results to the elasticsearch server
+guix time-machine --url=https://codeberg.org/guix/guix-mirror.git \
+  --channels=./tools/bench/guix-channels-elk.scm \
+  -- shell --pure --preserve="proxy$" \
+  curl nss-certs python python-click python-certifi python-elasticsearch python-gitpython \
+  -- python3 tools/bench/jube/add_result.py -e https://elasticsearch.bordeaux.inria.fr \
+  -t hiepacs -p chameleon -m $MPI chameleon\-$NODE\-$MPI.csv
 
 # clean tmp
 rm -rf /tmp/guix-$$
