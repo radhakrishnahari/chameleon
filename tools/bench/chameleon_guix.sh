@@ -40,5 +40,5 @@ cat chameleon\-$NODE\-$MPI.csv
 
 # send results to the elasticsearch server
 #ls guix.json
-python3 tools/bench/jube/add_result.py -e https://elasticsearch.bordeaux.inria.fr -t hiepacs -p "chameleon" -m $MPI chameleon\-$NODE\-$MPI.csv
+# python3 tools/bench/jube/add_result.py -e https://elasticsearch.bordeaux.inria.fr -t hiepacs -p "chameleon" -m $MPI chameleon\-$NODE\-$MPI.csv
 #python3 tools/bench/jube/add_result.py -e https://elasticsearch.bordeaux.inria.fr -t hiepacs -p "chameleon-test" -m $MPI chameleon\-$NODE\-$MPI.csv

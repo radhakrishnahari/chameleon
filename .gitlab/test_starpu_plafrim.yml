@@ -9,7 +9,7 @@
     - guix shell --fallback --pure --preserve=SYSTEM --preserve=VERSION
                  --preserve=LOGNAME --preserve=BUILD_OPTIONS
                  --preserve=TESTS_RESTRICTION --preserve=SLURM_CONSTRAINTS
-                 -D chameleon-${GPU_BACKEND} ${BLAS} slurm coreutils inetutils bash-minimal --
+                 -D chameleon-${GPU_BACKEND} ${BLAS} slurm@23 coreutils inetutils bash-minimal --
                  bash .gitlab/sbatch.sh ${LOGNAME} | tee ${LOGNAME}.log
   artifacts:
     name: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
